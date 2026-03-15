@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UI Mockups — Headhunt Manager</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Inter, sans-serif;
+            background: #0f172a;
+            color: #f1f5f9;
+            padding: 40px;
+        }
+        h1 {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+        .subtitle {
+            color: #94a3b8;
+            margin-bottom: 48px;
+            font-size: 16px;
+        }
+        .screen {
+            margin-bottom: 56px;
+        }
+        .screen h2 {
+            font-size: 20px;
+            color: #818cf8;
+            margin-bottom: 4px;
+        }
+        .screen p {
+            color: #94a3b8;
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+        .screen img {
+            width: 100%;
+            max-width: 1200px;
+            border-radius: 12px;
+            border: 1px solid #334155;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+        .grid img {
+            width: 100%;
+        }
+        .color-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 48px;
+            flex-wrap: wrap;
+        }
+        .color-swatch {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #1e293b;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+        }
+        .color-swatch .dot {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+        }
+        hr {
+            border: none;
+            border-top: 1px solid #334155;
+            margin: 48px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎨 UI Mockups — Headhunt Manager</h1>
+    <p class="subtitle">Style: Hiện đại, gọn gàng (Notion/Linear) · Light + Dark mode · Font: Inter</p>
+
+    <div class="color-bar">
+        <div class="color-swatch"><div class="dot" style="background:#6366F1"></div> Primary #6366F1</div>
+        <div class="color-swatch"><div class="dot" style="background:#10B981"></div> Success #10B981</div>
+        <div class="color-swatch"><div class="dot" style="background:#F59E0B"></div> Warning #F59E0B</div>
+        <div class="color-swatch"><div class="dot" style="background:#EF4444"></div> Danger #EF4444</div>
+        <div class="color-swatch"><div class="dot" style="background:#3B82F6"></div> Info #3B82F6</div>
+    </div>
+
+    <hr>
+
+    <div class="screen">
+        <h2>1. Dashboard</h2>
+        <p>Tổng quan: số ứng viên, số DN, job đang mở, placement gần đây</p>
+        <div class="grid">
+            <div>
+                <img src="mockups/dashboard_light.png" alt="Dashboard Light Mode">
+                <p style="text-align:center; margin-top:8px">☀️ Light Mode</p>
+            </div>
+            <div>
+                <img src="mockups/dashboard_dark.png" alt="Dashboard Dark Mode">
+                <p style="text-align:center; margin-top:8px">🌙 Dark Mode</p>
+            </div>
+        </div>
+    </div>
+
+    <hr>
+
+    <div class="screen">
+        <h2>2. Danh sách Ứng viên</h2>
+        <p>Tìm kiếm, lọc theo ngành/khu vực/lương/trạng thái, quản lý tags</p>
+        <img src="mockups/candidates_list.png" alt="Candidate List">
+    </div>
+
+    <hr>
+
+    <div class="screen">
+        <h2>3. Chi tiết Ứng viên</h2>
+        <p>Hồ sơ đầy đủ, thông tin nghề nghiệp, CV, ghi chú timeline, jobs liên quan</p>
+        <img src="mockups/candidate_detail.png" alt="Candidate Detail">
+    </div>
+
+    <hr>
+
+    <div class="screen">
+        <h2>4. Chi tiết Job Order</h2>
+        <p>Thông tin job, pipeline ứng viên (Giới thiệu → Phỏng vấn → Offer → Placed)</p>
+        <img src="mockups/job_detail.png" alt="Job Detail">
+    </div>
+
+    <hr>
+
+    <p style="color:#64748b; text-align:center; margin-top:32px">
+        Headhunt Manager · UI Mockups · 2026-03-15
+    </p>
+</body>
+</html>

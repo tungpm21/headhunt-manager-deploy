@@ -1,0 +1,86 @@
+{
+  "updated_at": "2026-03-15T16:51:14+07:00",
+  "working_on": {
+    "feature": "MVP Planning & Design",
+    "task": "Completed brainstorm, plan, design, and visualize phases",
+    "status": "planning_complete",
+    "next_step": "/code phase-01 (Setup & Foundation)",
+    "files": [],
+    "blockers": [],
+    "notes": "Tất cả docs đã tạo xong, sẵn sàng code"
+  },
+  "pending_tasks": [
+    {
+      "task": "Phase 01: Setup & Foundation",
+      "priority": "high",
+      "notes": "Tạo Next.js project, install deps, folder structure"
+    },
+    {
+      "task": "Phase 02: Database & Auth",
+      "priority": "high",
+      "notes": "Prisma schema đã viết sẵn trong DESIGN.md"
+    },
+    {
+      "task": "Phase 03: Candidate Management",
+      "priority": "high",
+      "notes": "Core feature - 15 tasks"
+    },
+    {
+      "task": "Phase 04: Client Management",
+      "priority": "medium",
+      "notes": "8 tasks"
+    },
+    {
+      "task": "Phase 05: Job Order Management",
+      "priority": "medium",
+      "notes": "10 tasks, depends on Phase 03 + 04"
+    },
+    {
+      "task": "Phase 06: Excel Import & Polish",
+      "priority": "medium",
+      "notes": "10 tasks"
+    }
+  ],
+  "recent_changes": [
+    {
+      "timestamp": "2026-03-15T16:24:23+07:00",
+      "type": "init",
+      "description": "Khởi tạo workspace headhunt-manager"
+    },
+    {
+      "timestamp": "2026-03-15T16:31:00+07:00",
+      "type": "brainstorm",
+      "description": "Brainstorm features + market research (ATS competitors)"
+    },
+    {
+      "timestamp": "2026-03-15T16:34:31+07:00",
+      "type": "plan",
+      "description": "Tạo plan MVP với 6 phases, 57 tasks"
+    },
+    {
+      "timestamp": "2026-03-15T16:37:57+07:00",
+      "type": "design",
+      "description": "Thiết kế DB (9 tables, Prisma schema), 12 screens, 4 user flows, API endpoints"
+    },
+    {
+      "timestamp": "2026-03-15T16:43:21+07:00",
+      "type": "visualize",
+      "description": "Tạo 5 UI mockups (Dashboard light/dark, Candidates list, Candidate detail, Job detail), design-specs.md"
+    }
+  ],
+  "decisions_made": [
+    {
+      "decision": "Web App",
+      "reason": "Team 4 người, cần multi-device access"
+    },
+    {
+      "decision": "Next.js + PostgreSQL + Prisma",
+      "reason": "Full-stack, mạnh, miễn phí"
+    },
+    {
+      "decision": "Light + Dark mode, Notion/Linear style",
+      "reason": "User chọn: hiện đại, gọn gàng"
+    }
+  ],
+  "errors_encountered": []
+}

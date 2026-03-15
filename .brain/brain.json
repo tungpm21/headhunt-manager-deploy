@@ -1,0 +1,114 @@
+{
+  "meta": {
+    "schema_version": "1.1.0",
+    "awf_version": "4.0.2",
+    "last_updated": "2026-03-15T16:51:14+07:00"
+  },
+  "project": {
+    "name": "headhunt-manager",
+    "type": "web-app",
+    "description": "Hệ thống quản lý hồ sơ ứng viên và quy trình headhunt cho team nhỏ 4 người. Thay thế Excel.",
+    "status": "planning",
+    "created_at": "2026-03-15T16:24:23+07:00"
+  },
+  "tech_stack": {
+    "frontend": {
+      "framework": "Next.js 15 (App Router)",
+      "ui": "React 19",
+      "styling": "TailwindCSS",
+      "icons": "Lucide Icons",
+      "font": "Inter (Google Fonts)"
+    },
+    "backend": {
+      "runtime": "Next.js API Routes / Server Actions",
+      "orm": "Prisma"
+    },
+    "database": {
+      "type": "PostgreSQL",
+      "orm": "Prisma ORM"
+    },
+    "auth": {
+      "library": "NextAuth.js",
+      "method": "Email/Password"
+    },
+    "file_storage": "Local disk (uploads/)"
+  },
+  "database_schema": {
+    "summary": "App lưu: tài khoản team (User), hồ sơ ứng viên (Candidate) với ghi chú và tags, doanh nghiệp khách hàng (Client) với người liên hệ, đơn hàng tuyển dụng (JobOrder) với danh sách ứng viên gán.",
+    "tables": [
+      "User - Tài khoản team (4 người, có role ADMIN/MEMBER)",
+      "Candidate - Hồ sơ ứng viên (tên, SĐT, email, vị trí, ngành, kinh nghiệm, lương, CV, trạng thái, nguồn)",
+      "Tag - Nhãn/tags (Senior, Java, Sales...)",
+      "CandidateTag - Nối ứng viên ↔ tag (many-to-many)",
+      "CandidateNote - Ghi chú cho ứng viên (ai viết, lúc nào, nội dung)",
+      "Client - Doanh nghiệp khách hàng (tên, ngành, quy mô, địa chỉ)",
+      "ClientContact - Người liên hệ của DN (tên, chức vụ, SĐT, email)",
+      "JobOrder - Đơn hàng tuyển dụng (vị trí, JD, lương, deadline, trạng thái, phí)",
+      "JobCandidate - Gán ứng viên vào job với stage tracking (Sourced→Contacted→Interview→Offer→Placed/Rejected)"
+    ],
+    "relationships_explained": "1 User tạo nhiều Candidate/Client/JobOrder. 1 Candidate có nhiều Tags, nhiều Notes, thuộc nhiều Jobs. 1 Client có nhiều Contacts, nhiều JobOrders. 1 JobOrder thuộc 1 Client, có nhiều Candidates gán vào."
+  },
+  "features": {
+    "mvp": [
+      "Quản lý ứng viên (CRUD, tìm kiếm, lọc, ghi chú, tags, upload CV)",
+      "Quản lý khách hàng doanh nghiệp (CRUD, người liên hệ)",
+      "Job Order (tạo, gán ứng viên, tracking stage, trạng thái)",
+      "Đăng nhập team 4 người (email/password, phân quyền Admin/Member)",
+      "Import dữ liệu từ Excel"
+    ],
+    "phase2": [
+      "Pipeline/Kanban view cho Job Order",
+      "Dashboard & báo cáo tổng quan",
+      "Nhắc nhở / Reminder",
+      "Activity Log",
+      "Export báo cáo (Excel/PDF)"
+    ],
+    "phase3": [
+      "Báo cáo doanh thu / phí dịch vụ",
+      "Báo cáo hiệu suất team",
+      "Analytics nguồn ứng viên"
+    ]
+  },
+  "design": {
+    "style": "Modern, clean (Notion/Linear inspired)",
+    "theme": "Light + Dark mode (toggle)",
+    "primary_color": "#6366F1 (Indigo)",
+    "font": "Inter",
+    "screens": [
+      "Login",
+      "Dashboard",
+      "Candidate List",
+      "Candidate New",
+      "Candidate Detail",
+      "Client List",
+      "Client New",
+      "Client Detail",
+      "Job List",
+      "Job New",
+      "Job Detail",
+      "Import Excel"
+    ]
+  },
+  "decisions": [
+    {
+      "decision": "Web App (không phải mobile/desktop)",
+      "reason": "Team 4 người cần truy cập cùng lúc từ nhiều thiết bị"
+    },
+    {
+      "decision": "Next.js full-stack",
+      "reason": "Vừa frontend vừa backend trong 1 project, dễ deploy"
+    },
+    {
+      "decision": "PostgreSQL + Prisma",
+      "reason": "Database mạnh, miễn phí, Prisma giúp thao tác DB dễ dàng"
+    },
+    {
+      "decision": "Soft delete (isDeleted flag)",
+      "reason": "Không xóa hẳn dữ liệu, tránh mất data quan trọng"
+    },
+    {
+      "decision": "Light + Dark mode",
+      "reason": "User yêu cầu cả hai, toggle chuyển đổi"
+    }
+  ]
+}

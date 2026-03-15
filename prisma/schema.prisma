@@ -1,13 +1,229 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
+// Headhunt Manager - Database Schema
+// Based on DESIGN.md specifications
 
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+// ==================== ENUMS ====================
+
+enum UserRole {
+  ADMIN
+  MEMBER
+}
+
+enum CandidateStatus {
+  AVAILABLE
+  EMPLOYED
+  INTERVIEWING
+  BLACKLIST
+}
+
+enum CandidateSource {
+  LINKEDIN
+  TOPCV
+  REFERRAL
+  FACEBOOK
+  VIETNAMWORKS
+  OTHER
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum CompanySize {
+  SMALL
+  MEDIUM
+  LARGE
+  ENTERPRISE
+}
+
+enum JobStatus {
+  OPEN
+  PAUSED
+  FILLED
+  CANCELLED
+}
+
+enum FeeType {
+  PERCENTAGE
+  FIXED
+}
+
+enum JobCandidateStage {
+  SOURCED
+  CONTACTED
+  INTERVIEW
+  OFFER
+  PLACED
+  REJECTED
+}
+
+// ==================== MODELS ====================
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String
+  role      UserRole @default(MEMBER)
+  avatar    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  createdCandidates Candidate[]     @relation("CandidateCreatedBy")
+  createdClients    Client[]        @relation("ClientCreatedBy")
+  createdJobOrders  JobOrder[]      @relation("JobCreatedBy")
+  assignedJobOrders JobOrder[]      @relation("JobAssignedTo")
+  candidateNotes    CandidateNote[]
+}
+
+model Candidate {
+  id              Int              @id @default(autoincrement())
+  fullName        String
+  phone           String?
+  email           String?
+  dateOfBirth     DateTime?
+  gender          Gender?
+  address         String?
+  currentPosition String?
+  currentCompany  String?
+  industry        String?
+  yearsOfExp      Int?
+  currentSalary   Float?
+  expectedSalary  Float?
+  location        String?
+  status          CandidateStatus  @default(AVAILABLE)
+  source          CandidateSource?
+  sourceDetail    String?
+  cvFileUrl       String?
+  cvFileName      String?
+  isDeleted       Boolean          @default(false)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  // Relations
+  createdBy   User             @relation("CandidateCreatedBy", fields: [createdById], references: [id])
+  createdById Int
+  tags        CandidateTag[]
+  notes       CandidateNote[]
+  jobLinks    JobCandidate[]
+
+  @@index([fullName])
+  @@index([industry])
+  @@index([status])
+  @@index([location])
+  @@index([isDeleted])
+}
+
+model Tag {
+  id         Int            @id @default(autoincrement())
+  name       String         @unique
+  color      String         @default("#6B7280")
+  candidates CandidateTag[]
+}
+
+model CandidateTag {
+  candidate   Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  candidateId Int
+  tag         Tag       @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  tagId       Int
+
+  @@id([candidateId, tagId])
+}
+
+model CandidateNote {
+  id          Int       @id @default(autoincrement())
+  content     String
+  candidate   Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  candidateId Int
+  createdBy   User      @relation(fields: [createdById], references: [id])
+  createdById Int
+  createdAt   DateTime  @default(now())
+}
+
+model Client {
+  id          Int         @id @default(autoincrement())
+  companyName String
+  industry    String?
+  companySize CompanySize?
+  address     String?
+  website     String?
+  notes       String?
+  isDeleted   Boolean     @default(false)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  // Relations
+  createdBy   User            @relation("ClientCreatedBy", fields: [createdById], references: [id])
+  createdById Int
+  contacts    ClientContact[]
+  jobOrders   JobOrder[]
+
+  @@index([companyName])
+  @@index([isDeleted])
+}
+
+model ClientContact {
+  id        Int     @id @default(autoincrement())
+  name      String
+  position  String?
+  phone     String?
+  email     String?
+  isPrimary Boolean @default(false)
+
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId Int
+}
+
+model JobOrder {
+  id          Int       @id @default(autoincrement())
+  title       String
+  description String?
+  salaryMin   Float?
+  salaryMax   Float?
+  quantity    Int       @default(1)
+  deadline    DateTime?
+  status      JobStatus @default(OPEN)
+  fee         Float?
+  feeType     FeeType?
+  notes       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  client       Client         @relation(fields: [clientId], references: [id])
+  clientId     Int
+  assignedTo   User?          @relation("JobAssignedTo", fields: [assignedToId], references: [id])
+  assignedToId Int?
+  createdBy    User           @relation("JobCreatedBy", fields: [createdById], references: [id])
+  createdById  Int
+  candidates   JobCandidate[]
+
+  @@index([status])
+  @@index([clientId])
+}
+
+model JobCandidate {
+  id          Int               @id @default(autoincrement())
+  stage       JobCandidateStage @default(SOURCED)
+  notes       String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  jobOrder    JobOrder  @relation(fields: [jobOrderId], references: [id], onDelete: Cascade)
+  jobOrderId  Int
+  candidate   Candidate @relation(fields: [candidateId], references: [id])
+  candidateId Int
+
+  @@unique([jobOrderId, candidateId])
 }

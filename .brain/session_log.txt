@@ -1,0 +1,9 @@
+[16:57] START phase-01-setup
+[16:57] DONE task: Create Next.js 16 project (App Router, TypeScript, TailwindCSS 4, ESLint)
+[16:58] DONE task: Install dependencies (Prisma, NextAuth@beta, lucide-react, bcryptjs, clsx, dotenv)
+[16:58] DONE task: TypeScript + ESLint (included in create-next-app)
+[16:59] DONE task: Folder structure (auth/login, dashboard/candidates/clients/jobs, lib, types, components, uploads)
+[16:59] DONE task: .env.example created
+[17:00] DONE task: Git init + initial commit (52 files)
+[17:00] DONE task: npm run dev verified OK (localhost:3000)
+[17:00] END phase-01-setup ✅

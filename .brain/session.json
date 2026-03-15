@@ -1,25 +1,17 @@
 {
-  "updated_at": "2026-03-15T16:51:14+07:00",
+  "updated_at": "2026-03-15T17:15:00+07:00",
   "working_on": {
-    "feature": "MVP Planning & Design",
-    "task": "Completed brainstorm, plan, design, and visualize phases",
-    "status": "planning_complete",
-    "next_step": "/code phase-01 (Setup & Foundation)",
+    "feature": "MVP Development",
+    "current_plan_path": "plans/260315-1634-headhunt-mvp/",
+    "current_phase": "phase-02",
+    "task": "Phase 02 complete - Database & Auth",
+    "status": "complete",
+    "next_step": "/code phase-03 (Candidate Management)",
     "files": [],
     "blockers": [],
-    "notes": "Tất cả docs đã tạo xong, sẵn sàng code"
+    "notes": "Prisma 7 Postgres, NextAuth credentials hoạt động"
   },
   "pending_tasks": [
-    {
-      "task": "Phase 01: Setup & Foundation",
-      "priority": "high",
-      "notes": "Tạo Next.js project, install deps, folder structure"
-    },
-    {
-      "task": "Phase 02: Database & Auth",
-      "priority": "high",
-      "notes": "Prisma schema đã viết sẵn trong DESIGN.md"
-    },
     {
       "task": "Phase 03: Candidate Management",
       "priority": "high",
@@ -43,44 +35,30 @@
   ],
   "recent_changes": [
     {
-      "timestamp": "2026-03-15T16:24:23+07:00",
-      "type": "init",
-      "description": "Khởi tạo workspace headhunt-manager"
-    },
-    {
-      "timestamp": "2026-03-15T16:31:00+07:00",
-      "type": "brainstorm",
-      "description": "Brainstorm features + market research (ATS competitors)"
-    },
-    {
-      "timestamp": "2026-03-15T16:34:31+07:00",
-      "type": "plan",
-      "description": "Tạo plan MVP với 6 phases, 57 tasks"
-    },
-    {
-      "timestamp": "2026-03-15T16:37:57+07:00",
-      "type": "design",
-      "description": "Thiết kế DB (9 tables, Prisma schema), 12 screens, 4 user flows, API endpoints"
-    },
-    {
-      "timestamp": "2026-03-15T16:43:21+07:00",
-      "type": "visualize",
-      "description": "Tạo 5 UI mockups (Dashboard light/dark, Candidates list, Candidate detail, Job detail), design-specs.md"
+      "timestamp": "2026-03-15T17:15:00+07:00",
+      "type": "code",
+      "description": "Phase 02 complete: Prisma Schema, Hosted DB, NextAuth setup, Login page, Sidebar layout, Team seed data"
     }
   ],
   "decisions_made": [
     {
-      "decision": "Web App",
-      "reason": "Team 4 người, cần multi-device access"
+      "decision": "Hosted Prisma Postgres instead of Local Docker",
+      "reason": "Postgres/Docker CLI not immediately available. Prisma Create DB handled it seamlessly for Prisma 7."
     },
     {
-      "decision": "Next.js + PostgreSQL + Prisma",
-      "reason": "Full-stack, mạnh, miễn phí"
-    },
-    {
-      "decision": "Light + Dark mode, Notion/Linear style",
-      "reason": "User chọn: hiện đại, gọn gàng"
+      "decision": "pg adapter + @prisma/client",
+      "reason": "Prisma 7 Driver Adapters used for native pg connection to Hosted setup."
     }
   ],
-  "errors_encountered": []
+  "skipped_tests": [],
+  "errors_encountered": [
+    {
+      "error": "Prisma 7 url parameter removed from schema.prisma",
+      "resolution": "Moved seed config and schema references fully to prisma.config.ts"
+    },
+    {
+      "error": "tsx compile mismatch with @types/pg",
+      "resolution": "Downgraded @types/pg to 8.10.9 for adapter compatibility"
+    }
+  ]
 }

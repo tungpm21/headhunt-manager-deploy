@@ -1,18 +1,18 @@
 # Phase 01: Setup & Foundation
-Status: ⬜ Pending
+Status: ✅ Complete
 Dependencies: Không
 
 ## Mục tiêu
 Tạo project Next.js, cài đặt dependencies, thiết lập cấu trúc folder chuẩn.
 
 ## Tasks
-1. [ ] Tạo Next.js project (App Router)
-2. [ ] Install dependencies: Prisma, NextAuth, TailwindCSS, Lucide icons
-3. [ ] Setup TypeScript + ESLint
-4. [ ] Tạo folder structure chuẩn
-5. [ ] Setup Git + initial commit
-6. [ ] Tạo .env.example
-7. [ ] Kiểm tra `npm run dev` chạy OK
+1. [x] Tạo Next.js project (App Router)
+2. [x] Install dependencies: Prisma, NextAuth, TailwindCSS, Lucide icons
+3. [x] Setup TypeScript + ESLint
+4. [x] Tạo folder structure chuẩn
+5. [x] Setup Git + initial commit
+6. [x] Tạo .env.example
+7. [x] Kiểm tra `npm run dev` chạy OK
 
 ## Folder Structure
 ```

@@ -1,29 +1,29 @@
 # Plan: Headhunt Manager MVP
 Created: 2026-03-15 16:34
-Status: 🟡 Planning
+Status: ✅ Complete (6/6 phases done)
 
 ## Overview
 Web App quản lý hồ sơ ứng viên và quy trình headhunt cho team 4 người.
 Thay thế Excel hiện tại bằng hệ thống tập trung, dễ tìm kiếm, dễ phối hợp.
 
 ## Tech Stack
-- **Frontend:** Next.js 15 + React 19 + TailwindCSS
+- **Frontend:** Next.js 16 + React 19 + TailwindCSS 4
 - **Backend:** Next.js API Routes (Server Actions)
-- **Database:** PostgreSQL + Prisma ORM
-- **Auth:** NextAuth.js (email/password)
-- **File Storage:** Local disk (CV uploads)
-- **Deploy:** Có thể chạy local hoặc deploy lên VPS
+- **Database:** PostgreSQL + Prisma ORM (Local Docker hoặc Neon Cloud)
+- **Auth:** NextAuth.js v5 (email/password, JWT)
+- **File Storage:** Local disk (CV uploads → `/public/uploads/`)
+- **Deploy:** Local / VPS / Cloud
 
 ## Phases
 
-| Phase | Name | Status | Mô tả |
-|-------|------|--------|--------|
-| 01 | Setup & Foundation | ⬜ Pending | Tạo project, cài đặt, cấu trúc folder |
-| 02 | Database & Auth | ⬜ Pending | Thiết kế DB, tạo bảng, đăng nhập |
-| 03 | Candidate Management | ⬜ Pending | CRUD ứng viên, tìm kiếm, lọc, ghi chú |
-| 04 | Client Management | ⬜ Pending | CRUD doanh nghiệp, người liên hệ |
-| 05 | Job Order Management | ⬜ Pending | Tạo job, gán ứng viên, trạng thái |
-| 06 | Excel Import & Polish | ⬜ Pending | Import data Excel, hoàn thiện UX |
+| Phase | Name | Status | Progress |
+|-------|------|--------|----------|
+| 01 | Setup & Foundation | ✅ Complete | 100% |
+| 02 | Database & Auth | ✅ Complete | 100% |
+| 03 | Candidate Management | ✅ Complete | 100% |
+| 04 | Client Management | ✅ Complete | 100% |
+| 05 | Job Order Management | ✅ Complete | 100% |
+| 06 | Excel Import & Polish | ✅ Complete | 100% |
 
 ## Tổng quan tính năng MVP
 

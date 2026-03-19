@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Users, Building2, Briefcase, LayoutDashboard, LogOut } from "lucide-react";
+import { Users, Building2, Briefcase, LayoutDashboard, LogOut, UploadCloud } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { signOut } from "next-auth/react";
 
@@ -11,6 +11,7 @@ const navigation = [
   { name: "Ứng viên", href: "/candidates", icon: Users },
   { name: "Khách hàng", href: "/clients", icon: Building2 },
   { name: "Job Orders", href: "/jobs", icon: Briefcase },
+  { name: "Nhập dữ liệu", href: "/import", icon: UploadCloud },
 ];
 
 export function Sidebar() {

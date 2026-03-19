@@ -3,7 +3,8 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 
 const connectionString = `${process.env.DATABASE_URL}`;
-const pool = new Pool({ connectionString });
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const pool = new Pool({ connectionString }) as any;
 const adapter = new PrismaPg(pool);
 
 const globalForPrisma = globalThis as unknown as {

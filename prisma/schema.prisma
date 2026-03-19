@@ -2,7 +2,7 @@
 // Based on DESIGN.md specifications
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
   previewFeatures = ["driverAdapters"]
 }
 
@@ -105,6 +105,7 @@ model Candidate {
   status          CandidateStatus  @default(AVAILABLE)
   source          CandidateSource?
   sourceDetail    String?
+  avatarUrl       String?
   cvFileUrl       String?
   cvFileName      String?
   isDeleted       Boolean          @default(false)
@@ -112,7 +113,7 @@ model Candidate {
   updatedAt       DateTime         @updatedAt
 
   // Relations
-  createdBy   User             @relation("CandidateCreatedBy", fields: [createdById], references: [id])
+  createdBy   User            @relation("CandidateCreatedBy", fields: [createdById], references: [id])
   createdById Int
   tags        CandidateTag[]
   notes       CandidateNote[]
@@ -152,16 +153,16 @@ model CandidateNote {
 }
 
 model Client {
-  id          Int         @id @default(autoincrement())
+  id          Int          @id @default(autoincrement())
   companyName String
   industry    String?
   companySize CompanySize?
   address     String?
   website     String?
   notes       String?
-  isDeleted   Boolean     @default(false)
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  isDeleted   Boolean      @default(false)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 
   // Relations
   createdBy   User            @relation("ClientCreatedBy", fields: [createdById], references: [id])
@@ -214,11 +215,11 @@ model JobOrder {
 }
 
 model JobCandidate {
-  id          Int               @id @default(autoincrement())
-  stage       JobCandidateStage @default(SOURCED)
-  notes       String?
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
+  id        Int               @id @default(autoincrement())
+  stage     JobCandidateStage @default(SOURCED)
+  notes     String?
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
 
   jobOrder    JobOrder  @relation(fields: [jobOrderId], references: [id], onDelete: Cascade)
   jobOrderId  Int

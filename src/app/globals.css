@@ -28,10 +28,10 @@
   --color-muted: #64748B;
   --color-placeholder: #94A3B8;
 
-  /* Spacing */
-  --spacing-xs: 4px;
-  --spacing-sm: 8px;
-  --spacing-md: 12px;
+  /* Spacing (custom, using --gap- prefix to avoid Tailwind v4 spacing scale override) */
+  --gap-xs: 4px;
+  --gap-sm: 8px;
+  --gap-md: 12px;
 
   /* Radii */
   --radius-sm: 6px;

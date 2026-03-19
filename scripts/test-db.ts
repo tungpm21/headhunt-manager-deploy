@@ -1,7 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
-import bcrypt from "bcryptjs";
+import * as bcrypt from "bcrypt-ts";
 import * as dotenv from "dotenv";
 
 dotenv.config();
@@ -13,7 +13,8 @@ if (!connectionString) {
   process.exit(1);
 }
 
-const pool = new Pool({ connectionString });
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const pool = new Pool({ connectionString }) as any;
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 

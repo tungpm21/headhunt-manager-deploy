@@ -1,4 +1,5 @@
 import type { NextAuthConfig, DefaultSession } from "next-auth";
+import CredentialsProvider from "next-auth/providers/credentials";
 
 declare module "next-auth" {
   interface Session {
@@ -23,7 +24,7 @@ export const authConfig = {
         return true;
       }
       
-      return isLoggedIn; // Redirect to login if not logged in and not on login page
+      return isLoggedIn; 
     },
     async jwt({ token, user }) {
       if (user) {
@@ -40,5 +41,5 @@ export const authConfig = {
       return session;
     },
   },
-  providers: [], // Configured in auth.ts
+  providers: [], // Keep empty here to avoid Node modules in Edge
 } satisfies NextAuthConfig;

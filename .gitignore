@@ -47,3 +47,11 @@ next-env.d.ts
 /uploads/*
 !/uploads/.gitkeep
 
+
+# AWF Brain (local session data)
+.brain/
+session.json
+
+# Logs
+server.log
+*.log

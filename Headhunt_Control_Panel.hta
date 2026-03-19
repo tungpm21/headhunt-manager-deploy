@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="X-UA-Compatible" content="IE=11">
+<meta charset="UTF-8">
+<title>Headhunt Manager</title>
+<HTA:APPLICATION
+  APPLICATIONNAME="Headhunt Control Panel"
+  SCROLL="no"
+  SINGLEINSTANCE="yes"
+  WINDOWSTATE="normal"
+  INNERBORDER="no"
+  BORDER="dialog"
+  BORDERSTYLE="raised"
+  MAXIMIZEBUTTON="no"
+/>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    background: #111827;
+    color: #e5e7eb;
+    padding: 20px;
+    overflow: hidden;
+  }
+  .header { text-align: center; margin-bottom: 14px; }
+  .logo-badge {
+    display: inline-block;
+    background: #4f46e5;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 800;
+    padding: 6px 14px;
+    border-radius: 6px;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+  }
+  .app-title { font-size: 20px; font-weight: 700; color: #f3f4f6; margin-bottom: 2px; }
+  .app-sub { font-size: 12px; color: #6b7280; }
+
+  /* ---- MODE TOGGLE ---- */
+  .mode-row {
+    display: table;
+    margin: 0 auto 12px auto;
+    background: #1f2937;
+    border: 1px solid #374151;
+    border-radius: 8px;
+    padding: 3px;
+  }
+  .mode-btn {
+    display: table-cell;
+    cursor: pointer;
+    padding: 6px 18px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #6b7280;
+    text-align: center;
+    user-select: none;
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    border: none;
+    background: transparent;
+  }
+  .mode-btn.active-local {
+    background: #16a34a;
+    color: #fff;
+  }
+  .mode-btn.active-cloud {
+    background: #7c3aed;
+    color: #fff;
+  }
+
+  .status-row { text-align: center; margin-bottom: 12px; }
+  .status-pill {
+    display: inline-block;
+    background: #1f2937;
+    border: 1px solid #374151;
+    border-radius: 20px;
+    padding: 5px 14px;
+    margin: 0 4px;
+    font-size: 11px;
+    color: #9ca3af;
+  }
+  .dot {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    margin-right: 5px;
+    vertical-align: middle;
+  }
+  .dot-off  { background: #6b7280; }
+  .dot-on   { background: #22c55e; }
+  .dot-warn { background: #f59e0b; }
+  .dot-cloud { background: #7c3aed; }
+
+  /* ---- CLOUD DB INPUT ---- */
+  .cloud-cfg {
+    display: none;
+    margin-bottom: 10px;
+    background: #1a1030;
+    border: 1px solid #5b21b6;
+    border-radius: 8px;
+    padding: 10px 12px;
+  }
+  .cloud-cfg label {
+    display: block;
+    font-size: 10px;
+    color: #a78bfa;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
+  .cloud-cfg input {
+    display: block;
+    width: 100%;
+    background: #0d0920;
+    border: 1px solid #5b21b6;
+    border-radius: 5px;
+    padding: 6px 8px;
+    font-size: 11px;
+    color: #c4b5fd;
+    font-family: 'Consolas', monospace;
+    outline: none;
+  }
+  .cloud-cfg input:focus { border-color: #7c3aed; }
+  .cloud-hint {
+    font-size: 10px;
+    color: #6d4eb4;
+    margin-top: 5px;
+  }
+
+  .btn-grid { margin: 0 auto 10px auto; width: 100%; }
+  .btn-grid table { width: 100%; border-collapse: separate; border-spacing: 6px; }
+  .btn {
+    display: block; width: 100%;
+    padding: 12px 14px; border: none; border-radius: 8px;
+    font-size: 13px; font-weight: 600;
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    cursor: pointer; color: #fff; text-align: center;
+  }
+  .btn:hover { opacity: 0.85; }
+  .btn:active { opacity: 0.7; }
+  .btn-start   { background: #16a34a; }
+  .btn-stop    { background: #dc2626; }
+  .btn-restart { background: #d97706; }
+  .btn-web     { background: #2563eb; }
+
+  .log-section { margin-top: 4px; }
+  .log-header-row {
+    font-size: 11px; color: #6b7280;
+    text-transform: uppercase; letter-spacing: 1px;
+    margin-bottom: 4px;
+  }
+  .log-actions { float: right; }
+  .log-btn {
+    display: inline-block;
+    cursor: pointer; color: #4b5563;
+    font-size: 10px; margin-left: 8px;
+    text-transform: none; letter-spacing: 0;
+    border: 1px solid #374151;
+    border-radius: 4px; padding: 1px 6px;
+    background: #1f2937;
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+  }
+  .log-btn:hover { color: #9ca3af; border-color: #4b5563; }
+
+  #logArea {
+    display: block;
+    width: 100%;
+    height: 155px;
+    min-height: 60px;
+    background: #0d1117;
+    border: 1px solid #21262d;
+    border-radius: 8px 8px 0 0;
+    padding: 10px;
+    overflow-y: auto;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 11px; line-height: 1.6;
+    color: #8b949e;
+    outline: none;
+    border-bottom: none;
+  }
+  .resizer {
+    height: 10px;
+    background: #1f2937;
+    cursor: n-resize;
+    border-radius: 0 0 8px 8px;
+    border: 1px solid #21262d;
+    position: relative;
+    text-align: center;
+  }
+  .resizer:hover { background: #374151; }
+  .resizer::after {
+    content: "===";
+    color: #4b5563;
+    font-size: 8px;
+    line-height: 10px;
+    display: block;
+    pointer-events: none;
+  }
+  .footer { text-align: center; margin-top: 8px; font-size: 10px; color: #374151; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo-badge">HM</div>
+  <div class="app-title">Headhunt Manager</div>
+  <div class="app-sub">Server Control Panel</div>
+</div>
+
+<!-- MODE SELECTOR -->
+<div class="mode-row">
+  <button class="mode-btn active-local" id="btnModeLocal" onclick="setMode('local')">&#9679; Local (Docker)</button>
+  <button class="mode-btn" id="btnModeCloud" onclick="setMode('cloud')">&#9728; Cloud DB</button>
+</div>
+
+<!-- CLOUD DB CONFIG (hidden by default) -->
+<div class="cloud-cfg" id="cloudCfg">
+  <label>DATABASE URL (Neon / Supabase / Railway...)</label>
+  <input type="text" id="cloudDbUrl" placeholder="postgresql://user:pass@host/db?sslmode=require" />
+  <div class="cloud-hint">&#9432; URL này sẽ được ghi vào .env.local khi bạn nhấn Start</div>
+</div>
+
+<!-- STATUS PILLS -->
+<div class="status-row">
+  <span class="status-pill">
+    <span class="dot dot-off" id="dotWeb"></span>
+    <span id="txtWeb">Web: OFF</span>
+  </span>
+  <span class="status-pill">
+    <span class="dot dot-off" id="dotDB"></span>
+    <span id="txtDB">Database: OFF</span>
+  </span>
+</div>
+
+<!-- ACTION BUTTONS -->
+<div class="btn-grid">
+  <table>
+    <tr>
+      <td><button class="btn btn-start" onclick="startServer()">&#9654; Start All</button></td>
+      <td><button class="btn btn-stop" onclick="stopServer()">&#9632; Stop All</button></td>
+    </tr>
+    <tr>
+      <td><button class="btn btn-restart" onclick="restartServer()">&#8635; Restart</button></td>
+      <td><button class="btn btn-web" onclick="openWeb()">&#8853; Open Browser</button></td>
+    </tr>
+  </table>
+</div>
+
+<!-- LOGS -->
+<div class="log-section">
+  <div class="log-header-row">
+    Terminal Logs
+    <span class="log-actions">
+      <span class="log-btn" onclick="copyLogs()">Copy</span>
+      <span class="log-btn" onclick="clearLogs()">Clear</span>
+    </span>
+  </div>
+  <textarea id="logArea" readonly></textarea>
+  <div class="resizer" id="logResizer" title="Kéo để mở rộng cửa sổ log"></div>
+</div>
+
+<div class="footer" id="footerTxt">v1.5 - Headhunt Manager | Mode: Local (Docker)</div>
+
+<script language="JScript">
+var shell = new ActiveXObject("WScript.Shell");
+var fso   = new ActiveXObject("Scripting.FileSystemObject");
+
+var PROJECT_DIR = "d:\\MH\\Headhunt_pj";
+var LOG_FILE    = PROJECT_DIR + "\\.next\\server.log";
+var LAUNCHER    = PROJECT_DIR + "\\scripts\\start-server.bat";
+var ENV_FILE    = PROJECT_DIR + "\\.env.local";
+var lastLogSize = 0;
+var logTimer    = null;
+var currentMode = "local"; // "local" | "cloud"
+
+window.resizeTo(480, 610);
+
+/* ---- MODE SWITCHING ---- */
+function setMode(mode) {
+  currentMode = mode;
+  var btnLocal = document.getElementById("btnModeLocal");
+  var btnCloud = document.getElementById("btnModeCloud");
+  var cfgBox   = document.getElementById("cloudCfg");
+  var footer   = document.getElementById("footerTxt");
+
+  if (mode === "cloud") {
+    btnLocal.className = "mode-btn";
+    btnCloud.className = "mode-btn active-cloud";
+    cfgBox.style.display = "block";
+    footer.innerText = "v1.5 - Headhunt Manager | Mode: Cloud DB";
+    setDot("dotDB", "dot-cloud");
+    document.getElementById("txtDB").innerText = "Database: Cloud";
+  } else {
+    btnLocal.className = "mode-btn active-local";
+    btnCloud.className = "mode-btn";
+    cfgBox.style.display = "none";
+    footer.innerText = "v1.5 - Headhunt Manager | Mode: Local (Docker)";
+    setDBStatus(false);
+  }
+  addLog("Mode switched to: " + (mode === "cloud" ? "Cloud DB" : "Local Docker"));
+}
+
+/* ---- HELPERS ---- */
+function getTime() {
+  var d = new Date();
+  function z(n){ return n < 10 ? "0"+n : ""+n; }
+  return z(d.getHours())+":"+z(d.getMinutes())+":"+z(d.getSeconds());
+}
+
+function addLog(msg) {
+  var a = document.getElementById("logArea");
+  a.value += "["+getTime()+"] "+msg+"\n";
+  a.scrollTop = a.scrollHeight;
+}
+
+function clearLogs() {
+  document.getElementById("logArea").value = "";
+  lastLogSize = 0;
+}
+
+function copyLogs() {
+  var content = document.getElementById("logArea").value;
+  window.clipboardData.setData("Text", content);
+}
+
+function setDot(id, cls) { document.getElementById(id).className = "dot "+cls; }
+function setWebStatus(on) {
+  setDot("dotWeb", on ? "dot-on" : "dot-off");
+  document.getElementById("txtWeb").innerText = on ? "Web: ON" : "Web: OFF";
+}
+function setDBStatus(on) {
+  setDot("dotDB", on ? "dot-on" : "dot-off");
+  document.getElementById("txtDB").innerText = on ? "Database: ON" : "Database: OFF";
+}
+
+function runHidden(cmd) {
+  shell.CurrentDirectory = PROJECT_DIR;
+  shell.Run('powershell.exe -WindowStyle Hidden -Command "'+cmd+'"', 0, false);
+}
+
+function setButtonsEnabled(enabled) {
+  var btns = document.getElementsByTagName("button");
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].disabled = !enabled;
+    if (!enabled) {
+       btns[i].style.opacity = "0.5";
+       btns[i].style.cursor = "not-allowed";
+    } else {
+       btns[i].style.opacity = "1";
+       btns[i].style.cursor = "pointer";
+    }
+  }
+}
+
+/* ---- Đọc DATABASE_URL từ .env.local ---- */
+function readCloudEnv() {
+  try {
+    if (fso.FileExists(ENV_FILE)) {
+      var f = fso.OpenTextFile(ENV_FILE, 1, false, 0);
+      var content = f.AtEndOfStream ? "" : f.ReadAll();
+      f.Close();
+      var lines = content.split("\n");
+      for (var i = 0; i < lines.length; i++) {
+        var ln = lines[i].replace(/^\s+|\s+$/g, '');
+        if (ln.indexOf("DATABASE_URL=") === 0) {
+          var val = ln.substring(13);
+          if (val.charAt(0) === '"' || val.charAt(0) === "'") val = val.substring(1, val.length - 1);
+          document.getElementById("cloudDbUrl").value = val;
+          break;
+        }
+      }
+    }
+  } catch(e) {}
+}
+
+/* ---- Ghi DATABASE_URL vào .env.local ---- */
+function writeCloudEnv(dbUrl) {
+  try {
+    var content = "";
+    if (fso.FileExists(ENV_FILE)) {
+      var f = fso.OpenTextFile(ENV_FILE, 1, false, 0);
+      content = f.AtEndOfStream ? "" : f.ReadAll();
+      f.Close();
+      // Xoa dong DATABASE_URL cu
+      var lines = content.split("\n");
+      var kept = [];
+      for (var i = 0; i < lines.length; i++) {
+        var ln = lines[i];
+        if (ln.indexOf("DATABASE_URL") === -1 && ln.indexOf("DIRECT_URL") === -1) {
+          kept.push(ln);
+        }
+      }
+      content = kept.join("\n");
+      if (content && content.charAt(content.length-1) !== "\n") content += "\n";
+    }
+    content += "DATABASE_URL=" + dbUrl + "\n";
+    content += "DIRECT_URL=" + dbUrl + "\n";
+    var fw = fso.OpenTextFile(ENV_FILE, 2, true, 0);
+    fw.Write(content);
+    fw.Close();
+    return true;
+  } catch(e) {
+    addLog("ERROR ghi .env.local: " + e.message);
+    return false;
+  }
+}
+
+/* Strip ANSI escape codes + non-printable chars */
+function stripAnsi(s) {
+  var out = "", i = 0;
+  while (i < s.length) {
+    var c = s.charCodeAt(i);
+    if (c === 27) {
+      i++;
+      if (i < s.length && s.charAt(i) === "[") {
+        i++;
+        while (i < s.length) {
+          var ch = s.charCodeAt(i++);
+          if ((ch >= 65 && ch <= 90) || (ch >= 97 && ch <= 122)) break;
+        }
+      }
+    } else if (c === 10 || c === 13 || (c >= 32 && c <= 126)) {
+      out += s.charAt(i++);
+    } else { i++; }
+  }
+  return out;
+}
+
+/* ---- LOG POLLING ---- */
+function pollLogFile() {
+  try {
+    if (!fso.FileExists(LOG_FILE)) return;
+    var f = fso.OpenTextFile(LOG_FILE, 1, false, 0);
+    var content = f.AtEndOfStream ? "" : f.ReadAll();
+    f.Close();
+
+    if (content.length > lastLogSize) {
+      var raw     = content.substring(lastLogSize);
+      var cleaned = stripAnsi(raw);
+      if (cleaned.length > 0) {
+        var a = document.getElementById("logArea");
+        a.value += cleaned;
+        a.scrollTop = a.scrollHeight;
+        if (raw.indexOf("Ready in") > -1 || raw.indexOf("Local:") > -1) {
+          setWebStatus(true);
+          addLog(">>> Web ready at localhost:3000 <<<");
+        }
+      }
+      lastLogSize = content.length;
+    }
+  } catch(e) { /* file locked */ }
+}
+
+function startLogPolling() {
+  if (logTimer) window.clearInterval(logTimer);
+  lastLogSize = 0;
+  try { if (fso.FileExists(LOG_FILE)) fso.DeleteFile(LOG_FILE, true); } catch(e) {}
+  logTimer = window.setInterval(pollLogFile, 1500);
+}
+
+function stopLogPolling() {
+  if (logTimer) { window.clearInterval(logTimer); logTimer = null; }
+}
+
+/* ---- ACTIONS ---- */
+function startServer() {
+  setButtonsEnabled(false);
+  // Clear any existing lock
+  runHidden("Remove-Item -Path d:\\MH\\Headhunt_pj\\.next\\server.lock -Force -ErrorAction SilentlyContinue");
+
+  if (currentMode === "cloud") {
+    // --- CLOUD MODE: skip Docker, ghi .env.local, start Next.js ---
+    var dbUrl = document.getElementById("cloudDbUrl").value;
+    if (!dbUrl || dbUrl.indexOf("postgresql") === -1) {
+      addLog("ERROR: Nhap DATABASE_URL hop le truoc khi start!");
+      setButtonsEnabled(true);
+      return;
+    }
+    addLog("Cloud mode: Writing DATABASE_URL to .env.local...");
+    if (!writeCloudEnv(dbUrl)) {
+      setButtonsEnabled(true);
+      return;
+    }
+    addLog("Cloud DB configured. Starting Web Server...");
+    setDot("dotDB", "dot-cloud");
+    document.getElementById("txtDB").innerText = "Database: Cloud";
+    setDot("dotWeb", "dot-warn");
+    startLogPolling();
+    shell.CurrentDirectory = PROJECT_DIR;
+    shell.Run('"'+LAUNCHER+'"', 0, false);
+    
+    window.setTimeout(function() { setButtonsEnabled(true); }, 5000);
+
+  } else {
+    // --- LOCAL MODE: Docker + Next.js ---
+    addLog("Starting Docker PostgreSQL...");
+    setDot("dotDB", "dot-warn");
+    runHidden("docker compose up -d");
+
+    window.setTimeout(function() {
+      setDBStatus(true);
+      addLog("Database ready. Starting Web Server...");
+      setDot("dotWeb", "dot-warn");
+      startLogPolling();
+      shell.CurrentDirectory = PROJECT_DIR;
+      shell.Run('"'+LAUNCHER+'"', 0, false);
+      window.setTimeout(function() { setButtonsEnabled(true); }, 5000);
+    }, 3000);
+  }
+}
+
+function stopServer() {
+  setButtonsEnabled(false);
+  runHidden("Remove-Item -Path d:\\MH\\Headhunt_pj\\.next\\server.lock -Force -ErrorAction SilentlyContinue");
+  addLog("Stopping Web Server...");
+  setDot("dotWeb", "dot-warn");
+  stopLogPolling();
+  shell.CurrentDirectory = PROJECT_DIR;
+  runHidden("Stop-Process -Name node -Force -ErrorAction SilentlyContinue");
+
+  window.setTimeout(function() {
+    setWebStatus(false);
+    if (currentMode === "local") {
+      addLog("Web Server stopped.");
+      addLog("Stopping Docker Database...");
+      setDot("dotDB", "dot-warn");
+      runHidden("docker compose stop");
+      window.setTimeout(function() {
+        setDBStatus(false);
+        addLog("All services stopped.");
+        setButtonsEnabled(true);
+      }, 2000);
+    } else {
+      addLog("Web Server stopped. (Cloud DB remains online)");
+      setDot("dotDB", "dot-cloud");
+      document.getElementById("txtDB").innerText = "Database: Cloud";
+      setButtonsEnabled(true);
+    }
+  }, 1500);
+}
+
+function restartServer() {
+  setButtonsEnabled(false);
+  runHidden("Remove-Item -Path d:\\MH\\Headhunt_pj\\.next\\server.lock -Force -ErrorAction SilentlyContinue");
+  addLog("Restarting Web Server...");
+  setDot("dotWeb", "dot-warn");
+  stopLogPolling();
+  shell.CurrentDirectory = PROJECT_DIR;
+  runHidden("Stop-Process -Name node -Force -ErrorAction SilentlyContinue");
+
+  if (currentMode === "cloud") {
+    window.setTimeout(function() {
+      setWebStatus(false);
+      addLog("Restarting... (Cloud DB stays connected)");
+      startLogPolling();
+      shell.CurrentDirectory = PROJECT_DIR;
+      shell.Run('"'+LAUNCHER+'"', 0, false);
+      window.setTimeout(function() { setButtonsEnabled(true); }, 5000);
+    }, 2000);
+  } else {
+    setDot("dotDB", "dot-warn");
+    window.setTimeout(function() {
+      setWebStatus(false);
+      addLog("Restarting Docker containers...");
+      runHidden("docker compose restart");
+      window.setTimeout(function() {
+        setDBStatus(true);
+        addLog("Database restarted. Starting Web Server...");
+        setDot("dotWeb", "dot-warn");
+        startLogPolling();
+        shell.CurrentDirectory = PROJECT_DIR;
+        shell.Run('"'+LAUNCHER+'"', 0, false);
+        window.setTimeout(function() { setButtonsEnabled(true); }, 5000);
+      }, 4000);
+    }, 2000);
+  }
+}
+
+function openWeb() {
+  addLog("Opening http://localhost:3000");
+  shell.Run("http://localhost:3000");
+}
+
+readCloudEnv();
+addLog("Control Panel v1.5 ready. Select mode then click 'Start All'.");
+
+/* ---- LOG RESIZER ---- */
+var isResizing = false;
+var resizerLastY = 0;
+var logAreaNode = document.getElementById("logArea");
+var resizerNode = document.getElementById("logResizer");
+
+resizerNode.onmousedown = function(e) {
+  isResizing = true;
+  var ev = e || window.event;
+  resizerLastY = ev.screenY;
+  document.body.style.cursor = "n-resize";
+  document.onselectstart = function() { return false; };
+};
+
+document.onmousemove = function(e) {
+  if (!isResizing) return;
+  var ev = e || window.event;
+  var dy = ev.screenY - resizerLastY;
+  
+  if (dy !== 0) {
+    var newH = logAreaNode.offsetHeight + dy;
+    if (newH < 60) {
+      dy = 60 - logAreaNode.offsetHeight;
+      newH = 60;
+    }
+    logAreaNode.style.height = newH + "px";
+    resizerLastY = resizerLastY + dy;
+    try {
+      window.resizeBy(0, dy);
+    } catch(err) {}
+  }
+};
+
+document.onmouseup = function(e) {
+  if (isResizing) {
+    isResizing = false;
+    document.body.style.cursor = "default";
+    document.onselectstart = null;
+  }
+};
+</script>
+</body>
+</html>

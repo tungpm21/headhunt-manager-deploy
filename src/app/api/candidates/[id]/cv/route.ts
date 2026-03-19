@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { updateCandidateCV } from "@/lib/candidates";
-import { writeFile, mkdir, unlink } from "fs/promises";
-import path from "path";
 import { prisma } from "@/lib/prisma";
+import { put, del } from "@vercel/blob";
 
 const ALLOWED_TYPES = [
   "application/pdf",
@@ -41,21 +40,20 @@ export async function POST(
 
   // Delete old file if exists
   const existing = await prisma.candidate.findUnique({ where: { id: candidateId }, select: { cvFileUrl: true } });
-  if (existing?.cvFileUrl) {
-    try { await unlink(path.join(process.cwd(), "public", existing.cvFileUrl)); } catch {}
+  if (existing?.cvFileUrl && existing.cvFileUrl.includes('vercel-storage.com')) {
+    try { await del(existing.cvFileUrl); } catch (e) { console.error("Could not delete old blob", e) }
   }
 
-  const bytes = await file.arrayBuffer();
-  const buffer = Buffer.from(bytes);
-
-  // Save to public/uploads/cvs/
+  // Upload to Vercel Blob
   const ext = file.name.split(".").pop();
   const fileName = `cv-${candidateId}-${Date.now()}.${ext}`;
-  const uploadDir = path.join(process.cwd(), "public", "uploads", "cvs");
-  await mkdir(uploadDir, { recursive: true });
-  await writeFile(path.join(uploadDir, fileName), buffer);
+  
+  const blob = await put(`cvs/${fileName}`, file, {
+    access: 'public',
+    addRandomSuffix: false
+  });
 
-  const cvFileUrl = `/uploads/cvs/${fileName}`;
+  const cvFileUrl = blob.url;
   await updateCandidateCV(candidateId, cvFileUrl, file.name);
 
   return NextResponse.json({ url: cvFileUrl, fileName: file.name });
@@ -73,10 +71,10 @@ export async function DELETE(
   if (isNaN(candidateId))
     return NextResponse.json({ error: "ID không hợp lệ" }, { status: 400 });
 
-  // Delete physical file before clearing DB
+  // Delete from Vercel Blob before clearing DB
   const existing = await prisma.candidate.findUnique({ where: { id: candidateId }, select: { cvFileUrl: true } });
-  if (existing?.cvFileUrl) {
-    try { await unlink(path.join(process.cwd(), "public", existing.cvFileUrl)); } catch {}
+  if (existing?.cvFileUrl && existing.cvFileUrl.includes('vercel-storage.com')) {
+    try { await del(existing.cvFileUrl); } catch (e) { console.error("Could not delete blob", e) }
   }
 
   await updateCandidateCV(candidateId, null, null);

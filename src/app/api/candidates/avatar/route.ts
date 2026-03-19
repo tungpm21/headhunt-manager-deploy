@@ -42,14 +42,14 @@ export async function POST(req: NextRequest) {
     const safeExt = extensionMap[file.type] || "tmp";
 
     const fileName = `avatar-${Date.now()}-${Math.round(Math.random() * 1000)}.${safeExt}`;
-    const uploadDir = path.join(process.cwd(), "public", "uploads", "avatars");
-    
-    await mkdir(uploadDir, { recursive: true });
-    await writeFile(path.join(uploadDir, fileName), buffer);
+    // Upload to Vercel Blob
+    const { put } = await import("@vercel/blob");
+    const blob = await put(`avatars/${fileName}`, file, {
+      access: 'public',
+      addRandomSuffix: false // We already added randomness to fileName
+    });
 
-    const avatarUrl = `/uploads/avatars/${fileName}`;
-
-    return NextResponse.json({ url: avatarUrl, fileName: file.name });
+    return NextResponse.json({ url: blob.url, fileName: file.name });
   } catch (error) {
     console.error("Avatar upload API error:", error);
     return NextResponse.json(

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Users, Building2, Briefcase, LayoutDashboard, LogOut, UploadCloud, ShieldCheck, UserCog, Package } from "lucide-react";
+import { Users, Building2, Briefcase, LayoutDashboard, LogOut, UploadCloud, ShieldCheck, UserCog, Package, FileDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { signOut } from "next-auth/react";
 
@@ -16,6 +16,7 @@ const navigation = [
 
 const fdiworkNav = [
   { name: "Duyệt bài đăng", href: "/moderation", icon: ShieldCheck },
+  { name: "Applications", href: "/moderation/applications", icon: FileDown },
   { name: "Nhà tuyển dụng", href: "/employers", icon: UserCog },
   { name: "Gói dịch vụ", href: "/packages", icon: Package },
 ];
@@ -69,7 +70,9 @@ export function Sidebar() {
           FDIWork
         </p>
         {fdiworkNav.map((item) => {
-          const isActive = pathname.startsWith(item.href);
+          const isActive = item.href === "/moderation"
+            ? pathname === "/moderation"
+            : pathname.startsWith(item.href);
           return (
             <Link
               key={item.name}

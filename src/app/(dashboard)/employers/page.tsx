@@ -1,9 +1,10 @@
-import { getEmployers } from "@/lib/moderation-actions";
+import { getEmployers, getClientsForLinking } from "@/lib/moderation-actions";
 import Link from "next/link";
-import { UserCog, MapPin, Globe } from "lucide-react";
+import { UserCog, MapPin, Link2 } from "lucide-react";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import { EmployerStatusActions } from "./employer-status-actions";
+import { LinkEmployerForm } from "./link-employer-form";
 
 const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
   ACTIVE: { label: "Hoạt động", className: "bg-emerald-100 text-emerald-700" },
@@ -19,7 +20,10 @@ export default async function EmployersPage({
   const params = await searchParams;
   const status = params.status || "ALL";
   const page = parseInt(params.page || "1");
-  const data = await getEmployers(status, page);
+  const [data, clients] = await Promise.all([
+    getEmployers(status, page),
+    getClientsForLinking(),
+  ]);
 
   const filters = [
     { value: "ALL", label: "Tất cả" },
@@ -65,6 +69,7 @@ export default async function EmployersPage({
                 <th className="text-left py-3 px-4 text-xs font-medium text-muted uppercase">Email</th>
                 <th className="text-left py-3 px-4 text-xs font-medium text-muted uppercase">Gói</th>
                 <th className="text-left py-3 px-4 text-xs font-medium text-muted uppercase">Tin đăng</th>
+                <th className="text-left py-3 px-4 text-xs font-medium text-muted uppercase">Link CRM</th>
                 <th className="text-left py-3 px-4 text-xs font-medium text-muted uppercase">Trạng thái</th>
                 <th className="text-left py-3 px-4 text-xs font-medium text-muted uppercase">Ngày tạo</th>
                 <th className="text-right py-3 px-4 text-xs font-medium text-muted uppercase">Hành động</th>
@@ -100,6 +105,13 @@ export default async function EmployersPage({
                       )}
                     </td>
                     <td className="py-3 px-4 font-medium text-foreground">{emp._count.jobPostings}</td>
+                    <td className="py-3 px-4">
+                      <LinkEmployerForm
+                        employerId={emp.id}
+                        currentClientId={(emp as any).clientId}
+                        clients={clients}
+                      />
+                    </td>
                     <td className="py-3 px-4">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusCfg.className}`}>
                         {statusCfg.label}

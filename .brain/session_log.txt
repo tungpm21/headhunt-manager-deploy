@@ -53,3 +53,14 @@
 [17:10] DONE task: DB re-seeded and verified successfully via browser subagent
 [17:15] END demo-data-enhancement ✅
 [17:20] SAVE-BRAIN: Updated brain.json + session.json + session_log.txt
+[21:30] START phase-08-crm-integration
+[21:32] DONE task: Add 6 server actions (getAppsForImport, importToCRM, linkEmployer, counts, clients)
+[21:34] DONE task: Create applications/page.tsx (list + filters + table)
+[21:34] DONE task: Create import-button.tsx (confirm dialog + loading)
+[21:35] DONE task: Create link-employer-form.tsx (dropdown selector)
+[21:36] DONE task: Update dashboard (4th stat card + 3rd widget column CV từ FDIWork)
+[21:36] DONE task: Update sidebar (Applications link + active state fix)
+[21:37] DONE task: Update employers page (Link CRM column)
+[21:38] DONE task: Browser verification - import flow works end-to-end
+[21:39] END phase-08-crm-integration ✅
+[21:39] 🎉 ALL 8 PHASES COMPLETE - FDIWork MVP DONE

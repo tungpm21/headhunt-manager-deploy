@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
 
 // ==================== MODERATION ====================
@@ -203,4 +204,164 @@ export async function assignSubscription(formData: FormData) {
   revalidatePath("/packages");
   revalidatePath("/employers");
   return { success: true, message: `Đã cấp gói ${tier} cho ${employer.companyName}!` };
+}
+
+// ==================== CRM INTEGRATION (Phase 08) ====================
+
+export async function getApplicationsForImport(status = "NEW", page = 1) {
+  const take = 15;
+  const skip = (page - 1) * take;
+
+  const where: any = {};
+  if (status !== "ALL") {
+    where.status = status;
+  }
+
+  const [applications, total] = await Promise.all([
+    prisma.application.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      skip,
+      take,
+      include: {
+        jobPosting: {
+          select: {
+            title: true,
+            industry: true,
+            location: true,
+            employer: { select: { companyName: true } },
+          },
+        },
+        candidate: { select: { id: true, fullName: true } },
+      },
+    }),
+    prisma.application.count({ where }),
+  ]);
+
+  return { applications, total, page, totalPages: Math.ceil(total / take) };
+}
+
+export async function importApplicationToCRM(applicationId: number) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { success: false, message: "Bạn cần đăng nhập." };
+  }
+  const userId = Number(session.user.id);
+
+  const application = await prisma.application.findUnique({
+    where: { id: applicationId },
+    include: {
+      jobPosting: {
+        select: { title: true, industry: true, location: true, employer: { select: { companyName: true } } },
+      },
+    },
+  });
+
+  if (!application) {
+    return { success: false, message: "Không tìm thấy đơn ứng tuyển." };
+  }
+  if (application.status === "IMPORTED") {
+    return { success: false, message: "Đơn này đã được import trước đó." };
+  }
+
+  // Check duplicate email
+  let candidateId: number;
+  const existingCandidate = application.email
+    ? await prisma.candidate.findFirst({
+        where: { email: application.email, isDeleted: false },
+      })
+    : null;
+
+  if (existingCandidate) {
+    // Link to existing candidate, update CV if missing
+    candidateId = existingCandidate.id;
+    if (!existingCandidate.cvFileUrl && application.cvFileUrl) {
+      await prisma.candidate.update({
+        where: { id: candidateId },
+        data: { cvFileUrl: application.cvFileUrl, cvFileName: application.cvFileName },
+      });
+    }
+  } else {
+    // Create new candidate
+    const newCandidate = await prisma.candidate.create({
+      data: {
+        fullName: application.fullName,
+        email: application.email,
+        phone: application.phone,
+        cvFileUrl: application.cvFileUrl,
+        cvFileName: application.cvFileName,
+        source: "FDIWORK",
+        sourceDetail: `${application.jobPosting.employer.companyName} — ${application.jobPosting.title}`,
+        industry: application.jobPosting.industry,
+        location: application.jobPosting.location,
+        status: "AVAILABLE",
+        createdById: userId,
+      },
+    });
+    candidateId = newCandidate.id;
+  }
+
+  // Update application
+  await prisma.application.update({
+    where: { id: applicationId },
+    data: { status: "IMPORTED", candidateId },
+  });
+
+  revalidatePath("/moderation/applications");
+  revalidatePath("/candidates");
+  revalidatePath("/dashboard");
+  return {
+    success: true,
+    message: existingCandidate
+      ? `Đã link vào ứng viên #${candidateId} (${existingCandidate.fullName}) — trùng email.`
+      : `Đã tạo ứng viên mới #${candidateId} trong CRM.`,
+    candidateId,
+  };
+}
+
+export async function linkEmployerToClient(employerId: number, clientId: number | null) {
+  const employer = await prisma.employer.findUnique({ where: { id: employerId } });
+  if (!employer) {
+    return { success: false, message: "Không tìm thấy employer." };
+  }
+
+  if (clientId) {
+    const client = await prisma.client.findUnique({ where: { id: clientId, isDeleted: false } });
+    if (!client) {
+      return { success: false, message: "Không tìm thấy client." };
+    }
+  }
+
+  await prisma.employer.update({
+    where: { id: employerId },
+    data: { clientId },
+  });
+
+  revalidatePath("/employers");
+  return { success: true, message: clientId ? "Đã link Employer với Client." : "Đã bỏ link Client." };
+}
+
+export async function getNewApplicationsCount() {
+  return prisma.application.count({ where: { status: "NEW" } });
+}
+
+export async function getRecentApplications(take = 5) {
+  return prisma.application.findMany({
+    where: { status: { in: ["NEW", "REVIEWED", "SHORTLISTED"] } },
+    orderBy: { createdAt: "desc" },
+    take,
+    include: {
+      jobPosting: {
+        select: { title: true, employer: { select: { companyName: true } } },
+      },
+    },
+  });
+}
+
+export async function getClientsForLinking() {
+  return prisma.client.findMany({
+    where: { isDeleted: false, employer: null },
+    select: { id: true, companyName: true },
+    orderBy: { companyName: "asc" },
+  });
 }

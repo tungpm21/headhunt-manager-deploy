@@ -1,16 +1,18 @@
 import { prisma } from "@/lib/prisma";
+import { getNewApplicationsCount, getRecentApplications } from "@/lib/moderation-actions";
 import Link from "next/link";
-import { Users, Building2, Briefcase, ArrowRight, UserPlus, FileSpreadsheet } from "lucide-react";
+import { Users, Building2, Briefcase, ArrowRight, UserPlus, FileSpreadsheet, FileDown } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { vi } from "date-fns/locale";
 
 export const metadata = { title: "Dashboard — Headhunt Manager" };
 
 export default async function DashboardPage() {
-  const [candidateCount, clientCount, openJobCount, recentJobs, recentCandidates] = await Promise.all([
+  const [candidateCount, clientCount, openJobCount, newAppCount, recentJobs, recentCandidates, recentApps] = await Promise.all([
     prisma.candidate.count(),
     prisma.client.count({ where: { isDeleted: false } }),
     prisma.jobOrder.count({ where: { status: "OPEN" } }),
+    getNewApplicationsCount(),
     prisma.jobOrder.findMany({
       take: 5,
       orderBy: { createdAt: "desc" },
@@ -20,6 +22,7 @@ export default async function DashboardPage() {
       take: 5,
       orderBy: { createdAt: "desc" },
     }),
+    getRecentApplications(5),
   ]);
 
   return (
@@ -43,7 +46,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         {/* Card 1 */}
         <div className="bg-white rounded-xl border p-6 shadow-sm flex items-center gap-4">
           <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
@@ -68,22 +71,33 @@ export default async function DashboardPage() {
         
         {/* Card 3 */}
         <div className="bg-white rounded-xl border p-6 shadow-sm flex items-center gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-purple-50 text-purple-600">
+          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
             <Briefcase className="h-6 w-6" />
           </div>
           <div>
-            <p className="text-sm font-medium text-gray-500">Job đang mở (OPEN)</p>
+            <p className="text-sm font-medium text-gray-500">Job đang mở</p>
             <p className="text-2xl font-bold text-gray-900">{openJobCount}</p>
           </div>
         </div>
+
+        {/* Card 4 — FDIWork Applications */}
+        <Link href="/moderation/applications" className="bg-white rounded-xl border p-6 shadow-sm flex items-center gap-4 hover:shadow-md transition-shadow group">
+          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-teal-50 text-teal-600">
+            <FileDown className="h-6 w-6" />
+          </div>
+          <div>
+            <p className="text-sm font-medium text-gray-500">CV mới (FDIWork)</p>
+            <p className="text-2xl font-bold text-gray-900">{newAppCount}</p>
+          </div>
+        </Link>
       </div>
 
       {/* Lists */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Recent Jobs */}
         <div className="bg-white rounded-xl border shadow-sm overflow-hidden flex flex-col">
           <div className="p-4 border-b flex items-center justify-between">
-            <h2 className="font-semibold text-gray-900">Job vừa tạo gần đây</h2>
+            <h2 className="font-semibold text-gray-900">Job gần đây</h2>
             <Link href="/jobs" className="text-sm text-primary hover:underline flex items-center">
               Xem tất cả <ArrowRight className="h-3 w-3 ml-1" />
             </Link>
@@ -110,7 +124,7 @@ export default async function DashboardPage() {
         {/* Recent Candidates */}
         <div className="bg-white rounded-xl border shadow-sm overflow-hidden flex flex-col">
           <div className="p-4 border-b flex items-center justify-between">
-            <h2 className="font-semibold text-gray-900">Ứng viên mới nhất</h2>
+            <h2 className="font-semibold text-gray-900">Ứng viên mới</h2>
             <Link href="/candidates" className="text-sm text-primary hover:underline flex items-center">
               Xem tất cả <ArrowRight className="h-3 w-3 ml-1" />
             </Link>
@@ -125,9 +139,41 @@ export default async function DashboardPage() {
                     <UserPlus className="h-3.5 w-3.5 mr-1.5 text-gray-400" /> {c.fullName}
                   </div>
                   <div className="flex items-center justify-between mt-1 ml-5">
-                    <span className="text-xs text-gray-500">{c.currentPosition || "Chưa rō"} • {c.industry}</span>
+                    <span className="text-xs text-gray-500">{c.currentPosition || "Chưa rõ"} • {c.industry}</span>
                     <span className="text-xs text-gray-400">
                       {formatDistanceToNow(new Date(c.createdAt), { addSuffix: true, locale: vi })}
+                    </span>
+                  </div>
+                </Link>
+              ))
+            )}
+          </div>
+        </div>
+
+        {/* FDIWork Applications */}
+        <div className="bg-white rounded-xl border shadow-sm overflow-hidden flex flex-col">
+          <div className="p-4 border-b flex items-center justify-between">
+            <h2 className="font-semibold text-gray-900 flex items-center gap-2">
+              <FileDown className="h-4 w-4 text-teal-600" />
+              CV từ FDIWork
+            </h2>
+            <Link href="/moderation/applications" className="text-sm text-primary hover:underline flex items-center">
+              Xem tất cả <ArrowRight className="h-3 w-3 ml-1" />
+            </Link>
+          </div>
+          <div className="divide-y p-0 m-0 flex-1">
+            {recentApps.length === 0 ? (
+              <p className="p-4 text-sm text-gray-500 text-center">Chưa có đơn nào</p>
+            ) : (
+              recentApps.map((app) => (
+                <Link key={app.id} href="/moderation/applications" className="block p-4 hover:bg-gray-50 transition">
+                  <div className="font-medium text-gray-900 text-sm truncate">{app.fullName}</div>
+                  <div className="flex items-center justify-between mt-1">
+                    <span className="text-xs text-gray-500 truncate max-w-[70%]">
+                      {app.jobPosting.title} • {app.jobPosting.employer.companyName}
+                    </span>
+                    <span className="text-xs text-gray-400">
+                      {formatDistanceToNow(new Date(app.createdAt), { addSuffix: true, locale: vi })}
                     </span>
                   </div>
                 </Link>

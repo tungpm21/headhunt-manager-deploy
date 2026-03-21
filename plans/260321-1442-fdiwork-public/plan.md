@@ -24,7 +24,7 @@ Thêm route groups `(public)` và `(employer)`, mở rộng database với 4 mod
 | 05 | Employer Auth & Dashboard | ⬜ Pending | 10 | 2-3 sessions |
 | 06 | Employer Job Management | ⬜ Pending | 8 | 1-2 sessions |
 | 07 | Admin Moderation & Packages | ⬜ Pending | 7 | 1-2 sessions |
-| 08 | CRM Integration | ⬜ Pending | 5 | 1 session |
+| 08 | CRM Integration | ✅ Complete | 5 | 1 session |
 
 **Tổng:** 56 tasks | Ước tính: ~10 sessions
 

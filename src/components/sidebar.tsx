@@ -2,16 +2,22 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Users, Building2, Briefcase, LayoutDashboard, LogOut, UploadCloud } from "lucide-react";
+import { Users, Building2, Briefcase, LayoutDashboard, LogOut, UploadCloud, ShieldCheck, UserCog, Package } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { signOut } from "next-auth/react";
 
 const navigation = [
-  { name: "Tổng quan", href: "/", icon: LayoutDashboard },
+  { name: "Tổng quan", href: "/dashboard", icon: LayoutDashboard },
   { name: "Ứng viên", href: "/candidates", icon: Users },
   { name: "Khách hàng", href: "/clients", icon: Building2 },
   { name: "Job Orders", href: "/jobs", icon: Briefcase },
   { name: "Nhập dữ liệu", href: "/import", icon: UploadCloud },
+];
+
+const fdiworkNav = [
+  { name: "Duyệt bài đăng", href: "/moderation", icon: ShieldCheck },
+  { name: "Nhà tuyển dụng", href: "/employers", icon: UserCog },
+  { name: "Gói dịch vụ", href: "/packages", icon: Package },
 ];
 
 export function Sidebar() {
@@ -32,10 +38,38 @@ export function Sidebar() {
         </p>
         {navigation.map((item) => {
           const isActive = 
-            item.href === "/" 
-              ? pathname === "/" 
+            item.href === "/dashboard" 
+              ? pathname === "/dashboard" 
               : pathname.startsWith(item.href);
               
+          return (
+            <Link
+              key={item.name}
+              href={item.href}
+              className={cn(
+                "group flex items-center rounded-md px-3 py-2.5 text-sm font-medium transition-colors",
+                isActive
+                  ? "bg-primary text-white shadow-sm"
+                  : "text-muted hover:bg-border/50 hover:text-foreground"
+              )}
+            >
+              <item.icon
+                className={cn(
+                  "mr-3 h-5 w-5 flex-shrink-0 transition-colors",
+                  isActive ? "text-white" : "text-muted group-hover:text-foreground"
+                )}
+                aria-hidden="true"
+              />
+              {item.name}
+            </Link>
+          );
+        })}
+
+        <p className="px-3 pt-6 pb-2 text-xs font-semibold tracking-wider text-muted uppercase">
+          FDIWork
+        </p>
+        {fdiworkNav.map((item) => {
+          const isActive = pathname.startsWith(item.href);
           return (
             <Link
               key={item.name}

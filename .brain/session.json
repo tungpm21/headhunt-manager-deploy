@@ -1,64 +1,32 @@
 {
-  "updated_at": "2026-03-15T17:15:00+07:00",
+  "updated_at": "2026-03-21T18:25:00+07:00",
   "working_on": {
-    "feature": "MVP Development",
-    "current_plan_path": "plans/260315-1634-headhunt-mvp/",
-    "current_phase": "phase-02",
-    "task": "Phase 02 complete - Database & Auth",
-    "status": "complete",
-    "next_step": "/code phase-03 (Candidate Management)",
+    "feature": "FDIWork Public Website",
+    "current_plan_path": "plans/260321-1442-fdiwork-public/",
+    "current_phase": "phase-05",
+    "task": "Phase 05 Employer Auth & Dashboard - PENDING",
+    "status": "pending",
     "files": [],
     "blockers": [],
-    "notes": "Prisma 7 Postgres, NextAuth credentials hoạt động"
+    "notes": "Phases 01, 02, 03, 04 are completed. The public site is fully functional with realistic demo data (8 employers, 22 jobs). Next is implementing Employer Authentication (login, register) and their private dashboard."
   },
   "pending_tasks": [
-    {
-      "task": "Phase 03: Candidate Management",
-      "priority": "high",
-      "notes": "Core feature - 15 tasks"
-    },
-    {
-      "task": "Phase 04: Client Management",
-      "priority": "medium",
-      "notes": "8 tasks"
-    },
-    {
-      "task": "Phase 05: Job Order Management",
-      "priority": "medium",
-      "notes": "10 tasks, depends on Phase 03 + 04"
-    },
-    {
-      "task": "Phase 06: Excel Import & Polish",
-      "priority": "medium",
-      "notes": "10 tasks"
-    }
+    { "task": "Phase 05: Employer Auth & Dashboard", "priority": "high", "notes": "Cơ chế JWT riêng cho employer, trang login/register, dashboard overview" },
+    { "task": "Phase 06: Employer Job Management", "priority": "high", "notes": "CRUD tin tuyển dụng, xem danh sách ứng viên (Application)" },
+    { "task": "Phase 07: Admin Moderation", "priority": "medium", "notes": "CRM Admin duyệt bài, duyệt employer, cấp gói dịch vụ" },
+    { "task": "Phase 08: CRM Integration", "priority": "medium", "notes": "Import Application thành Candidate trong CRM" }
   ],
   "recent_changes": [
-    {
-      "timestamp": "2026-03-15T17:15:00+07:00",
-      "type": "code",
-      "description": "Phase 02 complete: Prisma Schema, Hosted DB, NextAuth setup, Login page, Sidebar layout, Team seed data"
-    }
+    { "timestamp": "2026-03-21", "type": "feature", "description": "Completed Phase 03: Job Listing & Detail (/viec-lam, /viec-lam/[slug]). Added filters and pagination.", "files": ["src/app/(public)/viec-lam/page.tsx", "src/app/(public)/viec-lam/[slug]/page.tsx", "src/components/public/JobFilters.tsx"] },
+    { "timestamp": "2026-03-21", "type": "feature", "description": "Completed Phase 04: Company Profiles & Apply Form. (/cong-ty, /cong-ty/[slug], /ung-tuyen). Implemented Apply CV form with validation.", "files": ["src/app/(public)/cong-ty/page.tsx", "src/app/(public)/cong-ty/[slug]/page.tsx", "src/components/public/ApplyForm.tsx", "src/app/(public)/ung-tuyen/page.tsx"] },
+    { "timestamp": "2026-03-21", "type": "data", "description": "Overhauled demo data in seed.ts with 8 FDI employers, 8 logos, 22 realistic jobs, and 8 subscriptions.", "files": ["prisma/seed.ts", "public/logos/*"] }
+  ],
+  "errors_encountered": [
+    { "error": "Playwright subagent failing due to 'target closed: could not read protocol padding: EOF'", "solution": "Relied on manual inspection of captured screenshots and curl verification for routing and API calls. Verified visually via the single successful screenshot.", "resolved": true },
+    { "error": "Prisma types acting stale in IDE for new schemas", "solution": "Types are correct at runtime; requires 'TypeScript: Restart TS Server' in IDE to clear the lint errors.", "resolved": true }
   ],
   "decisions_made": [
-    {
-      "decision": "Hosted Prisma Postgres instead of Local Docker",
-      "reason": "Postgres/Docker CLI not immediately available. Prisma Create DB handled it seamlessly for Prisma 7."
-    },
-    {
-      "decision": "pg adapter + @prisma/client",
-      "reason": "Prisma 7 Driver Adapters used for native pg connection to Hosted setup."
-    }
-  ],
-  "skipped_tests": [],
-  "errors_encountered": [
-    {
-      "error": "Prisma 7 url parameter removed from schema.prisma",
-      "resolution": "Moved seed config and schema references fully to prisma.config.ts"
-    },
-    {
-      "error": "tsx compile mismatch with @types/pg",
-      "resolution": "Downgraded @types/pg to 8.10.9 for adapter compatibility"
-    }
+    { "decision": "Generate full, realistic Vietnamese demo data during seed", "reason": "Necessary to properly validate UI grids, text wrapping, and aesthetic layout of the public website without relying on 'Lorem Ipsum'." },
+    { "decision": "Apply Form handles file validation but skips actual Vercel Blob upload for MVP", "reason": "Focusing on completing the full navigation and data flow first. Real file uploading will be integrated in production deployment." }
   ]
 }

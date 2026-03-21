@@ -1,5 +1,6 @@
-// Headhunt Manager - Database Schema
-// Based on DESIGN.md specifications
+// Headhunt Manager + FDIWork - Database Schema
+// CRM: Based on docs/crm/DESIGN.md
+// FDIWork: Based on docs/fdiwork/DESIGN_FDIWORK.md
 
 generator client {
   provider        = "prisma-client-js"
@@ -30,6 +31,7 @@ enum CandidateSource {
   REFERRAL
   FACEBOOK
   VIETNAMWORKS
+  FDIWORK // Imported from FDIWork public website
   OTHER
 }
 
@@ -65,6 +67,44 @@ enum JobCandidateStage {
   OFFER
   PLACED
   REJECTED
+}
+
+// ==================== FDIWORK ENUMS ====================
+
+enum EmployerStatus {
+  PENDING   // Chờ admin duyệt
+  ACTIVE    // Đang hoạt động
+  SUSPENDED // Tạm khóa
+}
+
+enum JobPostingStatus {
+  DRAFT     // Nháp, chưa gửi duyệt
+  PENDING   // Chờ admin duyệt
+  APPROVED  // Đã duyệt, hiển thị trên web
+  REJECTED  // Admin từ chối
+  EXPIRED   // Hết hạn
+  PAUSED    // Employer tạm ẩn
+}
+
+enum SubscriptionTier {
+  BASIC
+  STANDARD
+  PREMIUM
+  VIP
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  EXPIRED
+  CANCELLED
+}
+
+enum ApplicationStatus {
+  NEW         // Mới nộp
+  REVIEWED    // Đã xem
+  SHORTLISTED // Vào danh sách chọn
+  REJECTED    // Không phù hợp
+  IMPORTED    // Đã import vào CRM Candidate
 }
 
 // ==================== MODELS ====================
@@ -115,9 +155,10 @@ model Candidate {
   // Relations
   createdBy   User            @relation("CandidateCreatedBy", fields: [createdById], references: [id])
   createdById Int
-  tags        CandidateTag[]
-  notes       CandidateNote[]
-  jobLinks    JobCandidate[]
+  tags         CandidateTag[]
+  notes        CandidateNote[]
+  jobLinks     JobCandidate[]
+  applications Application[] // FDIWork: CV apply từ web public
 
   @@index([fullName])
   @@index([industry])
@@ -168,6 +209,7 @@ model Client {
   createdBy   User            @relation("ClientCreatedBy", fields: [createdById], references: [id])
   createdById Int
   contacts    ClientContact[]
+  employer    Employer? @relation("EmployerClient") // FDIWork: 1 Client có thể link 1 Employer
   jobOrders   JobOrder[]
 
   @@index([companyName])
@@ -209,6 +251,7 @@ model JobOrder {
   createdBy    User           @relation("JobCreatedBy", fields: [createdById], references: [id])
   createdById  Int
   candidates   JobCandidate[]
+  jobPostings  JobPosting[] // FDIWork: tin tuyển dụng public link đến Job Order
 
   @@index([status])
   @@index([clientId])
@@ -227,4 +270,127 @@ model JobCandidate {
   candidateId Int
 
   @@unique([jobOrderId, candidateId])
+}
+
+// ==================== FDIWORK MODELS ====================
+
+model Employer {
+  id          Int            @id @default(autoincrement())
+  email       String         @unique
+  password    String         // bcrypt hashed
+  companyName String
+  logo        String?
+  description String?
+  industry    String?
+  companySize CompanySize?
+  address     String?
+  website     String?
+  phone       String?
+  status      EmployerStatus @default(PENDING)
+  slug        String         @unique
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  // Relations
+  subscription Subscription?
+  jobPostings  JobPosting[]
+
+  // Link to CRM Client (admin link thủ công)
+  clientId Int?    @unique
+  client   Client? @relation("EmployerClient", fields: [clientId], references: [id])
+
+  @@index([status])
+  @@index([slug])
+  @@index([industry])
+}
+
+model Subscription {
+  id          Int                @id @default(autoincrement())
+  tier        SubscriptionTier
+  status      SubscriptionStatus @default(ACTIVE)
+  jobQuota    Int                // Tổng tin được đăng
+  jobsUsed    Int                @default(0)
+  jobDuration Int                // Số ngày tin hiển thị
+  showLogo    Boolean            @default(false) // Logo ở trang chủ
+  showBanner  Boolean            @default(false) // Banner slide VIP
+  startDate   DateTime
+  endDate     DateTime
+  price       Float              // Giá gói (VND)
+  createdAt   DateTime           @default(now())
+
+  // Relations
+  employer   Employer @relation(fields: [employerId], references: [id], onDelete: Cascade)
+  employerId Int      @unique
+
+  @@index([status])
+  @@index([endDate])
+}
+
+model JobPosting {
+  id            Int              @id @default(autoincrement())
+  title         String
+  slug          String           @unique
+  description   String
+  requirements  String?
+  benefits      String?
+  salaryMin     Float?
+  salaryMax     Float?
+  salaryDisplay String?          // "15-20 triệu" hoặc "Thỏa thuận"
+  industry      String?
+  position      String?          // Cấp bậc: Nhân viên, Trưởng phòng...
+  location      String?
+  workType      String?          // Full-time, Part-time, Remote
+  quantity      Int              @default(1)
+  skills        String?          // Comma-separated: "Java, React, SQL"
+  status        JobPostingStatus @default(DRAFT)
+  rejectReason  String?          // Admin điền khi reject
+  publishedAt   DateTime?
+  expiresAt     DateTime?
+  viewCount     Int              @default(0)
+  applyCount    Int              @default(0)
+  isFeatured    Boolean          @default(false) // VIP
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  // Relations
+  employer   Employer @relation(fields: [employerId], references: [id])
+  employerId Int
+
+  applications Application[]
+
+  // Link to CRM JobOrder (admin link thủ công)
+  jobOrder   JobOrder? @relation(fields: [jobOrderId], references: [id])
+  jobOrderId Int?
+
+  @@index([status])
+  @@index([industry])
+  @@index([location])
+  @@index([slug])
+  @@index([employerId])
+  @@index([expiresAt])
+}
+
+model Application {
+  id          Int               @id @default(autoincrement())
+  fullName    String
+  email       String
+  phone       String?
+  coverLetter String?
+  cvFileUrl   String?
+  cvFileName  String?
+  status      ApplicationStatus @default(NEW)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  // Relations
+  jobPosting   JobPosting @relation(fields: [jobPostingId], references: [id], onDelete: Cascade)
+  jobPostingId Int
+
+  // Link to CRM Candidate (sau khi import)
+  candidate   Candidate? @relation(fields: [candidateId], references: [id])
+  candidateId Int?
+
+  @@index([jobPostingId])
+  @@index([status])
+  @@index([email])
 }

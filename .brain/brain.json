@@ -1,114 +1,95 @@
 {
-  "meta": {
-    "schema_version": "1.1.0",
-    "awf_version": "4.0.2",
-    "last_updated": "2026-03-15T16:51:14+07:00"
-  },
-  "project": {
-    "name": "headhunt-manager",
-    "type": "web-app",
-    "description": "Hệ thống quản lý hồ sơ ứng viên và quy trình headhunt cho team nhỏ 4 người. Thay thế Excel.",
-    "status": "planning",
-    "created_at": "2026-03-15T16:24:23+07:00"
-  },
-  "tech_stack": {
-    "frontend": {
-      "framework": "Next.js 15 (App Router)",
-      "ui": "React 19",
-      "styling": "TailwindCSS",
-      "icons": "Lucide Icons",
-      "font": "Inter (Google Fonts)"
-    },
-    "backend": {
-      "runtime": "Next.js API Routes / Server Actions",
-      "orm": "Prisma"
-    },
-    "database": {
-      "type": "PostgreSQL",
-      "orm": "Prisma ORM"
-    },
-    "auth": {
-      "library": "NextAuth.js",
-      "method": "Email/Password"
-    },
-    "file_storage": "Local disk (uploads/)"
+  "meta": { "schema_version": "1.1.0", "awf_version": "4.0.2" },
+  "project": { "name": "Headhunt Manager + FDIWork", "type": "Web App (CRM + Public Website)", "status": "FDIWork Phases 01-07 Done (7/8)" },
+  "tech_stack": { 
+    "frontend": { "framework": "Next.js 15 App Router", "styling": "TailwindCSS v4", "icons": "lucide-react", "components": "React 19", "fonts": "Poppins (heading) + Open Sans (body)" },
+    "backend": { "framework": "Next.js Server Actions", "auth_crm": "NextAuth v5 (Auth.js) - JWT strategy", "auth_employer": "Custom JWT cookie (employer-token) via jose", "storage": "Vercel Blob" },
+    "database": { "orm": "Prisma 7.5.0", "db": "Neon PostgreSQL", "hosting": "Vercel" }
   },
   "database_schema": {
-    "summary": "App lưu: tài khoản team (User), hồ sơ ứng viên (Candidate) với ghi chú và tags, doanh nghiệp khách hàng (Client) với người liên hệ, đơn hàng tuyển dụng (JobOrder) với danh sách ứng viên gán.",
-    "tables": [
-      "User - Tài khoản team (4 người, có role ADMIN/MEMBER)",
-      "Candidate - Hồ sơ ứng viên (tên, SĐT, email, vị trí, ngành, kinh nghiệm, lương, CV, trạng thái, nguồn)",
-      "Tag - Nhãn/tags (Senior, Java, Sales...)",
-      "CandidateTag - Nối ứng viên ↔ tag (many-to-many)",
-      "CandidateNote - Ghi chú cho ứng viên (ai viết, lúc nào, nội dung)",
-      "Client - Doanh nghiệp khách hàng (tên, ngành, quy mô, địa chỉ)",
-      "ClientContact - Người liên hệ của DN (tên, chức vụ, SĐT, email)",
-      "JobOrder - Đơn hàng tuyển dụng (vị trí, JD, lương, deadline, trạng thái, phí)",
-      "JobCandidate - Gán ứng viên vào job với stage tracking (Sourced→Contacted→Interview→Offer→Placed/Rejected)"
-    ],
-    "relationships_explained": "1 User tạo nhiều Candidate/Client/JobOrder. 1 Candidate có nhiều Tags, nhiều Notes, thuộc nhiều Jobs. 1 Client có nhiều Contacts, nhiều JobOrders. 1 JobOrder thuộc 1 Client, có nhiều Candidates gán vào."
+    "summary": "CRM nội bộ + FDIWork public website. CRM: quản lý user, candidate, client, job order. FDIWork: nhà tuyển dụng (employer) đăng tin, ứng viên (application) nộp CV, admin duyệt bài.",
+    "crm_tables": ["User", "Candidate", "CandidateNote", "CandidateTag", "Tag", "Client", "ClientContact", "JobOrder", "JobCandidate"],
+    "fdiwork_tables": ["Employer", "Subscription", "JobPosting", "Application"],
+    "fdiwork_enums": ["EmployerStatus", "JobPostingStatus", "SubscriptionTier", "SubscriptionStatus", "ApplicationStatus"],
+    "relationships_explained": "CRM: 1 Client có nhiều JobOrders, 1 JobOrder có nhiều Candidate (qua JobCandidate pipeline). FDIWork: 1 Employer có 1 Subscription (gói dịch vụ), 1 Employer đăng nhiều JobPosting, 1 JobPosting nhận nhiều Application. CRM-FDIWork bridge: Employer link Client (1:1 optional), JobPosting link JobOrder (optional), Application link Candidate (khi import)."
   },
-  "features": {
-    "mvp": [
-      "Quản lý ứng viên (CRUD, tìm kiếm, lọc, ghi chú, tags, upload CV)",
-      "Quản lý khách hàng doanh nghiệp (CRUD, người liên hệ)",
-      "Job Order (tạo, gán ứng viên, tracking stage, trạng thái)",
-      "Đăng nhập team 4 người (email/password, phân quyền Admin/Member)",
-      "Import dữ liệu từ Excel"
-    ],
-    "phase2": [
-      "Pipeline/Kanban view cho Job Order",
-      "Dashboard & báo cáo tổng quan",
-      "Nhắc nhở / Reminder",
-      "Activity Log",
-      "Export báo cáo (Excel/PDF)"
-    ],
-    "phase3": [
-      "Báo cáo doanh thu / phí dịch vụ",
-      "Báo cáo hiệu suất team",
-      "Analytics nguồn ứng viên"
-    ]
+  "api_endpoints": [
+    { "path": "src/lib/actions.ts", "explained": "CRM CRUD qua Server Actions" },
+    { "path": "src/lib/public-actions.ts", "explained": "FDIWork public: getHomepageData, getPublicJobs, getPublicJobBySlug, getPublicCompanies, getCompanyBySlug, submitApplication" },
+    { "path": "src/lib/employer-actions.ts", "explained": "FDIWork employer: login, register, logout, dashboard, company profile, subscription, CRUD job postings (quota check), toggle status, view applicants" },
+    { "path": "src/lib/moderation-actions.ts", "explained": "CRM admin: approve/reject job postings, manage employer status, assign/renew subscriptions" }
+  ],
+  "features": [
+    "Authentication CRM (Email/Pass NextAuth)",
+    "Quản lý Khách hàng (CRUD Client & Contacts)",
+    "Quản lý Ứng viên (CRUD, Filter, Notes, CV Upload)",
+    "Job Orders & Pipeline (SOURCED → PLACED)",
+    "Import Excel",
+    "Dashboard Overview",
+    "✅ FDIWork Public Website (Phases 01-04: Homepage, Jobs, Companies, Apply)",
+    "✅ Employer Auth (Phase 05: JWT login/register, dashboard, company profile, subscription)",
+    "✅ Employer Job Management (Phase 06: CRUD jobs, quota check, pause/resume, applicants list)",
+    "✅ Admin Moderation (Phase 07: approve/reject tin, manage employers, assign subscriptions, CRM sidebar FDIWork section)",
+    "🆕 CRM Integration (Phase 08 PLANNED: CV import from FDIWork applications)"
+  ],
+  "business_rules": [
+    "Ứng viên mặc định AVAILABLE. Email không bắt buộc nhưng phải chuẩn format.",
+    "Bắt buộc gắn Client khi tạo JobOrder. Xóa mềm (isDeleted) cho an toàn.",
+    "Employer phải ACTIVE mới đăng nhập được (admin duyệt trước).",
+    "JobPosting phải PENDING → admin Approve mới hiển thị trên web.",
+    "Employer hết quota (jobsUsed >= jobQuota) → không đăng tin mới.",
+    "JobPosting hết hạn (expiresAt < now) → ẩn khỏi danh sách public.",
+    "Application form validation: PDF/DOC/DOCX, 5MB max, check duplicate email/phone + job.",
+    "Application import vào CRM → tạo Candidate với source = FDIWORK.",
+    "Approve job → set publishedAt = now, expiresAt = now + subscription.jobDuration days.",
+    "Assign subscription → auto-activate employer nếu status = PENDING."
+  ],
+  "knowledge_items": {
+    "patterns": ["Server Actions cho form/data", "useActionState cho React forms", "Separate auth: CRM = NextAuth, Employer = custom JWT (jose) header cookies", "Prisma transactions for complex inserts (job create + quota increment)", "Route groups: (auth) = standalone pages, (portal) = sidebar layout"],
+    "gotchas": ["Prisma one-to-one relation cần @unique trên FK field", "Client-Employer relation cần named relation ('EmployerClient') để tránh ambiguous", "proxy.ts startsWith('/employer') match cả '/employers' → phải dùng startsWith('/employer/') hoặc exact match", "Next.js 16: middleware.ts → proxy.ts migration", "Route group conflicts: (employer)/login vs nested (auth)/login cần restructure"],
+    "conventions": ["Action names end with 'Action'", "CRM color: Indigo, FDIWork color: Teal (#0D9488)", "FDIWork route groups: (public) = no auth, (employer)/(auth) = standalone, (employer)/(portal) = sidebar layout", "CRM admin FDIWork routes: /moderation, /employers, /packages"]
   },
-  "design": {
-    "style": "Modern, clean (Notion/Linear inspired)",
-    "theme": "Light + Dark mode (toggle)",
-    "primary_color": "#6366F1 (Indigo)",
-    "font": "Inter",
-    "screens": [
-      "Login",
-      "Dashboard",
-      "Candidate List",
-      "Candidate New",
-      "Candidate Detail",
-      "Client List",
-      "Client New",
-      "Client Detail",
-      "Job List",
-      "Job New",
-      "Job Detail",
-      "Import Excel"
-    ]
+  "docs_structure": {
+    "crm": "docs/crm/ (BRIEF, DESIGN, design-specs, ideas, mockups, plans, reports)",
+    "fdiwork": "docs/fdiwork/ (BRIEF_FDIWORK_REBUILD, FDIWORK_WEBSITE_EVALUATION, SPECS, DESIGN_FDIWORK)",
+    "plans": "plans/260321-1442-fdiwork-public/ (plan.md + 8 phase files)",
+    "design_system": "design-system/fdiwork/MASTER.md"
   },
-  "decisions": [
-    {
-      "decision": "Web App (không phải mobile/desktop)",
-      "reason": "Team 4 người cần truy cập cùng lúc từ nhiều thiết bị"
-    },
-    {
-      "decision": "Next.js full-stack",
-      "reason": "Vừa frontend vừa backend trong 1 project, dễ deploy"
-    },
-    {
-      "decision": "PostgreSQL + Prisma",
-      "reason": "Database mạnh, miễn phí, Prisma giúp thao tác DB dễ dàng"
-    },
-    {
-      "decision": "Soft delete (isDeleted flag)",
-      "reason": "Không xóa hẳn dữ liệu, tránh mất data quan trọng"
-    },
-    {
-      "decision": "Light + Dark mode",
-      "reason": "User yêu cầu cả hai, toggle chuyển đổi"
-    }
-  ]
+  "session_log": {
+    "date": "2026-03-21",
+    "phases_completed": ["Phase 05: Employer Auth", "Phase 06: Employer Job Management", "Phase 07: Admin Moderation"],
+    "files_created": [
+      "src/lib/employer-auth.ts",
+      "src/lib/employer-actions.ts",
+      "src/lib/moderation-actions.ts",
+      "src/proxy.ts (modified)",
+      "src/auth.config.ts (modified)",
+      "src/components/sidebar.tsx (modified)",
+      "src/components/employer/EmployerSidebar.tsx",
+      "src/components/employer/EmployerHeader.tsx",
+      "src/app/(employer)/employer/(auth)/login/page.tsx",
+      "src/app/(employer)/employer/(auth)/register/page.tsx",
+      "src/app/(employer)/employer/(portal)/layout.tsx",
+      "src/app/(employer)/employer/(portal)/dashboard/page.tsx",
+      "src/app/(employer)/employer/(portal)/company/page.tsx",
+      "src/app/(employer)/employer/(portal)/subscription/page.tsx",
+      "src/app/(employer)/employer/(portal)/job-postings/page.tsx",
+      "src/app/(employer)/employer/(portal)/job-postings/new/page.tsx",
+      "src/app/(employer)/employer/(portal)/job-postings/[id]/page.tsx",
+      "src/app/(employer)/employer/(portal)/job-postings/[id]/actions.tsx",
+      "src/app/(dashboard)/moderation/page.tsx",
+      "src/app/(dashboard)/moderation/moderation-actions-ui.tsx",
+      "src/app/(dashboard)/employers/page.tsx",
+      "src/app/(dashboard)/employers/employer-status-actions.tsx",
+      "src/app/(dashboard)/packages/page.tsx",
+      "src/app/(dashboard)/packages/assign-form.tsx"
+    ],
+    "bugs_fixed": [
+      "middleware.ts → proxy.ts migration (Next.js 16)",
+      "Route group path conflicts ((employer)/login vs nested)",
+      "proxy.ts: /employers caught by /employer matcher",
+      "EmployerSidebar logout pattern (server action in form)"
+    ],
+    "dependencies_added": ["jose (JWT Edge-compatible)"]
+  }
 }

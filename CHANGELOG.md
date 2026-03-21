@@ -3,6 +3,9 @@
 Mọi thay đổi đáng chú ý của dự án Headhunt Manager sẽ được ghi chép tại đây.
 
 ## [2026-03-19] - Hoàn thiện Phiên bản MVP (v1.0.0)
+### Hạ tầng (Infrastructure)
+- **Vercel Deployment**: Cấu hình và triển khai thành công ứng dụng lên môi trường Vercel (Production).
+- **Vercel Blob Storage**: Tích hợp module `@vercel/blob`, chuyển đổi lưu trữ file mềm (CV, Avatar) từ local disk sang Cloud Storage để tương thích với Serverless.
 
 ### Thêm mới (Added)
 - **Module Job Orders**: Khởi tạo, theo dõi quy trình duyệt ứng viên (Pipeline SOURCED -> PLACED).

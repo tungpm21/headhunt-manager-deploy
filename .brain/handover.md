@@ -1,70 +1,50 @@
-# 📋 HANDOVER DOCUMENT
+# HANDOVER DOCUMENT
+Ngày: 2026-03-21 15:20
 
-📍 **Dự án:** Headhunt Manager
-🔢 **Đến bước:** Planning complete, sẵn sàng code
-
----
+## 📍 Đang làm: FDIWork Public Website
+## 🔢 Phase: 01/08 - Database Schema ✅ DONE
 
 ## ✅ ĐÃ XONG:
-
-| Bước | Trạng thái | Output |
-|------|-----------|--------|
-| /init | ✅ Done | Workspace, README.md |
-| /brainstorm | ✅ Done | Market research, feature list, BRIEF.md |
-| /plan | ✅ Done | 6 phases, 57 tasks, plan.md + phase files |
-| /design | ✅ Done | DESIGN.md (DB schema, screens, flows, API, Prisma) |
-| /visualize | ✅ Done | 5 mockups, design-specs.md |
+- Brainstorm + đánh giá web cũ fdiwork.com
+- Tạo SPECS.md (đặc tả kỹ thuật)
+- Tạo DESIGN_FDIWORK.md (thiết kế chi tiết: DB, API, Auth, Screens, Tests)
+- Sắp xếp docs/ (crm/ + fdiwork/ + archive/)
+- Plan 8 phases trong plans/260321-1442-fdiwork-public/
+- Phase 01: Database Schema ✅
+  - 5 enums mới + 4 models mới (Employer, Subscription, JobPosting, Application)
+  - Migration init_with_fdiwork applied
+  - Seed: 3 employers, 2 subscriptions, 5 job postings
+- Design system generated (Poppins + Open Sans, Professional Blue)
 
 ## ⏳ CÒN LẠI:
-
-- Phase 01: Setup & Foundation (7 tasks)
-- Phase 02: Database & Auth (7 tasks)
-- Phase 03: Candidate Management (15 tasks)
-- Phase 04: Client Management (8 tasks)
-- Phase 05: Job Order Management (10 tasks)
-- Phase 06: Excel Import & Polish (10 tasks)
+- Phase 02: Public Layout + Homepage
+- Phase 03: Job Listing & Detail
+- Phase 04: Company & Apply Form
+- Phase 05: Employer Auth & Dashboard
+- Phase 06: Employer Job Management
+- Phase 07: Admin Moderation & Packages
+- Phase 08: CRM Integration (Import CV)
 
 ## 🔧 QUYẾT ĐỊNH QUAN TRỌNG:
-
-- **Web App** (Next.js 15 + React 19 + TailwindCSS)
-- **PostgreSQL + Prisma ORM**
-- **NextAuth.js** cho đăng nhập team
-- **Light + Dark mode**, style Notion/Linear
-- **Soft delete** (không xóa hẳn data)
-- **Primary color:** Indigo #6366F1
-
-## 📁 FILES QUAN TRỌNG:
-
-```
-d:\MH\Headhunt_pj\
-├── .brain/
-│   ├── brain.json              ← Kiến thức project (static)
-│   └── session.json            ← Tiến độ hiện tại (dynamic)
-├── docs/
-│   ├── BRIEF.md                ← Tóm tắt ý tưởng
-│   ├── DESIGN.md               ← Thiết kế DB, API, screens, Prisma schema
-│   ├── design-specs.md         ← Color palette, typography, components
-│   ├── ideas.md                ← Ghi chú ý tưởng ban đầu
-│   ├── ui_mockups.html         ← Xem mockups (mở trên browser)
-│   └── mockups/                ← 5 file ảnh mockup
-├── plans/260315-1634-headhunt-mvp/
-│   ├── plan.md                 ← Overview + progress tracker
-│   ├── phase-01-setup.md
-│   ├── phase-02-database-auth.md
-│   ├── phase-03-candidates.md
-│   ├── phase-04-clients.md
-│   ├── phase-05-jobs.md
-│   └── phase-06-import-polish.md
-└── README.md
-```
+- Employer Auth = Custom JWT cookie (không dùng NextAuth thứ 2)
+- FDIWork color = Teal #0D9488 (CRM giữ Indigo)
+- Subscription 1:1 với Employer (MVP đơn giản)
+- Database reset rồi migrate fresh (dev DB)
 
 ## ⚠️ LƯU Ý CHO SESSION SAU:
+- Prisma one-to-one cần @unique trên FK
+- Named relation cần cho Client-Employer ("EmployerClient")
+- Chạy `prisma generate` sau mỗi schema change trước khi seed
+- Design system: design-system/fdiwork/MASTER.md
 
-- Chưa có code nào, chỉ mới planning/design
-- Prisma schema đã viết sẵn trong DESIGN.md, copy vào khi code Phase 02
-- Gõ `/recap` để AI nhớ lại toàn bộ context
-- Gõ `/code phase-01` để bắt đầu code
+## 📁 FILES QUAN TRỌNG:
+- docs/fdiwork/DESIGN_FDIWORK.md (thiết kế chính)
+- docs/fdiwork/SPECS.md (đặc tả)
+- plans/260321-1442-fdiwork-public/plan.md (tiến độ)
+- prisma/schema.prisma (schema hiện tại)
+- design-system/fdiwork/MASTER.md (design tokens)
+- .brain/brain.json + session.json (context)
 
----
-
-📍 Đã lưu! Để tiếp tục: Gõ `/recap`
+## 🔑 LOGIN INFO:
+- CRM: admin@headhunt.com / headhunt123
+- Employer: hr@samsung-vn.com / employer123

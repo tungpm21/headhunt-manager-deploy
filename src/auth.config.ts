@@ -17,10 +17,18 @@ export const authConfig = {
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user;
-      const isOnLogin = nextUrl.pathname.startsWith("/login");
-      
+      const pathname = nextUrl.pathname;
+
+      // Public FDIWork routes — no auth required
+      const publicPrefixes = ["/viec-lam", "/cong-ty", "/ung-tuyen", "/employer"];
+      const isPublicRoute = pathname === "/" || publicPrefixes.some(p => pathname.startsWith(p));
+
+      if (isPublicRoute) return true;
+
+      // CRM login page
+      const isOnLogin = pathname.startsWith("/login");
       if (isOnLogin) {
-        if (isLoggedIn) return Response.redirect(new URL("/", nextUrl));
+        if (isLoggedIn) return Response.redirect(new URL("/dashboard", nextUrl));
         return true;
       }
       

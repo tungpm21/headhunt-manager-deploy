@@ -20,6 +20,8 @@ const JOB_DETAIL_INCLUDE = {
           currentPosition: true,
           currentCompany: true,
           status: true,
+          level: true,   // Seniority — hiển thị trong pipeline
+          skills: true,  // Skills array — hiển thị chips
         },
       },
     },

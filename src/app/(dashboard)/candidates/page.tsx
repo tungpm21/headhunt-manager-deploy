@@ -6,12 +6,14 @@ import { getAllTags } from "@/lib/tags";
 import { CandidateTable } from "@/components/candidates/candidate-table";
 import { CandidateFiltersPanel } from "@/components/candidates/candidate-filters";
 import { Pagination } from "@/components/ui/pagination";
-import { CandidateStatus } from "@/types/candidate";
+import { CandidateStatus, CandidateSeniority } from "@/types/candidate";
 
 interface PageProps {
   searchParams: Promise<{
     search?: string;
     status?: string;
+    level?: string;
+    skills?: string;
     location?: string;
     industry?: string;
     minSalary?: string;
@@ -33,6 +35,8 @@ export default async function CandidatesPage({ searchParams }: PageProps) {
     getCandidates({
       search: sp.search,
       status: sp.status as CandidateStatus | undefined,
+      level: sp.level as CandidateSeniority | undefined,
+      skills: sp.skills ? sp.skills.split(",").map((s) => s.trim()).filter(Boolean) : undefined,
       location: sp.location,
       industry: sp.industry,
       minSalary: sp.minSalary ? Number(sp.minSalary) : undefined,

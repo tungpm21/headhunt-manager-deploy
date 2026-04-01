@@ -1,6 +1,6 @@
-import { Client, ClientContact, CompanySize } from "@prisma/client";
+import { Client, ClientContact, CompanySize, ClientStatus } from "@prisma/client";
 
-export type { CompanySize };
+export type { CompanySize, ClientStatus };
 
 export type ClientWithRelations = Client & {
   contacts: ClientContact[];
@@ -31,6 +31,7 @@ export interface CreateClientInput {
   address?: string;
   website?: string;
   notes?: string;
+  status?: ClientStatus;
 }
 
 export interface UpdateClientInput extends Partial<CreateClientInput> {}

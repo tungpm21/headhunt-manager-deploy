@@ -2,6 +2,7 @@ import {
   Candidate,
   CandidateStatus,
   CandidateSource,
+  CandidateSeniority,
   Gender,
   Tag,
   CandidateNote,
@@ -30,6 +31,8 @@ export interface CandidateFilters {
   industry?: string;
   location?: string;
   status?: CandidateStatus;
+  level?: CandidateSeniority; // Filter theo cấp bậc
+  skills?: string[];          // Filter theo skill (hasSome)
   minSalary?: number;
   maxSalary?: number;
   tagIds?: number[];
@@ -55,9 +58,11 @@ export interface CreateCandidateInput {
   expectedSalary?: number;
   location?: string;
   status?: CandidateStatus;
+  level?: CandidateSeniority; // Cấp bậc
+  skills?: string[];          // Danh sách kỹ năng
   source?: CandidateSource;
   sourceDetail?: string;
-  avatarUrl?: string | null; // Bổ sung upload ảnh đại diện
+  avatarUrl?: string | null;
   tagIds?: number[];
 }
 
@@ -77,4 +82,4 @@ export interface PaginatedCandidates {
 // ============================================================
 // Re-exports for convenience
 // ============================================================
-export { CandidateStatus, CandidateSource, Gender };
+export { CandidateStatus, CandidateSource, CandidateSeniority, Gender };

@@ -113,6 +113,20 @@ export function ClientForm({ initialData }: ClientFormProps) {
             </select>
           </div>
 
+          <div>
+            <FieldLabel htmlFor="status">Trạng thái quan hệ</FieldLabel>
+            <select
+              id="status"
+              name="status"
+              defaultValue={initialData?.status || "ACTIVE"}
+              className={inputCls}
+            >
+              <option value="ACTIVE">Hoạt động</option>
+              <option value="INACTIVE">Tạm ngừng</option>
+              <option value="BLACKLISTED">Blacklisted</option>
+            </select>
+          </div>
+
           <div className="md:col-span-2">
             <FieldLabel htmlFor="address">Địa chỉ trụ sở</FieldLabel>
             <input

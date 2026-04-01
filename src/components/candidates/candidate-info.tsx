@@ -1,5 +1,5 @@
 import { Candidate } from "@prisma/client";
-import { Mail, Phone, Calendar, MapPin, Building2, Briefcase, DollarSign, Award } from "lucide-react";
+import { Mail, Phone, Calendar, MapPin, Building2, Briefcase, DollarSign, Award, Layers, Code2 } from "lucide-react";
 
 interface CandidateInfoProps {
   candidate: Candidate;
@@ -22,6 +22,14 @@ export function CandidateInfo({ candidate }: CandidateInfoProps) {
       case "OTHER": return "Khác";
       default: return "Không khả dụng";
     }
+  };
+
+  const getLevelText = (level: string | null) => {
+    const map: Record<string, string> = {
+      INTERN: "Intern", JUNIOR: "Junior", MID_LEVEL: "Mid-level",
+      SENIOR: "Senior", LEAD: "Lead", MANAGER: "Manager", DIRECTOR: "Director",
+    };
+    return level ? (map[level] || level) : null;
   };
 
   const InfoRow = ({ icon: Icon, label, value }: { icon: any, label: string, value?: string | null }) => (
@@ -78,12 +86,40 @@ export function CandidateInfo({ candidate }: CandidateInfoProps) {
         <div className="p-5 space-y-1">
           <InfoRow icon={Briefcase} label="Vị trí hiện tại" value={candidate.currentPosition} />
           <InfoRow icon={Building2} label="Công ty" value={candidate.currentCompany} />
-          <InfoRow icon={Award} label="Ngành nghề & Kinh nghiệm" value={
+          <InfoRow icon={Award} label="Ngành nghề &amp; Kinh nghiệm" value={
             `${candidate.industry || '—'} • ${candidate.yearsOfExp || 0} năm`
           } />
           <InfoRow icon={DollarSign} label="Mức lương" value={
             `Hiện tại: ${candidate.currentSalary ? `${candidate.currentSalary} triệu` : '—'} / Mong muốn: ${candidate.expectedSalary ? `${candidate.expectedSalary} triệu` : '—'}`
           } />
+          {/* Level badge */}
+          {candidate.level && (
+            <div className="flex items-start gap-3 py-2 border-b border-border/50">
+              <Layers className="h-4 w-4 text-muted mt-0.5" />
+              <div className="flex-1">
+                <p className="text-xs text-muted font-medium mb-1">Cấp bậc</p>
+                <span className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">
+                  {getLevelText(candidate.level)}
+                </span>
+              </div>
+            </div>
+          )}
+          {/* Skills chips */}
+          {candidate.skills && candidate.skills.length > 0 && (
+            <div className="flex items-start gap-3 py-2">
+              <Code2 className="h-4 w-4 text-muted mt-0.5" />
+              <div className="flex-1">
+                <p className="text-xs text-muted font-medium mb-2">Kỹ năng</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {candidate.skills.map((skill) => (
+                    <span key={skill} className="inline-flex items-center rounded-md bg-surface border border-border px-2 py-0.5 text-xs font-medium text-foreground">
+                      {skill}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

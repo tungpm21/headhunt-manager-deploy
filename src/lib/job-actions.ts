@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { createJob, updateJob, updateJobStatus, searchAvailableCandidates } from "@/lib/jobs";
 import { prisma } from "@/lib/prisma";
-import { JobStatus, FeeType, JobCandidateStage, CreateJobInput, UpdateJobInput } from "@/types/job";
+import { JobStatus, FeeType, JobCandidateStage, SubmissionResult, CreateJobInput, UpdateJobInput } from "@/types/job";
 
 async function getCurrentUserId(): Promise<number> {
   const session = await auth();
@@ -155,6 +155,36 @@ export async function updateCandidateStageAction(jobCandidateId: number, stage: 
   } catch (e) {
     console.error("updateCandidateStageAction error:", e);
     return { error: "Không thể cập nhật trạng thái ứng tuyển." };
+  }
+}
+
+// Update pipeline entry: stage + result + interviewDate + notes
+export async function updateCandidatePipelineAction(
+  jobCandidateId: number,
+  data: {
+    stage?: JobCandidateStage;
+    result?: SubmissionResult;
+    interviewDate?: string | null; // ISO string from date input
+    notes?: string | null;
+  }
+) {
+  try {
+    const jc = await prisma.jobCandidate.update({
+      where: { id: jobCandidateId },
+      data: {
+        ...(data.stage !== undefined && { stage: data.stage }),
+        ...(data.result !== undefined && { result: data.result }),
+        ...(data.interviewDate !== undefined && {
+          interviewDate: data.interviewDate ? new Date(data.interviewDate) : null,
+        }),
+        ...(data.notes !== undefined && { notes: data.notes }),
+      },
+    });
+    revalidatePath(`/jobs/${jc.jobOrderId}`);
+    return { success: true };
+  } catch (e) {
+    console.error("updateCandidatePipelineAction error:", e);
+    return { error: "Không thể cập nhật thông tin pipeline." };
   }
 }
 

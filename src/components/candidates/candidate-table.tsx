@@ -106,6 +106,12 @@ export function CandidateTable({ candidates }: CandidateTableProps) {
                         {c.currentPosition}
                       </div>
                     )}
+                    {/* Level badge */}
+                    {c.level && (
+                      <span className="mt-0.5 inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
+                        {c.level.replace("_", "-")}
+                      </span>
+                    )}
                     {c.industry && (
                       <div className="text-xs text-muted mt-0.5">{c.industry}</div>
                     )}
@@ -183,6 +189,11 @@ export function CandidateTable({ candidates }: CandidateTableProps) {
               </div>
               {c.currentPosition && (
                 <p className="text-sm text-muted mt-0.5 truncate">{c.currentPosition}</p>
+              )}
+              {c.level && (
+                <span className="mt-1 inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
+                  {c.level.replace("_", "-")}
+                </span>
               )}
               <div className="flex flex-wrap gap-1 mt-1.5">
                 {c.tags.slice(0, 2).map(({ tag }) => (

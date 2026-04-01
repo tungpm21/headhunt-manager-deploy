@@ -16,6 +16,16 @@ const INDUSTRIES = [
   "Kỹ thuật / Sản xuất", "Kinh doanh / Sales", "Nhân sự", "Hành chính", "Khác",
 ];
 
+const SENIORITY_OPTIONS = [
+  { value: "INTERN",    label: "Intern" },
+  { value: "JUNIOR",   label: "Junior" },
+  { value: "MID_LEVEL",label: "Mid-level" },
+  { value: "SENIOR",   label: "Senior" },
+  { value: "LEAD",     label: "Lead" },
+  { value: "MANAGER",  label: "Manager" },
+  { value: "DIRECTOR", label: "Director" },
+];
+
 export function CandidateFiltersPanel({ allTags }: CandidateFiltersProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -41,6 +51,8 @@ export function CandidateFiltersPanel({ allTags }: CandidateFiltersProps) {
 
   const hasActiveFilters =
     searchParams.has("status") ||
+    searchParams.has("level") ||
+    searchParams.has("skills") ||
     searchParams.has("location") ||
     searchParams.has("industry") ||
     searchParams.has("minSalary") ||
@@ -49,7 +61,7 @@ export function CandidateFiltersPanel({ allTags }: CandidateFiltersProps) {
 
   const clearAll = () => {
     const params = new URLSearchParams(searchParams.toString());
-    ["status", "location", "industry", "minSalary", "maxSalary", "tagId"].forEach(
+    ["status", "level", "skills", "location", "industry", "minSalary", "maxSalary", "tagId"].forEach(
       (k) => params.delete(k)
     );
     router.push(`${pathname}?${params.toString()}`);
@@ -130,6 +142,21 @@ export function CandidateFiltersPanel({ allTags }: CandidateFiltersProps) {
             </select>
           </div>
 
+          {/* Level / Seniority */}
+          <div>
+            <label className="mb-1 block text-xs font-medium text-muted">Cấp bậc</label>
+            <select
+              value={searchParams.get("level") ?? ""}
+              onChange={(e) => update({ level: e.target.value || null })}
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
+            >
+              <option value="">Tất cả</option>
+              {SENIORITY_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
+            </select>
+          </div>
+
           {/* Industry */}
           <div>
             <label className="mb-1 block text-xs font-medium text-muted">Ngành nghề</label>
@@ -141,6 +168,21 @@ export function CandidateFiltersPanel({ allTags }: CandidateFiltersProps) {
               <option value="">Tất cả</option>
               {INDUSTRIES.map((i) => (<option key={i} value={i}>{i}</option>))}
             </select>
+          </div>
+
+          {/* Skills search */}
+          <div>
+            <label className="mb-1 block text-xs font-medium text-muted">Kỹ năng</label>
+            <input
+              type="text"
+              placeholder="VD: React, Java..."
+              defaultValue={searchParams.get("skills") ?? ""}
+              onChange={(e) => {
+                const q = e.target.value;
+                setTimeout(() => update({ skills: q || null }), 400);
+              }}
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted/50 focus:outline-none focus:ring-2 focus:ring-primary/30"
+            />
           </div>
 
           {/* Salary */}

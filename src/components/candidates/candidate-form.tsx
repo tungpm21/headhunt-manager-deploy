@@ -20,6 +20,15 @@ const INDUSTRIES = [
   "IT / Phần mềm", "Tài chính / Ngân hàng", "Marketing / Truyền thông",
   "Kỹ thuật / Sản xuất", "Kinh doanh / Sales", "Nhân sự", "Hành chính", "Khác",
 ];
+const SENIORITY_OPTIONS = [
+  { value: "INTERN",    label: "Intern" },
+  { value: "JUNIOR",   label: "Junior" },
+  { value: "MID_LEVEL",label: "Mid-level" },
+  { value: "SENIOR",   label: "Senior" },
+  { value: "LEAD",     label: "Lead" },
+  { value: "MANAGER",  label: "Manager" },
+  { value: "DIRECTOR", label: "Director" },
+];
 
 function FieldLabel({ htmlFor, required, children }: { htmlFor: string; required?: boolean; children: React.ReactNode }) {
   return (
@@ -169,6 +178,36 @@ export function CandidateForm({ allTags, initialData }: CandidateFormProps) {
           <div>
             <FieldLabel htmlFor="expectedSalary">Lương kỳ vọng (tr/tháng)</FieldLabel>
             <input id="expectedSalary" name="expectedSalary" type="number" min={0} defaultValue={initialData?.expectedSalary || ""} placeholder="30" className={inputCls} />
+          </div>
+        </div>
+      </section>
+
+      {/* Section: Kỹ năng & Cấp bậc */}
+      <section>
+        <h2 className="mb-4 text-base font-semibold text-foreground border-b border-border pb-2">
+          Kỹ năng &amp; Cấp bậc
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <FieldLabel htmlFor="level">Cấp bậc (Seniority)</FieldLabel>
+            <select id="level" name="level" defaultValue={initialData?.level || ""} className={inputCls}>
+              <option value="">Chọn cấp bậc...</option>
+              {SENIORITY_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <FieldLabel htmlFor="skills">Kỹ năng chính</FieldLabel>
+            <input
+              id="skills"
+              name="skills"
+              type="text"
+              defaultValue={initialData?.skills?.join(", ") || ""}
+              placeholder="React, Java, SQL, Project Management..."
+              className={inputCls}
+            />
+            <p className="mt-1.5 text-xs text-muted">Phân cách bằng dấu phẩy. VD: React, Node.js, Docker</p>
           </div>
         </div>
       </section>

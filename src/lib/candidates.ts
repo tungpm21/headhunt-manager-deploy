@@ -37,6 +37,10 @@ function buildWhere(filters: CandidateFilters): Prisma.CandidateWhereInput {
   }
 
   if (filters.status) where.status = filters.status;
+  if (filters.level) where.level = filters.level;
+  if (filters.skills && filters.skills.length > 0) {
+    where.skills = { hasSome: filters.skills };
+  }
   if (filters.industry)
     where.industry = { contains: filters.industry, mode: "insensitive" };
   if (filters.location)

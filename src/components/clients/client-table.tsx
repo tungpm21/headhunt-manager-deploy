@@ -1,12 +1,18 @@
 import Link from "next/link";
 import { Building2, Globe, Users, ChevronRight } from "lucide-react";
-import { ClientWithRelations, CompanySize } from "@/types/client";
+import { ClientWithRelations, CompanySize, ClientStatus } from "@/types/client";
 
 const SIZE_LABELS: Record<CompanySize, string> = {
   SMALL: "Nhỏ",
   MEDIUM: "Vừa",
   LARGE: "Lớn",
   ENTERPRISE: "Tập đoàn",
+};
+
+const STATUS_CONFIG: Record<ClientStatus, { label: string; cls: string }> = {
+  ACTIVE:      { label: "Hoạt động",  cls: "bg-success/10 text-success border-success/20" },
+  INACTIVE:    { label: "Tạm ngừng", cls: "bg-muted/20 text-muted border-border" },
+  BLACKLISTED: { label: "Blacklisted", cls: "bg-danger/10 text-danger border-danger/20" },
 };
 
 export function ClientTable({ clients }: { clients: ClientWithRelations[] }) {
@@ -34,6 +40,9 @@ export function ClientTable({ clients }: { clients: ClientWithRelations[] }) {
               </th>
               <th scope="col" className="px-6 py-4 text-left font-semibold text-gray-900">
                 Quy mô
+              </th>
+              <th scope="col" className="px-6 py-4 text-left font-semibold text-gray-900">
+                Trạng thái
               </th>
               <th scope="col" className="px-6 py-4 text-center font-semibold text-gray-900">
                 Liên hệ
@@ -78,6 +87,17 @@ export function ClientTable({ clients }: { clients: ClientWithRelations[] }) {
                   ) : (
                     <span className="text-gray-400">—</span>
                   )}
+                </td>
+                {/* Status badge */}
+                <td className="whitespace-nowrap px-6 py-4">
+                  {(() => {
+                    const cfg = STATUS_CONFIG[client.status];
+                    return (
+                      <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${cfg.cls}`}>
+                        {cfg.label}
+                      </span>
+                    );
+                  })()}
                 </td>
                 <td className="whitespace-nowrap px-6 py-4 text-center">
                   <div className="inline-flex items-center gap-1.5 text-gray-500 bg-gray-50 px-2.5 py-1 rounded-full text-xs font-medium border">

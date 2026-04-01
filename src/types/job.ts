@@ -1,9 +1,9 @@
-import { JobOrder, JobCandidate, JobStatus, FeeType, JobCandidateStage, Candidate, Client } from "@prisma/client";
+import { JobOrder, JobCandidate, JobStatus, FeeType, JobCandidateStage, SubmissionResult, Candidate, Client } from "@prisma/client";
 
-export type { JobStatus, FeeType, JobCandidateStage };
+export type { JobStatus, FeeType, JobCandidateStage, SubmissionResult };
 
 export type JobCandidateWithRelations = JobCandidate & {
-  candidate: Pick<Candidate, "id" | "fullName" | "phone" | "email" | "currentPosition" | "currentCompany" | "status">;
+  candidate: Pick<Candidate, "id" | "fullName" | "phone" | "email" | "currentPosition" | "currentCompany" | "status" | "level" | "skills">;
 };
 
 export type JobOrderWithRelations = JobOrder & {

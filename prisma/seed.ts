@@ -252,6 +252,87 @@ async function main() {
   const jobCount = await prisma.jobPosting.count({ where: { status: "APPROVED" } });
   console.log(`✅ Created ${jobCount} approved job postings`);
 
+  // ==================== CRM DEMO CANDIDATES ====================
+  console.log("\n👤 Seeding CRM demo Candidates...");
+
+  // Get the admin user to assign as createdBy
+  const adminUser = await prisma.user.findUnique({ where: { email: "admin@headhunt.com" } });
+  const createdById = adminUser?.id ?? 1;
+
+  // Check if candidates already exist to avoid duplicates
+  const existingCount = await prisma.candidate.count({ where: { isDeleted: false } });
+  if (existingCount === 0) {
+    await prisma.candidate.createMany({ data: [
+      {
+        fullName: "Nguyễn Minh Khoa", phone: "0901234567", email: "khoa.nguyen@gmail.com",
+        currentPosition: "Senior Frontend Developer", currentCompany: "FPT Software",
+        industry: "IT / Phần mềm", yearsOfExp: 5, location: "TP.HCM",
+        expectedSalary: 45, currentSalary: 35,
+        level: "SENIOR", skills: ["React", "Next.js", "TypeScript", "GraphQL", "TailwindCSS"],
+        status: "AVAILABLE", source: "LINKEDIN", createdById,
+      },
+      {
+        fullName: "Trần Thị Hương", phone: "0912345678", email: "huong.tran@outlook.com",
+        currentPosition: "HR Business Partner", currentCompany: "Samsung Vietnam",
+        industry: "Nhân sự", yearsOfExp: 8, location: "Hà Nội",
+        expectedSalary: 55, currentSalary: 48,
+        level: "MANAGER", skills: ["HR Business Partner", "Talent Acquisition", "C&B", "HRIS", "Luật Lao Động"],
+        status: "EMPLOYED", source: "REFERRAL", createdById,
+      },
+      {
+        fullName: "Lê Văn Đức", phone: "0987654321", email: "duc.le@gmail.com",
+        currentPosition: "Java Backend Developer", currentCompany: "VNG Corporation",
+        industry: "IT / Phần mềm", yearsOfExp: 3, location: "TP.HCM",
+        expectedSalary: 30, currentSalary: 22,
+        level: "MID_LEVEL", skills: ["Java", "Spring Boot", "Microservices", "Docker", "PostgreSQL"],
+        status: "AVAILABLE", source: "TOPCV", createdById,
+      },
+      {
+        fullName: "Phạm Thị Lan Anh", phone: "0963123456", email: "lananh.pham@gmail.com",
+        currentPosition: "Marketing Manager", currentCompany: "Nestlé Vietnam",
+        industry: "Marketing / Truyền thông", yearsOfExp: 10, location: "TP.HCM",
+        expectedSalary: 70, currentSalary: 65,
+        level: "MANAGER", skills: ["Brand Management", "Digital Marketing", "P&L", "FMCG", "Content Strategy"],
+        status: "INTERVIEWING", source: "LINKEDIN", createdById,
+      },
+      {
+        fullName: "Võ Quốc Hùng", phone: "0978456123", email: "hung.vo@gmail.com",
+        currentPosition: "Supply Chain Lead", currentCompany: "Toyota Vietnam",
+        industry: "Kỹ thuật / Sản xuất", yearsOfExp: 7, location: "Hà Nội",
+        expectedSalary: 50, currentSalary: 42,
+        level: "LEAD", skills: ["Supply Chain", "SAP MM", "Logistics", "Kaizen", "Lean"],
+        status: "AVAILABLE", source: "REFERRAL", createdById,
+      },
+      {
+        fullName: "Đỗ Thanh Tùng", phone: "0934789012", email: "tung.do@gmail.com",
+        currentPosition: "Junior Accountant", currentCompany: "Deloitte Vietnam",
+        industry: "Tài chính / Ngân hàng", yearsOfExp: 1, location: "TP.HCM",
+        expectedSalary: 15, currentSalary: 12,
+        level: "JUNIOR", skills: ["Kế toán", "Excel", "SAP", "Thuế GTGT"],
+        status: "AVAILABLE", source: "TOPCV", createdById,
+      },
+      {
+        fullName: "Nguyễn Thị Bích Ngọc", phone: "0945123789", email: "bicngoc.nguyen@gmail.com",
+        currentPosition: "DevOps Engineer", currentCompany: "Intel Vietnam",
+        industry: "IT / Phần mềm", yearsOfExp: 4, location: "TP.HCM",
+        expectedSalary: 50, currentSalary: 40,
+        level: "MID_LEVEL", skills: ["Kubernetes", "Docker", "AWS", "Terraform", "CI/CD", "Python"],
+        status: "AVAILABLE", source: "LINKEDIN", createdById,
+      },
+      {
+        fullName: "Bùi Văn Thắng", phone: "0921456789", email: "thang.bui@gmail.com",
+        currentPosition: "Intern Software Engineer", currentCompany: "Bosch Vietnam",
+        industry: "IT / Phần mềm", yearsOfExp: 0, location: "TP.HCM",
+        expectedSalary: 8, currentSalary: 5,
+        level: "INTERN", skills: ["Python", "React", "Git", "REST API"],
+        status: "AVAILABLE", source: "OTHER", createdById,
+      },
+    ]});
+    console.log("✅ Created 8 CRM demo candidates with skills & levels");
+  } else {
+    console.log(`ℹ️  Skipped candidates (${existingCount} already exist)`);
+  }
+
   // ==================== DEMO APPLICATIONS ====================
   console.log("\n📝 Seeding demo Applications...");
   const firstJob = await prisma.jobPosting.findFirst({ where: { status: "APPROVED" }, orderBy: { publishedAt: "desc" } });

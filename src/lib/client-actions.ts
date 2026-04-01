@@ -10,7 +10,7 @@ import {
   addClientContact,
   deleteClientContact,
 } from "@/lib/clients";
-import { CreateClientInput, UpdateClientInput, CreateClientContactInput, CompanySize } from "@/types/client";
+import { CreateClientInput, UpdateClientInput, CreateClientContactInput, CompanySize, ClientStatus } from "@/types/client";
 
 // Helper: get current user ID
 async function getCurrentUserId(): Promise<number> {
@@ -47,6 +47,7 @@ export async function createClientAction(
       address: strVal(formData.get("address")),
       website: strVal(formData.get("website")),
       notes: strVal(formData.get("notes")),
+      status: enumVal<ClientStatus>(formData.get("status")),
     };
 
     if (!input.companyName) return { error: "Tên doanh nghiệp không được để trống." };
@@ -73,6 +74,7 @@ export async function updateClientAction(
       address: strVal(formData.get("address")),
       website: strVal(formData.get("website")),
       notes: strVal(formData.get("notes")),
+      status: enumVal<ClientStatus>(formData.get("status")),
     };
 
     if (!input.companyName) return { error: "Tên doanh nghiệp không được để trống." };

@@ -15,7 +15,7 @@
   },
   "features": [
     "Authentication (NextAuth.js + custom JWT for employer portal)",
-    "Candidate Management (tags, seniority, skills, CV upload)",
+    "Candidate Management (tags, seniority, skills, multi-CV, languages, work history)",
     "Client Management (status, contacts)",
     "Job Management & Applicant Pipeline (notes, interview tracking)",
     "FDIWork Public Website (homepage, jobs, companies, apply)",
@@ -28,6 +28,8 @@
     "tables": [
       "User",
       "Candidate",
+      "CandidateCV",
+      "CandidateLanguage",
       "CandidateNote",
       "CandidateTag",
       "Tag",
@@ -35,6 +37,7 @@
       "ClientContact",
       "JobOrder",
       "JobCandidate",
+      "WorkExperience",
       "Employer",
       "Subscription",
       "JobPosting",

@@ -1,69 +1,81 @@
 {
-  "updated_at": "2026-04-01T18:10:00+07:00",
+  "updated_at": "2026-04-01T22:20:00+07:00",
   "working_on": {
-    "feature": "Security hardening and dependency remediation",
-    "task": "Commit, push, and save project brain after audit fixes",
-    "status": "finalizing",
-    "notes": "Đã khóa RBAC admin, bắt buộc employer JWT secret, thêm rate limit cơ bản, khóa duplicate application ở DB, thay xlsx bằng parser an toàn hơn."
+    "feature": "Database optimization for candidate detail",
+    "task": "Implemented multi-CV, language filter, and work history across schema, UI, seed, and docs",
+    "status": "verified",
+    "notes": "Added CandidateCV, CandidateLanguage, WorkExperience; migrated schema; updated candidate detail tabs; seeded demo data; kept legacy cvFileUrl/cvFileName synchronized for backward compatibility."
   },
   "pending_tasks": [
     {
       "priority": "MEDIUM",
-      "task": "Dọn backlog lint toàn repo"
+      "task": "Manual review candidate detail UX with tabs CV / Ngôn ngữ / Kinh nghiệm on real browser"
+    },
+    {
+      "priority": "MEDIUM",
+      "task": "Decide whether to retire legacy /api/candidates/[id]/cv flow after full migration to CandidateCV table"
     },
     {
       "priority": "LOW",
-      "task": "Cân nhắc nâng cấp SSL mode trong DATABASE_URL sang verify-full"
+      "task": "Cân nhắc nâng DATABASE_URL sslmode sang verify-full để khớp warning từ pg"
     }
   ],
   "recent_changes": [
     {
-      "timestamp": "2026-04-01T18:00",
-      "type": "security",
-      "description": "Fix All theo audit: RBAC admin, employer JWT secret bắt buộc, rate limit, application unique constraint, public apply hardening",
+      "timestamp": "2026-04-01T21:25",
+      "type": "database",
+      "description": "Add CandidateCV, CandidateLanguage, WorkExperience and apply Prisma migration add-cv-language-experience",
       "files": [
-        "src/auth.config.ts",
-        "src/components/sidebar.tsx",
-        "src/app/(dashboard)/layout.tsx",
-        "src/lib/authz.ts",
-        "src/lib/rate-limit.ts",
-        "src/lib/moderation-actions.ts",
-        "src/lib/employer-jwt.ts",
-        "src/lib/employer-auth.ts",
-        "src/proxy.ts",
-        "src/lib/actions.ts",
-        "src/lib/employer-actions.ts",
-        "src/lib/public-apply-actions.ts",
-        "src/app/api/public/apply-cv/route.ts",
         "prisma/schema.prisma",
-        "prisma/migrations/20260401090000_add_application_unique_email_per_job/migration.sql",
-        "docs/reports/audit_2026-04-01.md"
+        "prisma/migrations/20260401142201_add_cv_language_experience/migration.sql",
+        "prisma/migrations/migrate-cv-data.ts",
+        "src/lib/candidate-cv.ts",
+        "src/lib/candidate-language.ts",
+        "src/lib/work-experience.ts",
+        "src/lib/candidate-detail-actions.ts",
+        "src/lib/candidates.ts",
+        "src/types/candidate.ts"
       ]
     },
     {
-      "timestamp": "2026-04-01T18:05",
-      "type": "dependency",
-      "description": "Loại bỏ xlsx, chuyển import sang read-excel-file + papaparse, đổi tên component ExcelImporter thành SpreadsheetImporter",
+      "timestamp": "2026-04-01T21:40",
+      "type": "ui",
+      "description": "Upgrade candidate detail page with tabs for multi-CV, languages, and work history; add candidate language filter",
       "files": [
-        "package.json",
-        "package-lock.json",
-        "src/components/import/spreadsheet-importer.tsx",
-        "src/app/(dashboard)/import/page.tsx"
+        "src/app/(dashboard)/candidates/[id]/page.tsx",
+        "src/app/(dashboard)/candidates/page.tsx",
+        "src/components/candidates/candidate-detail-tabs.tsx",
+        "src/components/candidates/cv-list.tsx",
+        "src/components/candidates/language-list.tsx",
+        "src/components/candidates/work-history.tsx",
+        "src/components/candidates/candidate-filters.tsx"
+      ]
+    },
+    {
+      "timestamp": "2026-04-01T22:05",
+      "type": "seed-docs",
+      "description": "Seed demo CV/language/work-history data and refresh architecture, codebase map, and brain metadata",
+      "files": [
+        "prisma/seed.ts",
+        "ARCHITECTURE.md",
+        "CODEBASE.md",
+        ".brain/brain.json",
+        ".brain/session.json"
       ]
     }
   ],
   "decisions_made": [
     {
-      "decision": "Không tiếp tục dùng xlsx",
-      "reason": "Thư viện npm còn advisory high và không có auto-fix khả dụng"
+      "decision": "Giữ cvFileUrl/cvFileName trên Candidate như lớp tương thích ngược",
+      "reason": "Viewer và flow cũ vẫn dùng được trong khi chuyển sang CandidateCV nhiều phiên bản"
     },
     {
-      "decision": "Chỉ hỗ trợ .xlsx và .csv cho import",
-      "reason": "Giảm bề mặt rủi ro, tránh parser legacy .xls"
+      "decision": "Filter ngôn ngữ đặt trên relation CandidateLanguage thay vì nhồi thêm String[] vào Candidate",
+      "reason": "Cần lưu được trình độ và chứng chỉ, không chỉ tên ngôn ngữ"
     },
     {
-      "decision": "Áp quyền admin ở cả route, UI và server action",
-      "reason": "UI-only guard không đủ để bảo vệ các thao tác moderation"
+      "decision": "Seed CV demo dùng URL PDF public ổn định thay vì file local giả",
+      "reason": "Cho phép preview demo ngay mà không cần thêm binary asset vào repo"
     }
   ]
 }

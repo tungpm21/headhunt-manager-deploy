@@ -13,6 +13,7 @@ interface PageProps {
     search?: string;
     status?: string;
     level?: string;
+    language?: string;
     skills?: string;
     location?: string;
     industry?: string;
@@ -36,6 +37,7 @@ export default async function CandidatesPage({ searchParams }: PageProps) {
       search: sp.search,
       status: sp.status as CandidateStatus | undefined,
       level: sp.level as CandidateSeniority | undefined,
+      language: sp.language,
       skills: sp.skills ? sp.skills.split(",").map((s) => s.trim()).filter(Boolean) : undefined,
       location: sp.location,
       industry: sp.industry,

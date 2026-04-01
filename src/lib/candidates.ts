@@ -19,6 +19,20 @@ const CANDIDATE_DETAIL_INCLUDE = {
     orderBy: { createdAt: "desc" as const },
   },
   createdBy: { select: { id: true, name: true } },
+  cvFiles: {
+    include: { uploadedBy: { select: { id: true, name: true } } },
+    orderBy: [{ isPrimary: "desc" as const }, { uploadedAt: "desc" as const }],
+  },
+  languages: {
+    orderBy: [{ language: "asc" as const }, { id: "asc" as const }],
+  },
+  workHistory: {
+    orderBy: [
+      { isCurrent: "desc" as const },
+      { endDate: "desc" as const },
+      { startDate: "desc" as const },
+    ],
+  },
 } satisfies Prisma.CandidateInclude;
 
 // ============================================================
@@ -38,6 +52,13 @@ function buildWhere(filters: CandidateFilters): Prisma.CandidateWhereInput {
 
   if (filters.status) where.status = filters.status;
   if (filters.level) where.level = filters.level;
+  if (filters.language) {
+    where.languages = {
+      some: {
+        language: { equals: filters.language, mode: "insensitive" },
+      },
+    };
+  }
   if (filters.skills && filters.skills.length > 0) {
     where.skills = { hasSome: filters.skills };
   }

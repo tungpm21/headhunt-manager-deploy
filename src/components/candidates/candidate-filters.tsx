@@ -26,6 +26,15 @@ const SENIORITY_OPTIONS = [
   { value: "DIRECTOR", label: "Director" },
 ];
 
+const LANGUAGE_OPTIONS = [
+  "Tiếng Anh",
+  "Tiếng Nhật",
+  "Tiếng Hàn",
+  "Tiếng Trung",
+  "Tiếng Đức",
+  "Tiếng Pháp",
+];
+
 export function CandidateFiltersPanel({ allTags }: CandidateFiltersProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -52,6 +61,7 @@ export function CandidateFiltersPanel({ allTags }: CandidateFiltersProps) {
   const hasActiveFilters =
     searchParams.has("status") ||
     searchParams.has("level") ||
+    searchParams.has("language") ||
     searchParams.has("skills") ||
     searchParams.has("location") ||
     searchParams.has("industry") ||
@@ -61,7 +71,7 @@ export function CandidateFiltersPanel({ allTags }: CandidateFiltersProps) {
 
   const clearAll = () => {
     const params = new URLSearchParams(searchParams.toString());
-    ["status", "level", "skills", "location", "industry", "minSalary", "maxSalary", "tagId"].forEach(
+    ["status", "level", "language", "skills", "location", "industry", "minSalary", "maxSalary", "tagId"].forEach(
       (k) => params.delete(k)
     );
     router.push(`${pathname}?${params.toString()}`);
@@ -153,6 +163,22 @@ export function CandidateFiltersPanel({ allTags }: CandidateFiltersProps) {
               <option value="">Tất cả</option>
               {SENIORITY_OPTIONS.map((o) => (
                 <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="mb-1 block text-xs font-medium text-muted">Ngôn ngữ</label>
+            <select
+              value={searchParams.get("language") ?? ""}
+              onChange={(e) => update({ language: e.target.value || null })}
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
+            >
+              <option value="">Tất cả</option>
+              {LANGUAGE_OPTIONS.map((language) => (
+                <option key={language} value={language}>
+                  {language}
+                </option>
               ))}
             </select>
           </div>

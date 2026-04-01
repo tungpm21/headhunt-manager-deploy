@@ -1,5 +1,8 @@
 import {
   Candidate,
+  CandidateCV,
+  CandidateLanguage,
+  WorkExperience,
   CandidateStatus,
   CandidateSource,
   CandidateSeniority,
@@ -16,6 +19,9 @@ export type CandidateWithRelations = Candidate & {
   tags: { tag: Tag }[];
   notes: (CandidateNote & { createdBy: Pick<User, "id" | "name"> })[];
   createdBy: Pick<User, "id" | "name">;
+  cvFiles: (CandidateCV & { uploadedBy: Pick<User, "id" | "name"> })[];
+  languages: CandidateLanguage[];
+  workHistory: WorkExperience[];
 };
 
 // Candidate with only tags (for list view)
@@ -28,6 +34,7 @@ export type CandidateWithTags = Candidate & {
 // ============================================================
 export interface CandidateFilters {
   search?: string;           // name, phone, email
+  language?: string;
   industry?: string;
   location?: string;
   status?: CandidateStatus;
@@ -67,6 +74,32 @@ export interface CreateCandidateInput {
 }
 
 export type UpdateCandidateInput = Partial<CreateCandidateInput>;
+
+export interface CandidateCVInput {
+  candidateId: number;
+  fileUrl: string;
+  fileName: string;
+  label?: string | null;
+  uploadedById: number;
+  isPrimary?: boolean;
+}
+
+export interface CandidateLanguageInput {
+  candidateId: number;
+  language: string;
+  level?: string | null;
+  certificate?: string | null;
+}
+
+export interface WorkExperienceInput {
+  candidateId: number;
+  companyName: string;
+  position: string;
+  startDate?: Date | null;
+  endDate?: Date | null;
+  isCurrent?: boolean;
+  notes?: string | null;
+}
 
 // ============================================================
 // Paginated result

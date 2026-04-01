@@ -1,95 +1,61 @@
 {
-  "meta": { "schema_version": "1.1.0", "awf_version": "4.0.2" },
-  "project": { "name": "Headhunt Manager + FDIWork", "type": "Web App (CRM + Public Website)", "status": "FDIWork Phases 01-07 Done (7/8)" },
-  "tech_stack": { 
-    "frontend": { "framework": "Next.js 15 App Router", "styling": "TailwindCSS v4", "icons": "lucide-react", "components": "React 19", "fonts": "Poppins (heading) + Open Sans (body)" },
-    "backend": { "framework": "Next.js Server Actions", "auth_crm": "NextAuth v5 (Auth.js) - JWT strategy", "auth_employer": "Custom JWT cookie (employer-token) via jose", "storage": "Vercel Blob" },
-    "database": { "orm": "Prisma 7.5.0", "db": "Neon PostgreSQL", "hosting": "Vercel" }
+  "project": {
+    "name": "Headhunt Manager (FDIWork)",
+    "type": "Next.js 16 App Router, Prisma ORM, PostgreSQL, TailwindCSS",
+    "status": "CRM MVP complete, FDIWork core flows implemented, security hardening applied"
   },
-  "database_schema": {
-    "summary": "CRM nội bộ + FDIWork public website. CRM: quản lý user, candidate, client, job order. FDIWork: nhà tuyển dụng (employer) đăng tin, ứng viên (application) nộp CV, admin duyệt bài.",
-    "crm_tables": ["User", "Candidate", "CandidateNote", "CandidateTag", "Tag", "Client", "ClientContact", "JobOrder", "JobCandidate"],
-    "fdiwork_tables": ["Employer", "Subscription", "JobPosting", "Application"],
-    "fdiwork_enums": ["EmployerStatus", "JobPostingStatus", "SubscriptionTier", "SubscriptionStatus", "ApplicationStatus"],
-    "relationships_explained": "CRM: 1 Client có nhiều JobOrders, 1 JobOrder có nhiều Candidate (qua JobCandidate pipeline). FDIWork: 1 Employer có 1 Subscription (gói dịch vụ), 1 Employer đăng nhiều JobPosting, 1 JobPosting nhận nhiều Application. CRM-FDIWork bridge: Employer link Client (1:1 optional), JobPosting link JobOrder (optional), Application link Candidate (khi import)."
+  "docs_index": {
+    "codebase_map": "CODEBASE.md",
+    "architecture": "ARCHITECTURE.md",
+    "crm_design": "docs/crm/DESIGN.md",
+    "fdiwork_specs": "docs/fdiwork/SPECS.md",
+    "fdiwork_design": "docs/fdiwork/DESIGN_FDIWORK.md",
+    "audit_report": "docs/reports/audit_2026-04-01.md",
+    "workspace_rules": ".agent/rules/headhunt-rules.md"
   },
-  "api_endpoints": [
-    { "path": "src/lib/actions.ts", "explained": "CRM CRUD qua Server Actions" },
-    { "path": "src/lib/public-actions.ts", "explained": "FDIWork public: getHomepageData, getPublicJobs, getPublicJobBySlug, getPublicCompanies, getCompanyBySlug, submitApplication" },
-    { "path": "src/lib/employer-actions.ts", "explained": "FDIWork employer: login, register, logout, dashboard, company profile, subscription, CRUD job postings (quota check), toggle status, view applicants" },
-    { "path": "src/lib/moderation-actions.ts", "explained": "CRM admin: approve/reject job postings, manage employer status, assign/renew subscriptions" }
-  ],
   "features": [
-    "Authentication CRM (Email/Pass NextAuth)",
-    "Quản lý Khách hàng (CRUD Client & Contacts)",
-    "Quản lý Ứng viên (CRUD, Filter, Notes, CV Upload)",
-    "Job Orders & Pipeline (SOURCED → PLACED)",
-    "Import Excel",
-    "Dashboard Overview",
-    "✅ FDIWork Public Website (Phases 01-04: Homepage, Jobs, Companies, Apply)",
-    "✅ Employer Auth (Phase 05: JWT login/register, dashboard, company profile, subscription)",
-    "✅ Employer Job Management (Phase 06: CRUD jobs, quota check, pause/resume, applicants list)",
-    "✅ Admin Moderation (Phase 07: approve/reject tin, manage employers, assign subscriptions, CRM sidebar FDIWork section)",
-    "🆕 CRM Integration (Phase 08 PLANNED: CV import from FDIWork applications)"
+    "Authentication (NextAuth.js + custom JWT for employer portal)",
+    "Candidate Management (tags, seniority, skills, CV upload)",
+    "Client Management (status, contacts)",
+    "Job Management & Applicant Pipeline (notes, interview tracking)",
+    "FDIWork Public Website (homepage, jobs, companies, apply)",
+    "Employer Portal (register, dashboard, manage job postings)",
+    "Admin Moderation (approve/reject jobs, employers, packages)",
+    "CRM Integration (import FDIWork applications to CRM, employer-client linking)"
   ],
-  "business_rules": [
-    "Ứng viên mặc định AVAILABLE. Email không bắt buộc nhưng phải chuẩn format.",
-    "Bắt buộc gắn Client khi tạo JobOrder. Xóa mềm (isDeleted) cho an toàn.",
-    "Employer phải ACTIVE mới đăng nhập được (admin duyệt trước).",
-    "JobPosting phải PENDING → admin Approve mới hiển thị trên web.",
-    "Employer hết quota (jobsUsed >= jobQuota) → không đăng tin mới.",
-    "JobPosting hết hạn (expiresAt < now) → ẩn khỏi danh sách public.",
-    "Application form validation: PDF/DOC/DOCX, 5MB max, check duplicate email/phone + job.",
-    "Application import vào CRM → tạo Candidate với source = FDIWORK.",
-    "Approve job → set publishedAt = now, expiresAt = now + subscription.jobDuration days.",
-    "Assign subscription → auto-activate employer nếu status = PENDING."
+  "database_schema": {
+    "summary": "ATS + employer portal + public job board",
+    "tables": [
+      "User",
+      "Candidate",
+      "CandidateNote",
+      "CandidateTag",
+      "Tag",
+      "Client",
+      "ClientContact",
+      "JobOrder",
+      "JobCandidate",
+      "Employer",
+      "Subscription",
+      "JobPosting",
+      "Application"
+    ],
+    "notable_constraints": [
+      "Application has unique pair (jobPostingId, email)",
+      "Employer has unique email and unique clientId link",
+      "JobCandidate has unique pair (jobOrderId, candidateId)"
+    ]
+  },
+  "conventions": [
+    "Native PostgreSQL String[] cho list đơn giản thay vì relation table",
+    "Server Actions trả object theo pattern success/error",
+    "Public routes dùng slug tiếng Việt: /viec-lam, /cong-ty, /ung-tuyen",
+    "Moderation/admin phải được chặn ở cả route, UI và server action",
+    "Import ứng viên chỉ hỗ trợ .xlsx và .csv"
   ],
-  "knowledge_items": {
-    "patterns": ["Server Actions cho form/data", "useActionState cho React forms", "Separate auth: CRM = NextAuth, Employer = custom JWT (jose) header cookies", "Prisma transactions for complex inserts (job create + quota increment)", "Route groups: (auth) = standalone pages, (portal) = sidebar layout"],
-    "gotchas": ["Prisma one-to-one relation cần @unique trên FK field", "Client-Employer relation cần named relation ('EmployerClient') để tránh ambiguous", "proxy.ts startsWith('/employer') match cả '/employers' → phải dùng startsWith('/employer/') hoặc exact match", "Next.js 16: middleware.ts → proxy.ts migration", "Route group conflicts: (employer)/login vs nested (auth)/login cần restructure"],
-    "conventions": ["Action names end with 'Action'", "CRM color: Indigo, FDIWork color: Teal (#0D9488)", "FDIWork route groups: (public) = no auth, (employer)/(auth) = standalone, (employer)/(portal) = sidebar layout", "CRM admin FDIWork routes: /moderation, /employers, /packages"]
-  },
-  "docs_structure": {
-    "crm": "docs/crm/ (BRIEF, DESIGN, design-specs, ideas, mockups, plans, reports)",
-    "fdiwork": "docs/fdiwork/ (BRIEF_FDIWORK_REBUILD, FDIWORK_WEBSITE_EVALUATION, SPECS, DESIGN_FDIWORK)",
-    "plans": "plans/260321-1442-fdiwork-public/ (plan.md + 8 phase files)",
-    "design_system": "design-system/fdiwork/MASTER.md"
-  },
-  "session_log": {
-    "date": "2026-03-21",
-    "phases_completed": ["Phase 05: Employer Auth", "Phase 06: Employer Job Management", "Phase 07: Admin Moderation"],
-    "files_created": [
-      "src/lib/employer-auth.ts",
-      "src/lib/employer-actions.ts",
-      "src/lib/moderation-actions.ts",
-      "src/proxy.ts (modified)",
-      "src/auth.config.ts (modified)",
-      "src/components/sidebar.tsx (modified)",
-      "src/components/employer/EmployerSidebar.tsx",
-      "src/components/employer/EmployerHeader.tsx",
-      "src/app/(employer)/employer/(auth)/login/page.tsx",
-      "src/app/(employer)/employer/(auth)/register/page.tsx",
-      "src/app/(employer)/employer/(portal)/layout.tsx",
-      "src/app/(employer)/employer/(portal)/dashboard/page.tsx",
-      "src/app/(employer)/employer/(portal)/company/page.tsx",
-      "src/app/(employer)/employer/(portal)/subscription/page.tsx",
-      "src/app/(employer)/employer/(portal)/job-postings/page.tsx",
-      "src/app/(employer)/employer/(portal)/job-postings/new/page.tsx",
-      "src/app/(employer)/employer/(portal)/job-postings/[id]/page.tsx",
-      "src/app/(employer)/employer/(portal)/job-postings/[id]/actions.tsx",
-      "src/app/(dashboard)/moderation/page.tsx",
-      "src/app/(dashboard)/moderation/moderation-actions-ui.tsx",
-      "src/app/(dashboard)/employers/page.tsx",
-      "src/app/(dashboard)/employers/employer-status-actions.tsx",
-      "src/app/(dashboard)/packages/page.tsx",
-      "src/app/(dashboard)/packages/assign-form.tsx"
-    ],
-    "bugs_fixed": [
-      "middleware.ts → proxy.ts migration (Next.js 16)",
-      "Route group path conflicts ((employer)/login vs nested)",
-      "proxy.ts: /employers caught by /employer matcher",
-      "EmployerSidebar logout pattern (server action in form)"
-    ],
-    "dependencies_added": ["jose (JWT Edge-compatible)"]
-  }
+  "security_notes": [
+    "EMPLOYER_JWT_SECRET là bắt buộc, không có fallback mặc định",
+    "Rate limiting cơ bản đã áp cho CRM login, employer auth, public upload, public apply",
+    "xlsx đã bị loại bỏ khỏi codebase do advisory high"
+  ]
 }

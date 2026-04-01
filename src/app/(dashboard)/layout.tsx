@@ -1,5 +1,6 @@
-import { Sidebar } from "@/components/sidebar";
+import { redirect } from "next/navigation";
 import { auth } from "@/auth";
+import { Sidebar } from "@/components/sidebar";
 
 export default async function DashboardLayout({
   children,
@@ -8,28 +9,30 @@ export default async function DashboardLayout({
 }) {
   const session = await auth();
 
+  if (!session?.user) {
+    redirect("/login");
+  }
+
   return (
     <div className="flex min-h-screen bg-background text-foreground">
-      <Sidebar />
-      <div className="flex-1 flex flex-col h-screen overflow-hidden">
-        {/* Header (Mobile toggle & User profile info) can go here */}
-        <header className="h-16 flex items-center justify-between border-b border-border bg-surface px-6 md:justify-end shrink-0">
-          <div className="md:hidden font-bold text-primary">HM</div>
+      <Sidebar isAdmin={session.user.role === "ADMIN"} />
+      <div className="flex h-screen flex-1 flex-col overflow-hidden">
+        <header className="flex h-16 shrink-0 items-center justify-between border-b border-border bg-surface px-6 md:justify-end">
+          <div className="font-bold text-primary md:hidden">HM</div>
           <div className="flex items-center gap-3">
-            <div className="text-right hidden sm:block">
-              <p className="text-sm font-medium leading-none">{session?.user?.name}</p>
-              <p className="text-xs text-muted mt-1">{session?.user?.role === "ADMIN" ? "Admin" : "Thành viên"}</p>
+            <div className="hidden text-right sm:block">
+              <p className="text-sm font-medium leading-none">{session.user.name}</p>
+              <p className="mt-1 text-xs text-muted">
+                {session.user.role === "ADMIN" ? "Admin" : "Thành viên"}
+              </p>
             </div>
-            <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-white font-bold text-sm">
-              {session?.user?.name?.charAt(0) || "U"}
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-bold text-white">
+              {session.user.name?.charAt(0) || "U"}
             </div>
           </div>
         </header>
 
-        {/* Main Content Area */}
-        <main className="flex-1 overflow-auto p-6 lg:p-8 bg-background">
-          {children}
-        </main>
+        <main className="flex-1 overflow-auto bg-background p-6 lg:p-8">{children}</main>
       </div>
     </div>
   );

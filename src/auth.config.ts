@@ -1,5 +1,4 @@
-import type { NextAuthConfig, DefaultSession } from "next-auth";
-import CredentialsProvider from "next-auth/providers/credentials";
+import type { DefaultSession, NextAuthConfig } from "next-auth";
 
 declare module "next-auth" {
   interface Session {
@@ -17,27 +16,36 @@ export const authConfig = {
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user;
+      const isAdmin = auth?.user?.role === "ADMIN";
       const pathname = nextUrl.pathname;
 
-      // Public FDIWork routes — no auth required
       const publicPrefixes = ["/viec-lam", "/cong-ty", "/ung-tuyen", "/employer"];
-      const isPublicRoute = pathname === "/" || publicPrefixes.some(p => pathname.startsWith(p));
+      const isPublicRoute =
+        pathname === "/" || publicPrefixes.some((prefix) => pathname.startsWith(prefix));
 
       if (isPublicRoute) return true;
 
-      // CRM login page
+      const adminPrefixes = ["/moderation", "/employers", "/packages"];
+      const isAdminRoute = adminPrefixes.some((prefix) => pathname.startsWith(prefix));
+
+      if (isAdminRoute) {
+        if (!isLoggedIn) return false;
+        if (!isAdmin) return Response.redirect(new URL("/dashboard", nextUrl));
+        return true;
+      }
+
       const isOnLogin = pathname.startsWith("/login");
       if (isOnLogin) {
         if (isLoggedIn) return Response.redirect(new URL("/dashboard", nextUrl));
         return true;
       }
-      
-      return isLoggedIn; 
+
+      return isLoggedIn;
     },
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
-        token.role = (user as any).role;
+        token.role = (user as { role?: string }).role;
       }
       return token;
     },
@@ -49,5 +57,5 @@ export const authConfig = {
       return session;
     },
   },
-  providers: [], // Keep empty here to avoid Node modules in Edge
+  providers: [],
 } satisfies NextAuthConfig;

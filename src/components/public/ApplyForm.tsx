@@ -3,7 +3,10 @@
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Upload, X, Loader2, AlertCircle } from "lucide-react";
-import { submitApplication, type SubmitApplicationInput } from "@/lib/public-actions";
+import {
+  submitApplication,
+  type SubmitApplicationInput,
+} from "@/lib/public-apply-actions";
 
 type ApplyFormProps = {
   jobId: number;
@@ -54,15 +57,31 @@ export function ApplyForm({ jobId, jobTitle, companyName }: ApplyFormProps) {
     setLoading(true);
 
     try {
-      // For MVP, we store file name and skip actual upload
-      // TODO: Integrate Vercel Blob upload in production
+      let cvFileUrl: string | undefined;
+      let cvFileName: string | undefined;
+
+      // Upload CV file if selected
+      if (cvFile) {
+        const fd = new FormData();
+        fd.append("cv", cvFile);
+        const uploadRes = await fetch("/api/public/apply-cv", { method: "POST", body: fd });
+        const uploadData = await uploadRes.json();
+        if (!uploadRes.ok) {
+          setError(uploadData.error || "Upload CV thất bại");
+          return;
+        }
+        cvFileUrl = uploadData.url;
+        cvFileName = uploadData.fileName;
+      }
+
       const input: SubmitApplicationInput = {
         jobPostingId: jobId,
         fullName: form.fullName,
         email: form.email,
         phone: form.phone || undefined,
         coverLetter: form.coverLetter || undefined,
-        cvFileName: cvFile?.name,
+        cvFileUrl,
+        cvFileName,
       };
 
       const result = await submitApplication(input);

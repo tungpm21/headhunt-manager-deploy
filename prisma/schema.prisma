@@ -69,6 +69,36 @@ enum JobCandidateStage {
   REJECTED
 }
 
+enum CandidateSeniority {
+  INTERN
+  JUNIOR
+  MID_LEVEL
+  SENIOR
+  LEAD
+  MANAGER
+  DIRECTOR
+}
+
+enum ClientStatus {
+  ACTIVE
+  INACTIVE
+  BLACKLISTED
+}
+
+enum JobPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum SubmissionResult {
+  PENDING   // Đang trong quá trình
+  HIRED     // Tuyển thành công
+  REJECTED  // Bị từ chối
+  WITHDRAWN // Ứng viên rút lui
+}
+
 // ==================== FDIWORK ENUMS ====================
 
 enum EmployerStatus {
@@ -142,15 +172,17 @@ model Candidate {
   currentSalary   Float?
   expectedSalary  Float?
   location        String?
-  status          CandidateStatus  @default(AVAILABLE)
+  status          CandidateStatus    @default(AVAILABLE)
   source          CandidateSource?
   sourceDetail    String?
+  level           CandidateSeniority? // Cấp bậc: Intern → Director
+  skills          String[]            // PostgreSQL array, ví dụ: ["Java", "React", "SQL"]
   avatarUrl       String?
   cvFileUrl       String?
   cvFileName      String?
-  isDeleted       Boolean          @default(false)
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
+  isDeleted       Boolean            @default(false)
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
 
   // Relations
   createdBy   User            @relation("CandidateCreatedBy", fields: [createdById], references: [id])
@@ -163,6 +195,7 @@ model Candidate {
   @@index([fullName])
   @@index([industry])
   @@index([status])
+  @@index([level])
   @@index([location])
   @@index([isDeleted])
 }
@@ -201,6 +234,7 @@ model Client {
   address     String?
   website     String?
   notes       String?
+  status      ClientStatus @default(ACTIVE) // Trạng thái khách hàng
   isDeleted   Boolean      @default(false)
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
@@ -229,19 +263,24 @@ model ClientContact {
 }
 
 model JobOrder {
-  id          Int       @id @default(autoincrement())
-  title       String
-  description String?
-  salaryMin   Float?
-  salaryMax   Float?
-  quantity    Int       @default(1)
-  deadline    DateTime?
-  status      JobStatus @default(OPEN)
-  fee         Float?
-  feeType     FeeType?
-  notes       String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id             Int         @id @default(autoincrement())
+  title          String
+  description    String?
+  industry       String?     // Ngành nghề (theo spec)
+  location       String?     // Địa điểm làm việc (theo spec)
+  requiredSkills String[]    // Kỹ năng yêu cầu (theo spec)
+  salaryMin      Float?
+  salaryMax      Float?
+  quantity       Int         @default(1)
+  priority       JobPriority @default(MEDIUM) // Mức độ ưu tiên (theo spec)
+  deadline       DateTime?
+  openDate       DateTime?   // Ngày mở job (theo spec; nếu null dùng createdAt)
+  status         JobStatus   @default(OPEN)
+  fee            Float?
+  feeType        FeeType?
+  notes          String?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
 
   // Relations
   client       Client         @relation(fields: [clientId], references: [id])
@@ -254,15 +293,19 @@ model JobOrder {
   jobPostings  JobPosting[] // FDIWork: tin tuyển dụng public link đến Job Order
 
   @@index([status])
+  @@index([priority])
+  @@index([industry])
   @@index([clientId])
 }
 
 model JobCandidate {
-  id        Int               @id @default(autoincrement())
-  stage     JobCandidateStage @default(SOURCED)
-  notes     String?
-  createdAt DateTime          @default(now())
-  updatedAt DateTime          @updatedAt
+  id            Int                @id @default(autoincrement())
+  stage         JobCandidateStage  @default(SOURCED)
+  result        SubmissionResult   @default(PENDING) // Kết quả cuối cùng (theo spec)
+  interviewDate DateTime?          // Ngày hẹn phỏng vấn (theo spec)
+  notes         String?            // Feedback từ client / ghi chú
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
 
   jobOrder    JobOrder  @relation(fields: [jobOrderId], references: [id], onDelete: Cascade)
   jobOrderId  Int
@@ -393,4 +436,5 @@ model Application {
   @@index([jobPostingId])
   @@index([status])
   @@index([email])
+  @@unique([jobPostingId, email])
 }

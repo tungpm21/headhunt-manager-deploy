@@ -1,11 +1,9 @@
-import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { SignJWT, jwtVerify } from "jose";
+import { getEmployerJwtSecret } from "@/lib/employer-jwt";
 
 const COOKIE_NAME = "employer-token";
-const SECRET = new TextEncoder().encode(
-  process.env.EMPLOYER_JWT_SECRET || "employer-jwt-secret-change-in-production"
-);
 
 export interface EmployerPayload {
   employerId: number;
@@ -14,17 +12,21 @@ export interface EmployerPayload {
   status: string;
 }
 
-export async function signEmployerToken(payload: EmployerPayload): Promise<string> {
+export async function signEmployerToken(
+  payload: EmployerPayload
+): Promise<string> {
   return new SignJWT({ ...payload })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime("7d")
-    .sign(SECRET);
+    .sign(getEmployerJwtSecret());
 }
 
-export async function verifyEmployerToken(token: string): Promise<EmployerPayload | null> {
+export async function verifyEmployerToken(
+  token: string
+): Promise<EmployerPayload | null> {
   try {
-    const { payload } = await jwtVerify(token, SECRET);
+    const { payload } = await jwtVerify(token, getEmployerJwtSecret());
     return payload as unknown as EmployerPayload;
   } catch {
     return null;
@@ -34,6 +36,7 @@ export async function verifyEmployerToken(token: string): Promise<EmployerPayloa
 export async function getEmployerSession(): Promise<EmployerPayload | null> {
   const cookieStore = await cookies();
   const token = cookieStore.get(COOKIE_NAME)?.value;
+
   if (!token) return null;
   return verifyEmployerToken(token);
 }
@@ -51,7 +54,7 @@ export async function setEmployerCookie(token: string) {
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",
-    maxAge: 60 * 60 * 24 * 7, // 7 days
+    maxAge: 60 * 60 * 24 * 7,
   });
 }
 
@@ -60,13 +63,11 @@ export async function clearEmployerCookie() {
   cookieStore.delete(COOKIE_NAME);
 }
 
-/** Verify token for Edge middleware (no cookies() API) */
-export async function verifyEmployerTokenEdge(token: string): Promise<EmployerPayload | null> {
+export async function verifyEmployerTokenEdge(
+  token: string
+): Promise<EmployerPayload | null> {
   try {
-    const secret = new TextEncoder().encode(
-      process.env.EMPLOYER_JWT_SECRET || "employer-jwt-secret-change-in-production"
-    );
-    const { payload } = await jwtVerify(token, secret);
+    const { payload } = await jwtVerify(token, getEmployerJwtSecret());
     return payload as unknown as EmployerPayload;
   } catch {
     return null;

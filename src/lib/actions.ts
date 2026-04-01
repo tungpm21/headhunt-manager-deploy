@@ -14,7 +14,11 @@ import {
   removeTagFromCandidate,
 } from "@/lib/candidates";
 import { createTag } from "@/lib/tags";
-import { CreateCandidateInput, UpdateCandidateInput, CandidateStatus, CandidateSource, Gender } from "@/types/candidate";
+import {
+  buildServerActionRateLimitKey,
+  checkRateLimit,
+} from "@/lib/rate-limit";
+import { CreateCandidateInput, UpdateCandidateInput, CandidateStatus, CandidateSource, CandidateSeniority, Gender } from "@/types/candidate";
 
 // ============================================================
 // Auth
@@ -23,6 +27,14 @@ export async function authenticate(
   prevState: string | undefined,
   formData: FormData
 ) {
+  const email = formData.get("email")?.toString().trim().toLowerCase();
+  const rateLimitKey = await buildServerActionRateLimitKey("crm-login", email);
+  const rateLimit = checkRateLimit(rateLimitKey, 5, 10 * 60 * 1000);
+
+  if (!rateLimit.allowed) {
+    return `Thử lại sau ${rateLimit.retryAfterSeconds} giây.`;
+  }
+
   try {
     await signIn("credentials", formData);
   } catch (error) {
@@ -85,6 +97,11 @@ export async function createCandidateAction(
     const expectedSalaryRaw = formData.get("expectedSalary")?.toString().trim();
     const dateOfBirthRaw = formData.get("dateOfBirth")?.toString().trim();
 
+    const skillsRaw = formData.get("skills")?.toString().trim();
+    const skills = skillsRaw
+      ? skillsRaw.split(",").map((s) => s.trim()).filter(Boolean)
+      : [];
+
     const input: CreateCandidateInput = {
       fullName: String(formData.get("fullName") ?? "").trim(),
       phone: strVal(formData.get("phone")),
@@ -100,6 +117,8 @@ export async function createCandidateAction(
       expectedSalary: expectedSalaryRaw ? Number(expectedSalaryRaw) : undefined,
       location: strVal(formData.get("location")),
       status: enumVal<CandidateStatus>(formData.get("status")),
+      level: enumVal<CandidateSeniority>(formData.get("level")),
+      skills,
       source: enumVal<CandidateSource>(formData.get("source")),
       sourceDetail: strVal(formData.get("sourceDetail")),
       avatarUrl: strNull(formData.get("avatarUrl")),
@@ -138,6 +157,11 @@ export async function updateCandidateAction(
     const expectedSalaryRaw = formData.get("expectedSalary")?.toString().trim();
     const dateOfBirthRaw = formData.get("dateOfBirth")?.toString().trim();
 
+    const skillsRaw = formData.get("skills")?.toString().trim();
+    const skills = skillsRaw !== undefined
+      ? skillsRaw ? skillsRaw.split(",").map((s) => s.trim()).filter(Boolean) : []
+      : undefined;
+
     const input: UpdateCandidateInput = {
       fullName: strVal(formData.get("fullName")),
       phone: strVal(formData.get("phone")),
@@ -153,6 +177,8 @@ export async function updateCandidateAction(
       expectedSalary: expectedSalaryRaw ? Number(expectedSalaryRaw) : undefined,
       location: strVal(formData.get("location")),
       status: enumVal<CandidateStatus>(formData.get("status")),
+      level: enumVal<CandidateSeniority>(formData.get("level")),
+      skills,
       source: enumVal<CandidateSource>(formData.get("source")),
       sourceDetail: strVal(formData.get("sourceDetail")),
       avatarUrl: strNull(formData.get("avatarUrl")),
@@ -187,7 +213,7 @@ export async function updateCandidateStatusAction(id: number, status: CandidateS
   try {
     // update is imported from lib/candidates, but the type allows partial updates except tagIds handling has to be careful.
     // In updateCandidate, it extracts tagIds and updates the rest.
-    await updateCandidate(id, { status } as any);
+    await updateCandidate(id, { status } as UpdateCandidateInput);
     revalidatePath(`/candidates/${id}`);
     revalidatePath("/candidates");
     return { success: true };

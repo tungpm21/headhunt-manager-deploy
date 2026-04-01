@@ -1,50 +1,39 @@
 # HANDOVER DOCUMENT
-Ngày: 2026-03-21 15:20
 
-## 📍 Đang làm: FDIWork Public Website
-## 🔢 Phase: 01/08 - Database Schema ✅ DONE
+📍 Đang làm: Security hardening + dependency remediation
+🔢 Đến bước: Hoàn tất fix, chuẩn bị bàn giao
 
-## ✅ ĐÃ XONG:
-- Brainstorm + đánh giá web cũ fdiwork.com
-- Tạo SPECS.md (đặc tả kỹ thuật)
-- Tạo DESIGN_FDIWORK.md (thiết kế chi tiết: DB, API, Auth, Screens, Tests)
-- Sắp xếp docs/ (crm/ + fdiwork/ + archive/)
-- Plan 8 phases trong plans/260321-1442-fdiwork-public/
-- Phase 01: Database Schema ✅
-  - 5 enums mới + 4 models mới (Employer, Subscription, JobPosting, Application)
-  - Migration init_with_fdiwork applied
-  - Seed: 3 employers, 2 subscriptions, 5 job postings
-- Design system generated (Poppins + Open Sans, Professional Blue)
+✅ ĐÃ XONG:
+   - Audit full project và tạo báo cáo `docs/reports/audit_2026-04-01.md`
+   - Khóa RBAC admin cho các khu moderation/admin
+   - Bắt buộc `EMPLOYER_JWT_SECRET`, bỏ fallback secret mặc định
+   - Thêm rate limit cho CRM login, employer auth, public upload/apply
+   - Thêm unique constraint `Application(jobPostingId, email)` và deploy migration
+   - Nâng `next`, `prisma`, `@prisma/adapter-pg`
+   - Loại bỏ `xlsx`, chuyển import sang `read-excel-file` + `papaparse`
+   - Đổi tên component import thành `SpreadsheetImporter`
 
-## ⏳ CÒN LẠI:
-- Phase 02: Public Layout + Homepage
-- Phase 03: Job Listing & Detail
-- Phase 04: Company & Apply Form
-- Phase 05: Employer Auth & Dashboard
-- Phase 06: Employer Job Management
-- Phase 07: Admin Moderation & Packages
-- Phase 08: CRM Integration (Import CV)
+⏳ CÒN LẠI:
+   - Dọn backlog lint toàn repo
+   - Cân nhắc siết SSL mode trong `DATABASE_URL`
 
-## 🔧 QUYẾT ĐỊNH QUAN TRỌNG:
-- Employer Auth = Custom JWT cookie (không dùng NextAuth thứ 2)
-- FDIWork color = Teal #0D9488 (CRM giữ Indigo)
-- Subscription 1:1 với Employer (MVP đơn giản)
-- Database reset rồi migrate fresh (dev DB)
+🔧 QUYẾT ĐỊNH QUAN TRỌNG:
+   - Không dùng `xlsx` nữa vì advisory high không có auto-fix
+   - Chỉ giữ import `.xlsx` và `.csv`, bỏ `.xls`
+   - Guard quyền phải nằm ở route + UI + server action, không chỉ ở giao diện
 
-## ⚠️ LƯU Ý CHO SESSION SAU:
-- Prisma one-to-one cần @unique trên FK
-- Named relation cần cho Client-Employer ("EmployerClient")
-- Chạy `prisma generate` sau mỗi schema change trước khi seed
-- Design system: design-system/fdiwork/MASTER.md
+⚠️ LƯU Ý CHO SESSION SAU:
+   - `npm audit` hiện sạch: 0 vulnerabilities
+   - `npm run build` pass
+   - `npm run lint` toàn repo vẫn fail do backlog cũ ngoài scope đợt fix
 
-## 📁 FILES QUAN TRỌNG:
-- docs/fdiwork/DESIGN_FDIWORK.md (thiết kế chính)
-- docs/fdiwork/SPECS.md (đặc tả)
-- plans/260321-1442-fdiwork-public/plan.md (tiến độ)
-- prisma/schema.prisma (schema hiện tại)
-- design-system/fdiwork/MASTER.md (design tokens)
-- .brain/brain.json + session.json (context)
+📁 FILES QUAN TRỌNG:
+   - `docs/reports/audit_2026-04-01.md`
+   - `src/lib/moderation-actions.ts`
+   - `src/lib/employer-actions.ts`
+   - `src/lib/public-apply-actions.ts`
+   - `src/components/import/spreadsheet-importer.tsx`
+   - `.brain/session.json`
+   - `.brain/brain.json`
 
-## 🔑 LOGIN INFO:
-- CRM: admin@headhunt.com / headhunt123
-- Employer: hr@samsung-vn.com / employer123
+📍 Đã lưu! Để tiếp tục: gõ `/recap`

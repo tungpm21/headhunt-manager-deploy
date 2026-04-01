@@ -1,16 +1,16 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
-import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
-
-// ==================== MODERATION ====================
+import { prisma } from "@/lib/prisma";
+import { requireAdmin } from "@/lib/authz";
 
 export async function getPendingJobPostings(status = "PENDING", page = 1) {
+  await requireAdmin();
+
   const take = 10;
   const skip = (page - 1) * take;
+  const where: Record<string, unknown> = {};
 
-  const where: any = {};
   if (status !== "ALL") {
     where.status = status;
   }
@@ -33,12 +33,14 @@ export async function getPendingJobPostings(status = "PENDING", page = 1) {
 }
 
 export async function approveJobPosting(id: number) {
+  await requireAdmin();
+
   const job = await prisma.jobPosting.findUnique({
     where: { id },
     include: { employer: { include: { subscription: true } } },
   });
 
-  if (!job) return { success: false, message: "Không tìm thấy tin." };
+  if (!job) return { success: false, message: "Khong tim thay tin." };
 
   const duration = job.employer.subscription?.jobDuration ?? 30;
   const now = new Date();
@@ -56,30 +58,32 @@ export async function approveJobPosting(id: number) {
 
   revalidatePath("/moderation");
   revalidatePath("/viec-lam");
-  return { success: true, message: "Đã duyệt tin." };
+  return { success: true, message: "Da duyet tin." };
 }
 
 export async function rejectJobPosting(id: number, reason: string) {
+  await requireAdmin();
+
   if (!reason.trim()) {
-    return { success: false, message: "Vui lòng nhập lý do từ chối." };
+    return { success: false, message: "Vui long nhap ly do tu choi." };
   }
 
   await prisma.jobPosting.update({
     where: { id },
-    data: { status: "REJECTED", rejectReason: reason },
+    data: { status: "REJECTED", rejectReason: reason.trim() },
   });
 
   revalidatePath("/moderation");
-  return { success: true, message: "Đã từ chối tin." };
+  return { success: true, message: "Da tu choi tin." };
 }
 
-// ==================== EMPLOYER MANAGEMENT ====================
-
 export async function getEmployers(status = "ALL", page = 1) {
+  await requireAdmin();
+
   const take = 10;
   const skip = (page - 1) * take;
+  const where: Record<string, unknown> = {};
 
-  const where: any = {};
   if (status !== "ALL") {
     where.status = status;
   }
@@ -102,23 +106,25 @@ export async function getEmployers(status = "ALL", page = 1) {
 }
 
 export async function updateEmployerStatus(id: number, newStatus: string) {
+  await requireAdmin();
+
   const validStatuses = ["ACTIVE", "PENDING", "SUSPENDED"];
   if (!validStatuses.includes(newStatus)) {
-    return { success: false, message: "Trạng thái không hợp lệ." };
+    return { success: false, message: "Trang thai khong hop le." };
   }
 
   await prisma.employer.update({
     where: { id },
-    data: { status: newStatus as any },
+    data: { status: newStatus as "ACTIVE" | "PENDING" | "SUSPENDED" },
   });
 
   revalidatePath("/employers");
-  return { success: true, message: `Đã cập nhật trạng thái: ${newStatus}` };
+  return { success: true, message: `Da cap nhat trang thai: ${newStatus}` };
 }
 
-// ==================== PACKAGE / SUBSCRIPTION MANAGEMENT ====================
-
 export async function getSubscriptions(page = 1) {
+  await requireAdmin();
+
   const take = 10;
   const skip = (page - 1) * take;
 
@@ -138,34 +144,35 @@ export async function getSubscriptions(page = 1) {
 }
 
 export async function assignSubscription(formData: FormData) {
-  const employerId = parseInt(formData.get("employerId") as string);
+  await requireAdmin();
+
+  const employerId = parseInt(formData.get("employerId") as string, 10);
   const tier = formData.get("tier") as string;
-  const jobQuota = parseInt(formData.get("jobQuota") as string);
-  const jobDuration = parseInt(formData.get("jobDuration") as string) || 30;
-  const durationMonths = parseInt(formData.get("durationMonths") as string) || 12;
+  const jobQuota = parseInt(formData.get("jobQuota") as string, 10);
+  const jobDuration = parseInt(formData.get("jobDuration") as string, 10) || 30;
+  const durationMonths =
+    parseInt(formData.get("durationMonths") as string, 10) || 12;
   const showLogo = formData.get("showLogo") === "true";
   const showBanner = formData.get("showBanner") === "true";
 
   if (!employerId || !tier || !jobQuota) {
-    return { success: false, message: "Vui lòng điền đầy đủ thông tin." };
+    return { success: false, message: "Vui long dien day du thong tin." };
   }
 
   const employer = await prisma.employer.findUnique({ where: { id: employerId } });
   if (!employer) {
-    return { success: false, message: "Không tìm thấy employer." };
+    return { success: false, message: "Khong tim thay employer." };
   }
 
   const now = new Date();
   const endDate = new Date(now.getTime() + durationMonths * 30 * 24 * 60 * 60 * 1000);
-
-  // Upsert subscription
   const existingSub = await prisma.subscription.findUnique({ where: { employerId } });
 
   if (existingSub) {
     await prisma.subscription.update({
       where: { id: existingSub.id },
       data: {
-        tier: tier as any,
+        tier: tier as "BASIC" | "STANDARD" | "PREMIUM" | "VIP",
         jobQuota,
         jobDuration,
         startDate: now,
@@ -179,7 +186,7 @@ export async function assignSubscription(formData: FormData) {
     await prisma.subscription.create({
       data: {
         employerId,
-        tier: tier as any,
+        tier: tier as "BASIC" | "STANDARD" | "PREMIUM" | "VIP",
         jobQuota,
         jobsUsed: 0,
         jobDuration,
@@ -193,7 +200,6 @@ export async function assignSubscription(formData: FormData) {
     });
   }
 
-  // Also activate employer if still pending
   if (employer.status === "PENDING") {
     await prisma.employer.update({
       where: { id: employerId },
@@ -203,16 +209,16 @@ export async function assignSubscription(formData: FormData) {
 
   revalidatePath("/packages");
   revalidatePath("/employers");
-  return { success: true, message: `Đã cấp gói ${tier} cho ${employer.companyName}!` };
+  return { success: true, message: `Da cap goi ${tier} cho ${employer.companyName}.` };
 }
 
-// ==================== CRM INTEGRATION (Phase 08) ====================
-
 export async function getApplicationsForImport(status = "NEW", page = 1) {
+  await requireAdmin();
+
   const take = 15;
   const skip = (page - 1) * take;
+  const where: Record<string, unknown> = {};
 
-  const where: any = {};
   if (status !== "ALL") {
     where.status = status;
   }
@@ -242,56 +248,58 @@ export async function getApplicationsForImport(status = "NEW", page = 1) {
 }
 
 export async function importApplicationToCRM(applicationId: number) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return { success: false, message: "Bạn cần đăng nhập." };
-  }
-  const userId = Number(session.user.id);
+  const { userId } = await requireAdmin();
 
   const application = await prisma.application.findUnique({
     where: { id: applicationId },
     include: {
       jobPosting: {
-        select: { title: true, industry: true, location: true, employer: { select: { companyName: true } } },
+        select: {
+          title: true,
+          industry: true,
+          location: true,
+          employer: { select: { companyName: true } },
+        },
       },
     },
   });
 
   if (!application) {
-    return { success: false, message: "Không tìm thấy đơn ứng tuyển." };
+    return { success: false, message: "Khong tim thay don ung tuyen." };
   }
   if (application.status === "IMPORTED") {
-    return { success: false, message: "Đơn này đã được import trước đó." };
+    return { success: false, message: "Don nay da duoc import truoc do." };
   }
 
-  // Check duplicate email
   let candidateId: number;
-  const existingCandidate = application.email
+  const normalizedEmail = application.email.trim().toLowerCase();
+  const existingCandidate = normalizedEmail
     ? await prisma.candidate.findFirst({
-        where: { email: application.email, isDeleted: false },
+        where: { email: normalizedEmail, isDeleted: false },
       })
     : null;
 
   if (existingCandidate) {
-    // Link to existing candidate, update CV if missing
     candidateId = existingCandidate.id;
     if (!existingCandidate.cvFileUrl && application.cvFileUrl) {
       await prisma.candidate.update({
         where: { id: candidateId },
-        data: { cvFileUrl: application.cvFileUrl, cvFileName: application.cvFileName },
+        data: {
+          cvFileUrl: application.cvFileUrl,
+          cvFileName: application.cvFileName,
+        },
       });
     }
   } else {
-    // Create new candidate
     const newCandidate = await prisma.candidate.create({
       data: {
         fullName: application.fullName,
-        email: application.email,
+        email: normalizedEmail,
         phone: application.phone,
         cvFileUrl: application.cvFileUrl,
         cvFileName: application.cvFileName,
         source: "FDIWORK",
-        sourceDetail: `${application.jobPosting.employer.companyName} — ${application.jobPosting.title}`,
+        sourceDetail: `${application.jobPosting.employer.companyName} - ${application.jobPosting.title}`,
         industry: application.jobPosting.industry,
         location: application.jobPosting.location,
         status: "AVAILABLE",
@@ -301,7 +309,6 @@ export async function importApplicationToCRM(applicationId: number) {
     candidateId = newCandidate.id;
   }
 
-  // Update application
   await prisma.application.update({
     where: { id: applicationId },
     data: { status: "IMPORTED", candidateId },
@@ -313,22 +320,29 @@ export async function importApplicationToCRM(applicationId: number) {
   return {
     success: true,
     message: existingCandidate
-      ? `Đã link vào ứng viên #${candidateId} (${existingCandidate.fullName}) — trùng email.`
-      : `Đã tạo ứng viên mới #${candidateId} trong CRM.`,
+      ? `Da link vao ung vien #${candidateId} (${existingCandidate.fullName}).`
+      : `Da tao ung vien moi #${candidateId} trong CRM.`,
     candidateId,
   };
 }
 
-export async function linkEmployerToClient(employerId: number, clientId: number | null) {
+export async function linkEmployerToClient(
+  employerId: number,
+  clientId: number | null
+) {
+  await requireAdmin();
+
   const employer = await prisma.employer.findUnique({ where: { id: employerId } });
   if (!employer) {
-    return { success: false, message: "Không tìm thấy employer." };
+    return { success: false, message: "Khong tim thay employer." };
   }
 
   if (clientId) {
-    const client = await prisma.client.findUnique({ where: { id: clientId, isDeleted: false } });
+    const client = await prisma.client.findFirst({
+      where: { id: clientId, isDeleted: false },
+    });
     if (!client) {
-      return { success: false, message: "Không tìm thấy client." };
+      return { success: false, message: "Khong tim thay client." };
     }
   }
 
@@ -338,14 +352,20 @@ export async function linkEmployerToClient(employerId: number, clientId: number 
   });
 
   revalidatePath("/employers");
-  return { success: true, message: clientId ? "Đã link Employer với Client." : "Đã bỏ link Client." };
+  return {
+    success: true,
+    message: clientId ? "Da link Employer voi Client." : "Da bo link Client.",
+  };
 }
 
 export async function getNewApplicationsCount() {
+  await requireAdmin();
   return prisma.application.count({ where: { status: "NEW" } });
 }
 
 export async function getRecentApplications(take = 5) {
+  await requireAdmin();
+
   return prisma.application.findMany({
     where: { status: { in: ["NEW", "REVIEWED", "SHORTLISTED"] } },
     orderBy: { createdAt: "desc" },
@@ -359,6 +379,8 @@ export async function getRecentApplications(take = 5) {
 }
 
 export async function getClientsForLinking() {
+  await requireAdmin();
+
   return prisma.client.findMany({
     where: { isDeleted: false, employer: null },
     select: { id: true, companyName: true },

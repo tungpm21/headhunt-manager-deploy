@@ -1,15 +1,19 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
-import { hashSync, compareSync } from "bcrypt-ts";
-import {
-  signEmployerToken,
-  setEmployerCookie,
-  clearEmployerCookie,
-  requireEmployerSession,
-} from "@/lib/employer-auth";
+import { compareSync, hashSync } from "bcrypt-ts";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { prisma } from "@/lib/prisma";
+import {
+  clearEmployerCookie,
+  requireEmployerSession,
+  setEmployerCookie,
+  signEmployerToken,
+} from "@/lib/employer-auth";
+import {
+  buildServerActionRateLimitKey,
+  checkRateLimit,
+} from "@/lib/rate-limit";
 
 function generateSlug(name: string): string {
   return name
@@ -24,35 +28,44 @@ function generateSlug(name: string): string {
     .trim();
 }
 
-// ==================== AUTH ACTIONS ====================
-
 export async function registerEmployerAction(formData: FormData) {
-  const email = formData.get("email") as string;
+  const email = formData.get("email")?.toString().trim().toLowerCase() ?? "";
   const password = formData.get("password") as string;
   const confirmPassword = formData.get("confirmPassword") as string;
-  const companyName = formData.get("companyName") as string;
+  const companyName = formData.get("companyName")?.toString().trim() ?? "";
 
-  if (!email || !password || !companyName) {
-    return { success: false, message: "Vui lòng điền đầy đủ thông tin." };
+  const rateLimitKey = await buildServerActionRateLimitKey(
+    "employer-register",
+    email || companyName
+  );
+  const rateLimit = checkRateLimit(rateLimitKey, 5, 10 * 60 * 1000);
+  if (!rateLimit.allowed) {
+    return {
+      success: false,
+      message: `Thu lai sau ${rateLimit.retryAfterSeconds} giay.`,
+    };
   }
 
-  if (password.length < 6) {
-    return { success: false, message: "Mật khẩu phải có ít nhất 6 ký tự." };
+  if (!email || !password || !companyName) {
+    return { success: false, message: "Vui long dien day du thong tin." };
+  }
+
+  if (password.length < 8) {
+    return { success: false, message: "Mat khau phai co it nhat 8 ky tu." };
   }
 
   if (password !== confirmPassword) {
-    return { success: false, message: "Mật khẩu xác nhận không khớp." };
+    return { success: false, message: "Mat khau xac nhan khong khop." };
   }
 
   const existing = await prisma.employer.findUnique({ where: { email } });
   if (existing) {
-    return { success: false, message: "Email đã được sử dụng." };
+    return { success: false, message: "Email da duoc su dung." };
   }
 
   const hashedPassword = hashSync(password, 10);
   let slug = generateSlug(companyName);
 
-  // Ensure slug uniqueness
   const slugExists = await prisma.employer.findUnique({ where: { slug } });
   if (slugExists) {
     slug = `${slug}-${Date.now().toString(36)}`;
@@ -70,39 +83,48 @@ export async function registerEmployerAction(formData: FormData) {
 
   return {
     success: true,
-    message: "Đăng ký thành công! Tài khoản đang chờ admin duyệt.",
+    message: "Dang ky thanh cong. Tai khoan dang cho admin duyet.",
   };
 }
 
 export async function loginEmployerAction(formData: FormData) {
-  const email = formData.get("email") as string;
+  const email = formData.get("email")?.toString().trim().toLowerCase() ?? "";
   const password = formData.get("password") as string;
 
+  const rateLimitKey = await buildServerActionRateLimitKey("employer-login", email);
+  const rateLimit = checkRateLimit(rateLimitKey, 5, 10 * 60 * 1000);
+  if (!rateLimit.allowed) {
+    return {
+      success: false,
+      message: `Thu lai sau ${rateLimit.retryAfterSeconds} giay.`,
+    };
+  }
+
   if (!email || !password) {
-    return { success: false, message: "Vui lòng nhập email và mật khẩu." };
+    return { success: false, message: "Vui long nhap email va mat khau." };
   }
 
   const employer = await prisma.employer.findUnique({ where: { email } });
   if (!employer) {
-    return { success: false, message: "Email hoặc mật khẩu không đúng." };
+    return { success: false, message: "Email hoac mat khau khong dung." };
   }
 
   const valid = compareSync(password, employer.password);
   if (!valid) {
-    return { success: false, message: "Email hoặc mật khẩu không đúng." };
+    return { success: false, message: "Email hoac mat khau khong dung." };
   }
 
   if (employer.status === "PENDING") {
     return {
       success: false,
-      message: "Tài khoản chưa được duyệt. Vui lòng chờ admin kích hoạt.",
+      message: "Tai khoan chua duoc duyet. Vui long cho admin kich hoat.",
     };
   }
 
   if (employer.status === "SUSPENDED") {
     return {
       success: false,
-      message: "Tài khoản đã bị khóa. Vui lòng liên hệ admin.",
+      message: "Tai khoan da bi khoa. Vui long lien he admin.",
     };
   }
 
@@ -121,8 +143,6 @@ export async function logoutEmployerAction() {
   await clearEmployerCookie();
   redirect("/employer/login");
 }
-
-// ==================== DASHBOARD ====================
 
 export async function getEmployerDashboardData() {
   const session = await requireEmployerSession();
@@ -191,21 +211,19 @@ export async function getEmployerDashboardData() {
   };
 }
 
-// ==================== COMPANY PROFILE ====================
-
 export async function updateCompanyProfileAction(formData: FormData) {
   const session = await requireEmployerSession();
 
-  const companyName = formData.get("companyName") as string;
-  const description = formData.get("description") as string;
-  const industry = formData.get("industry") as string;
-  const companySize = formData.get("companySize") as string;
-  const address = formData.get("address") as string;
-  const website = formData.get("website") as string;
-  const phone = formData.get("phone") as string;
+  const companyName = formData.get("companyName")?.toString().trim() ?? "";
+  const description = formData.get("description")?.toString().trim() ?? "";
+  const industry = formData.get("industry")?.toString().trim() ?? "";
+  const companySize = formData.get("companySize")?.toString().trim() ?? "";
+  const address = formData.get("address")?.toString().trim() ?? "";
+  const website = formData.get("website")?.toString().trim() ?? "";
+  const phone = formData.get("phone")?.toString().trim() ?? "";
 
   if (!companyName) {
-    return { success: false, message: "Tên công ty không được để trống." };
+    return { success: false, message: "Ten cong ty khong duoc de trong." };
   }
 
   const validSizes = ["SMALL", "MEDIUM", "LARGE", "ENTERPRISE"];
@@ -217,7 +235,7 @@ export async function updateCompanyProfileAction(formData: FormData) {
       companyName,
       description: description || null,
       industry: industry || null,
-      companySize: sizeValue as any,
+      companySize: sizeValue as "SMALL" | "MEDIUM" | "LARGE" | "ENTERPRISE" | undefined,
       address: address || null,
       website: website || null,
       phone: phone || null,
@@ -225,7 +243,7 @@ export async function updateCompanyProfileAction(formData: FormData) {
   });
 
   revalidatePath("/employer/company");
-  return { success: true, message: "Cập nhật thông tin thành công!" };
+  return { success: true, message: "Cap nhat thong tin thanh cong." };
 }
 
 export async function getCompanyProfile() {
@@ -235,25 +253,20 @@ export async function getCompanyProfile() {
   });
 }
 
-// ==================== SUBSCRIPTION ====================
-
 export async function getSubscriptionData() {
   const session = await requireEmployerSession();
-  const employer = await prisma.employer.findUnique({
+  return prisma.employer.findUnique({
     where: { id: session.employerId },
     include: { subscription: true },
   });
-  return employer;
 }
-
-// ==================== JOB MANAGEMENT ====================
 
 export async function getMyJobPostings(status?: string, page = 1) {
   const session = await requireEmployerSession();
   const take = 10;
   const skip = (page - 1) * take;
+  const where: Record<string, unknown> = { employerId: session.employerId };
 
-  const where: any = { employerId: session.employerId };
   if (status && status !== "ALL") {
     where.status = status;
   }
@@ -289,46 +302,45 @@ export async function getJobPostingDetail(id: number) {
 export async function createJobPostingAction(formData: FormData) {
   const session = await requireEmployerSession();
 
-  // Check quota
   const employer = await prisma.employer.findUnique({
     where: { id: session.employerId },
     include: { subscription: true },
   });
 
   if (!employer) {
-    return { success: false, message: "Không tìm thấy tài khoản." };
+    return { success: false, message: "Khong tim thay tai khoan." };
   }
 
   const sub = employer.subscription;
   if (!sub || sub.status !== "ACTIVE") {
-    return { success: false, message: "Bạn chưa có gói dịch vụ đang hoạt động." };
+    return { success: false, message: "Ban chua co goi dich vu dang hoat dong." };
   }
 
   if (sub.jobsUsed >= sub.jobQuota) {
     return {
       success: false,
-      message: `Bạn đã hết lượt đăng tin (${sub.jobsUsed}/${sub.jobQuota}). Vui lòng liên hệ admin để nâng gói.`,
+      message: `Ban da het luot dang tin (${sub.jobsUsed}/${sub.jobQuota}).`,
     };
   }
 
-  const title = formData.get("title") as string;
-  const description = formData.get("description") as string;
+  const title = formData.get("title")?.toString().trim() ?? "";
+  const description = formData.get("description")?.toString().trim() ?? "";
 
   if (!title || !description) {
-    return { success: false, message: "Tiêu đề và mô tả không được để trống." };
+    return { success: false, message: "Tieu de va mo ta khong duoc de trong." };
   }
 
-  const requirements = formData.get("requirements") as string;
-  const benefits = formData.get("benefits") as string;
-  const salaryMin = formData.get("salaryMin") as string;
-  const salaryMax = formData.get("salaryMax") as string;
-  const salaryDisplay = formData.get("salaryDisplay") as string;
-  const industry = formData.get("industry") as string;
-  const position = formData.get("position") as string;
-  const location = formData.get("location") as string;
-  const workType = formData.get("workType") as string;
-  const quantity = formData.get("quantity") as string;
-  const skills = formData.get("skills") as string;
+  const requirements = formData.get("requirements")?.toString().trim() ?? "";
+  const benefits = formData.get("benefits")?.toString().trim() ?? "";
+  const salaryMin = formData.get("salaryMin")?.toString().trim() ?? "";
+  const salaryMax = formData.get("salaryMax")?.toString().trim() ?? "";
+  const salaryDisplay = formData.get("salaryDisplay")?.toString().trim() ?? "";
+  const industry = formData.get("industry")?.toString().trim() ?? "";
+  const position = formData.get("position")?.toString().trim() ?? "";
+  const location = formData.get("location")?.toString().trim() ?? "";
+  const workType = formData.get("workType")?.toString().trim() ?? "";
+  const quantity = formData.get("quantity")?.toString().trim() ?? "";
+  const skills = formData.get("skills")?.toString().trim() ?? "";
 
   let slug = generateSlug(title);
   const slugExists = await prisma.jobPosting.findUnique({ where: { slug } });
@@ -336,7 +348,6 @@ export async function createJobPostingAction(formData: FormData) {
     slug = `${slug}-${Date.now().toString(36)}`;
   }
 
-  // Create job + increment quota in transaction
   await prisma.$transaction([
     prisma.jobPosting.create({
       data: {
@@ -352,7 +363,7 @@ export async function createJobPostingAction(formData: FormData) {
         position: position || null,
         location: location || null,
         workType: workType || null,
-        quantity: quantity ? parseInt(quantity) : 1,
+        quantity: quantity ? parseInt(quantity, 10) : 1,
         skills: skills || null,
         status: "PENDING",
         employerId: session.employerId,
@@ -373,14 +384,14 @@ export async function updateJobPostingAction(id: number, formData: FormData) {
 
   const job = await prisma.jobPosting.findUnique({ where: { id } });
   if (!job || job.employerId !== session.employerId) {
-    return { success: false, message: "Không tìm thấy tin tuyển dụng." };
+    return { success: false, message: "Khong tim thay tin tuyen dung." };
   }
 
-  const title = formData.get("title") as string;
-  const description = formData.get("description") as string;
+  const title = formData.get("title")?.toString().trim() ?? "";
+  const description = formData.get("description")?.toString().trim() ?? "";
 
   if (!title || !description) {
-    return { success: false, message: "Tiêu đề và mô tả không được để trống." };
+    return { success: false, message: "Tieu de va mo ta khong duoc de trong." };
   }
 
   await prisma.jobPosting.update({
@@ -388,24 +399,29 @@ export async function updateJobPostingAction(id: number, formData: FormData) {
     data: {
       title,
       description,
-      requirements: (formData.get("requirements") as string) || null,
-      benefits: (formData.get("benefits") as string) || null,
-      salaryMin: formData.get("salaryMin") ? parseFloat(formData.get("salaryMin") as string) : null,
-      salaryMax: formData.get("salaryMax") ? parseFloat(formData.get("salaryMax") as string) : null,
-      salaryDisplay: (formData.get("salaryDisplay") as string) || null,
-      industry: (formData.get("industry") as string) || null,
-      position: (formData.get("position") as string) || null,
-      location: (formData.get("location") as string) || null,
-      workType: (formData.get("workType") as string) || null,
-      quantity: formData.get("quantity") ? parseInt(formData.get("quantity") as string) : 1,
-      skills: (formData.get("skills") as string) || null,
-      // Re-submit for review if previously rejected
+      requirements: formData.get("requirements")?.toString().trim() || null,
+      benefits: formData.get("benefits")?.toString().trim() || null,
+      salaryMin: formData.get("salaryMin")
+        ? parseFloat(formData.get("salaryMin") as string)
+        : null,
+      salaryMax: formData.get("salaryMax")
+        ? parseFloat(formData.get("salaryMax") as string)
+        : null,
+      salaryDisplay: formData.get("salaryDisplay")?.toString().trim() || null,
+      industry: formData.get("industry")?.toString().trim() || null,
+      position: formData.get("position")?.toString().trim() || null,
+      location: formData.get("location")?.toString().trim() || null,
+      workType: formData.get("workType")?.toString().trim() || null,
+      quantity: formData.get("quantity")
+        ? parseInt(formData.get("quantity") as string, 10)
+        : 1,
+      skills: formData.get("skills")?.toString().trim() || null,
       status: job.status === "REJECTED" ? "PENDING" : job.status,
     },
   });
 
-  revalidatePath(`/employer/job-postings`);
-  return { success: true, message: "Cập nhật tin thành công!" };
+  revalidatePath("/employer/job-postings");
+  return { success: true, message: "Cap nhat tin thanh cong." };
 }
 
 export async function toggleJobPostingStatus(id: number) {
@@ -413,7 +429,7 @@ export async function toggleJobPostingStatus(id: number) {
 
   const job = await prisma.jobPosting.findUnique({ where: { id } });
   if (!job || job.employerId !== session.employerId) {
-    return { success: false, message: "Không tìm thấy tin." };
+    return { success: false, message: "Khong tim thay tin." };
   }
 
   if (job.status === "APPROVED") {
@@ -422,23 +438,26 @@ export async function toggleJobPostingStatus(id: number) {
       data: { status: "PAUSED" },
     });
     revalidatePath("/employer/job-postings");
-    return { success: true, message: "Đã tạm ẩn tin." };
+    return { success: true, message: "Da tam an tin." };
   }
 
   if (job.status === "PAUSED") {
-    // Check if still within expiry
     if (job.expiresAt && new Date(job.expiresAt) < new Date()) {
-      return { success: false, message: "Tin đã hết hạn, không thể bật lại." };
+      return { success: false, message: "Tin da het han, khong the bat lai." };
     }
+
     await prisma.jobPosting.update({
       where: { id },
       data: { status: "APPROVED" },
     });
     revalidatePath("/employer/job-postings");
-    return { success: true, message: "Đã bật lại tin." };
+    return { success: true, message: "Da bat lai tin." };
   }
 
-  return { success: false, message: "Chỉ có thể ẩn/bật tin đang hiển thị hoặc đã tạm ẩn." };
+  return {
+    success: false,
+    message: "Chi co the an hoac bat lai tin dang hien thi hoac tam an.",
+  };
 }
 
 export async function getJobApplicants(jobPostingId: number) {
@@ -458,4 +477,3 @@ export async function getJobApplicants(jobPostingId: number) {
 
   return { jobTitle: job.title, applicants };
 }
-

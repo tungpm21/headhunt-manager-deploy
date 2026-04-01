@@ -46,6 +46,7 @@ next-env.d.ts
 # uploads (CV files)
 /uploads/*
 !/uploads/.gitkeep
+/public/uploads/
 
 
 # AWF Brain (local session data)

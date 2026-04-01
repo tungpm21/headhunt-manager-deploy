@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { updateCandidateCV } from "@/lib/candidates";
 import { prisma } from "@/lib/prisma";
-import { put, del } from "@vercel/blob";
+import { uploadFile, deleteFile } from "@/lib/storage";
 
 const ALLOWED_TYPES = [
   "application/pdf",
@@ -40,23 +40,18 @@ export async function POST(
 
   // Delete old file if exists
   const existing = await prisma.candidate.findUnique({ where: { id: candidateId }, select: { cvFileUrl: true } });
-  if (existing?.cvFileUrl && existing.cvFileUrl.includes('vercel-storage.com')) {
-    try { await del(existing.cvFileUrl); } catch (e) { console.error("Could not delete old blob", e) }
+  if (existing?.cvFileUrl) {
+    await deleteFile(existing.cvFileUrl);
   }
 
-  // Upload to Vercel Blob
+  // Upload via storage helper (auto Vercel Blob or local)
   const ext = file.name.split(".").pop();
   const fileName = `cv-${candidateId}-${Date.now()}.${ext}`;
-  
-  const blob = await put(`cvs/${fileName}`, file, {
-    access: 'public',
-    addRandomSuffix: false
-  });
+  const { url } = await uploadFile("cvs", fileName, file);
 
-  const cvFileUrl = blob.url;
-  await updateCandidateCV(candidateId, cvFileUrl, file.name);
+  await updateCandidateCV(candidateId, url, file.name);
 
-  return NextResponse.json({ url: cvFileUrl, fileName: file.name });
+  return NextResponse.json({ url, fileName: file.name });
 }
 
 export async function DELETE(
@@ -71,10 +66,9 @@ export async function DELETE(
   if (isNaN(candidateId))
     return NextResponse.json({ error: "ID không hợp lệ" }, { status: 400 });
 
-  // Delete from Vercel Blob before clearing DB
   const existing = await prisma.candidate.findUnique({ where: { id: candidateId }, select: { cvFileUrl: true } });
-  if (existing?.cvFileUrl && existing.cvFileUrl.includes('vercel-storage.com')) {
-    try { await del(existing.cvFileUrl); } catch (e) { console.error("Could not delete blob", e) }
+  if (existing?.cvFileUrl) {
+    await deleteFile(existing.cvFileUrl);
   }
 
   await updateCandidateCV(candidateId, null, null);

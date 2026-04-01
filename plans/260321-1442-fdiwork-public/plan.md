@@ -1,10 +1,12 @@
 # Plan: FDIWork Public Website
 Created: 2026-03-21
-Status: 🟡 Chờ Review
+Status: 🟡 In Progress (5/8 phases done)
 
 ## Overview
 Build public website cho FDIWork.com trong cùng project Headhunt Manager.
 Thêm route groups `(public)` và `(employer)`, mở rộng database với 4 models mới.
+
+> **Note:** Schema Gap-Fill (Option A) đã hoàn thành — thêm CandidateSeniority, ClientStatus, JobPriority, SubmissionResult + 9 fields mới.
 
 ## Tech Stack
 - Framework: Next.js (App Router) — cùng CRM

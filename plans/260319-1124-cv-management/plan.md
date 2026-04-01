@@ -1,6 +1,6 @@
 # Plan: CV Management & Preview Feature
 Created: 260319-1124
-Status: 🟡 In Progress
+Status: ✅ Complete (3/3 phases done)
 
 ## Overview
 Tích hợp tính năng Quản lý và Xem trước CV (PDF/Word) trực tiếp trên trang Chi tiết Ứng viên theo giao diện Split-Screen (Chia đôi màn hình). Giúp Headhunter xem CV và nhập form cùng lúc mà không cần chuyển tab.

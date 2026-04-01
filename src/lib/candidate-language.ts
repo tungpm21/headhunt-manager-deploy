@@ -33,8 +33,8 @@ export async function updateLanguage(
   });
 }
 
-export async function deleteLanguage(id: number) {
-  return prisma.candidateLanguage.delete({
-    where: { id },
+export async function deleteLanguage(id: number, candidateId: number) {
+  return prisma.candidateLanguage.deleteMany({
+    where: { id, candidateId },
   });
 }

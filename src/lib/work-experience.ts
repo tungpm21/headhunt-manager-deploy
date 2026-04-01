@@ -43,8 +43,8 @@ export async function updateExperience(
   });
 }
 
-export async function deleteExperience(id: number) {
-  return prisma.workExperience.delete({
-    where: { id },
+export async function deleteExperience(id: number, candidateId: number) {
+  return prisma.workExperience.deleteMany({
+    where: { id, candidateId },
   });
 }

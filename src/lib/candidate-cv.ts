@@ -88,8 +88,11 @@ export async function deleteCandidateCV(cvId: number) {
     return null;
   }
 
-  await deleteFile(existing.fileUrl);
   await prisma.candidateCV.delete({ where: { id: cvId } });
+  // Delete file after DB commit so a DB failure doesn't orphan the storage.
+  await deleteFile(existing.fileUrl).catch((err) =>
+    console.error("deleteCandidateCV: storage delete failed (non-fatal):", err)
+  );
 
   const nextPrimary = await prisma.candidateCV.findFirst({
     where: { candidateId: existing.candidateId },

@@ -186,7 +186,7 @@ export async function deleteLanguageAction(formData: FormData): Promise<ActionRe
 
     if (!id || !candidateId) return { error: "Thiếu dữ liệu ngôn ngữ." };
 
-    await deleteLanguage(id);
+    await deleteLanguage(id, candidateId);
     revalidateCandidatePaths(candidateId);
     return { success: true };
   } catch (e) {
@@ -278,7 +278,7 @@ export async function deleteExperienceAction(formData: FormData): Promise<Action
 
     if (!id || !candidateId) return { error: "Thiếu dữ liệu kinh nghiệm." };
 
-    await deleteExperience(id);
+    await deleteExperience(id, candidateId);
     revalidateCandidatePaths(candidateId);
     return { success: true };
   } catch (e) {

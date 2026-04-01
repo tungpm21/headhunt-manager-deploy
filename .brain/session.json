@@ -1,30 +1,30 @@
 {
-  "updated_at": "2026-04-01T22:20:00+07:00",
+  "updated_at": "2026-04-01T22:18:42+07:00",
   "working_on": {
     "feature": "Database optimization for candidate detail",
-    "task": "Implemented multi-CV, language filter, and work history across schema, UI, seed, and docs",
-    "status": "verified",
-    "notes": "Added CandidateCV, CandidateLanguage, WorkExperience; migrated schema; updated candidate detail tabs; seeded demo data; kept legacy cvFileUrl/cvFileName synchronized for backward compatibility."
+    "task": "Saved project memory after implementing and splitting multi-CV, language, and work history changes into clean commits",
+    "status": "saved",
+    "notes": "Feature is implemented and verified. Changes were split into commits e81e65c and 506413b. The next session can continue with manual browser QA or the next planned feature."
   },
   "pending_tasks": [
     {
       "priority": "MEDIUM",
-      "task": "Manual review candidate detail UX with tabs CV / Ngôn ngữ / Kinh nghiệm on real browser"
+      "task": "Manual browser review of candidate detail tabs and candidate upload flow on real UI"
     },
     {
       "priority": "MEDIUM",
-      "task": "Decide whether to retire legacy /api/candidates/[id]/cv flow after full migration to CandidateCV table"
+      "task": "Decide whether to retire legacy /api/candidates/[id]/cv after full migration to CandidateCV"
     },
     {
       "priority": "LOW",
-      "task": "Cân nhắc nâng DATABASE_URL sslmode sang verify-full để khớp warning từ pg"
+      "task": "Consider changing DATABASE_URL sslmode to verify-full to match the pg warning"
     }
   ],
   "recent_changes": [
     {
-      "timestamp": "2026-04-01T21:25",
+      "timestamp": "2026-04-01T21:25:00+07:00",
       "type": "database",
-      "description": "Add CandidateCV, CandidateLanguage, WorkExperience and apply Prisma migration add-cv-language-experience",
+      "description": "Added CandidateCV, CandidateLanguage, WorkExperience and applied Prisma migration add-cv-language-experience",
       "files": [
         "prisma/schema.prisma",
         "prisma/migrations/20260401142201_add_cv_language_experience/migration.sql",
@@ -38,9 +38,9 @@
       ]
     },
     {
-      "timestamp": "2026-04-01T21:40",
+      "timestamp": "2026-04-01T21:40:00+07:00",
       "type": "ui",
-      "description": "Upgrade candidate detail page with tabs for multi-CV, languages, and work history; add candidate language filter",
+      "description": "Upgraded candidate detail page with tabs for multi-CV, languages, and work history, and added candidate language filtering",
       "files": [
         "src/app/(dashboard)/candidates/[id]/page.tsx",
         "src/app/(dashboard)/candidates/page.tsx",
@@ -52,30 +52,72 @@
       ]
     },
     {
-      "timestamp": "2026-04-01T22:05",
+      "timestamp": "2026-04-01T22:05:00+07:00",
       "type": "seed-docs",
-      "description": "Seed demo CV/language/work-history data and refresh architecture, codebase map, and brain metadata",
+      "description": "Seeded demo CV, language, and work history data and refreshed architecture, codebase map, and plan docs",
       "files": [
         "prisma/seed.ts",
         "ARCHITECTURE.md",
         "CODEBASE.md",
-        ".brain/brain.json",
-        ".brain/session.json"
+        "docs/PLAN-db-optimization.md",
+        ".brain/brain.json"
+      ]
+    },
+    {
+      "timestamp": "2026-04-01T22:18:42+07:00",
+      "type": "vcs",
+      "description": "Split DB optimization into two clean commits and saved handover context",
+      "files": [
+        "prisma/schema.prisma",
+        "src/lib/candidate-detail-actions.ts",
+        "src/components/candidates/candidate-detail-tabs.tsx",
+        ".brain/session.json",
+        ".brain/handover.md"
       ]
     }
   ],
   "decisions_made": [
     {
-      "decision": "Giữ cvFileUrl/cvFileName trên Candidate như lớp tương thích ngược",
-      "reason": "Viewer và flow cũ vẫn dùng được trong khi chuyển sang CandidateCV nhiều phiên bản"
+      "decision": "Keep Candidate.cvFileUrl and Candidate.cvFileName synchronized with the primary CandidateCV",
+      "reason": "The old viewer and legacy flows can keep working while the new CandidateCV model rolls out"
     },
     {
-      "decision": "Filter ngôn ngữ đặt trên relation CandidateLanguage thay vì nhồi thêm String[] vào Candidate",
-      "reason": "Cần lưu được trình độ và chứng chỉ, không chỉ tên ngôn ngữ"
+      "decision": "Store languages in CandidateLanguage relation rows instead of a String[] field on Candidate",
+      "reason": "Language level and certificate must be stored alongside the language name"
     },
     {
-      "decision": "Seed CV demo dùng URL PDF public ổn định thay vì file local giả",
-      "reason": "Cho phép preview demo ngay mà không cần thêm binary asset vào repo"
+      "decision": "Use public stable PDF URLs in seed data instead of checking binary CV files into the repo",
+      "reason": "Demo preview works without adding binary assets to version control"
+    },
+    {
+      "decision": "Split the implementation into code/data and docs/context commits",
+      "reason": "History stays easier to review and future cherry-picking is safer"
+    }
+  ],
+  "verification": [
+    {
+      "command": "npx prisma migrate dev --name add-cv-language-experience",
+      "result": "passed"
+    },
+    {
+      "command": "npx prisma generate",
+      "result": "passed"
+    },
+    {
+      "command": "npm run build",
+      "result": "passed"
+    },
+    {
+      "command": "npx tsx prisma/migrations/migrate-cv-data.ts",
+      "result": "passed"
+    },
+    {
+      "command": "npx prisma db seed",
+      "result": "passed"
+    },
+    {
+      "command": "npx eslint prisma/seed.ts and changed candidate detail files",
+      "result": "passed"
     }
   ]
 }

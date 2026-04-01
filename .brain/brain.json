@@ -2,7 +2,7 @@
   "project": {
     "name": "Headhunt Manager (FDIWork)",
     "type": "Next.js 16 App Router, Prisma ORM, PostgreSQL, TailwindCSS",
-    "status": "CRM MVP complete, FDIWork core flows implemented, security hardening applied"
+    "status": "CRM MVP complete, FDIWork core flows implemented, security hardening applied, candidate detail DB optimization implemented"
   },
   "docs_index": {
     "codebase_map": "CODEBASE.md",
@@ -10,6 +10,7 @@
     "crm_design": "docs/crm/DESIGN.md",
     "fdiwork_specs": "docs/fdiwork/SPECS.md",
     "fdiwork_design": "docs/fdiwork/DESIGN_FDIWORK.md",
+    "db_optimization_plan": "docs/PLAN-db-optimization.md",
     "audit_report": "docs/reports/audit_2026-04-01.md",
     "workspace_rules": ".agent/rules/headhunt-rules.md"
   },
@@ -43,6 +44,7 @@
       "JobPosting",
       "Application"
     ],
+    "relationships_explained": "A Candidate can now have many CV files, many language entries, and many work experience records. Legacy Candidate.cvFileUrl and Candidate.cvFileName stay mirrored to the primary CV during the transition.",
     "notable_constraints": [
       "Application has unique pair (jobPostingId, email)",
       "Employer has unique email and unique clientId link",
@@ -50,15 +52,16 @@
     ]
   },
   "conventions": [
-    "Native PostgreSQL String[] cho list đơn giản thay vì relation table",
-    "Server Actions trả object theo pattern success/error",
-    "Public routes dùng slug tiếng Việt: /viec-lam, /cong-ty, /ung-tuyen",
-    "Moderation/admin phải được chặn ở cả route, UI và server action",
-    "Import ứng viên chỉ hỗ trợ .xlsx và .csv"
+    "Use PostgreSQL String[] only for simple lists; use relation tables for structured candidate detail",
+    "Server Actions return success/error objects instead of throwing to the client",
+    "Public routes use Vietnamese slugs: /viec-lam, /cong-ty, /ung-tuyen",
+    "Admin protection must exist at route, UI, and server action layers",
+    "Candidate primary CV stays mirrored to legacy Candidate.cvFileUrl and Candidate.cvFileName during migration",
+    "Candidate import supports .xlsx and .csv only"
   ],
   "security_notes": [
-    "EMPLOYER_JWT_SECRET là bắt buộc, không có fallback mặc định",
-    "Rate limiting cơ bản đã áp cho CRM login, employer auth, public upload, public apply",
-    "xlsx đã bị loại bỏ khỏi codebase do advisory high"
+    "EMPLOYER_JWT_SECRET is required and has no default fallback",
+    "Basic rate limiting is applied to CRM login, employer auth, public upload, and public apply",
+    "xlsx was removed from the codebase because of a high severity advisory"
   ]
 }

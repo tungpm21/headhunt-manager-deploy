@@ -1,7 +1,7 @@
 [14:30] START brainstorm-fdiwork
 [14:45] DONE task: Evaluate fdiwork.com current website
 [14:50] DONE task: Create BRIEF_FDIWORK_REBUILD.md
-[14:55] DECISION: Build cùng project CRM, thêm route groups
+[14:55] DECISION: Build cung project CRM, them route groups
 [15:00] START plan-fdiwork
 [15:02] DONE task: Create SPECS.md
 [15:04] DONE task: Create plan.md + 8 phase files
@@ -17,7 +17,7 @@
 [15:16] DONE task: Run migration init_with_fdiwork
 [15:17] DONE task: Extend seed.ts with FDIWork sample data
 [15:18] DONE task: Run seed successfully
-[15:19] END phase-01-database ✅
+[15:19] END phase-01-database
 [15:20] SAVE-BRAIN: Updated brain.json + session.json + handover.md
 [15:35] START phase-02-public-layout
 [15:36] DONE task: Update auth.config.ts (whitelist public routes)
@@ -36,31 +36,39 @@
 [15:45] DONE task: Update sidebar.tsx links to /dashboard
 [15:47] DONE task: Regenerate Prisma client
 [15:48] DONE task: Browser verification - homepage renders OK
-[15:50] END phase-02-public-layout ✅
+[15:50] END phase-02-public-layout
 [16:00] START phase-03-job-listing
 [16:10] DONE task: Implement getPublicJobs and getPublicJobBySlug actions
 [16:15] DONE task: Build /viec-lam page with JobFilters and Pagination
 [16:20] DONE task: Build /viec-lam/[slug] detail page
-[16:25] END phase-03-job-listing ✅
+[16:25] END phase-03-job-listing
 [16:25] START phase-04-company-pages
 [16:30] DONE task: Implement getPublicCompanies, getCompanyBySlug, submitApplication actions
 [16:35] DONE task: Build /cong-ty listing and /cong-ty/[slug] profile page
 [16:40] DONE task: Build /ung-tuyen ApplyForm with CV upload validation and success page
-[16:45] END phase-04-company-pages ✅
+[16:45] END phase-04-company-pages
 [16:50] START demo-data-enhancement
 [16:55] DONE task: Generate 8 company logos dynamically
 [17:00] DONE task: Rewrite seed.ts to feature 8 employers and 22 realistic jobs
 [17:10] DONE task: DB re-seeded and verified successfully via browser subagent
-[17:15] END demo-data-enhancement ✅
+[17:15] END demo-data-enhancement
 [17:20] SAVE-BRAIN: Updated brain.json + session.json + session_log.txt
 [21:30] START phase-08-crm-integration
 [21:32] DONE task: Add 6 server actions (getAppsForImport, importToCRM, linkEmployer, counts, clients)
 [21:34] DONE task: Create applications/page.tsx (list + filters + table)
 [21:34] DONE task: Create import-button.tsx (confirm dialog + loading)
 [21:35] DONE task: Create link-employer-form.tsx (dropdown selector)
-[21:36] DONE task: Update dashboard (4th stat card + 3rd widget column CV từ FDIWork)
+[21:36] DONE task: Update dashboard (4th stat card + 3rd widget column CV tu FDIWork)
 [21:36] DONE task: Update sidebar (Applications link + active state fix)
 [21:37] DONE task: Update employers page (Link CRM column)
 [21:38] DONE task: Browser verification - import flow works end-to-end
-[21:39] END phase-08-crm-integration ✅
-[21:39] 🎉 ALL 8 PHASES COMPLETE - FDIWork MVP DONE
+[21:39] END phase-08-crm-integration
+[21:39] ALL 8 PHASES COMPLETE - FDIWork MVP DONE
+[21:40] DONE task: Save db_consultation_2026-04-01.md under docs/crm
+[21:50] START db-optimization-candidate-detail
+[22:05] DONE task: Add CandidateCV, CandidateLanguage, WorkExperience with migration and backfill
+[22:06] DONE task: Upgrade candidate detail UI with CV / Language / Work History tabs
+[22:08] DONE task: Seed demo CV, language, and work history data
+[22:09] DONE task: Verify migration, generate, build, seed, backfill, and targeted eslint
+[22:10] DONE task: Split DB optimization into commits e81e65c and 506413b
+[22:18] SAVE-BRAIN: Updated brain.json + session.json + handover.md after DB optimization

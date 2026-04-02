@@ -77,7 +77,7 @@ export default async function CandidatesPage({ searchParams }: PageProps) {
       </Suspense>
 
       {/* Table */}
-      <CandidateTableWrapper candidates={result.candidates} />
+      <CandidateTableWrapper candidates={result.candidates} allTags={allTags} />
 
       {/* Pagination */}
       <Suspense>

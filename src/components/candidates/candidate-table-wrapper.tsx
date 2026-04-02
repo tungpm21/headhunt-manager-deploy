@@ -1,13 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Tag } from "@prisma/client";
 import { CandidateWithTags } from "@/types/candidate";
+import { BulkActionBar } from "@/components/candidates/bulk-action-bar";
 import { CandidateTable } from "@/components/candidates/candidate-table";
 
 export function CandidateTableWrapper({
   candidates,
+  allTags,
 }: {
   candidates: CandidateWithTags[];
+  allTags: Tag[];
 }) {
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
 
@@ -42,13 +46,27 @@ export function CandidateTableWrapper({
     });
   };
 
+  const selectedCandidates = candidates.filter((candidate) =>
+    selectedIds.has(candidate.id)
+  );
+
   return (
-    <CandidateTable
-      candidates={candidates}
-      selectedIds={selectedIds}
-      allSelected={candidates.length > 0 && selectedIds.size === candidates.length}
-      onToggle={toggleOne}
-      onToggleAll={toggleAll}
-    />
+    <div className="space-y-4">
+      {selectedCandidates.length > 0 ? (
+        <BulkActionBar
+          selectedCandidates={selectedCandidates}
+          allTags={allTags}
+          onClearSelection={() => setSelectedIds(new Set())}
+        />
+      ) : null}
+
+      <CandidateTable
+        candidates={candidates}
+        selectedIds={selectedIds}
+        allSelected={candidates.length > 0 && selectedIds.size === candidates.length}
+        onToggle={toggleOne}
+        onToggleAll={toggleAll}
+      />
+    </div>
   );
 }

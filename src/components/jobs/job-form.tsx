@@ -14,6 +14,8 @@ type ActionState = { error?: string; success?: boolean; id?: number } | undefine
 interface JobFormProps {
   initialData?: JobOrderWithRelations | SerializedJobOrderWithRelations | null;
   clients: { id: number; companyName: string }[];
+  onCancel?: () => void;
+  onSuccess?: () => void;
 }
 
 function FieldLabel({ htmlFor, required, children }: { htmlFor: string; required?: boolean; children: React.ReactNode }) {
@@ -27,7 +29,7 @@ function FieldLabel({ htmlFor, required, children }: { htmlFor: string; required
 const inputCls =
   "w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-muted/50 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition";
 
-export function JobForm({ initialData, clients }: JobFormProps) {
+export function JobForm({ initialData, clients, onCancel, onSuccess }: JobFormProps) {
   const router = useRouter();
 
   async function handleAction(_prev: ActionState, fd: FormData): Promise<ActionState> {
@@ -43,9 +45,15 @@ export function JobForm({ initialData, clients }: JobFormProps) {
   // Redirect on success
   useEffect(() => {
     if (state?.success && state.id) {
+      if (initialData?.id) {
+        onSuccess?.();
+        router.refresh();
+        return;
+      }
+
       router.push(`/jobs/${state.id}`);
     }
-  }, [state?.success, state?.id, router]);
+  }, [initialData?.id, onSuccess, router, state?.id, state?.success]);
 
   return (
     <form action={formAction} className="space-y-8">
@@ -217,7 +225,14 @@ export function JobForm({ initialData, clients }: JobFormProps) {
       <div className="flex flex-wrap items-center justify-end gap-3 pt-2">
         <button
           type="button"
-          onClick={() => router.back()}
+          onClick={() => {
+            if (onCancel) {
+              onCancel();
+              return;
+            }
+
+            router.back();
+          }}
           className="rounded-lg border border-border px-5 py-2.5 text-sm font-medium text-foreground hover:bg-surface transition"
         >
           Hủy

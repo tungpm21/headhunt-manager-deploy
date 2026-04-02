@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ArrowLeft, Briefcase, Building2 } from "lucide-react";
 import { getJobById } from "@/lib/jobs";
 import { getAllClients } from "@/lib/clients";
-import { JobForm } from "@/components/jobs/job-form";
+import { JobInfoCard } from "@/components/jobs/job-info-card";
 import { PipelineViewSwitcher } from "@/components/jobs/pipeline-view-switcher";
 import {
   SerializedJobCandidateWithRelations,
@@ -67,9 +67,7 @@ export default async function JobDetailPage({ params }: PageProps) {
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
         <div className="space-y-6 xl:col-span-2">
-          <div className="rounded-xl border border-border bg-surface p-6 shadow-sm">
-            <JobForm initialData={serializedJob} clients={clients} />
-          </div>
+          <JobInfoCard job={serializedJob} clients={clients} />
         </div>
 
         <div className="space-y-6">

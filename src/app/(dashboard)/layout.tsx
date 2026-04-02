@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { GlobalSearch } from "@/components/global-search";
+import { GlobalSearchTrigger } from "@/components/global-search-trigger";
 import { MobileSidebar } from "@/components/mobile-sidebar";
 import { NotificationBell } from "@/components/notification-bell";
 import { Sidebar } from "@/components/sidebar";
@@ -38,6 +39,7 @@ export default async function DashboardLayout({
         <header className="flex h-16 shrink-0 items-center justify-between border-b border-border bg-surface px-6 md:justify-end">
           <div className="font-bold text-primary md:hidden">HM</div>
           <div className="flex items-center gap-3">
+            {isAdmin ? <GlobalSearchTrigger /> : null}
             {isAdmin ? <NotificationBell counts={counts} /> : null}
             <ThemeToggle />
             <div className="hidden text-right sm:block">

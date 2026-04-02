@@ -69,9 +69,17 @@ export function GlobalSearch() {
         setIsOpen(true);
       }
     };
+    const handleOpen = () => {
+      setIsOpen(true);
+    };
 
     document.addEventListener("keydown", handleShortcut);
-    return () => document.removeEventListener("keydown", handleShortcut);
+    window.addEventListener("open-global-search", handleOpen);
+
+    return () => {
+      document.removeEventListener("keydown", handleShortcut);
+      window.removeEventListener("open-global-search", handleOpen);
+    };
   }, []);
 
   useEffect(() => {

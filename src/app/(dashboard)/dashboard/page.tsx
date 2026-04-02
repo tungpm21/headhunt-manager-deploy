@@ -18,6 +18,7 @@ import {
 import { addDays } from "date-fns";
 import { PipelineSummary } from "@/components/dashboard/pipeline-summary";
 import { DeadlineAlerts } from "@/components/dashboard/deadline-alerts";
+import { ActivityFeed } from "@/components/dashboard/activity-feed";
 
 export const metadata = { title: "Dashboard — Headhunt Manager" };
 
@@ -34,6 +35,9 @@ export default async function DashboardPage() {
     pipelineStageCounts,
     jobsClosingSoon,
     subscriptionsEndingSoon,
+    recentCandidateActivities,
+    recentApplicationActivities,
+    recentStageActivities,
   ] = await Promise.all([
     prisma.candidate.count(),
     prisma.client.count({ where: { isDeleted: false } }),
@@ -97,7 +101,84 @@ export default async function DashboardPage() {
       orderBy: { endDate: "asc" },
       take: 5,
     }),
+    prisma.candidate.findMany({
+      take: 3,
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        fullName: true,
+        currentPosition: true,
+        createdAt: true,
+      },
+    }),
+    prisma.application.findMany({
+      take: 3,
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        fullName: true,
+        createdAt: true,
+        jobPosting: {
+          select: {
+            title: true,
+            employer: { select: { companyName: true } },
+          },
+        },
+      },
+    }),
+    prisma.jobCandidate.findMany({
+      take: 3,
+      orderBy: { updatedAt: "desc" },
+      select: {
+        id: true,
+        stage: true,
+        updatedAt: true,
+        candidate: {
+          select: {
+            id: true,
+            fullName: true,
+          },
+        },
+        jobOrder: {
+          select: {
+            id: true,
+            title: true,
+          },
+        },
+      },
+    }),
   ]);
+
+  const activityItems = [
+    ...recentCandidateActivities.map((candidate) => ({
+      id: `candidate-${candidate.id}`,
+      type: "candidate" as const,
+      title: `Thêm ứng viên ${candidate.fullName}`,
+      subtitle: candidate.currentPosition
+        ? `Vị trí hiện tại: ${candidate.currentPosition}`
+        : "Hồ sơ ứng viên mới được tạo",
+      href: `/candidates/${candidate.id}`,
+      timestamp: candidate.createdAt,
+    })),
+    ...recentApplicationActivities.map((application) => ({
+      id: `application-${application.id}`,
+      type: "application" as const,
+      title: `${application.fullName} vừa nộp CV`,
+      subtitle: `${application.jobPosting.title} • ${application.jobPosting.employer.companyName}`,
+      href: "/moderation/applications",
+      timestamp: application.createdAt,
+    })),
+    ...recentStageActivities.map((item) => ({
+      id: `stage-${item.id}`,
+      type: "stage" as const,
+      title: `${item.candidate.fullName} chuyển sang ${item.stage}`,
+      subtitle: `Job Order: ${item.jobOrder.title}`,
+      href: `/jobs/${item.jobOrder.id}`,
+      timestamp: item.updatedAt,
+    })),
+  ]
+    .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
+    .slice(0, 8);
 
   return (
     <div className="mx-auto max-w-7xl space-y-6">
@@ -196,6 +277,8 @@ export default async function DashboardPage() {
           companyName: subscription.employer.companyName,
         }))}
       />
+
+      <ActivityFeed items={activityItems} />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="flex flex-col overflow-hidden rounded-xl border bg-surface shadow-sm">

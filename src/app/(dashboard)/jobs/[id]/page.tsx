@@ -74,7 +74,12 @@ export default async function JobDetailPage({ params }: PageProps) {
 
         <div className="space-y-6">
           <div className="sticky top-6 rounded-xl border border-border bg-surface p-6 shadow-sm">
-            <PipelineViewSwitcher jobId={job.id} candidates={serializedCandidates} />
+            <PipelineViewSwitcher
+              jobId={job.id}
+              jobTitle={job.title}
+              companyName={job.client.companyName}
+              candidates={serializedCandidates}
+            />
           </div>
         </div>
       </div>

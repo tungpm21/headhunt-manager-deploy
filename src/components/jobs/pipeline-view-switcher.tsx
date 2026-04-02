@@ -3,6 +3,10 @@
 import { useEffect, useState } from "react";
 import { AlertCircle, Columns3, List } from "lucide-react";
 import {
+  EmailTemplateStage,
+  shouldOpenEmailTemplate,
+} from "@/lib/email-templates";
+import {
   removeCandidateAction,
   updateCandidatePipelineAction,
   updateCandidateStageAction,
@@ -15,6 +19,7 @@ import {
 import { JobPipeline } from "@/components/jobs/job-pipeline";
 import { PipelineKanban } from "@/components/jobs/pipeline-kanban";
 import { AssignCandidateModal } from "@/components/jobs/assign-candidate-modal";
+import { EmailTemplateModal } from "@/components/jobs/email-template-modal";
 
 type PipelineView = "list" | "kanban";
 
@@ -22,6 +27,13 @@ type PipelineSaveInput = {
   result: SubmissionResult;
   interviewDate: string | null;
   notes: string | null;
+};
+
+type EmailModalState = {
+  stage: EmailTemplateStage;
+  candidateName: string;
+  candidateEmail: string | null;
+  interviewDate?: string | null;
 };
 
 function getOptimisticResult(
@@ -45,15 +57,20 @@ function getOptimisticResult(
 
 export function PipelineViewSwitcher({
   jobId,
+  jobTitle,
+  companyName,
   candidates,
 }: {
   jobId: number;
+  jobTitle: string;
+  companyName: string;
   candidates: SerializedJobCandidateWithRelations[];
 }) {
   const [view, setView] = useState<PipelineView>("list");
   const [items, setItems] = useState(candidates);
   const [isPending, setIsPending] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [emailModal, setEmailModal] = useState<EmailModalState | null>(null);
 
   useEffect(() => {
     setItems(candidates);
@@ -77,7 +94,12 @@ export function PipelineViewSwitcher({
     resultOverride?: SubmissionResult
   ) => {
     const previousItems = items;
+    const selectedCandidate = items.find((item) => item.id === jobCandidateId);
     const nextResult = getOptimisticResult(stage, resultOverride);
+
+    if (!selectedCandidate) {
+      return false;
+    }
 
     setItems((currentItems) =>
       currentItems.map((item) =>
@@ -106,6 +128,14 @@ export function PipelineViewSwitcher({
     }
 
     setErrorMessage(null);
+    if (shouldOpenEmailTemplate(stage, nextResult)) {
+      setEmailModal({
+        stage,
+        candidateName: selectedCandidate.candidate.fullName,
+        candidateEmail: selectedCandidate.candidate.email,
+        interviewDate: selectedCandidate.interviewDate,
+      });
+    }
     setIsPending(false);
     return true;
   };
@@ -228,6 +258,18 @@ export function PipelineViewSwitcher({
           onPipelineSave={handlePipelineSave}
         />
       )}
+
+      {emailModal ? (
+        <EmailTemplateModal
+          candidateName={emailModal.candidateName}
+          candidateEmail={emailModal.candidateEmail}
+          jobTitle={jobTitle}
+          companyName={companyName}
+          stage={emailModal.stage}
+          interviewDate={emailModal.interviewDate}
+          onClose={() => setEmailModal(null)}
+        />
+      ) : null}
     </div>
   );
 }

@@ -36,6 +36,8 @@ type EmailModalState = {
   interviewDate?: string | null;
 };
 
+const PENDING_EMAIL_MODAL_KEY = "pipeline-email-modal";
+
 function getOptimisticResult(
   stage: JobCandidateStage,
   resultOverride?: SubmissionResult
@@ -55,6 +57,39 @@ function getOptimisticResult(
   return "PENDING";
 }
 
+function parseEmailModalState(value: string | null): EmailModalState | null {
+  if (!value) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(value);
+
+    if (
+      !parsed ||
+      typeof parsed !== "object" ||
+      (parsed.stage !== "CONTACTED" &&
+        parsed.stage !== "INTERVIEW" &&
+        parsed.stage !== "OFFER" &&
+        parsed.stage !== "REJECTED") ||
+      typeof parsed.candidateName !== "string"
+    ) {
+      return null;
+    }
+
+    return {
+      stage: parsed.stage,
+      candidateName: parsed.candidateName,
+      candidateEmail:
+        typeof parsed.candidateEmail === "string" ? parsed.candidateEmail : null,
+      interviewDate:
+        typeof parsed.interviewDate === "string" ? parsed.interviewDate : null,
+    };
+  } catch {
+    return null;
+  }
+}
+
 export function PipelineViewSwitcher({
   jobId,
   jobTitle,
@@ -71,6 +106,8 @@ export function PipelineViewSwitcher({
   const [isPending, setIsPending] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [emailModal, setEmailModal] = useState<EmailModalState | null>(null);
+  const [pendingEmailModal, setPendingEmailModal] =
+    useState<EmailModalState | null>(null);
 
   useEffect(() => {
     setItems(candidates);
@@ -83,9 +120,44 @@ export function PipelineViewSwitcher({
     }
   }, []);
 
+  useEffect(() => {
+    const storedEmailModal = parseEmailModalState(
+      window.sessionStorage.getItem(PENDING_EMAIL_MODAL_KEY)
+    );
+
+    if (!storedEmailModal) {
+      window.sessionStorage.removeItem(PENDING_EMAIL_MODAL_KEY);
+      return;
+    }
+
+    setPendingEmailModal((current) => current ?? storedEmailModal);
+  }, []);
+
+  useEffect(() => {
+    if (!pendingEmailModal || emailModal) {
+      return;
+    }
+
+    const frameId = window.requestAnimationFrame(() => {
+      setEmailModal(pendingEmailModal);
+      setPendingEmailModal(null);
+      window.sessionStorage.removeItem(PENDING_EMAIL_MODAL_KEY);
+    });
+
+    return () => window.cancelAnimationFrame(frameId);
+  }, [emailModal, pendingEmailModal]);
+
   const handleViewChange = (nextView: PipelineView) => {
     setView(nextView);
     window.localStorage.setItem("pipeline-view", nextView);
+  };
+
+  const queueEmailModal = (nextModal: EmailModalState) => {
+    window.sessionStorage.setItem(
+      PENDING_EMAIL_MODAL_KEY,
+      JSON.stringify(nextModal)
+    );
+    setPendingEmailModal(nextModal);
   };
 
   const handleStageChange = async (
@@ -129,7 +201,7 @@ export function PipelineViewSwitcher({
 
     setErrorMessage(null);
     if (shouldOpenEmailTemplate(stage, nextResult)) {
-      setEmailModal({
+      queueEmailModal({
         stage,
         candidateName: selectedCandidate.candidate.fullName,
         candidateEmail: selectedCandidate.candidate.email,
@@ -267,7 +339,10 @@ export function PipelineViewSwitcher({
           companyName={companyName}
           stage={emailModal.stage}
           interviewDate={emailModal.interviewDate}
-          onClose={() => setEmailModal(null)}
+          onClose={() => {
+            window.sessionStorage.removeItem(PENDING_EMAIL_MODAL_KEY);
+            setEmailModal(null);
+          }}
         />
       ) : null}
     </div>

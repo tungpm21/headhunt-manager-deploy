@@ -33,6 +33,7 @@ export async function authenticate(
   formData: FormData
 ) {
   const email = formData.get("email")?.toString().trim().toLowerCase();
+  const password = formData.get("password")?.toString() ?? "";
   const rateLimitKey = await buildServerActionRateLimitKey("crm-login", email);
   const rateLimit = checkRateLimit(rateLimitKey, 5, 10 * 60 * 1000);
 
@@ -41,7 +42,11 @@ export async function authenticate(
   }
 
   try {
-    await signIn("credentials", formData);
+    await signIn("credentials", {
+      email,
+      password,
+      redirectTo: "/dashboard",
+    });
   } catch (error) {
     if (error instanceof AuthError) {
       switch (error.type) {

@@ -4,12 +4,15 @@ import { useActionState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createJobAction, updateJobAction } from "@/lib/job-actions";
 import { Save, Loader2, Briefcase, Building2, Banknote } from "lucide-react";
-import { JobOrderWithRelations } from "@/types/job";
+import {
+  JobOrderWithRelations,
+  SerializedJobOrderWithRelations,
+} from "@/types/job";
 
 type ActionState = { error?: string; success?: boolean; id?: number } | undefined;
 
 interface JobFormProps {
-  initialData?: JobOrderWithRelations | null;
+  initialData?: JobOrderWithRelations | SerializedJobOrderWithRelations | null;
   clients: { id: number; companyName: string }[];
 }
 

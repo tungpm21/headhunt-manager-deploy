@@ -1,158 +1,162 @@
 "use client";
 
-import { useTransition, useState } from "react";
-import {
-  updateCandidateStageAction,
-  updateCandidatePipelineAction,
-  removeCandidateAction,
-} from "@/lib/job-actions";
-import { JobCandidateWithRelations, JobCandidateStage, SubmissionResult } from "@/types/job";
-import {
-  Trash2, UserCircle, CheckCircle2, ChevronRight,
-  Calendar, ChevronDown, ChevronUp, MessageSquare,
-} from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
+import {
+  Calendar,
+  CheckCircle2,
+  ChevronDown,
+  ChevronRight,
+  ChevronUp,
+  Trash2,
+} from "lucide-react";
+import {
+  formatPipelineDate,
+  getResultMeta,
+  getStageMeta,
+  PIPELINE_STAGES,
+} from "@/lib/job-pipeline";
+import { PipelineDetailPanel } from "@/components/jobs/pipeline-detail-panel";
+import {
+  JobCandidateStage,
+  SerializedJobCandidateWithRelations,
+  SubmissionResult,
+} from "@/types/job";
 
-interface JobPipelineProps {
-  jobId: number;
-  candidates: JobCandidateWithRelations[];
-}
+type PipelineSaveInput = {
+  result: SubmissionResult;
+  interviewDate: string | null;
+  notes: string | null;
+};
 
-const STAGES: { value: JobCandidateStage; label: string }[] = [
-  { value: "SOURCED",   label: "Sourced (Đã tiếp cận)" },
-  { value: "CONTACTED", label: "Contacted (Đã liên hệ)" },
-  { value: "INTERVIEW", label: "Interview (Đang phỏng vấn)" },
-  { value: "OFFER",     label: "Offer (Mời làm việc)" },
-  { value: "PLACED",    label: "Placed (Đã nhận việc)" },
-  { value: "REJECTED",  label: "Rejected (Từ chối/Trượt)" },
-];
-
-const RESULTS: { value: SubmissionResult; label: string; cls: string }[] = [
-  { value: "PENDING",   label: "Đang xử lý",      cls: "bg-muted/20 text-muted" },
-  { value: "HIRED",     label: "Tuyển thành công", cls: "bg-success/10 text-success" },
-  { value: "REJECTED",  label: "Từ chối",          cls: "bg-danger/10 text-danger" },
-  { value: "WITHDRAWN", label: "Rút lui",          cls: "bg-warning/10 text-warning" },
-];
-
-function formatDate(d: Date | null | undefined) {
-  if (!d) return null;
-  return new Date(d).toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" });
-}
-
-export function JobPipeline({ jobId, candidates }: JobPipelineProps) {
-  const [isPending, startTransition] = useTransition();
+export function JobPipeline({
+  candidates,
+  isPending,
+  onStageChange,
+  onPipelineSave,
+  onRemove,
+}: {
+  candidates: SerializedJobCandidateWithRelations[];
+  isPending: boolean;
+  onStageChange: (
+    jobCandidateId: number,
+    stage: JobCandidateStage
+  ) => Promise<boolean>;
+  onPipelineSave: (
+    jobCandidateId: number,
+    data: PipelineSaveInput
+  ) => Promise<boolean>;
+  onRemove: (jobCandidateId: number, candidateId: number) => Promise<boolean>;
+}) {
   const [expanded, setExpanded] = useState<number | null>(null);
 
-  const handleStageChange = (jobCandidateId: number, e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newStage = e.target.value as JobCandidateStage;
-    startTransition(async () => {
-      await updateCandidateStageAction(jobCandidateId, newStage);
-    });
-  };
+  const handleRemove = async (jobCandidateId: number, candidateId: number) => {
+    const confirmed = window.confirm(
+      "Gỡ ứng viên này khỏi Job Order? Dữ liệu lịch sử cho job này sẽ bị xóa."
+    );
 
-  const handleRemove = (candidateId: number) => {
-    if (confirm("Gỡ ứng viên này khỏi Job Order? Dữ liệu lịch sử cho job này sẽ bị xóa.")) {
-      startTransition(async () => {
-        await removeCandidateAction(jobId, candidateId);
-      });
+    if (!confirmed) {
+      return;
     }
+
+    await onRemove(jobCandidateId, candidateId);
   };
 
   if (candidates.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-10 bg-gray-50 border border-dashed rounded-lg">
-        <UserCircle className="h-10 w-10 text-gray-300 mb-3" />
-        <p className="text-sm text-gray-500">Job này chưa có ứng viên nào.</p>
+      <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-background py-10">
+        <CheckCircle2 className="mb-3 h-10 w-10 text-muted/30" />
+        <p className="text-sm text-muted">Job này chưa có ứng viên nào.</p>
       </div>
     );
   }
 
   return (
-    <div className="divide-y divide-gray-100 border rounded-lg overflow-hidden bg-white">
-      {candidates.map((jc) => {
-        const c = jc.candidate;
-        const isExpanded = expanded === jc.id;
-        const resultCfg = RESULTS.find((r) => r.value === jc.result) || RESULTS[0];
+    <div className="overflow-hidden rounded-xl border border-border bg-background">
+      {candidates.map((jobCandidate) => {
+        const candidate = jobCandidate.candidate;
+        const isExpanded = expanded === jobCandidate.id;
+        const resultMeta = getResultMeta(jobCandidate.result);
+        const stageMeta = getStageMeta(jobCandidate.stage);
 
         return (
-          <div key={jc.id} className="hover:bg-gray-50 transition">
-            {/* Main row */}
-            <div className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              {/* Candidate Info */}
-              <div className="flex-1 min-w-0">
+          <div
+            key={jobCandidate.id}
+            className="border-b border-border last:border-b-0 transition hover:bg-surface/80"
+          >
+            <div className="flex flex-col gap-4 p-4 md:flex-row md:items-center md:justify-between">
+              <div className="min-w-0 flex-1">
                 <Link
-                  href={`/candidates/${c.id}`}
-                  className="font-semibold text-gray-900 text-sm hover:text-primary transition flex items-center"
+                  href={`/candidates/${candidate.id}`}
+                  className="flex items-center text-sm font-semibold text-foreground transition hover:text-primary"
                 >
-                  {c.fullName}
-                  <ChevronRight className="h-3.5 w-3.5 ml-1 text-gray-400" />
+                  {candidate.fullName}
+                  <ChevronRight className="ml-1 h-3.5 w-3.5 text-muted" />
                 </Link>
-                <div className="text-xs text-gray-500 mt-1 flex flex-wrap gap-2 items-center">
-                  <span>{c.currentPosition || "Chưa rõ VP"} {c.currentCompany && `- ${c.currentCompany}`}</span>
 
-                  {/* Level chip */}
-                  {c.level && (
-                    <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
-                      {c.level.replace("_", "-")}
+                <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted">
+                  <span>
+                    {candidate.currentPosition || "Chưa rõ vị trí"}
+                    {candidate.currentCompany ? ` • ${candidate.currentCompany}` : ""}
+                  </span>
+
+                  <span
+                    className={`inline-flex items-center rounded-full px-2 py-0.5 font-medium ${stageMeta.badgeClassName}`}
+                  >
+                    {stageMeta.label}
+                  </span>
+
+                  {jobCandidate.result !== "PENDING" ? (
+                    <span
+                      className={`inline-flex items-center rounded-full px-2 py-0.5 font-medium ${resultMeta.className}`}
+                    >
+                      {resultMeta.label}
                     </span>
-                  )}
+                  ) : null}
 
-                  {/* Interview date indicator */}
-                  {jc.interviewDate && (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 border border-blue-200 px-2 py-0.5 text-xs font-medium text-blue-700">
+                  {jobCandidate.interviewDate ? (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 font-medium text-primary">
                       <Calendar className="h-3 w-3" />
-                      PV: {formatDate(jc.interviewDate)}
+                      PV: {formatPipelineDate(jobCandidate.interviewDate)}
                     </span>
-                  )}
-
-                  {/* Result badge */}
-                  {jc.result !== "PENDING" && (
-                    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${resultCfg.cls}`}>
-                      {resultCfg.label}
-                    </span>
-                  )}
-
-                  {jc.stage === "PLACED" && (
-                    <span className="inline-flex items-center text-green-700 bg-green-50 px-1.5 py-0.5 rounded border border-green-200">
-                      <CheckCircle2 className="h-3 w-3 mr-1" /> Successful
-                    </span>
-                  )}
+                  ) : null}
                 </div>
               </div>
 
-              {/* Actions */}
-              <div className="flex items-center gap-2 shrink-0">
+              <div className="flex flex-wrap items-center gap-2">
                 <select
-                  value={jc.stage}
+                  value={jobCandidate.stage}
                   disabled={isPending}
-                  onChange={(e) => handleStageChange(jc.id, e)}
-                  className={`text-sm rounded-md border-gray-300 py-1.5 pl-3 pr-8 focus:ring-primary focus:border-primary cursor-pointer ${
-                    jc.stage === "PLACED"   ? "bg-green-50 text-green-800 border-green-200" :
-                    jc.stage === "REJECTED" ? "bg-red-50 text-red-800 border-red-200" :
-                    jc.stage === "INTERVIEW"? "bg-blue-50 text-blue-800 border-blue-200" :
-                    "bg-white"
-                  }`}
+                  onChange={(event) =>
+                    onStageChange(jobCandidate.id, event.target.value as JobCandidateStage)
+                  }
+                  className="rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
                 >
-                  {STAGES.map((s) => (
-                    <option key={s.value} value={s.value}>{s.label}</option>
+                  {PIPELINE_STAGES.map((stage) => (
+                    <option key={stage.value} value={stage.value}>
+                      {stage.label}
+                    </option>
                   ))}
                 </select>
 
-                {/* Expand/collapse detail panel */}
                 <button
                   type="button"
-                  onClick={() => setExpanded(isExpanded ? null : jc.id)}
-                  className="p-1.5 text-gray-400 hover:text-primary hover:bg-primary/10 rounded transition"
-                  title="Chi tiết & ghi chú"
+                  onClick={() => setExpanded(isExpanded ? null : jobCandidate.id)}
+                  className="rounded-lg border border-border bg-surface p-2 text-muted transition hover:bg-background hover:text-foreground"
+                  title="Chi tiết pipeline"
                 >
-                  {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                  {isExpanded ? (
+                    <ChevronUp className="h-4 w-4" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4" />
+                  )}
                 </button>
 
                 <button
                   type="button"
-                  onClick={() => handleRemove(c.id)}
                   disabled={isPending}
-                  className="p-1.5 text-gray-400 hover:text-danger hover:bg-danger/10 rounded transition disabled:opacity-50"
+                  onClick={() => handleRemove(jobCandidate.id, candidate.id)}
+                  className="rounded-lg border border-border bg-surface p-2 text-muted transition hover:bg-danger/10 hover:text-danger disabled:opacity-60"
                   title="Gỡ ứng viên"
                 >
                   <Trash2 className="h-4 w-4" />
@@ -160,111 +164,16 @@ export function JobPipeline({ jobId, candidates }: JobPipelineProps) {
               </div>
             </div>
 
-            {/* Expandable detail panel */}
-            {isExpanded && (
+            {isExpanded ? (
               <PipelineDetailPanel
-                jc={jc}
+                jobCandidate={jobCandidate}
                 isPending={isPending}
-                startTransition={startTransition}
+                onSave={onPipelineSave}
               />
-            )}
+            ) : null}
           </div>
         );
       })}
-    </div>
-  );
-}
-
-// Inline detail panel for interview date, result, notes
-function PipelineDetailPanel({
-  jc,
-  isPending,
-  startTransition,
-}: {
-  jc: JobCandidateWithRelations;
-  isPending: boolean;
-  startTransition: (fn: () => Promise<void>) => void;
-}) {
-  const [interviewDate, setInterviewDate] = useState(
-    jc.interviewDate ? new Date(jc.interviewDate).toISOString().split("T")[0] : ""
-  );
-  const [result, setResult] = useState<SubmissionResult>(jc.result);
-  const [notes, setNotes] = useState(jc.notes || "");
-  const [saved, setSaved] = useState(false);
-
-  const handleSave = () => {
-    startTransition(async () => {
-      await updateCandidatePipelineAction(jc.id, {
-        result,
-        interviewDate: interviewDate || null,
-        notes: notes || null,
-      });
-      setSaved(true);
-      setTimeout(() => setSaved(false), 2000);
-    });
-  };
-
-  return (
-    <div className="border-t border-gray-100 bg-gray-50/60 px-4 py-4">
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {/* Interview Date */}
-        <div>
-          <label className="mb-1 block text-xs font-medium text-gray-500">
-            <Calendar className="inline h-3 w-3 mr-1" />
-            Ngày hẹn phỏng vấn
-          </label>
-          <input
-            type="date"
-            value={interviewDate}
-            onChange={(e) => setInterviewDate(e.target.value)}
-            className="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
-          />
-        </div>
-
-        {/* Result */}
-        <div>
-          <label className="mb-1 block text-xs font-medium text-gray-500">
-            <CheckCircle2 className="inline h-3 w-3 mr-1" />
-            Kết quả
-          </label>
-          <select
-            value={result}
-            onChange={(e) => setResult(e.target.value as SubmissionResult)}
-            className="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
-          >
-            {RESULTS.map((r) => (
-              <option key={r.value} value={r.value}>{r.label}</option>
-            ))}
-          </select>
-        </div>
-
-        {/* Save button */}
-        <div className="flex items-end">
-          <button
-            type="button"
-            disabled={isPending}
-            onClick={handleSave}
-            className="w-full rounded-md bg-primary px-4 py-1.5 text-sm font-medium text-white hover:bg-primary-hover disabled:opacity-60 transition"
-          >
-            {saved ? "✓ Đã lưu" : "Lưu thay đổi"}
-          </button>
-        </div>
-      </div>
-
-      {/* Notes */}
-      <div className="mt-3">
-        <label className="mb-1 block text-xs font-medium text-gray-500">
-          <MessageSquare className="inline h-3 w-3 mr-1" />
-          Ghi chú / Feedback từ client
-        </label>
-        <textarea
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-          rows={2}
-          placeholder="Nhập feedback từ client, lý do từ chối, hoặc ghi chú follow-up..."
-          className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary resize-none"
-        />
-      </div>
     </div>
   );
 }

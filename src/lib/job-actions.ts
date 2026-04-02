@@ -1,41 +1,37 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
-import { auth } from "@/auth";
-import { createJob, updateJob, updateJobStatus, searchAvailableCandidates } from "@/lib/jobs";
+import { requireAdmin } from "@/lib/authz";
+import { createJob, searchAvailableCandidates, updateJob, updateJobStatus } from "@/lib/jobs";
 import { prisma } from "@/lib/prisma";
-import { JobStatus, FeeType, JobCandidateStage, SubmissionResult, CreateJobInput, UpdateJobInput } from "@/types/job";
-
-async function getCurrentUserId(): Promise<number> {
-  const session = await auth();
-  if (!session?.user?.id) throw new Error("Unauthorized");
-  return Number(session.user.id);
-}
+import {
+  CreateJobInput,
+  FeeType,
+  JobCandidateStage,
+  JobStatus,
+  SubmissionResult,
+  UpdateJobInput,
+} from "@/types/job";
 
 function enumVal<T>(value: FormDataEntryValue | null): T | undefined {
-  const s = value?.toString()?.trim();
-  return s ? (s as T) : undefined;
+  const normalized = value?.toString()?.trim();
+  return normalized ? (normalized as T) : undefined;
 }
 
 function strVal(value: FormDataEntryValue | null): string | undefined {
-  const s = value?.toString()?.trim();
-  return s || undefined;
+  const normalized = value?.toString()?.trim();
+  return normalized || undefined;
 }
-
-// ============================================================
-// Job Actions
-// ============================================================
 
 export async function createJobAction(
   prevState: { error?: string; success?: boolean } | undefined,
   formData: FormData
 ): Promise<{ error?: string; success?: boolean; id?: number }> {
   try {
-    const userId = await getCurrentUserId();
+    const { userId } = await requireAdmin();
 
     const clientIdStr = formData.get("clientId")?.toString();
-    const clientId = clientIdStr ? parseInt(clientIdStr) : 0;
+    const clientId = clientIdStr ? parseInt(clientIdStr, 10) : 0;
     if (!clientId) return { error: "Doanh nghiệp là bắt buộc." };
 
     const salaryMinStr = formData.get("salaryMin")?.toString();
@@ -50,7 +46,7 @@ export async function createJobAction(
       description: strVal(formData.get("description")),
       salaryMin: salaryMinStr ? parseFloat(salaryMinStr) : undefined,
       salaryMax: salaryMaxStr ? parseFloat(salaryMaxStr) : undefined,
-      quantity: quantityStr ? parseInt(quantityStr) : 1,
+      quantity: quantityStr ? parseInt(quantityStr, 10) : 1,
       deadline: deadlineStr ? new Date(deadlineStr) : undefined,
       status: enumVal<JobStatus>(formData.get("status")) || "OPEN",
       fee: feeStr ? parseFloat(feeStr) : undefined,
@@ -63,8 +59,8 @@ export async function createJobAction(
     const job = await createJob(input, userId);
     revalidatePath("/jobs");
     return { success: true, id: job.id };
-  } catch (e) {
-    console.error("createJobAction error:", e);
+  } catch (error) {
+    console.error("createJobAction error:", error);
     return { error: "Đã có lỗi xảy ra khi tạo Job Order." };
   }
 }
@@ -75,8 +71,10 @@ export async function updateJobAction(
   formData: FormData
 ): Promise<{ error?: string; success?: boolean }> {
   try {
+    await requireAdmin();
+
     const clientIdStr = formData.get("clientId")?.toString();
-    const clientId = clientIdStr ? parseInt(clientIdStr) : 0;
+    const clientId = clientIdStr ? parseInt(clientIdStr, 10) : 0;
     if (!clientId) return { error: "Doanh nghiệp là bắt buộc." };
 
     const salaryMinStr = formData.get("salaryMin")?.toString();
@@ -91,7 +89,7 @@ export async function updateJobAction(
       description: strVal(formData.get("description")),
       salaryMin: salaryMinStr ? parseFloat(salaryMinStr) : undefined,
       salaryMax: salaryMaxStr ? parseFloat(salaryMaxStr) : undefined,
-      quantity: quantityStr ? parseInt(quantityStr) : 1,
+      quantity: quantityStr ? parseInt(quantityStr, 10) : 1,
       deadline: deadlineStr ? new Date(deadlineStr) : undefined,
       status: enumVal<JobStatus>(formData.get("status")) || "OPEN",
       fee: feeStr ? parseFloat(feeStr) : undefined,
@@ -105,30 +103,42 @@ export async function updateJobAction(
     revalidatePath(`/jobs/${id}`);
     revalidatePath("/jobs");
     return { success: true };
-  } catch (e) {
-    console.error("updateJobAction error:", e);
+  } catch (error) {
+    console.error("updateJobAction error:", error);
     return { error: "Đã có lỗi xảy ra khi cập nhật Job Order." };
   }
 }
 
 export async function updateJobStatusAction(id: number, status: JobStatus) {
   try {
+    await requireAdmin();
     await updateJobStatus(id, status);
     revalidatePath(`/jobs/${id}`);
     revalidatePath("/jobs");
     return { success: true };
-  } catch (e) {
-    console.error("updateJobStatusAction error:", e);
-    return { error: "Không thể cập nhật trạng thái." };
+  } catch (error) {
+    console.error("updateJobStatusAction error:", error);
+    return { success: false, message: "Không thể cập nhật trạng thái." };
   }
 }
 
-// ============================================================
-// Job Pipeline Actions
-// ============================================================
-
 export async function assignCandidateAction(jobOrderId: number, candidateId: number) {
   try {
+    await requireAdmin();
+
+    const existing = await prisma.jobCandidate.findUnique({
+      where: {
+        jobOrderId_candidateId: {
+          jobOrderId,
+          candidateId,
+        },
+      },
+    });
+
+    if (existing) {
+      return { success: false, message: "Ứng viên này đã có trong job." };
+    }
+
     await prisma.jobCandidate.create({
       data: {
         jobOrderId,
@@ -136,40 +146,54 @@ export async function assignCandidateAction(jobOrderId: number, candidateId: num
         stage: "SOURCED",
       },
     });
+
     revalidatePath(`/jobs/${jobOrderId}`);
-    return { success: true };
-  } catch (e) {
-    console.error("assignCandidateAction error:", e);
-    return { error: "Không thể gán ứng viên vào Job." };
+    return { success: true, message: "Đã gán ứng viên vào job." };
+  } catch (error) {
+    console.error("assignCandidateAction error:", error);
+    return { success: false, message: "Không thể gán ứng viên vào Job." };
   }
 }
 
-export async function updateCandidateStageAction(jobCandidateId: number, stage: JobCandidateStage) {
+export async function updateCandidateStageAction(
+  jobCandidateId: number,
+  stage: JobCandidateStage
+) {
   try {
-    const jc = await prisma.jobCandidate.update({
+    await requireAdmin();
+
+    const jobCandidate = await prisma.jobCandidate.update({
       where: { id: jobCandidateId },
-      data: { stage },
+      data: {
+        stage,
+        ...(stage === "PLACED" ? { result: "HIRED" as const } : {}),
+      },
     });
-    revalidatePath(`/jobs/${jc.jobOrderId}`);
-    return { success: true };
-  } catch (e) {
-    console.error("updateCandidateStageAction error:", e);
-    return { error: "Không thể cập nhật trạng thái ứng tuyển." };
+
+    revalidatePath(`/jobs/${jobCandidate.jobOrderId}`);
+    return { success: true, message: "Đã cập nhật trạng thái ứng tuyển." };
+  } catch (error) {
+    console.error("updateCandidateStageAction error:", error);
+    return {
+      success: false,
+      message: "Không thể cập nhật trạng thái ứng tuyển.",
+    };
   }
 }
 
-// Update pipeline entry: stage + result + interviewDate + notes
 export async function updateCandidatePipelineAction(
   jobCandidateId: number,
   data: {
     stage?: JobCandidateStage;
     result?: SubmissionResult;
-    interviewDate?: string | null; // ISO string from date input
+    interviewDate?: string | null;
     notes?: string | null;
   }
 ) {
   try {
-    const jc = await prisma.jobCandidate.update({
+    await requireAdmin();
+
+    const jobCandidate = await prisma.jobCandidate.update({
       where: { id: jobCandidateId },
       data: {
         ...(data.stage !== undefined && { stage: data.stage }),
@@ -180,34 +204,42 @@ export async function updateCandidatePipelineAction(
         ...(data.notes !== undefined && { notes: data.notes }),
       },
     });
-    revalidatePath(`/jobs/${jc.jobOrderId}`);
-    return { success: true };
-  } catch (e) {
-    console.error("updateCandidatePipelineAction error:", e);
-    return { error: "Không thể cập nhật thông tin pipeline." };
+
+    revalidatePath(`/jobs/${jobCandidate.jobOrderId}`);
+    return { success: true, message: "Đã cập nhật thông tin pipeline." };
+  } catch (error) {
+    console.error("updateCandidatePipelineAction error:", error);
+    return {
+      success: false,
+      message: "Không thể cập nhật thông tin pipeline.",
+    };
   }
 }
 
 export async function removeCandidateAction(jobOrderId: number, candidateId: number) {
   try {
+    await requireAdmin();
+
     await prisma.jobCandidate.delete({
       where: {
         jobOrderId_candidateId: { jobOrderId, candidateId },
       },
     });
+
     revalidatePath(`/jobs/${jobOrderId}`);
-    return { success: true };
-  } catch (e) {
-    console.error("removeCandidateAction error:", e);
-    return { error: "Không thể gỡ ứng viên khỏi Job." };
+    return { success: true, message: "Đã gỡ ứng viên khỏi job." };
+  } catch (error) {
+    console.error("removeCandidateAction error:", error);
+    return { success: false, message: "Không thể gỡ ứng viên khỏi Job." };
   }
 }
 
 export async function searchAvailableCandidatesAction(jobId: number, query: string = "") {
   try {
+    await requireAdmin();
     return await searchAvailableCandidates(jobId, query);
-  } catch (e) {
-    console.error("searchAvailableCandidatesAction error:", e);
+  } catch (error) {
+    console.error("searchAvailableCandidatesAction error:", error);
     return [];
   }
 }

@@ -12,6 +12,26 @@ export type JobOrderWithRelations = JobOrder & {
   candidates?: JobCandidateWithRelations[];
 };
 
+export type SerializedJobCandidateWithRelations = Omit<
+  JobCandidateWithRelations,
+  "interviewDate" | "createdAt" | "updatedAt"
+> & {
+  interviewDate: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type SerializedJobOrderWithRelations = Omit<
+  JobOrderWithRelations,
+  "deadline" | "openDate" | "createdAt" | "updatedAt" | "candidates"
+> & {
+  deadline: string | null;
+  openDate: string | null;
+  createdAt: string;
+  updatedAt: string;
+  candidates?: SerializedJobCandidateWithRelations[];
+};
+
 export interface JobFilters {
   page?: number;
   pageSize?: number;

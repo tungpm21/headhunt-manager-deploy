@@ -235,6 +235,8 @@ export async function getApplicationsForImport(status = "NEW", page = 1) {
             title: true,
             industry: true,
             location: true,
+            salaryDisplay: true,
+            workType: true,
             employer: { select: { companyName: true } },
           },
         },
@@ -243,6 +245,7 @@ export async function getApplicationsForImport(status = "NEW", page = 1) {
     }),
     prisma.application.count({ where }),
   ]);
+
 
   return { applications, total, page, totalPages: Math.ceil(total / take) };
 }
@@ -275,8 +278,8 @@ export async function importApplicationToCRM(applicationId: number) {
   const normalizedEmail = application.email.trim().toLowerCase();
   const existingCandidate = normalizedEmail
     ? await prisma.candidate.findFirst({
-        where: { email: normalizedEmail, isDeleted: false },
-      })
+      where: { email: normalizedEmail, isDeleted: false },
+    })
     : null;
 
   if (existingCandidate) {

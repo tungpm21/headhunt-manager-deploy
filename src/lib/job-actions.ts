@@ -157,16 +157,37 @@ export async function assignCandidateAction(jobOrderId: number, candidateId: num
 
 export async function updateCandidateStageAction(
   jobCandidateId: number,
-  stage: JobCandidateStage
+  stage: JobCandidateStage,
+  result?: SubmissionResult
 ) {
   try {
     await requireAdmin();
+
+    const currentJobCandidate = await prisma.jobCandidate.findUnique({
+      where: { id: jobCandidateId },
+      select: { jobOrderId: true },
+    });
+
+    if (!currentJobCandidate) {
+      return {
+        success: false,
+        message: "Không tìm thấy hồ sơ ứng tuyển để cập nhật.",
+      };
+    }
+
+    const nextResult =
+      result ??
+      (stage === "PLACED"
+        ? "HIRED"
+        : stage === "REJECTED"
+          ? "REJECTED"
+          : "PENDING");
 
     const jobCandidate = await prisma.jobCandidate.update({
       where: { id: jobCandidateId },
       data: {
         stage,
-        ...(stage === "PLACED" ? { result: "HIRED" as const } : {}),
+        result: nextResult,
       },
     });
 

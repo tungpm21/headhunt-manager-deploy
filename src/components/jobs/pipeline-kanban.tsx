@@ -174,7 +174,8 @@ export function PipelineKanban({
   isPending: boolean;
   onStageChange: (
     jobCandidateId: number,
-    stage: JobCandidateStage
+    stage: JobCandidateStage,
+    resultOverride?: SerializedJobCandidateWithRelations["result"]
   ) => Promise<boolean>;
   onPipelineSave: (
     jobCandidateId: number,

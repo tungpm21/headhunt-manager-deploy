@@ -6,12 +6,16 @@ import {
   Calendar,
   CheckCircle2,
   ChevronDown,
+  ChevronRight as ChevronStage,
   ChevronRight,
   ChevronUp,
   Trash2,
+  UserX,
+  XCircle,
 } from "lucide-react";
 import {
   formatPipelineDate,
+  getNextStage,
   getResultMeta,
   getStageMeta,
   PIPELINE_STAGES,
@@ -40,7 +44,8 @@ export function JobPipeline({
   isPending: boolean;
   onStageChange: (
     jobCandidateId: number,
-    stage: JobCandidateStage
+    stage: JobCandidateStage,
+    resultOverride?: SubmissionResult
   ) => Promise<boolean>;
   onPipelineSave: (
     jobCandidateId: number,
@@ -78,6 +83,11 @@ export function JobPipeline({
         const isExpanded = expanded === jobCandidate.id;
         const resultMeta = getResultMeta(jobCandidate.result);
         const stageMeta = getStageMeta(jobCandidate.stage);
+        const nextStage = getNextStage(jobCandidate.stage);
+        const canReject =
+          jobCandidate.stage !== "REJECTED" || jobCandidate.result !== "REJECTED";
+        const canWithdraw =
+          jobCandidate.stage !== "REJECTED" || jobCandidate.result !== "WITHDRAWN";
 
         return (
           <div
@@ -138,6 +148,42 @@ export function JobPipeline({
                     </option>
                   ))}
                 </select>
+
+                {nextStage ? (
+                  <button
+                    type="button"
+                    disabled={isPending}
+                    onClick={() => onStageChange(jobCandidate.id, nextStage)}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-2 text-sm font-medium text-foreground transition hover:bg-background disabled:opacity-60"
+                  >
+                    <ChevronStage className="h-4 w-4" />
+                    Chuyển → {getStageMeta(nextStage).shortLabel}
+                  </button>
+                ) : null}
+
+                {canReject ? (
+                  <button
+                    type="button"
+                    disabled={isPending}
+                    onClick={() => onStageChange(jobCandidate.id, "REJECTED", "REJECTED")}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-danger/20 bg-danger/10 px-3 py-2 text-sm font-medium text-danger transition hover:bg-danger/15 disabled:opacity-60"
+                  >
+                    <XCircle className="h-4 w-4" />
+                    Từ chối
+                  </button>
+                ) : null}
+
+                {canWithdraw ? (
+                  <button
+                    type="button"
+                    disabled={isPending}
+                    onClick={() => onStageChange(jobCandidate.id, "REJECTED", "WITHDRAWN")}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-warning/20 bg-warning/10 px-3 py-2 text-sm font-medium text-warning transition hover:bg-warning/15 disabled:opacity-60"
+                  >
+                    <UserX className="h-4 w-4" />
+                    Rút lui
+                  </button>
+                ) : null}
 
                 <button
                   type="button"

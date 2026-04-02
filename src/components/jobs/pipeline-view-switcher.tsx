@@ -24,6 +24,25 @@ type PipelineSaveInput = {
   notes: string | null;
 };
 
+function getOptimisticResult(
+  stage: JobCandidateStage,
+  resultOverride?: SubmissionResult
+): SubmissionResult {
+  if (resultOverride) {
+    return resultOverride;
+  }
+
+  if (stage === "PLACED") {
+    return "HIRED";
+  }
+
+  if (stage === "REJECTED") {
+    return "REJECTED";
+  }
+
+  return "PENDING";
+}
+
 export function PipelineViewSwitcher({
   jobId,
   candidates,
@@ -54,18 +73,30 @@ export function PipelineViewSwitcher({
 
   const handleStageChange = async (
     jobCandidateId: number,
-    stage: JobCandidateStage
+    stage: JobCandidateStage,
+    resultOverride?: SubmissionResult
   ) => {
     const previousItems = items;
+    const nextResult = getOptimisticResult(stage, resultOverride);
 
     setItems((currentItems) =>
       currentItems.map((item) =>
-        item.id === jobCandidateId ? { ...item, stage } : item
+        item.id === jobCandidateId
+          ? {
+              ...item,
+              stage,
+              result: nextResult,
+            }
+          : item
       )
     );
     setIsPending(true);
 
-    const result = await updateCandidateStageAction(jobCandidateId, stage);
+    const result = await updateCandidateStageAction(
+      jobCandidateId,
+      stage,
+      resultOverride
+    );
 
     if (!result.success) {
       setItems(previousItems);

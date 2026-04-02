@@ -57,11 +57,11 @@ export default async function EmployersPage({
       {/* Table */}
       <div className="bg-surface rounded-xl border border-border overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full min-w-[800px] text-sm">
             <thead>
               <tr className="bg-background border-b border-border">
                 <th className="text-left py-3 px-4 text-xs font-medium text-muted uppercase">Công ty</th>
-                <th className="text-left py-3 px-4 text-xs font-medium text-muted uppercase">Email</th>
+                <th className="hidden py-3 px-4 text-left text-xs font-medium uppercase text-muted lg:table-cell">Email</th>
                 <th className="text-left py-3 px-4 text-xs font-medium text-muted uppercase">Gói</th>
                 <th className="text-left py-3 px-4 text-xs font-medium text-muted uppercase">Tin đăng</th>
                 <th className="text-left py-3 px-4 text-xs font-medium text-muted uppercase">
@@ -74,7 +74,7 @@ export default async function EmployersPage({
                   </span>
                 </th>
                 <th className="text-left py-3 px-4 text-xs font-medium text-muted uppercase">Trạng thái</th>
-                <th className="text-left py-3 px-4 text-xs font-medium text-muted uppercase">Ngày tạo</th>
+                <th className="hidden py-3 px-4 text-left text-xs font-medium uppercase text-muted xl:table-cell">Ngày tạo</th>
                 <th className="text-right py-3 px-4 text-xs font-medium text-muted uppercase">Hành động</th>
               </tr>
             </thead>
@@ -116,7 +116,7 @@ export default async function EmployersPage({
                         </div>
                       </div>
                     </td>
-                    <td className="py-3 px-4 text-muted">{emp.email}</td>
+                    <td className="hidden px-4 py-3 text-muted lg:table-cell">{emp.email}</td>
                     <td className="py-3 px-4">
                       {emp.subscription ? (
                         <span className="text-xs font-medium text-primary">
@@ -144,7 +144,7 @@ export default async function EmployersPage({
                         {statusCfg.label}
                       </span>
                     </td>
-                    <td className="py-3 px-4 text-muted text-xs">
+                    <td className="hidden px-4 py-3 text-xs text-muted xl:table-cell">
                       {format(new Date(emp.createdAt), "dd/MM/yyyy", { locale: vi })}
                     </td>
                     <td className="py-3 px-4 text-right">

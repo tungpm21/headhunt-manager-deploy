@@ -35,15 +35,15 @@ export function CandidateTable({ candidates }: CandidateTableProps) {
   return (
     <div className="overflow-hidden rounded-xl border border-border bg-background">
       {/* Desktop table */}
-      <div className="hidden md:block overflow-x-auto">
-        <table className="w-full text-sm">
+      <div className="hidden overflow-x-auto md:block">
+        <table className="w-full min-w-[900px] text-sm">
           <thead>
             <tr className="border-b border-border bg-surface text-left text-xs font-medium text-muted uppercase tracking-wide">
               <th className="px-4 py-3">Ứng viên</th>
-              <th className="px-4 py-3">Liên hệ</th>
+              <th className="hidden px-4 py-3 lg:table-cell">Liên hệ</th>
               <th className="px-4 py-3">Vị trí / Ngành</th>
               <th className="px-4 py-3">Lương kỳ vọng</th>
-              <th className="px-4 py-3">Tags</th>
+              <th className="hidden px-4 py-3 lg:table-cell">Tags</th>
               <th className="px-4 py-3">Trạng thái</th>
               <th className="px-4 py-3 w-10"></th>
             </tr>
@@ -72,7 +72,7 @@ export function CandidateTable({ candidates }: CandidateTableProps) {
                         {c.fullName}
                       </Link>
                       {c.location && (
-                        <div className="flex items-center gap-1 mt-0.5 text-xs text-muted">
+                        <div className="mt-0.5 hidden items-center gap-1 text-xs text-muted lg:flex">
                           <MapPin className="h-3 w-3" />
                           {c.location}
                         </div>
@@ -82,7 +82,7 @@ export function CandidateTable({ candidates }: CandidateTableProps) {
                 </td>
 
                 {/* Contact */}
-                <td className="px-4 py-3 text-muted">
+                <td className="hidden px-4 py-3 text-muted lg:table-cell">
                   <div className="space-y-1">
                     {c.phone && (
                       <div className="flex items-center gap-1.5 text-xs">
@@ -98,7 +98,7 @@ export function CandidateTable({ candidates }: CandidateTableProps) {
                 </td>
 
                 {/* Position / Industry */}
-                <td className="px-4 py-3">
+                <td className="hidden px-4 py-3 lg:table-cell">
                   <div className="text-sm">
                     {c.currentPosition && (
                       <div className="flex items-center gap-1.5 text-foreground font-medium">

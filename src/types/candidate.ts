@@ -27,6 +27,8 @@ export type CandidateWithRelations = Candidate & {
 // Candidate with only tags (for list view)
 export type CandidateWithTags = Candidate & {
   tags: { tag: Tag }[];
+  cvFiles: Pick<CandidateCV, "id" | "fileName" | "fileUrl" | "label">[];
+  languages: Pick<CandidateLanguage, "id" | "language" | "level">[];
 };
 
 // ============================================================

@@ -8,8 +8,26 @@ import {
 } from "@/types/candidate";
 import { Prisma } from "@prisma/client";
 
-const CANDIDATE_TAG_INCLUDE = {
+const CANDIDATE_LIST_INCLUDE = {
   tags: { include: { tag: true } },
+  cvFiles: {
+    select: {
+      id: true,
+      fileName: true,
+      fileUrl: true,
+      label: true,
+    },
+    take: 3,
+    orderBy: [{ isPrimary: "desc" as const }, { uploadedAt: "desc" as const }],
+  },
+  languages: {
+    select: {
+      id: true,
+      language: true,
+      level: true,
+    },
+    orderBy: [{ language: "asc" as const }, { id: "asc" as const }],
+  },
 } satisfies Prisma.CandidateInclude;
 
 const CANDIDATE_DETAIL_INCLUDE = {
@@ -98,7 +116,7 @@ export async function getCandidates(
   const [candidates, total] = await Promise.all([
     prisma.candidate.findMany({
       where,
-      include: CANDIDATE_TAG_INCLUDE,
+      include: CANDIDATE_LIST_INCLUDE,
       orderBy: { createdAt: "desc" },
       skip,
       take: pageSize,
@@ -148,7 +166,7 @@ export async function createCandidate(
           }
         : {}),
     },
-    include: CANDIDATE_TAG_INCLUDE,
+    include: CANDIDATE_LIST_INCLUDE,
   });
 }
 

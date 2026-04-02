@@ -5,8 +5,11 @@ import {
   ArrowRight,
   Briefcase,
   Building2,
+  CheckCircle2,
+  Clock3,
   FileDown,
   FileSpreadsheet,
+  Target,
   UserPlus,
   Users,
 } from "lucide-react";
@@ -24,6 +27,7 @@ export const metadata = { title: "Dashboard — Headhunt Manager" };
 
 export default async function DashboardPage() {
   const now = new Date();
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
   const [
     candidateCount,
     clientCount,
@@ -38,6 +42,10 @@ export default async function DashboardPage() {
     recentCandidateActivities,
     recentApplicationActivities,
     recentStageActivities,
+    placementsThisMonth,
+    filledJobCount,
+    closedJobCount,
+    placedPipelineItems,
   ] = await Promise.all([
     prisma.candidate.count(),
     prisma.client.count({ where: { isDeleted: false } }),
@@ -147,6 +155,35 @@ export default async function DashboardPage() {
         },
       },
     }),
+    prisma.jobCandidate.count({
+      where: {
+        stage: "PLACED",
+        updatedAt: {
+          gte: startOfMonth,
+        },
+      },
+    }),
+    prisma.jobOrder.count({
+      where: {
+        status: "FILLED",
+      },
+    }),
+    prisma.jobOrder.count({
+      where: {
+        status: {
+          in: ["FILLED", "CANCELLED"],
+        },
+      },
+    }),
+    prisma.jobCandidate.findMany({
+      where: {
+        stage: "PLACED",
+      },
+      select: {
+        createdAt: true,
+        updatedAt: true,
+      },
+    }),
   ]);
 
   const activityItems = [
@@ -179,6 +216,17 @@ export default async function DashboardPage() {
   ]
     .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
     .slice(0, 8);
+
+  const fillRate = closedJobCount > 0 ? Math.round((filledJobCount / closedJobCount) * 100) : 0;
+  const averageFillTime =
+    placedPipelineItems.length > 0
+      ? Math.round(
+          placedPipelineItems.reduce((sum, item) => {
+            const diffMs = item.updatedAt.getTime() - item.createdAt.getTime();
+            return sum + diffMs / (1000 * 60 * 60 * 24);
+          }, 0) / placedPipelineItems.length
+        )
+      : 0;
 
   return (
     <div className="mx-auto max-w-7xl space-y-6">
@@ -251,6 +299,51 @@ export default async function DashboardPage() {
             <p className="text-2xl font-bold text-foreground">{newAppCount}</p>
           </div>
         </Link>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+        <div className="rounded-xl border border-border bg-surface p-5 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
+              <CheckCircle2 className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-muted">Placements</p>
+              <p className="text-2xl font-bold text-foreground">{placementsThisMonth}</p>
+            </div>
+          </div>
+          <p className="mt-3 text-xs text-muted">Số ứng viên đã nhận việc trong tháng này.</p>
+        </div>
+
+        <div className="rounded-xl border border-border bg-surface p-5 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-sky-50 text-sky-600">
+              <Target className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-muted">Fill Rate</p>
+              <p className="text-2xl font-bold text-foreground">{fillRate}%</p>
+            </div>
+          </div>
+          <p className="mt-3 text-xs text-muted">
+            Tỷ lệ job đã lấp trên tổng số job đã đóng.
+          </p>
+        </div>
+
+        <div className="rounded-xl border border-border bg-surface p-5 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-violet-50 text-violet-600">
+              <Clock3 className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-muted">Avg Fill Time</p>
+              <p className="text-2xl font-bold text-foreground">{averageFillTime} ngày</p>
+            </div>
+          </div>
+          <p className="mt-3 text-xs text-muted">
+            Trung bình từ lúc gán ứng viên đến khi chuyển sang trạng thái placed.
+          </p>
+        </div>
       </div>
 
       <PipelineSummary

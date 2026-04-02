@@ -346,35 +346,41 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      <PipelineSummary
-        stageData={pipelineStageCounts.map((item) => ({
-          stage: item.stage,
-          count: item._count.id,
-        }))}
-      />
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
+        <div className="xl:col-span-2">
+          <PipelineSummary
+            stageData={pipelineStageCounts.map((item) => ({
+              stage: item.stage,
+              count: item._count.id,
+            }))}
+          />
+        </div>
 
-      <DeadlineAlerts
-        jobs={jobsClosingSoon
-          .filter((job) => job.deadline)
-          .map((job) => ({
-            id: job.id,
-            title: job.title,
-            deadline: job.deadline as Date,
-            companyName: job.client.companyName,
-          }))}
-        subscriptions={subscriptionsEndingSoon.map((subscription) => ({
-          id: subscription.id,
-          tier: subscription.tier,
-          endDate: subscription.endDate,
-          employerId: subscription.employer.id,
-          companyName: subscription.employer.companyName,
-        }))}
-      />
+        <div className="grid grid-cols-1 gap-6">
+          <DeadlineAlerts
+            jobs={jobsClosingSoon
+              .filter((job) => job.deadline)
+              .map((job) => ({
+                id: job.id,
+                title: job.title,
+                deadline: job.deadline as Date,
+                companyName: job.client.companyName,
+              }))}
+            subscriptions={subscriptionsEndingSoon.map((subscription) => ({
+              id: subscription.id,
+              tier: subscription.tier,
+              endDate: subscription.endDate,
+              employerId: subscription.employer.id,
+              companyName: subscription.employer.companyName,
+            }))}
+          />
 
-      <ActivityFeed items={activityItems} />
+          <ActivityFeed items={activityItems} />
+        </div>
+      </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="flex flex-col overflow-hidden rounded-xl border bg-surface shadow-sm">
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-4">
+        <div className="flex flex-col overflow-hidden rounded-xl border bg-surface shadow-sm xl:col-span-1">
           <div className="flex items-center justify-between border-b p-4">
             <h2 className="font-semibold text-foreground">Job gần đây</h2>
             <Link href="/jobs" className="flex items-center text-sm text-primary hover:underline">
@@ -418,7 +424,7 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        <div className="flex flex-col overflow-hidden rounded-xl border bg-surface shadow-sm">
+        <div className="flex flex-col overflow-hidden rounded-xl border bg-surface shadow-sm xl:col-span-2">
           <div className="flex items-center justify-between border-b p-4">
             <h2 className="font-semibold text-foreground">Ứng viên mới</h2>
             <Link
@@ -459,7 +465,7 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        <div className="flex flex-col overflow-hidden rounded-xl border bg-surface shadow-sm">
+        <div className="flex flex-col overflow-hidden rounded-xl border bg-surface shadow-sm xl:col-span-1">
           <div className="flex items-center justify-between border-b p-4">
             <h2 className="flex items-center gap-2 font-semibold text-foreground">
               <FileDown className="h-4 w-4 text-teal-600" />

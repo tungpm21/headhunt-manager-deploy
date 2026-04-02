@@ -31,8 +31,8 @@ export default async function DashboardLayout({
   return (
     <div className="flex min-h-screen bg-background text-foreground">
       {isAdmin ? <GlobalSearch /> : null}
-      <MobileSidebar isAdmin={isAdmin} />
-      <Sidebar isAdmin={isAdmin} className="hidden md:flex" />
+      <MobileSidebar isAdmin={isAdmin} counts={counts} />
+      <Sidebar isAdmin={isAdmin} counts={counts} className="hidden md:flex" />
 
       <div className="flex h-screen flex-1 flex-col overflow-hidden">
         <header className="flex h-16 shrink-0 items-center justify-between border-b border-border bg-surface px-6 md:justify-end">

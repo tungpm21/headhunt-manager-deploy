@@ -4,8 +4,15 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import { Sidebar } from "@/components/sidebar";
+import type { NotificationCounts } from "@/lib/notifications";
 
-export function MobileSidebar({ isAdmin }: { isAdmin: boolean }) {
+export function MobileSidebar({
+  isAdmin,
+  counts,
+}: {
+  isAdmin: boolean;
+  counts?: NotificationCounts;
+}) {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
 
@@ -34,7 +41,7 @@ export function MobileSidebar({ isAdmin }: { isAdmin: boolean }) {
           />
           <div className="fixed inset-y-0 left-0 z-50 w-64 md:hidden">
             <div className="relative h-full animate-in slide-in-from-left duration-200">
-              <Sidebar isAdmin={isAdmin} />
+              <Sidebar isAdmin={isAdmin} counts={counts} />
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}

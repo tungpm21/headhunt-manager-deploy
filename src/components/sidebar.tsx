@@ -7,6 +7,7 @@ import {
   Building2,
   FileDown,
   LayoutDashboard,
+  type LucideIcon,
   LogOut,
   Package,
   ShieldCheck,
@@ -16,6 +17,7 @@ import {
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
+import type { NotificationCounts } from "@/lib/notifications";
 
 const navigation = [
   { name: "Tổng quan", href: "/dashboard", icon: LayoutDashboard },
@@ -25,19 +27,45 @@ const navigation = [
   { name: "Nhập dữ liệu", href: "/import", icon: UploadCloud },
 ];
 
-const fdiworkNav = [
-  { name: "Bài đăng", href: "/moderation", icon: ShieldCheck },
-  { name: "Applications", href: "/moderation/applications", icon: FileDown },
-  { name: "Nhà tuyển dụng", href: "/employers", icon: UserCog },
+type BadgeKey = "pendingJobs" | "newApplications" | "pendingEmployers";
+
+type SidebarNavItem = {
+  name: string;
+  href: string;
+  icon: LucideIcon;
+  badgeKey?: BadgeKey;
+};
+
+const fdiworkNav: SidebarNavItem[] = [
+  {
+    name: "Bài đăng",
+    href: "/moderation",
+    icon: ShieldCheck,
+    badgeKey: "pendingJobs",
+  },
+  {
+    name: "Applications",
+    href: "/moderation/applications",
+    icon: FileDown,
+    badgeKey: "newApplications",
+  },
+  {
+    name: "Nhà tuyển dụng",
+    href: "/employers",
+    icon: UserCog,
+    badgeKey: "pendingEmployers",
+  },
   { name: "Gói dịch vụ", href: "/packages", icon: Package },
 ];
 
 export function Sidebar({
   isAdmin,
   className,
+  counts,
 }: {
   isAdmin: boolean;
   className?: string;
+  counts?: NotificationCounts;
 }) {
   const pathname = usePathname();
 
@@ -90,7 +118,7 @@ export function Sidebar({
 
         {isAdmin ? (
           <>
-            <p className="px-3 pt-6 pb-2 text-xs font-semibold uppercase tracking-wider text-muted">
+            <p className="px-3 pb-2 pt-6 text-xs font-semibold uppercase tracking-wider text-muted">
               FDIWork
             </p>
             {fdiworkNav.map((item) => {
@@ -98,6 +126,7 @@ export function Sidebar({
                 item.href === "/moderation"
                   ? pathname === "/moderation"
                   : pathname.startsWith(item.href);
+              const badgeCount = item.badgeKey ? counts?.[item.badgeKey] ?? 0 : 0;
 
               return (
                 <Link
@@ -117,7 +146,12 @@ export function Sidebar({
                     )}
                     aria-hidden="true"
                   />
-                  {item.name}
+                  <span>{item.name}</span>
+                  {badgeCount > 0 ? (
+                    <span className="ml-auto inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-danger px-1.5 text-[10px] font-bold text-white">
+                      {badgeCount}
+                    </span>
+                  ) : null}
                 </Link>
               );
             })}

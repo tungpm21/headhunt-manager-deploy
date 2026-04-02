@@ -68,8 +68,8 @@ export function ClientForm({ initialData }: ClientFormProps) {
           <Building2 className="h-5 w-5 text-muted" /> Thông tin doanh nghiệp
         </h2>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="md:col-span-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="sm:col-span-2">
             <FieldLabel htmlFor="companyName" required>Tên công ty</FieldLabel>
             <input
               id="companyName"
@@ -127,7 +127,7 @@ export function ClientForm({ initialData }: ClientFormProps) {
             </select>
           </div>
 
-          <div className="md:col-span-2">
+          <div className="sm:col-span-2">
             <FieldLabel htmlFor="address">Địa chỉ trụ sở</FieldLabel>
             <input
               id="address"
@@ -139,7 +139,7 @@ export function ClientForm({ initialData }: ClientFormProps) {
             />
           </div>
 
-          <div className="md:col-span-2">
+          <div className="sm:col-span-2">
             <FieldLabel htmlFor="website">Website</FieldLabel>
             <input
               id="website"
@@ -152,7 +152,7 @@ export function ClientForm({ initialData }: ClientFormProps) {
             <p className="mt-1 text-xs text-muted">Bắt buộc bao gồm http:// hoặc https://</p>
           </div>
 
-          <div className="md:col-span-2 mt-4">
+          <div className="mt-4 sm:col-span-2">
             <FieldLabel htmlFor="notes">Ghi chú chung</FieldLabel>
             <textarea
               id="notes"
@@ -167,7 +167,7 @@ export function ClientForm({ initialData }: ClientFormProps) {
       </section>
 
       {/* Submit */}
-      <div className="flex items-center justify-end gap-3 pt-2">
+      <div className="flex flex-wrap items-center justify-end gap-3 pt-2">
         <button
           type="button"
           onClick={() => router.back()}

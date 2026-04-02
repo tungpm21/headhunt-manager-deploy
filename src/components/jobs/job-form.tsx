@@ -58,8 +58,8 @@ export function JobForm({ initialData, clients }: JobFormProps) {
           <Briefcase className="h-5 w-5 text-muted" /> Tổng quan
         </h2>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="md:col-span-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="sm:col-span-2">
             <FieldLabel htmlFor="title" required>Vị trí tuyển dụng</FieldLabel>
             <input
               id="title"
@@ -72,11 +72,11 @@ export function JobForm({ initialData, clients }: JobFormProps) {
             />
           </div>
 
-          <div className="md:col-span-2">
+          <div className="sm:col-span-2">
             <FieldLabel htmlFor="clientId" required>Doanh nghiệp (Client)</FieldLabel>
             <div className="relative">
               <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                <Building2 className="h-4 w-4 text-gray-400" />
+                <Building2 className="h-4 w-4 text-muted" />
               </div>
               <select
                 id="clientId"
@@ -96,7 +96,7 @@ export function JobForm({ initialData, clients }: JobFormProps) {
             )}
           </div>
 
-          <div className="md:col-span-2">
+          <div className="sm:col-span-2">
             <FieldLabel htmlFor="description">Mô tả tóm tắt (JD)</FieldLabel>
             <textarea
               id="description"
@@ -116,7 +116,7 @@ export function JobForm({ initialData, clients }: JobFormProps) {
           <Banknote className="h-5 w-5 text-muted" /> Chế độ & Yêu cầu
         </h2>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
           <div>
             <FieldLabel htmlFor="salaryMin">Lương tối thiểu (Tr/tháng)</FieldLabel>
             <input
@@ -180,7 +180,7 @@ export function JobForm({ initialData, clients }: JobFormProps) {
               <option value="FIXED">Giá cố định</option>
             </select>
           </div>
-          <div className="md:col-span-3">
+          <div className="sm:col-span-2 xl:col-span-3">
             <FieldLabel htmlFor="fee">Phí dịch vụ (% hoặc VNĐ)</FieldLabel>
             <input
               id="fee"
@@ -211,7 +211,7 @@ export function JobForm({ initialData, clients }: JobFormProps) {
       </section>
 
       {/* Submit */}
-      <div className="flex items-center justify-end gap-3 pt-2">
+      <div className="flex flex-wrap items-center justify-end gap-3 pt-2">
         <button
           type="button"
           onClick={() => router.back()}

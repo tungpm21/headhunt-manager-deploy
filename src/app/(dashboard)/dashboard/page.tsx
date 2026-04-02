@@ -1,14 +1,35 @@
-import { prisma } from "@/lib/prisma";
-import { getNewApplicationsCount, getRecentApplications } from "@/lib/moderation-actions";
 import Link from "next/link";
-import { Users, Building2, Briefcase, ArrowRight, UserPlus, FileSpreadsheet, FileDown } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { vi } from "date-fns/locale";
+import {
+  ArrowRight,
+  Briefcase,
+  Building2,
+  FileDown,
+  FileSpreadsheet,
+  UserPlus,
+  Users,
+} from "lucide-react";
+import { prisma } from "@/lib/prisma";
+import {
+  getNewApplicationsCount,
+  getRecentApplications,
+} from "@/lib/moderation-actions";
+import { PipelineSummary } from "@/components/dashboard/pipeline-summary";
 
 export const metadata = { title: "Dashboard — Headhunt Manager" };
 
 export default async function DashboardPage() {
-  const [candidateCount, clientCount, openJobCount, newAppCount, recentJobs, recentCandidates, recentApps] = await Promise.all([
+  const [
+    candidateCount,
+    clientCount,
+    openJobCount,
+    newAppCount,
+    recentJobs,
+    recentCandidates,
+    recentApps,
+    pipelineStageCounts,
+  ] = await Promise.all([
     prisma.candidate.count(),
     prisma.client.count({ where: { isDeleted: false } }),
     prisma.jobOrder.count({ where: { status: "OPEN" } }),
@@ -23,32 +44,47 @@ export default async function DashboardPage() {
       orderBy: { createdAt: "desc" },
     }),
     getRecentApplications(5),
+    prisma.jobCandidate.groupBy({
+      by: ["stage"],
+      _count: { id: true },
+      where: {
+        jobOrder: {
+          status: "OPEN",
+        },
+      },
+    }),
   ]);
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
-      {/* Welcome Banner */}
-      <div className="bg-gradient-to-r from-primary to-blue-600 rounded-2xl p-6 sm:p-10 shadow-sm text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+    <div className="mx-auto max-w-7xl space-y-6">
+      <div className="flex flex-col items-start justify-between gap-6 rounded-2xl bg-gradient-to-r from-primary to-blue-600 p-6 text-white shadow-sm sm:flex-row sm:items-center sm:p-10">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold">Chào mừng trở lại!</h1>
-          <p className="mt-2 text-white/80 max-w-xl">
-            Tổng quan công việc hệ thống Headhunt Manager hôm nay. Có {openJobCount} vị trí đang cần tuyển dụng.
+          <h1 className="text-2xl font-bold sm:text-3xl">Chào mừng trở lại!</h1>
+          <p className="mt-2 max-w-xl text-white/80">
+            Tổng quan công việc hệ thống Headhunt Manager hôm nay. Có {openJobCount} vị
+            trí đang cần tuyển dụng.
           </p>
         </div>
-        <div className="flex gap-3 shrink-0">
-          <Link href="/import" className="inline-flex items-center gap-2 bg-white/20 hover:bg-white/30 transition px-4 py-2.5 rounded-lg text-sm font-medium">
-            <FileSpreadsheet className="h-4 w-4" /> Import Data
+        <div className="flex shrink-0 gap-3">
+          <Link
+            href="/import"
+            className="inline-flex items-center gap-2 rounded-lg bg-white/20 px-4 py-2.5 text-sm font-medium transition hover:bg-white/30"
+          >
+            <FileSpreadsheet className="h-4 w-4" />
+            Import Data
           </Link>
-          <Link href="/jobs/new" className="inline-flex items-center gap-2 rounded-lg bg-surface px-4 py-2.5 text-sm font-medium text-foreground transition hover:bg-background">
-            <Briefcase className="h-4 w-4" /> Tạo Job Mới
+          <Link
+            href="/jobs/new"
+            className="inline-flex items-center gap-2 rounded-lg bg-surface px-4 py-2.5 text-sm font-medium text-foreground transition hover:bg-background"
+          >
+            <Briefcase className="h-4 w-4" />
+            Tạo Job Mới
           </Link>
         </div>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        {/* Card 1 */}
-        <div className="bg-surface rounded-xl border p-6 shadow-sm flex items-center gap-4">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
+        <div className="flex items-center gap-4 rounded-xl border bg-surface p-6 shadow-sm">
           <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
             <Users className="h-6 w-6" />
           </div>
@@ -58,8 +94,7 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        {/* Card 2 */}
-        <div className="bg-surface rounded-xl border p-6 shadow-sm flex items-center gap-4">
+        <div className="flex items-center gap-4 rounded-xl border bg-surface p-6 shadow-sm">
           <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-green-50 text-green-600">
             <Building2 className="h-6 w-6" />
           </div>
@@ -69,8 +104,7 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        {/* Card 3 */}
-        <div className="bg-surface rounded-xl border p-6 shadow-sm flex items-center gap-4">
+        <div className="flex items-center gap-4 rounded-xl border bg-surface p-6 shadow-sm">
           <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
             <Briefcase className="h-6 w-6" />
           </div>
@@ -80,8 +114,10 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        {/* Card 4 — FDIWork Applications */}
-        <Link href="/moderation/applications" className="bg-surface rounded-xl border p-6 shadow-sm flex items-center gap-4 hover:shadow-md transition-shadow group">
+        <Link
+          href="/moderation/applications"
+          className="group flex items-center gap-4 rounded-xl border bg-surface p-6 shadow-sm transition-shadow hover:shadow-md"
+        >
           <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-teal-50 text-teal-600">
             <FileDown className="h-6 w-6" />
           </div>
@@ -92,30 +128,50 @@ export default async function DashboardPage() {
         </Link>
       </div>
 
-      {/* Lists */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Recent Jobs */}
-        <div className="bg-surface rounded-xl border shadow-sm overflow-hidden flex flex-col">
-          <div className="p-4 border-b flex items-center justify-between">
+      <PipelineSummary
+        stageData={pipelineStageCounts.map((item) => ({
+          stage: item.stage,
+          count: item._count.id,
+        }))}
+      />
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div className="flex flex-col overflow-hidden rounded-xl border bg-surface shadow-sm">
+          <div className="flex items-center justify-between border-b p-4">
             <h2 className="font-semibold text-foreground">Job gần đây</h2>
-            <Link href="/jobs" className="text-sm text-primary hover:underline flex items-center">
-              Xem tất cả <ArrowRight className="h-3 w-3 ml-1" />
+            <Link href="/jobs" className="flex items-center text-sm text-primary hover:underline">
+              Xem tất cả <ArrowRight className="ml-1 h-3 w-3" />
             </Link>
           </div>
-          <div className="divide-y p-0 m-0 flex-1">
+          <div className="m-0 flex-1 divide-y p-0">
             {recentJobs.length === 0 ? (
-              <p className="p-6 text-sm text-muted text-center flex flex-col items-center gap-2">
+              <p className="flex flex-col items-center gap-2 p-6 text-center text-sm text-muted">
                 <Briefcase className="h-8 w-8 text-muted/20" />
-                Chưa có job nào — <Link href="/jobs/new" className="text-primary hover:underline">tạo job mới</Link>
+                Chưa có job nào —
+                <Link href="/jobs/new" className="text-primary hover:underline">
+                  tạo job mới
+                </Link>
               </p>
             ) : (
               recentJobs.map((job) => (
-                <Link key={job.id} href={`/jobs/${job.id}`} className="block p-4 hover:bg-background transition">
-                  <div className="font-medium text-foreground text-sm truncate">{job.title}</div>
-                  <div className="flex items-center justify-between mt-1">
-                    <span className="text-xs text-muted flex items-center"><Building2 className="h-3 w-3 mr-1 inline" /> {job.client.companyName}</span>
+                <Link
+                  key={job.id}
+                  href={`/jobs/${job.id}`}
+                  className="block p-4 transition hover:bg-background"
+                >
+                  <div className="truncate text-sm font-medium text-foreground">
+                    {job.title}
+                  </div>
+                  <div className="mt-1 flex items-center justify-between">
+                    <span className="flex items-center text-xs text-muted">
+                      <Building2 className="mr-1 inline h-3 w-3" />
+                      {job.client.companyName}
+                    </span>
                     <span className="text-xs text-muted/60">
-                      {formatDistanceToNow(new Date(job.createdAt), { addSuffix: true, locale: vi })}
+                      {formatDistanceToNow(new Date(job.createdAt), {
+                        addSuffix: true,
+                        locale: vi,
+                      })}
                     </span>
                   </div>
                 </Link>
@@ -124,27 +180,39 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        {/* Recent Candidates */}
-        <div className="bg-surface rounded-xl border shadow-sm overflow-hidden flex flex-col">
-          <div className="p-4 border-b flex items-center justify-between">
+        <div className="flex flex-col overflow-hidden rounded-xl border bg-surface shadow-sm">
+          <div className="flex items-center justify-between border-b p-4">
             <h2 className="font-semibold text-foreground">Ứng viên mới</h2>
-            <Link href="/candidates" className="text-sm text-primary hover:underline flex items-center">
-              Xem tất cả <ArrowRight className="h-3 w-3 ml-1" />
+            <Link
+              href="/candidates"
+              className="flex items-center text-sm text-primary hover:underline"
+            >
+              Xem tất cả <ArrowRight className="ml-1 h-3 w-3" />
             </Link>
           </div>
-          <div className="divide-y p-0 m-0 flex-1">
+          <div className="m-0 flex-1 divide-y p-0">
             {recentCandidates.length === 0 ? (
-              <p className="p-4 text-sm text-muted text-center">Chưa có ứng viên nào</p>
+              <p className="p-4 text-center text-sm text-muted">Chưa có ứng viên nào</p>
             ) : (
-              recentCandidates.map((c) => (
-                <Link key={c.id} href={`/candidates/${c.id}`} className="block p-4 hover:bg-background transition">
-                  <div className="font-medium text-foreground text-sm flex items-center">
-                    <UserPlus className="h-3.5 w-3.5 mr-1.5 text-muted/60" /> {c.fullName}
+              recentCandidates.map((candidate) => (
+                <Link
+                  key={candidate.id}
+                  href={`/candidates/${candidate.id}`}
+                  className="block p-4 transition hover:bg-background"
+                >
+                  <div className="flex items-center text-sm font-medium text-foreground">
+                    <UserPlus className="mr-1.5 h-3.5 w-3.5 text-muted/60" />
+                    {candidate.fullName}
                   </div>
-                  <div className="flex items-center justify-between mt-1 ml-5">
-                    <span className="text-xs text-muted">{c.currentPosition || "Chưa rõ"} • {c.industry}</span>
+                  <div className="ml-5 mt-1 flex items-center justify-between">
+                    <span className="text-xs text-muted">
+                      {candidate.currentPosition || "Chưa rõ"} • {candidate.industry}
+                    </span>
                     <span className="text-xs text-muted/60">
-                      {formatDistanceToNow(new Date(c.createdAt), { addSuffix: true, locale: vi })}
+                      {formatDistanceToNow(new Date(candidate.createdAt), {
+                        addSuffix: true,
+                        locale: vi,
+                      })}
                     </span>
                   </div>
                 </Link>
@@ -153,30 +221,41 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        {/* FDIWork Applications */}
-        <div className="bg-surface rounded-xl border shadow-sm overflow-hidden flex flex-col">
-          <div className="p-4 border-b flex items-center justify-between">
-            <h2 className="font-semibold text-foreground flex items-center gap-2">
+        <div className="flex flex-col overflow-hidden rounded-xl border bg-surface shadow-sm">
+          <div className="flex items-center justify-between border-b p-4">
+            <h2 className="flex items-center gap-2 font-semibold text-foreground">
               <FileDown className="h-4 w-4 text-teal-600" />
               CV từ FDIWork
             </h2>
-            <Link href="/moderation/applications" className="text-sm text-primary hover:underline flex items-center">
-              Xem tất cả <ArrowRight className="h-3 w-3 ml-1" />
+            <Link
+              href="/moderation/applications"
+              className="flex items-center text-sm text-primary hover:underline"
+            >
+              Xem tất cả <ArrowRight className="ml-1 h-3 w-3" />
             </Link>
           </div>
-          <div className="divide-y p-0 m-0 flex-1">
+          <div className="m-0 flex-1 divide-y p-0">
             {recentApps.length === 0 ? (
-              <p className="p-4 text-sm text-muted text-center">Chưa có đơn nào</p>
+              <p className="p-4 text-center text-sm text-muted">Chưa có đơn nào</p>
             ) : (
               recentApps.map((app) => (
-                <Link key={app.id} href="/moderation/applications" className="block p-4 hover:bg-background transition">
-                  <div className="font-medium text-foreground text-sm truncate">{app.fullName}</div>
-                  <div className="flex items-center justify-between mt-1">
-                    <span className="text-xs text-muted truncate max-w-[70%]">
+                <Link
+                  key={app.id}
+                  href="/moderation/applications"
+                  className="block p-4 transition hover:bg-background"
+                >
+                  <div className="truncate text-sm font-medium text-foreground">
+                    {app.fullName}
+                  </div>
+                  <div className="mt-1 flex items-center justify-between">
+                    <span className="max-w-[70%] truncate text-xs text-muted">
                       {app.jobPosting.title} • {app.jobPosting.employer.companyName}
                     </span>
                     <span className="text-xs text-muted/60">
-                      {formatDistanceToNow(new Date(app.createdAt), { addSuffix: true, locale: vi })}
+                      {formatDistanceToNow(new Date(app.createdAt), {
+                        addSuffix: true,
+                        locale: vi,
+                      })}
                     </span>
                   </div>
                 </Link>

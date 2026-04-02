@@ -18,6 +18,7 @@ export interface JobFilters {
   search?: string;
   status?: JobStatus;
   clientId?: number;
+  stage?: JobCandidateStage;
 }
 
 export interface PaginatedJobs {

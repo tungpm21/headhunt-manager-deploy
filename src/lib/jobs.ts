@@ -1,5 +1,11 @@
 import { prisma } from "@/lib/prisma";
-import { JobFilters, PaginatedJobs, CreateJobInput, UpdateJobInput, JobOrderWithRelations } from "@/types/job";
+import {
+  JobFilters,
+  PaginatedJobs,
+  CreateJobInput,
+  UpdateJobInput,
+  JobOrderWithRelations,
+} from "@/types/job";
 import { Prisma, JobStatus } from "@prisma/client";
 
 const JOB_LIST_INCLUDE = {
@@ -20,8 +26,8 @@ const JOB_DETAIL_INCLUDE = {
           currentPosition: true,
           currentCompany: true,
           status: true,
-          level: true,   // Seniority — hiển thị trong pipeline
-          skills: true,  // Skills array — hiển thị chips
+          level: true,
+          skills: true,
         },
       },
     },
@@ -31,18 +37,23 @@ const JOB_DETAIL_INCLUDE = {
 
 function buildWhere(filters: JobFilters): Prisma.JobOrderWhereInput {
   const where: Prisma.JobOrderWhereInput = {};
-  
+
   if (filters.search) {
-    const s = filters.search.trim();
+    const keyword = filters.search.trim();
     where.OR = [
-      { title: { contains: s, mode: "insensitive" } },
-      { client: { companyName: { contains: s, mode: "insensitive" } } },
+      { title: { contains: keyword, mode: "insensitive" } },
+      { client: { companyName: { contains: keyword, mode: "insensitive" } } },
     ];
   }
-  
+
   if (filters.status) where.status = filters.status;
   if (filters.clientId) where.clientId = filters.clientId;
-  
+  if (filters.stage) {
+    where.candidates = {
+      some: { stage: filters.stage },
+    };
+  }
+
   return where;
 }
 
@@ -94,19 +105,31 @@ export async function updateJobStatus(id: number, status: JobStatus) {
 }
 
 export async function searchAvailableCandidates(jobId: number, query: string = "") {
-  const q = query.trim();
+  const keyword = query.trim();
+
   return prisma.candidate.findMany({
     where: {
       isDeleted: false,
       NOT: { jobLinks: { some: { jobOrderId: jobId } } },
-      ...(q ? { OR: [
-        { fullName: { contains: q, mode: "insensitive" } },
-        { phone: { contains: q, mode: "insensitive" } },
-        { email: { contains: q, mode: "insensitive" } },
-      ]} : {})
+      ...(keyword
+        ? {
+            OR: [
+              { fullName: { contains: keyword, mode: "insensitive" } },
+              { phone: { contains: keyword, mode: "insensitive" } },
+              { email: { contains: keyword, mode: "insensitive" } },
+            ],
+          }
+        : {}),
     },
     take: 10,
-    select: { id: true, fullName: true, currentPosition: true, currentCompany: true, industry: true, status: true },
-    orderBy: { fullName: "asc" }
+    select: {
+      id: true,
+      fullName: true,
+      currentPosition: true,
+      currentCompany: true,
+      industry: true,
+      status: true,
+    },
+    orderBy: { fullName: "asc" },
   });
 }

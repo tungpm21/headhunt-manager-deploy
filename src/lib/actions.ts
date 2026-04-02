@@ -2,27 +2,32 @@
 
 import { signIn } from "@/auth";
 import { AuthError } from "next-auth";
-import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { requireAdmin } from "@/lib/authz";
 import {
-  createCandidate,
-  updateCandidate,
-  softDeleteCandidate,
   addCandidateNote,
   addTagToCandidate,
+  checkDuplicate,
+  createCandidate,
   removeTagFromCandidate,
+  softDeleteCandidate,
+  updateCandidate,
 } from "@/lib/candidates";
-import { createTag } from "@/lib/tags";
 import {
   buildServerActionRateLimitKey,
   checkRateLimit,
 } from "@/lib/rate-limit";
-import { CreateCandidateInput, UpdateCandidateInput, CandidateStatus, CandidateSource, CandidateSeniority, Gender } from "@/types/candidate";
+import { createTag } from "@/lib/tags";
+import {
+  CandidateSeniority,
+  CandidateSource,
+  CandidateStatus,
+  CreateCandidateInput,
+  Gender,
+  UpdateCandidateInput,
+} from "@/types/candidate";
 
-// ============================================================
-// Auth
-// ============================================================
 export async function authenticate(
   prevState: string | undefined,
   formData: FormData
@@ -46,39 +51,30 @@ export async function authenticate(
           return "Đã có lỗi xảy ra.";
       }
     }
+
     throw error;
   }
 }
 
-// ============================================================
-// Helper: get current user ID from session
-// ============================================================
 async function getCurrentUserId(): Promise<number> {
-  const session = await auth();
-  if (!session?.user?.id) throw new Error("Unauthorized");
-  return Number(session.user.id);
+  const { userId } = await requireAdmin();
+  return userId;
 }
 
-/** Convert empty-string form values to undefined for optional enum fields */
 function enumVal<T>(value: FormDataEntryValue | null): T | undefined {
-  const s = value?.toString()?.trim();
-  return s ? (s as T) : undefined;
+  const normalized = value?.toString()?.trim();
+  return normalized ? (normalized as T) : undefined;
 }
 
 function strVal(value: FormDataEntryValue | null): string | undefined {
-  const s = value?.toString()?.trim();
-  return s || undefined;
+  const normalized = value?.toString()?.trim();
+  return normalized || undefined;
 }
 
-/** Convert empty-string form values to null for optional nullable DB fields */
 function strNull(value: FormDataEntryValue | null): string | null {
-  const s = value?.toString()?.trim();
-  return s || null;
+  const normalized = value?.toString()?.trim();
+  return normalized || null;
 }
-
-// ============================================================
-// Candidate Actions
-// ============================================================
 
 export async function createCandidateAction(
   prevState: { error?: string; success?: boolean } | undefined,
@@ -87,10 +83,10 @@ export async function createCandidateAction(
   try {
     const userId = await getCurrentUserId();
 
-    const tagIdsRaw = formData.getAll("tagIds");
-    const tagIds = tagIdsRaw
-      .map((v) => Number(v))
-      .filter((v) => !isNaN(v) && v > 0);
+    const tagIds = formData
+      .getAll("tagIds")
+      .map((value) => Number(value))
+      .filter((value) => !Number.isNaN(value) && value > 0);
 
     const yearsOfExpRaw = formData.get("yearsOfExp")?.toString().trim();
     const currentSalaryRaw = formData.get("currentSalary")?.toString().trim();
@@ -99,7 +95,7 @@ export async function createCandidateAction(
 
     const skillsRaw = formData.get("skills")?.toString().trim();
     const skills = skillsRaw
-      ? skillsRaw.split(",").map((s) => s.trim()).filter(Boolean)
+      ? skillsRaw.split(",").map((skill) => skill.trim()).filter(Boolean)
       : [];
 
     const input: CreateCandidateInput = {
@@ -125,18 +121,27 @@ export async function createCandidateAction(
       tagIds,
     };
 
-    // Required fields validation
     if (!input.fullName) return { error: "Họ và tên không được để trống." };
-    if (!input.email && !input.phone) return { error: "Vui lòng nhập Email hoặc Số điện thoại." };
+    if (!input.email && !input.phone) {
+      return { error: "Vui lòng nhập Email hoặc Số điện thoại." };
+    }
     if (!input.location) return { error: "Khu vực là bắt buộc." };
     if (!input.industry) return { error: "Ngành nghề là bắt buộc." };
     if (!input.status) return { error: "Trạng thái là bắt buộc." };
 
+    const duplicate = await checkDuplicate(input.email, input.phone);
+    if (duplicate) {
+      return {
+        error: `Đã có ứng viên trùng thông tin: ${duplicate.fullName}.`,
+      };
+    }
+
     const candidate = await createCandidate(input, userId);
     revalidatePath("/candidates");
+
     return { success: true, id: candidate.id };
-  } catch (e) {
-    console.error("createCandidateAction error:", e);
+  } catch (error) {
+    console.error("createCandidateAction error:", error);
     return { error: "Đã có lỗi xảy ra. Vui lòng thử lại." };
   }
 }
@@ -147,10 +152,12 @@ export async function updateCandidateAction(
   formData: FormData
 ): Promise<{ error?: string; success?: boolean }> {
   try {
-    const tagIdsRaw = formData.getAll("tagIds");
-    const tagIds = tagIdsRaw
-      .map((v) => Number(v))
-      .filter((v) => !isNaN(v) && v > 0);
+    await requireAdmin();
+
+    const tagIds = formData
+      .getAll("tagIds")
+      .map((value) => Number(value))
+      .filter((value) => !Number.isNaN(value) && value > 0);
 
     const yearsOfExpRaw = formData.get("yearsOfExp")?.toString().trim();
     const currentSalaryRaw = formData.get("currentSalary")?.toString().trim();
@@ -158,9 +165,12 @@ export async function updateCandidateAction(
     const dateOfBirthRaw = formData.get("dateOfBirth")?.toString().trim();
 
     const skillsRaw = formData.get("skills")?.toString().trim();
-    const skills = skillsRaw !== undefined
-      ? skillsRaw ? skillsRaw.split(",").map((s) => s.trim()).filter(Boolean) : []
-      : undefined;
+    const skills =
+      skillsRaw !== undefined
+        ? skillsRaw
+          ? skillsRaw.split(",").map((skill) => skill.trim()).filter(Boolean)
+          : []
+        : undefined;
 
     const input: UpdateCandidateInput = {
       fullName: strVal(formData.get("fullName")),
@@ -185,19 +195,28 @@ export async function updateCandidateAction(
       tagIds,
     };
 
-    // Required fields validation
     if (!input.fullName) return { error: "Họ và tên không được để trống." };
-    if (!input.email && !input.phone) return { error: "Vui lòng nhập Email hoặc Số điện thoại." };
+    if (!input.email && !input.phone) {
+      return { error: "Vui lòng nhập Email hoặc Số điện thoại." };
+    }
     if (!input.location) return { error: "Khu vực là bắt buộc." };
     if (!input.industry) return { error: "Ngành nghề là bắt buộc." };
     if (!input.status) return { error: "Trạng thái là bắt buộc." };
 
+    const duplicate = await checkDuplicate(input.email, input.phone, id);
+    if (duplicate) {
+      return {
+        error: `Đã có ứng viên trùng thông tin: ${duplicate.fullName}.`,
+      };
+    }
+
     await updateCandidate(id, input);
     revalidatePath(`/candidates/${id}`);
     revalidatePath("/candidates");
+
     return { success: true };
-  } catch (e) {
-    console.error("updateCandidateAction error:", e);
+  } catch (error) {
+    console.error("updateCandidateAction error:", error);
     return { error: "Đã có lỗi xảy ra. Vui lòng thử lại." };
   }
 }
@@ -209,16 +228,18 @@ export async function deleteCandidateAction(id: number): Promise<void> {
   redirect("/candidates");
 }
 
-export async function updateCandidateStatusAction(id: number, status: CandidateStatus) {
+export async function updateCandidateStatusAction(
+  id: number,
+  status: CandidateStatus
+) {
   try {
-    // update is imported from lib/candidates, but the type allows partial updates except tagIds handling has to be careful.
-    // In updateCandidate, it extracts tagIds and updates the rest.
+    await requireAdmin();
     await updateCandidate(id, { status } as UpdateCandidateInput);
     revalidatePath(`/candidates/${id}`);
     revalidatePath("/candidates");
     return { success: true };
-  } catch (e) {
-    console.error("updateCandidateStatusAction error:", e);
+  } catch (error) {
+    console.error("updateCandidateStatusAction error:", error);
     return { error: "Không thể cập nhật trạng thái." };
   }
 }
@@ -231,46 +252,52 @@ export async function addNoteAction(
   try {
     const userId = await getCurrentUserId();
     const content = String(formData.get("content") ?? "").trim();
-    if (!content) return { error: "Ghi chú không được để trống." };
+
+    if (!content) {
+      return { error: "Ghi chú không được để trống." };
+    }
 
     await addCandidateNote(candidateId, content, userId);
     revalidatePath(`/candidates/${candidateId}`);
     return { success: true };
-  } catch (e) {
-    console.error("addNoteAction error:", e);
+  } catch (error) {
+    console.error("addNoteAction error:", error);
     return { error: "Đã có lỗi xảy ra." };
   }
 }
 
 export async function createTagAction(name: string, color?: string) {
   try {
+    await requireAdmin();
     const tag = await createTag(name.trim(), color);
     revalidatePath("/candidates");
     return { tag };
-  } catch (e) {
-    console.error("createTagAction error:", e);
+  } catch (error) {
+    console.error("createTagAction error:", error);
     return { error: "Không thể tạo tag." };
   }
 }
 
 export async function addTagToCandidateAction(candidateId: number, tagId: number) {
   try {
+    await requireAdmin();
     await addTagToCandidate(candidateId, tagId);
     revalidatePath(`/candidates/${candidateId}`);
     return { success: true };
-  } catch (e) {
-    console.error("addTagToCandidateAction error:", e);
+  } catch (error) {
+    console.error("addTagToCandidateAction error:", error);
     return { error: "Không thể thêm tag." };
   }
 }
 
 export async function removeTagFromCandidateAction(candidateId: number, tagId: number) {
   try {
+    await requireAdmin();
     await removeTagFromCandidate(candidateId, tagId);
     revalidatePath(`/candidates/${candidateId}`);
     return { success: true };
-  } catch (e) {
-    console.error("removeTagFromCandidateAction error:", e);
+  } catch (error) {
+    console.error("removeTagFromCandidateAction error:", error);
     return { error: "Không thể bỏ tag." };
   }
 }

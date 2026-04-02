@@ -145,6 +145,38 @@ export async function getCandidateById(
   }) as Promise<CandidateWithRelations | null>;
 }
 
+export async function checkDuplicate(
+  email?: string,
+  phone?: string,
+  excludeId?: number
+) {
+  const normalizedEmail = email?.trim().toLowerCase();
+  const normalizedPhone = phone?.trim();
+
+  if (!normalizedEmail && !normalizedPhone) {
+    return null;
+  }
+
+  return prisma.candidate.findFirst({
+    where: {
+      isDeleted: false,
+      ...(excludeId ? { id: { not: excludeId } } : {}),
+      OR: [
+        ...(normalizedEmail
+          ? [{ email: { equals: normalizedEmail, mode: "insensitive" as const } }]
+          : []),
+        ...(normalizedPhone ? [{ phone: normalizedPhone }] : []),
+      ],
+    },
+    select: {
+      id: true,
+      fullName: true,
+      email: true,
+      phone: true,
+    },
+  });
+}
+
 // ============================================================
 // Create
 // ============================================================

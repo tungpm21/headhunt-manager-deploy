@@ -1,12 +1,14 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState, useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Tag } from "@prisma/client";
 import { createCandidateAction, updateCandidateAction } from "@/lib/actions";
+import { checkDuplicateAction } from "@/lib/candidate-actions";
 import { TagSelector } from "@/components/candidates/tag-selector";
 import { AvatarUpload } from "@/components/candidates/avatar-upload";
-import { Save, Loader2, Upload, FileText, X, Download } from "lucide-react";
+import { AlertTriangle, Save, Loader2, Upload, FileText, X, Download } from "lucide-react";
 
 type ActionState = { error?: string; success?: boolean; id?: number } | undefined;
 
@@ -14,6 +16,13 @@ interface CandidateFormProps {
   allTags: Tag[];
   initialData?: any;
 }
+
+type DuplicateWarning = {
+  id: number;
+  fullName: string;
+  email: string | null;
+  phone: string | null;
+};
 
 const LOCATIONS = ["TP.HCM", "Hà Nội", "Đà Nẵng", "Cần Thơ", "Khác"];
 const INDUSTRIES = [
@@ -46,7 +55,10 @@ export function CandidateForm({ allTags, initialData }: CandidateFormProps) {
     initialData?.tags?.map((t: any) => t.tagId) || []
   );
   const [cvFile, setCvFile] = useState<File | null>(null);
+  const [duplicateWarning, setDuplicateWarning] = useState<DuplicateWarning | null>(null);
   const cvInputRef = useRef<HTMLInputElement>(null);
+  const emailInputRef = useRef<HTMLInputElement>(null);
+  const phoneInputRef = useRef<HTMLInputElement>(null);
 
   const selectedTagIdsRef = useRef<number[]>([]);
   selectedTagIdsRef.current = selectedTagIds;
@@ -61,6 +73,19 @@ export function CandidateForm({ allTags, initialData }: CandidateFormProps) {
   }
 
   const [state, formAction, isPending] = useActionState<ActionState, FormData>(handleAction, undefined);
+
+  const handleDuplicateCheck = async () => {
+    const email = emailInputRef.current?.value.trim() || undefined;
+    const phone = phoneInputRef.current?.value.trim() || undefined;
+
+    if (!email && !phone) {
+      setDuplicateWarning(null);
+      return;
+    }
+
+    const duplicate = await checkDuplicateAction(email, phone, initialData?.id);
+    setDuplicateWarning(duplicate);
+  };
 
   // Redirect on success & auto-upload CV
   useEffect(() => {
@@ -110,12 +135,33 @@ export function CandidateForm({ allTags, initialData }: CandidateFormProps) {
           </div>
           <div>
             <FieldLabel htmlFor="phone" required>Số điện thoại</FieldLabel>
-            <input id="phone" name="phone" type="tel" defaultValue={initialData?.phone || ""} placeholder="0901234567" className={inputCls} />
+            <input ref={phoneInputRef} id="phone" name="phone" type="tel" defaultValue={initialData?.phone || ""} placeholder="0901234567" className={inputCls} onBlur={handleDuplicateCheck} />
           </div>
           <div>
             <FieldLabel htmlFor="email" required>Email</FieldLabel>
-            <input id="email" name="email" type="email" defaultValue={initialData?.email || ""} placeholder="email@example.com" className={inputCls} />
+            <input ref={emailInputRef} id="email" name="email" type="email" defaultValue={initialData?.email || ""} placeholder="email@example.com" className={inputCls} onBlur={handleDuplicateCheck} />
           </div>
+          {duplicateWarning && (
+            <div className="sm:col-span-2 lg:col-span-3 rounded-lg border border-warning/20 bg-warning/10 px-4 py-3 text-sm text-warning">
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                <div>
+                  <p>
+                    Có ứng viên trùng thông tin:
+                    <Link
+                      href={`/candidates/${duplicateWarning.id}`}
+                      className="ml-1 font-semibold underline underline-offset-2"
+                    >
+                      {duplicateWarning.fullName}
+                    </Link>
+                  </p>
+                  <p className="mt-1 text-xs text-warning/90">
+                    {duplicateWarning.email || duplicateWarning.phone}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
           <div className="sm:col-span-2 lg:col-span-3">
              <p className="text-xs text-muted mb-2 italic">* Cần nhập ít nhất Số điện thoại HOẶC Email</p>
           </div>

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/authz";
+import { checkDuplicate } from "@/lib/candidates";
 
 export async function searchOpenJobsAction(query = "") {
   try {
@@ -119,5 +120,19 @@ export async function bulkAddTag(candidateIds: number[], tagId: number) {
       success: false,
       message: "Không thể gắn tag hàng loạt.",
     };
+  }
+}
+
+export async function checkDuplicateAction(
+  email?: string,
+  phone?: string,
+  excludeId?: number
+) {
+  try {
+    await requireAdmin();
+    return await checkDuplicate(email, phone, excludeId);
+  } catch (error) {
+    console.error("checkDuplicateAction error:", error);
+    return null;
   }
 }

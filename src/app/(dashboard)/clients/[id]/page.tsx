@@ -50,14 +50,14 @@ export default async function ClientDetailPage({ params }: PageProps) {
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         {/* Left: General Info */}
         <div className="xl:col-span-2 space-y-6">
-          <div className="rounded-xl border border-border bg-white shadow-sm p-6">
+          <div className="rounded-xl border border-border bg-surface shadow-sm p-6">
             <ClientForm initialData={client} />
           </div>
         </div>
 
         {/* Right: Contacts */}
         <div className="space-y-6">
-          <div className="rounded-xl border border-border bg-white shadow-sm p-6 sticky top-6">
+          <div className="rounded-xl border border-border bg-surface shadow-sm p-6 sticky top-6">
             <div className="flex items-center justify-between mb-4 border-b border-border pb-3">
               <h2 className="text-base font-semibold text-foreground">Người liên hệ</h2>
               <span className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10">

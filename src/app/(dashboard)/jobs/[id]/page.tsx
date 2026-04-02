@@ -51,14 +51,14 @@ export default async function JobDetailPage({ params }: PageProps) {
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         {/* Left: General Info */}
         <div className="xl:col-span-2 space-y-6">
-          <div className="rounded-xl border border-border bg-white shadow-sm p-6">
+          <div className="rounded-xl border border-border bg-surface shadow-sm p-6">
             <JobForm initialData={job} clients={clients} />
           </div>
         </div>
 
         {/* Right: Pipeline */}
         <div className="space-y-6">
-          <div className="rounded-xl border border-border bg-white shadow-sm p-6 sticky top-6">
+          <div className="rounded-xl border border-border bg-surface shadow-sm p-6 sticky top-6">
             <div className="flex items-center justify-between mb-4 border-b border-border pb-3">
               <div>
                 <h2 className="text-base font-semibold text-foreground">Pipeline Ứng viên</h2>

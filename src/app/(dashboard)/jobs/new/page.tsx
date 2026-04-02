@@ -35,7 +35,7 @@ export default async function NewJobPage() {
       </div>
 
       {/* Form Card */}
-      <div className="rounded-xl border border-border bg-white shadow-sm p-6 sm:p-8">
+      <div className="rounded-xl border border-border bg-surface shadow-sm p-6 sm:p-8">
         <JobForm clients={clients} />
       </div>
     </div>

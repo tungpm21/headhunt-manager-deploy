@@ -2,8 +2,10 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { GlobalSearch } from "@/components/global-search";
 import { MobileSidebar } from "@/components/mobile-sidebar";
+import { NotificationBell } from "@/components/notification-bell";
 import { Sidebar } from "@/components/sidebar";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { getNotificationCounts } from "@/lib/notifications";
 
 export default async function DashboardLayout({
   children,
@@ -17,6 +19,14 @@ export default async function DashboardLayout({
   }
 
   const isAdmin = session.user.role === "ADMIN";
+  const counts = isAdmin
+    ? await getNotificationCounts()
+    : {
+        newApplications: 0,
+        pendingJobs: 0,
+        pendingEmployers: 0,
+        expiringJobs: 0,
+      };
 
   return (
     <div className="flex min-h-screen bg-background text-foreground">
@@ -28,6 +38,7 @@ export default async function DashboardLayout({
         <header className="flex h-16 shrink-0 items-center justify-between border-b border-border bg-surface px-6 md:justify-end">
           <div className="font-bold text-primary md:hidden">HM</div>
           <div className="flex items-center gap-3">
+            {isAdmin ? <NotificationBell counts={counts} /> : null}
             <ThemeToggle />
             <div className="hidden text-right sm:block">
               <p className="text-sm font-medium leading-none">{session.user.name}</p>

@@ -15,11 +15,14 @@ import {
   getNewApplicationsCount,
   getRecentApplications,
 } from "@/lib/moderation-actions";
+import { addDays } from "date-fns";
 import { PipelineSummary } from "@/components/dashboard/pipeline-summary";
+import { DeadlineAlerts } from "@/components/dashboard/deadline-alerts";
 
 export const metadata = { title: "Dashboard — Headhunt Manager" };
 
 export default async function DashboardPage() {
+  const now = new Date();
   const [
     candidateCount,
     clientCount,
@@ -29,6 +32,8 @@ export default async function DashboardPage() {
     recentCandidates,
     recentApps,
     pipelineStageCounts,
+    jobsClosingSoon,
+    subscriptionsEndingSoon,
   ] = await Promise.all([
     prisma.candidate.count(),
     prisma.client.count({ where: { isDeleted: false } }),
@@ -52,6 +57,45 @@ export default async function DashboardPage() {
           status: "OPEN",
         },
       },
+    }),
+    prisma.jobOrder.findMany({
+      where: {
+        status: "OPEN",
+        deadline: {
+          gte: now,
+          lte: addDays(now, 7),
+        },
+      },
+      select: {
+        id: true,
+        title: true,
+        deadline: true,
+        client: { select: { companyName: true } },
+      },
+      orderBy: { deadline: "asc" },
+      take: 5,
+    }),
+    prisma.subscription.findMany({
+      where: {
+        status: "ACTIVE",
+        endDate: {
+          gte: now,
+          lte: addDays(now, 14),
+        },
+      },
+      select: {
+        id: true,
+        tier: true,
+        endDate: true,
+        employer: {
+          select: {
+            id: true,
+            companyName: true,
+          },
+        },
+      },
+      orderBy: { endDate: "asc" },
+      take: 5,
     }),
   ]);
 
@@ -132,6 +176,24 @@ export default async function DashboardPage() {
         stageData={pipelineStageCounts.map((item) => ({
           stage: item.stage,
           count: item._count.id,
+        }))}
+      />
+
+      <DeadlineAlerts
+        jobs={jobsClosingSoon
+          .filter((job) => job.deadline)
+          .map((job) => ({
+            id: job.id,
+            title: job.title,
+            deadline: job.deadline as Date,
+            companyName: job.client.companyName,
+          }))}
+        subscriptions={subscriptionsEndingSoon.map((subscription) => ({
+          id: subscription.id,
+          tier: subscription.tier,
+          endDate: subscription.endDate,
+          employerId: subscription.employer.id,
+          companyName: subscription.employer.companyName,
         }))}
       />
 

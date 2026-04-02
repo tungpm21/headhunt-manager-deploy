@@ -1,78 +1,89 @@
 {
-  "updated_at": "2026-04-01T22:18:42+07:00",
+  "updated_at": "2026-04-02T20:36:00+07:00",
   "working_on": {
-    "feature": "Database optimization for candidate detail",
-    "task": "Saved project memory after implementing and splitting multi-CV, language, and work history changes into clean commits",
-    "status": "saved",
-    "notes": "Feature is implemented and verified. Changes were split into commits e81e65c and 506413b. The next session can continue with manual browser QA or the next planned feature."
+    "feature": "Admin Employer & Job Posting Management",
+    "task": "Plan created, ready to implement Phase 1 (Quick Links)",
+    "status": "planning_complete",
+    "notes": "PLAN-admin-employer-mgmt.md written. 4 phases: (1) FDIWork links, (2) Employer detail page, (3) Company page editor, (4) UX polish. No schema changes needed."
   },
   "pending_tasks": [
     {
-      "priority": "MEDIUM",
-      "task": "Manual browser review of candidate detail tabs and candidate upload flow on real UI"
+      "priority": "HIGH",
+      "task": "Phase 1 — Add FDIWork links: Application table job title → /viec-lam/[slug], Moderation page job card → /viec-lam/[slug], Employers list → /cong-ty/[slug]",
+      "plan_ref": "docs/PLAN-admin-employer-mgmt.md#phase-1"
     },
     {
       "priority": "MEDIUM",
-      "task": "Decide whether to retire legacy /api/candidates/[id]/cv after full migration to CandidateCV"
+      "task": "Phase 2 — Build /employers/[id] detail page with 3 tabs (Job Postings, Subscription, Info)",
+      "plan_ref": "docs/PLAN-admin-employer-mgmt.md#phase-2"
+    },
+    {
+      "priority": "MEDIUM",
+      "task": "Phase 3 — Build /employers/[id]/edit form to edit company info (description, logo, website...)",
+      "plan_ref": "docs/PLAN-admin-employer-mgmt.md#phase-3"
     },
     {
       "priority": "LOW",
-      "task": "Consider changing DATABASE_URL sslmode to verify-full to match the pg warning"
+      "task": "Phase 4 — UX polish: move Link Client from employers list to detail page, tooltip, sidebar rename",
+      "plan_ref": "docs/PLAN-admin-employer-mgmt.md#phase-4"
+    },
+    {
+      "priority": "LOW",
+      "task": "Manual browser review of candidate detail tabs and candidate upload flow on real UI"
+    },
+    {
+      "priority": "LOW",
+      "task": "Consider changing DATABASE_URL sslmode to verify-full to silence pg SSL warning"
     }
   ],
   "recent_changes": [
     {
-      "timestamp": "2026-04-01T21:25:00+07:00",
-      "type": "database",
-      "description": "Added CandidateCV, CandidateLanguage, WorkExperience and applied Prisma migration add-cv-language-experience",
-      "files": [
-        "prisma/schema.prisma",
-        "prisma/migrations/20260401142201_add_cv_language_experience/migration.sql",
-        "prisma/migrations/migrate-cv-data.ts",
-        "src/lib/candidate-cv.ts",
-        "src/lib/candidate-language.ts",
-        "src/lib/work-experience.ts",
-        "src/lib/candidate-detail-actions.ts",
-        "src/lib/candidates.ts",
-        "src/types/candidate.ts"
-      ]
-    },
-    {
-      "timestamp": "2026-04-01T21:40:00+07:00",
-      "type": "ui",
-      "description": "Upgraded candidate detail page with tabs for multi-CV, languages, and work history, and added candidate language filtering",
-      "files": [
-        "src/app/(dashboard)/candidates/[id]/page.tsx",
-        "src/app/(dashboard)/candidates/page.tsx",
-        "src/components/candidates/candidate-detail-tabs.tsx",
-        "src/components/candidates/cv-list.tsx",
-        "src/components/candidates/language-list.tsx",
-        "src/components/candidates/work-history.tsx",
-        "src/components/candidates/candidate-filters.tsx"
-      ]
-    },
-    {
-      "timestamp": "2026-04-01T22:05:00+07:00",
-      "type": "seed-docs",
-      "description": "Seeded demo CV, language, and work history data and refreshed architecture, codebase map, and plan docs",
+      "timestamp": "2026-04-02T05:30:00+07:00",
+      "type": "fix",
+      "description": "Fixed UTF-8 double-encoding mojibake in seed.ts Application records. Re-seeded DB.",
+      "commit": "80542a0",
       "files": [
         "prisma/seed.ts",
-        "ARCHITECTURE.md",
-        "CODEBASE.md",
-        "docs/PLAN-db-optimization.md",
-        ".brain/brain.json"
+        "src/lib/moderation-actions.ts"
       ]
     },
     {
-      "timestamp": "2026-04-01T22:18:42+07:00",
-      "type": "vcs",
-      "description": "Split DB optimization into two clean commits and saved handover context",
+      "timestamp": "2026-04-02T18:00:00+07:00",
+      "type": "feature",
+      "description": "Application Detail View: expandable rows in /moderation/applications showing 3-column panel (applicant info, job details, cover letter + CV download)",
+      "commit": "46772a1",
       "files": [
-        "prisma/schema.prisma",
-        "src/lib/candidate-detail-actions.ts",
-        "src/components/candidates/candidate-detail-tabs.tsx",
-        ".brain/session.json",
-        ".brain/handover.md"
+        "src/app/(dashboard)/moderation/applications/application-table.tsx",
+        "src/app/(dashboard)/moderation/applications/page.tsx",
+        "src/lib/moderation-actions.ts"
+      ]
+    },
+    {
+      "timestamp": "2026-04-02T18:00:00+07:00",
+      "type": "ui",
+      "description": "Option A Dashboard Polish: replaced hardcoded bg-white/text-gray-* with design tokens (bg-surface, text-foreground, text-muted), added empty state for jobs list, added ThemeToggle (dark/light mode button in header)",
+      "commit": "46772a1",
+      "files": [
+        "src/app/(dashboard)/dashboard/page.tsx",
+        "src/app/(dashboard)/layout.tsx",
+        "src/components/theme-toggle.tsx"
+      ]
+    },
+    {
+      "timestamp": "2026-04-02T18:30:00+07:00",
+      "type": "fix",
+      "description": "Fixed remaining triple-encoded Vietnamese text in seed.ts job posting data (Windows-1252 smart quotes). Re-seeded all 22 job postings and 2 applications.",
+      "commit": "dd5b0eb",
+      "files": [
+        "prisma/seed.ts"
+      ]
+    },
+    {
+      "timestamp": "2026-04-02T20:35:00+07:00",
+      "type": "docs",
+      "description": "Created PLAN-admin-employer-mgmt.md — full 4-phase plan for employer detail page, company page editor, and FDIWork quick links",
+      "files": [
+        "docs/PLAN-admin-employer-mgmt.md"
       ]
     }
   ],
@@ -82,42 +93,40 @@
       "reason": "The old viewer and legacy flows can keep working while the new CandidateCV model rolls out"
     },
     {
-      "decision": "Store languages in CandidateLanguage relation rows instead of a String[] field on Candidate",
+      "decision": "Store languages in CandidateLanguage relation rows instead of a String[] field",
       "reason": "Language level and certificate must be stored alongside the language name"
     },
     {
-      "decision": "Use public stable PDF URLs in seed data instead of checking binary CV files into the repo",
-      "reason": "Demo preview works without adding binary assets to version control"
+      "decision": "Use CSS design tokens (bg-surface, text-foreground, text-muted) across all dashboard components",
+      "reason": "Dark mode support requires semantic tokens, not hardcoded Tailwind color utilities like bg-white or text-gray-900"
     },
     {
-      "decision": "Split the implementation into code/data and docs/context commits",
-      "reason": "History stays easier to review and future cherry-picking is safer"
+      "decision": "Application detail view uses expandable table rows (not a modal or side drawer)",
+      "reason": "Keeps admin flow in-page, consistent with the moderation queue UX, easier to scan across multiple applications"
+    },
+    {
+      "decision": "Admin employer management: no schema changes needed — Employer model already has all required fields (slug, description, logo, website, etc.)",
+      "reason": "Only UI + server actions need to be built. Simplifies the implementation scope significantly."
     }
   ],
   "verification": [
     {
-      "command": "npx prisma migrate dev --name add-cv-language-experience",
-      "result": "passed"
-    },
-    {
-      "command": "npx prisma generate",
-      "result": "passed"
+      "command": "npm run build",
+      "result": "passed",
+      "timestamp": "2026-04-02T18:30:00+07:00",
+      "notes": "30/30 pages, 0 TypeScript errors, commit 46772a1"
     },
     {
       "command": "npm run build",
-      "result": "passed"
-    },
-    {
-      "command": "npx tsx prisma/migrations/migrate-cv-data.ts",
-      "result": "passed"
+      "result": "passed",
+      "timestamp": "2026-04-02T20:00:00+07:00",
+      "notes": "30/30 pages, 0 TypeScript errors, commit dd5b0eb"
     },
     {
       "command": "npx prisma db seed",
-      "result": "passed"
-    },
-    {
-      "command": "npx eslint prisma/seed.ts and changed candidate detail files",
-      "result": "passed"
+      "result": "passed",
+      "timestamp": "2026-04-02T18:30:00+07:00",
+      "notes": "22 job postings, 2 applications created with correct Vietnamese encoding"
     }
   ]
 }

@@ -2,7 +2,7 @@
   "project": {
     "name": "Headhunt Manager (FDIWork)",
     "type": "Next.js 16 App Router, Prisma ORM, PostgreSQL, TailwindCSS",
-    "status": "CRM MVP complete, FDIWork core flows implemented, security hardening applied, candidate detail DB optimization implemented"
+    "status": "CRM MVP complete + FDIWork public site + Application Detail View + Dark Mode + Admin Employer Mgmt plan drafted"
   },
   "docs_index": {
     "codebase_map": "CODEBASE.md",
@@ -12,7 +12,8 @@
     "fdiwork_design": "docs/fdiwork/DESIGN_FDIWORK.md",
     "db_optimization_plan": "docs/PLAN-db-optimization.md",
     "audit_report": "docs/reports/audit_2026-04-01.md",
-    "workspace_rules": ".agent/rules/headhunt-rules.md"
+    "workspace_rules": ".agent/rules/headhunt-rules.md",
+    "admin_employer_plan": "docs/PLAN-admin-employer-mgmt.md"
   },
   "features": [
     "Authentication (NextAuth.js + custom JWT for employer portal)",
@@ -22,7 +23,9 @@
     "FDIWork Public Website (homepage, jobs, companies, apply)",
     "Employer Portal (register, dashboard, manage job postings)",
     "Admin Moderation (approve/reject jobs, employers, packages)",
-    "CRM Integration (import FDIWork applications to CRM, employer-client linking)"
+    "CRM Integration (import FDIWork applications to CRM, employer-client linking)",
+    "Application Detail View (expandable rows: applicant info + job details + cover letter)",
+    "Dashboard Dark Mode (ThemeToggle component, design tokens replacing hardcoded bg-white)"
   ],
   "database_schema": {
     "summary": "ATS + employer portal + public job board",
@@ -44,7 +47,7 @@
       "JobPosting",
       "Application"
     ],
-    "relationships_explained": "A Candidate can now have many CV files, many language entries, and many work experience records. Legacy Candidate.cvFileUrl and Candidate.cvFileName stay mirrored to the primary CV during the transition.",
+    "relationships_explained": "Employer → JobPosting (1:N), Employer → Subscription (1:1), Employer → Client (optional 1:1 CRM link via clientId). JobPosting has slug for public FDIWork URL. Application links JobPosting ↔ Candidate.",
     "notable_constraints": [
       "Application has unique pair (jobPostingId, email)",
       "Employer has unique email and unique clientId link",
@@ -57,11 +60,16 @@
     "Public routes use Vietnamese slugs: /viec-lam, /cong-ty, /ung-tuyen",
     "Admin protection must exist at route, UI, and server action layers",
     "Candidate primary CV stays mirrored to legacy Candidate.cvFileUrl and Candidate.cvFileName during migration",
-    "Candidate import supports .xlsx and .csv only"
+    "Candidate import supports .xlsx and .csv only",
+    "Dashboard uses CSS design tokens (bg-surface, text-foreground, text-muted) — NO hardcoded bg-white or text-gray-*",
+    "Client components in /moderation/applications must receive serialized data (JSON.parse(JSON.stringify(...)))"
   ],
   "security_notes": [
     "EMPLOYER_JWT_SECRET is required and has no default fallback",
     "Basic rate limiting is applied to CRM login, employer auth, public upload, and public apply",
     "xlsx was removed from the codebase because of a high severity advisory"
+  ],
+  "known_issues_fixed": [
+    "seed.ts triple-encoding bug: UTF-8 → Windows-1252 misread → UTF-8 re-encode. Fixed with 3-pass script targeting C0-FF control chars and Windows-1252 smart quote chars (0x80-0x9F). DB was re-seeded."
   ]
 }

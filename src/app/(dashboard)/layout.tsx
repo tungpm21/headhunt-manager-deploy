@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { Sidebar } from "@/components/sidebar";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { MobileSidebar } from "@/components/mobile-sidebar";
 
 export default async function DashboardLayout({
   children,
@@ -16,7 +17,8 @@ export default async function DashboardLayout({
 
   return (
     <div className="flex min-h-screen bg-background text-foreground">
-      <Sidebar isAdmin={session.user.role === "ADMIN"} />
+      <MobileSidebar isAdmin={session.user.role === "ADMIN"} />
+      <Sidebar isAdmin={session.user.role === "ADMIN"} className="hidden md:flex" />
       <div className="flex h-screen flex-1 flex-col overflow-hidden">
         <header className="flex h-16 shrink-0 items-center justify-between border-b border-border bg-surface px-6 md:justify-end">
           <div className="font-bold text-primary md:hidden">HM</div>

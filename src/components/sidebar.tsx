@@ -26,17 +26,28 @@ const navigation = [
 ];
 
 const fdiworkNav = [
-  { name: "Duyệt bài đăng", href: "/moderation", icon: ShieldCheck },
+  { name: "Bài đăng", href: "/moderation", icon: ShieldCheck },
   { name: "Applications", href: "/moderation/applications", icon: FileDown },
   { name: "Nhà tuyển dụng", href: "/employers", icon: UserCog },
   { name: "Gói dịch vụ", href: "/packages", icon: Package },
 ];
 
-export function Sidebar({ isAdmin }: { isAdmin: boolean }) {
+export function Sidebar({
+  isAdmin,
+  className,
+}: {
+  isAdmin: boolean;
+  className?: string;
+}) {
   const pathname = usePathname();
 
   return (
-    <aside className="sticky top-0 hidden h-screen w-64 flex-col border-r border-border bg-surface text-foreground md:flex">
+    <aside
+      className={cn(
+        "sticky top-0 flex h-screen w-64 flex-col border-r border-border bg-surface text-foreground",
+        className
+      )}
+    >
       <div className="flex h-16 items-center border-b border-border px-6">
         <span className="text-2xl font-bold tracking-tight text-primary">HM</span>
         <span className="ml-3 truncate font-semibold tracking-tight text-foreground">

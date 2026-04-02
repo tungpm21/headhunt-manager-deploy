@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import { UserPlus } from "lucide-react";
 import { getCandidates } from "@/lib/candidates";
 import { getAllTags } from "@/lib/tags";
-import { CandidateTable } from "@/components/candidates/candidate-table";
+import { CandidateTableWrapper } from "@/components/candidates/candidate-table-wrapper";
 import { CandidateFiltersPanel } from "@/components/candidates/candidate-filters";
 import { Pagination } from "@/components/ui/pagination";
 import { CandidateStatus, CandidateSeniority } from "@/types/candidate";
@@ -77,7 +77,7 @@ export default async function CandidatesPage({ searchParams }: PageProps) {
       </Suspense>
 
       {/* Table */}
-      <CandidateTable candidates={result.candidates} />
+      <CandidateTableWrapper candidates={result.candidates} />
 
       {/* Pagination */}
       <Suspense>

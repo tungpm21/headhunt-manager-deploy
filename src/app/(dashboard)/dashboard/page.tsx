@@ -39,7 +39,7 @@ export default async function DashboardPage() {
           <Link href="/import" className="inline-flex items-center gap-2 bg-white/20 hover:bg-white/30 transition px-4 py-2.5 rounded-lg text-sm font-medium">
             <FileSpreadsheet className="h-4 w-4" /> Import Data
           </Link>
-          <Link href="/jobs/new" className="inline-flex items-center gap-2 bg-white text-primary hover:bg-white/90 transition px-4 py-2.5 rounded-lg text-sm font-medium">
+          <Link href="/jobs/new" className="inline-flex items-center gap-2 rounded-lg bg-surface px-4 py-2.5 text-sm font-medium text-foreground transition hover:bg-background">
             <Briefcase className="h-4 w-4" /> Tạo Job Mới
           </Link>
         </div>

@@ -248,7 +248,7 @@ export function ApplicationTable({ applications }: { applications: ApplicationIt
                                                                     href={`/viec-lam/${app.jobPosting.slug}`}
                                                                     target="_blank"
                                                                     rel="noopener noreferrer"
-                                                                    className="mt-1 inline-flex items-center gap-1.5 text-sm font-medium text-primary transition hover:underline"
+                                                                    className="mt-2 inline-flex items-center gap-1.5 text-sm font-medium text-primary transition hover:underline"
                                                                 >
                                                                     <ExternalLink className="h-3.5 w-3.5" />
                                                                     Xem trên FDIWork

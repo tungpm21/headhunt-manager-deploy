@@ -13,7 +13,7 @@ interface PageProps {
 }
 
 export const metadata = {
-  title: "Thung rac ung vien - Headhunt Manager",
+  title: "Thùng rác ứng viên - Headhunt Manager",
 };
 
 export default async function CandidatesTrashPage({ searchParams }: PageProps) {
@@ -38,13 +38,13 @@ export default async function CandidatesTrashPage({ searchParams }: PageProps) {
             className="mb-4 inline-flex items-center gap-2 text-sm font-medium text-muted transition hover:text-foreground"
           >
             <ArrowLeft className="h-4 w-4" />
-            Quay lai danh sach ung vien
+            Quay lại danh sách ứng viên
           </Link>
-          <h1 className="text-2xl font-bold text-foreground">Thung rac ung vien</h1>
+          <h1 className="text-2xl font-bold text-foreground">Thùng rác ứng viên</h1>
           <p className="mt-1 text-sm text-muted">
             {result.total > 0
-              ? `${result.total} ung vien dang nam trong thung rac`
-              : "Kh\u00f4ng c\u00f3 \u1ee9ng vi\u00ean n\u00e0o \u0111\u00e3 x\u00f3a"}
+              ? `${result.total} ứng viên đang nằm trong thùng rác`
+              : "Không có ứng viên nào đã xóa"}
           </p>
         </div>
 
@@ -55,7 +55,7 @@ export default async function CandidatesTrashPage({ searchParams }: PageProps) {
               type="text"
               name="search"
               defaultValue={search ?? ""}
-              placeholder="Tim theo ten, email, SDT..."
+              placeholder="Tìm theo tên, email, SĐT..."
               className="w-full rounded-lg border border-border bg-background py-2 pl-9 pr-3 text-sm text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
             />
           </div>
@@ -63,7 +63,7 @@ export default async function CandidatesTrashPage({ searchParams }: PageProps) {
             type="submit"
             className="rounded-lg border border-border bg-surface px-4 py-2 text-sm font-medium text-foreground transition hover:bg-background"
           >
-            Tim
+            Tìm
           </button>
         </form>
       </div>
@@ -73,9 +73,9 @@ export default async function CandidatesTrashPage({ searchParams }: PageProps) {
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
             <ArchiveRestore className="h-7 w-7" />
           </div>
-          <p className="mt-4 font-medium text-foreground">Thung rac dang trong</p>
+          <p className="mt-4 font-medium text-foreground">Thùng rác đang trống</p>
           <p className="mt-1 text-sm text-muted">
-            Khi xoa mem ung vien, ban co the khoi phuc lai tu trang nay.
+            Khi xóa mềm ứng viên, bạn có thể khôi phục lại từ trang này.
           </p>
         </div>
       ) : (
@@ -97,14 +97,14 @@ export default async function CandidatesTrashPage({ searchParams }: PageProps) {
                   </div>
 
                   <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted">
-                    <span>{candidate.email || "Khong co email"}</span>
-                    <span>{candidate.phone || "Khong co SDT"}</span>
-                    <span>{candidate.currentPosition || "Chua co vi tri hien tai"}</span>
-                    <span>{candidate.location || "Chua co khu vuc"}</span>
+                    <span>{candidate.email || "Không có email"}</span>
+                    <span>{candidate.phone || "Không có SĐT"}</span>
+                    <span>{candidate.currentPosition || "Chưa có vị trí hiện tại"}</span>
+                    <span>{candidate.location || "Chưa có khu vực"}</span>
                   </div>
 
                   <p className="mt-2 text-xs text-muted">
-                    Da xoa luc {candidate.updatedAt.toLocaleString("vi-VN")}
+                    Đã xóa lúc {candidate.updatedAt.toLocaleString("vi-VN")}
                   </p>
                 </div>
 

@@ -159,7 +159,17 @@ export function ApplicationTable({ applications }: { applications: ApplicationIt
                                     {isExpanded && (
                                         <tr className="bg-primary/[0.03]">
                                             <td colSpan={7} className="p-0">
-                                                <div className="px-6 py-5 animate-in slide-in-from-top-1 duration-200">
+                                                <div className="relative px-6 py-5 animate-in slide-in-from-top-1 duration-200">
+                                                    <Link
+                                                        href={`/viec-lam/${app.jobPosting.slug}`}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        onClick={(e) => e.stopPropagation()}
+                                                        className="absolute top-4 right-6 inline-flex items-center gap-1.5 rounded-lg border border-primary/20 bg-primary/5 px-3 py-1.5 text-xs font-medium text-primary transition hover:bg-primary/10"
+                                                    >
+                                                        <ExternalLink className="h-3.5 w-3.5" />
+                                                        Xem trên FDIWork
+                                                    </Link>
                                                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                                                         {/* Left: Applicant Info */}
                                                         <div className="space-y-4">
@@ -244,15 +254,7 @@ export function ApplicationTable({ applications }: { applications: ApplicationIt
                                                                         {app.jobPosting.industry}
                                                                     </span>
                                                                 )}
-                                                                <Link
-                                                                    href={`/viec-lam/${app.jobPosting.slug}`}
-                                                                    target="_blank"
-                                                                    rel="noopener noreferrer"
-                                                                    className="mt-2 inline-flex items-center gap-1.5 text-sm font-medium text-primary transition hover:underline"
-                                                                >
-                                                                    <ExternalLink className="h-3.5 w-3.5" />
-                                                                    Xem trên FDIWork
-                                                                </Link>
+
                                                             </div>
                                                         </div>
 

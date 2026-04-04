@@ -1,12 +1,21 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Plus, Search, UserPlus, X } from "lucide-react";
+import { Loader2, Plus, Search, Users, X } from "lucide-react";
 import {
-  assignCandidateAction,
+  assignMultipleCandidatesAction,
   searchAvailableCandidatesAction,
 } from "@/lib/job-actions";
+
+type CandidateSeniority =
+  | "INTERN"
+  | "JUNIOR"
+  | "MID_LEVEL"
+  | "SENIOR"
+  | "LEAD"
+  | "MANAGER"
+  | "DIRECTOR";
 
 type SearchCandidate = {
   id: number;
@@ -15,17 +24,59 @@ type SearchCandidate = {
   currentCompany: string | null;
   industry: string | null;
   status: string;
+  skills: string[];
+  level: CandidateSeniority | null;
+  expectedSalary: number | null;
 };
 
-export function AssignCandidateModal({ jobId }: { jobId: number }) {
+const seniorityLabels: Record<CandidateSeniority, string> = {
+  INTERN: "Intern",
+  JUNIOR: "Junior",
+  MID_LEVEL: "Mid-level",
+  SENIOR: "Senior",
+  LEAD: "Lead",
+  MANAGER: "Manager",
+  DIRECTOR: "Director",
+};
+
+function formatSalary(value: number | null) {
+  if (value == null) {
+    return "Chưa cập nhật lương";
+  }
+
+  return `${value.toLocaleString("vi-VN")} triệu/tháng`;
+}
+
+export function AssignCandidateModal({
+  jobId,
+  jobTitle,
+  requiredSkills,
+}: {
+  jobId: number;
+  jobTitle: string;
+  requiredSkills: string[];
+}) {
   const router = useRouter();
+  const modalRef = useRef<HTMLDivElement>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [level, setLevel] = useState<CandidateSeniority | "">("");
+  const [skillsInput, setSkillsInput] = useState(requiredSkills.join(", "));
+  const [maxSalary, setMaxSalary] = useState("");
   const [results, setResults] = useState<SearchCandidate[]>([]);
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [message, setMessage] = useState<string | null>(null);
   const [isSearching, startSearch] = useTransition();
   const [isAssigning, startAssign] = useTransition();
-  const modalRef = useRef<HTMLDivElement>(null);
+
+  const parsedSkills = useMemo(
+    () => skillsInput.split(",").map((skill) => skill.trim()).filter(Boolean),
+    [skillsInput]
+  );
+
+  useEffect(() => {
+    setSkillsInput(requiredSkills.join(", "));
+  }, [requiredSkills]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -42,31 +93,55 @@ export function AssignCandidateModal({ jobId }: { jobId: number }) {
   }, [isOpen]);
 
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen) {
+      return;
+    }
 
     const timer = window.setTimeout(() => {
       startSearch(async () => {
-        const data = await searchAvailableCandidatesAction(jobId, query);
-        setResults(data as SearchCandidate[]);
+        const data = await searchAvailableCandidatesAction(jobId, {
+          query,
+          level: level || undefined,
+          skills: parsedSkills,
+          maxSalary: maxSalary ? Number(maxSalary) : null,
+        });
+
+        const typedData = data as SearchCandidate[];
+        setResults(typedData);
+        setSelectedIds((current) =>
+          current.filter((candidateId) =>
+            typedData.some((candidate) => candidate.id === candidateId)
+          )
+        );
       });
     }, 300);
 
     return () => window.clearTimeout(timer);
-  }, [isOpen, jobId, query]);
+  }, [isOpen, jobId, level, maxSalary, parsedSkills, query]);
 
-  const handleAssign = (candidateId: number) => {
+  const toggleSelected = (candidateId: number) => {
+    setSelectedIds((current) =>
+      current.includes(candidateId)
+        ? current.filter((id) => id !== candidateId)
+        : [...current, candidateId]
+    );
+  };
+
+  const handleAssignSelected = () => {
     startAssign(async () => {
       setMessage(null);
-      const result = await assignCandidateAction(jobId, candidateId);
+      const result = await assignMultipleCandidatesAction(jobId, selectedIds);
 
       if (!result.success) {
-        setMessage(result.message ?? "Có lỗi xảy ra.");
+        setMessage(result.message ?? "Không thể gán ứng viên vào job.");
         return;
       }
 
-      setResults((currentResults) =>
-        currentResults.filter((candidate) => candidate.id !== candidateId)
+      setResults((current) =>
+        current.filter((candidate) => !selectedIds.includes(candidate.id))
       );
+      setSelectedIds([]);
+      setMessage(result.message ?? null);
       setIsOpen(false);
       router.refresh();
     });
@@ -87,10 +162,13 @@ export function AssignCandidateModal({ jobId }: { jobId: number }) {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div
             ref={modalRef}
-            className="flex max-h-[85vh] w-full max-w-lg flex-col overflow-hidden rounded-xl border border-border bg-surface shadow-xl"
+            className="flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-xl border border-border bg-surface shadow-xl"
           >
-            <div className="flex items-center justify-between border-b border-border bg-background px-4 py-4">
-              <h3 className="font-semibold text-foreground">Gán ứng viên vào Job</h3>
+            <div className="flex items-start justify-between gap-3 border-b border-border bg-background px-5 py-4">
+              <div>
+                <h3 className="font-semibold text-foreground">Gán ứng viên vào job</h3>
+                <p className="mt-1 text-sm text-muted">{jobTitle}</p>
+              </div>
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}
@@ -100,7 +178,7 @@ export function AssignCandidateModal({ jobId }: { jobId: number }) {
               </button>
             </div>
 
-            <div className="border-b border-border px-4 py-4">
+            <div className="space-y-4 border-b border-border px-5 py-4">
               <div className="relative">
                 <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                   <Search className="h-4 w-4 text-muted" />
@@ -114,58 +192,159 @@ export function AssignCandidateModal({ jobId }: { jobId: number }) {
                   autoFocus
                 />
               </div>
-              {message ? (
-                <p className="mt-2 text-sm text-danger">{message}</p>
+
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                <select
+                  value={level}
+                  onChange={(event) => setLevel(event.target.value as CandidateSeniority | "")}
+                  className="rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
+                >
+                  <option value="">Tất cả cấp bậc</option>
+                  {Object.entries(seniorityLabels).map(([value, label]) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+
+                <input
+                  type="text"
+                  value={skillsInput}
+                  onChange={(event) => setSkillsInput(event.target.value)}
+                  placeholder="Node.js, TypeScript..."
+                  className="rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary/30"
+                />
+
+                <input
+                  type="number"
+                  min="0"
+                  value={maxSalary}
+                  onChange={(event) => setMaxSalary(event.target.value)}
+                  placeholder="Lương tối đa (triệu)"
+                  className="rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary/30"
+                />
+              </div>
+
+              {requiredSkills.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {requiredSkills.map((skill) => (
+                    <span
+                      key={skill}
+                      className="rounded-full border border-primary/20 bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary"
+                    >
+                      {skill}
+                    </span>
+                  ))}
+                </div>
               ) : null}
+
+              {message ? <p className="text-sm text-danger">{message}</p> : null}
             </div>
 
-            <div className="flex-1 overflow-y-auto bg-background/60 p-4">
+            <div className="flex-1 overflow-y-auto bg-background/60 px-5 py-4">
               {isSearching ? (
-                <div className="flex justify-center py-8">
+                <div className="flex justify-center py-10">
                   <Loader2 className="h-6 w-6 animate-spin text-muted" />
                 </div>
               ) : results.length === 0 ? (
-                <div className="py-8 text-center text-sm text-muted">
-                  {query
-                    ? "Không tìm thấy ứng viên phù hợp chưa được gán."
-                    : "Nhập từ khóa để tìm ứng viên."}
+                <div className="rounded-xl border border-dashed border-border py-10 text-center text-sm text-muted">
+                  Không tìm thấy ứng viên phù hợp chưa được gán.
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {results.map((candidate) => (
-                    <div
-                      key={candidate.id}
-                      className="flex items-center justify-between rounded-lg border border-border bg-surface p-3 shadow-sm"
-                    >
-                      <div className="min-w-0 pr-3">
-                        <div className="truncate text-sm font-medium text-foreground">
-                          {candidate.fullName}
-                        </div>
-                        <div className="mt-0.5 text-xs text-muted">
-                          {candidate.currentPosition
-                            ? `${candidate.currentPosition} tại ${candidate.currentCompany || "?"}`
-                            : candidate.industry || "Chưa cập nhật ngành nghề"}
-                        </div>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => handleAssign(candidate.id)}
-                        disabled={isAssigning}
-                        className="inline-flex items-center justify-center rounded-md border border-border bg-background px-2.5 py-1.5 text-xs font-semibold text-foreground transition hover:bg-surface disabled:opacity-50"
+                  {results.map((candidate) => {
+                    const isSelected = selectedIds.includes(candidate.id);
+
+                    return (
+                      <label
+                        key={candidate.id}
+                        className={`flex cursor-pointer gap-4 rounded-xl border p-4 transition ${
+                          isSelected
+                            ? "border-primary/40 bg-primary/5"
+                            : "border-border bg-surface hover:border-primary/20"
+                        }`}
                       >
-                        {isAssigning ? (
-                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                        ) : (
-                          <>
-                            <UserPlus className="mr-1 h-3.5 w-3.5 text-primary" />
-                            Gán
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  ))}
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => toggleSelected(candidate.id)}
+                          className="mt-1 h-4 w-4 rounded border-border text-primary focus:ring-primary/30"
+                        />
+
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <div className="truncate text-sm font-semibold text-foreground">
+                                {candidate.fullName}
+                              </div>
+                              <div className="mt-1 text-sm text-muted">
+                                {candidate.currentPosition
+                                  ? `${candidate.currentPosition}${
+                                      candidate.currentCompany
+                                        ? ` tại ${candidate.currentCompany}`
+                                        : ""
+                                    }`
+                                  : candidate.industry || "Chưa cập nhật vị trí hiện tại"}
+                              </div>
+                            </div>
+
+                            <div className="text-right">
+                              <div className="text-sm font-medium text-foreground">
+                                {formatSalary(candidate.expectedSalary)}
+                              </div>
+                              <div className="mt-1 text-xs text-muted">
+                                {candidate.level ? seniorityLabels[candidate.level] : "Chưa rõ cấp bậc"}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="mt-3 flex flex-wrap gap-2">
+                            {candidate.skills.length > 0 ? (
+                              candidate.skills.slice(0, 6).map((skill) => (
+                                <span
+                                  key={`${candidate.id}-${skill}`}
+                                  className="rounded-full border border-border bg-background px-2.5 py-1 text-xs font-medium text-foreground"
+                                >
+                                  {skill}
+                                </span>
+                              ))
+                            ) : (
+                              <span className="text-xs text-muted">Chưa cập nhật skills</span>
+                            )}
+                          </div>
+                        </div>
+                      </label>
+                    );
+                  })}
                 </div>
               )}
+            </div>
+
+            <div className="flex items-center justify-between gap-3 border-t border-border bg-background px-5 py-4">
+              <div className="text-sm text-muted">
+                {selectedIds.length > 0
+                  ? `Đã chọn ${selectedIds.length} ứng viên`
+                  : "Chọn một hoặc nhiều ứng viên để gán"}
+              </div>
+
+              <button
+                type="button"
+                onClick={handleAssignSelected}
+                disabled={isAssigning || selectedIds.length === 0}
+                className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white transition hover:bg-primary-hover disabled:opacity-60"
+              >
+                {isAssigning ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Đang gán...
+                  </>
+                ) : (
+                  <>
+                    <Users className="h-4 w-4" />
+                    Gán {selectedIds.length} ứng viên đã chọn
+                  </>
+                )}
+              </button>
             </div>
           </div>
         </div>

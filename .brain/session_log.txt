@@ -72,3 +72,36 @@
 [22:09] DONE task: Verify migration, generate, build, seed, backfill, and targeted eslint
 [22:10] DONE task: Split DB optimization into commits e81e65c and 506413b
 [22:18] SAVE-BRAIN: Updated brain.json + session.json + handover.md after DB optimization
+[22:48] START phase-01-admin-employer-quick-links
+[22:50] DONE task: Add job slug to application import payload and public links in application table
+[22:52] DONE task: Add moderation badges for view/apply counts and approved-only public link state
+[22:54] DONE task: Add employer public company link and clarify Link Client tooltip copy
+[22:55] DONE task: Verify Phase 1 with npm run build
+[22:55] END phase-01-admin-employer-quick-links
+[23:00] START phase-02-admin-employer-detail
+[23:08] DONE task: Add getEmployerById/getEmployerJobPostings and tighten getEmployers select payload
+[23:15] DONE task: Create /employers/[id] detail page with header and status/company actions
+[23:20] DONE task: Create employer-detail-tabs with Job Postings, Subscription, and Info tabs
+[23:23] DONE task: Link employer list names to the detail page
+[23:25] DONE task: Verify Phase 2 with npm run build
+[23:25] END phase-02-admin-employer-detail
+[23:26] START phase-03-admin-company-editor
+[23:27] DONE task: Add updateEmployerInfo action with logo upload validation and path revalidation
+[23:28] DONE task: Allow /uploads assets to bypass middleware auth for public logo rendering
+[23:29] DONE task: Create /employers/[id]/edit page and employer edit form with preview and file validation
+[23:30] DONE task: Enable real edit link from employer detail info tab
+[23:31] DONE task: Verify Phase 3 with npm run build
+[23:31] END phase-03-admin-company-editor
+[23:48] START phase-04-admin-employer-ux-polish
+[23:49] DONE task: Move Link Client action from employers list to employer detail info tab
+[23:51] DONE task: Update employers list to show linked Client name and load current client option on detail page
+[23:53] DONE task: Refresh CRM link form state after updates and rename moderation sidebar item
+[23:54] DONE task: Verify Phase 4 with npm run build
+[23:54] END phase-04-admin-employer-ux-polish
+[12:40] START sprint-3-template-import-review
+[12:40] DONE task: Confirm docs/templates contains candidate + client CSV templates and import guide
+[15:48] DONE task: Implement client import flow and split /import page into candidate + client sections
+[15:48] DONE task: Update import guide and shared spreadsheet parsing utils
+[15:53] DONE task: Fix Vietnamese header normalization for Đ/đ and verify template imports on dev/staging
+[16:47] DONE task: Close S3-9 after PM accepted template-based E2E verification
+[16:47] SAVE-BRAIN: Updated brain.json + session.json + handover.md + session_log.txt after Sprint 3 closure and Sprint 5 completion

@@ -10,7 +10,7 @@ import {
   Briefcase,
   ChevronLeft,
 } from "lucide-react";
-import { getCompanyBySlug } from "@/lib/public-actions";
+import { getCompanyBySlug, type HomepageJob } from "@/lib/public-actions";
 import { JobCard } from "@/components/public/JobCard";
 
 type PageProps = {
@@ -120,7 +120,7 @@ export default async function CompanyProfilePage({ params }: PageProps) {
                   Vị trí đang tuyển ({company.jobPostings.length})
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {company.jobPostings.map((job) => (
+                  {company.jobPostings.map((job: HomepageJob) => (
                     <JobCard key={job.id} job={job} />
                   ))}
                 </div>

@@ -31,7 +31,7 @@ export default async function DashboardLayout({
 
   return (
     <div className="flex min-h-screen bg-background text-foreground">
-      {isAdmin ? <GlobalSearch /> : null}
+      <GlobalSearch />
       <MobileSidebar isAdmin={isAdmin} counts={counts} />
       <Sidebar isAdmin={isAdmin} counts={counts} className="hidden md:flex" />
 
@@ -39,7 +39,7 @@ export default async function DashboardLayout({
         <header className="flex h-16 shrink-0 items-center justify-between border-b border-border bg-surface px-6 md:justify-end">
           <div className="font-bold text-primary md:hidden">HM</div>
           <div className="flex items-center gap-3">
-            {isAdmin ? <GlobalSearchTrigger /> : null}
+            <GlobalSearchTrigger />
             {isAdmin ? <NotificationBell counts={counts} /> : null}
             <ThemeToggle />
             <div className="hidden text-right sm:block">

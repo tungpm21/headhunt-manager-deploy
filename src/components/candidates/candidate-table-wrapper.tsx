@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Tag } from "@prisma/client";
-import { CandidateWithTags } from "@/types/candidate";
+import { useMemo, useState } from "react";
+import type { Tag } from "@/types";
+import type { CandidateWithTags } from "@/types/candidate-ui";
 import { BulkActionBar } from "@/components/candidates/bulk-action-bar";
 import { CandidateTable } from "@/components/candidates/candidate-table";
 
@@ -15,14 +15,15 @@ export function CandidateTableWrapper({
 }) {
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
 
-  useEffect(() => {
-    setSelectedIds((currentIds) => {
-      const nextIds = new Set(
-        [...currentIds].filter((id) => candidates.some((candidate) => candidate.id === id))
-      );
-      return nextIds;
-    });
-  }, [candidates]);
+  const visibleSelectedIds = useMemo(
+    () =>
+      new Set(
+        [...selectedIds].filter((id) =>
+          candidates.some((candidate) => candidate.id === id)
+        )
+      ),
+    [candidates, selectedIds]
+  );
 
   const toggleOne = (candidateId: number) => {
     setSelectedIds((currentIds) => {
@@ -38,16 +39,23 @@ export function CandidateTableWrapper({
 
   const toggleAll = () => {
     setSelectedIds((currentIds) => {
-      if (candidates.length > 0 && currentIds.size === candidates.length) {
-        return new Set();
+      const nextIds = new Set(currentIds);
+      const candidateIds = candidates.map((candidate) => candidate.id);
+      const allVisibleSelected =
+        candidateIds.length > 0 && candidateIds.every((id) => currentIds.has(id));
+
+      if (allVisibleSelected) {
+        candidateIds.forEach((id) => nextIds.delete(id));
+        return nextIds;
       }
 
-      return new Set(candidates.map((candidate) => candidate.id));
+      candidateIds.forEach((id) => nextIds.add(id));
+      return nextIds;
     });
   };
 
   const selectedCandidates = candidates.filter((candidate) =>
-    selectedIds.has(candidate.id)
+    visibleSelectedIds.has(candidate.id)
   );
 
   return (
@@ -62,8 +70,10 @@ export function CandidateTableWrapper({
 
       <CandidateTable
         candidates={candidates}
-        selectedIds={selectedIds}
-        allSelected={candidates.length > 0 && selectedIds.size === candidates.length}
+        selectedIds={visibleSelectedIds}
+        allSelected={
+          candidates.length > 0 && visibleSelectedIds.size === candidates.length
+        }
         onToggle={toggleOne}
         onToggleAll={toggleAll}
       />

@@ -11,6 +11,7 @@ const TIER_CONFIG: Record<string, { label: string; color: string; bg: string }> 
 };
 
 export default async function SubscriptionPage() {
+  const showExpiredBanner = false;
   const employer = await getSubscriptionData();
   const sub = employer?.subscription;
 
@@ -68,6 +69,18 @@ export default async function SubscriptionPage() {
         </div>
 
         <div className="p-6 space-y-6">
+          {showExpiredBanner && !isExpired ? (
+            <div className="flex items-start gap-3 rounded-lg bg-amber-50 border border-amber-200 p-4">
+              <AlertTriangle className="h-5 w-5 text-amber-500 mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="text-sm font-medium text-amber-700">Goi cua ban can duoc kiem tra lai</p>
+                <p className="text-xs text-amber-600 mt-1">
+                  Vui long lien he admin neu ban vua duoc gia han nhung chua thay cap nhat.
+                </p>
+              </div>
+            </div>
+          ) : null}
+
           {/* Status */}
           {isExpired && (
             <div className="flex items-start gap-3 rounded-lg bg-red-50 border border-red-200 p-4">

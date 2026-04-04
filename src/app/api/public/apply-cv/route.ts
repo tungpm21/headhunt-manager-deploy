@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+import { validateFileSignature } from "@/lib/file-signatures";
 import { uploadFile } from "@/lib/storage";
-import { buildRateLimitKey, checkRateLimit } from "@/lib/rate-limit";
+import { buildRateLimitKey, checkRateLimit } from "@/lib/rate-limit-redis";
 
 const ALLOWED_TYPES = [
   "application/pdf",
@@ -17,7 +18,7 @@ const EXTENSION_MAP: Record<string, string> = {
 
 export async function POST(req: NextRequest) {
   const rateLimitKey = buildRateLimitKey("public-upload", req.headers);
-  const rateLimit = checkRateLimit(rateLimitKey, 10, 10 * 60 * 1000);
+  const rateLimit = await checkRateLimit(rateLimitKey, 10, 10 * 60 * 1000);
 
   if (!rateLimit.allowed) {
     return NextResponse.json(
@@ -33,7 +34,7 @@ export async function POST(req: NextRequest) {
     const file = formData.get("cv") as File | null;
 
     if (!file) {
-      return NextResponse.json({ error: "Chua chon file" }, { status: 400 });
+      return NextResponse.json({ error: "Chưa chọn file" }, { status: 400 });
     }
 
     if (!ALLOWED_TYPES.includes(file.type)) {
@@ -45,7 +46,15 @@ export async function POST(req: NextRequest) {
 
     if (file.size > MAX_SIZE_BYTES) {
       return NextResponse.json(
-        { error: "File khong duoc vuot qua 5MB" },
+        { error: "File không được vượt quá 5MB" },
+        { status: 400 }
+      );
+    }
+
+    const hasValidSignature = await validateFileSignature(file, ALLOWED_TYPES);
+    if (!hasValidSignature) {
+      return NextResponse.json(
+        { error: "Noi dung file khong khop voi dinh dang PDF hoac Word." },
         { status: 400 }
       );
     }
@@ -58,7 +67,7 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error("Public CV upload error:", error);
     return NextResponse.json(
-      { error: "Da co loi khi tai file len." },
+      { error: "Đã có lỗi khi tải file lên." },
       { status: 500 }
     );
   }

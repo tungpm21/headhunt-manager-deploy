@@ -1,4 +1,4 @@
-import { CandidateStatus } from "@/types/candidate";
+import type { CandidateStatus } from "@/types/candidate-ui";
 import { clsx } from "clsx";
 
 const STATUS_CONFIG: Record<

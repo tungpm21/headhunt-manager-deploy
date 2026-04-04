@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { Building2, SearchX } from "lucide-react";
-import { getPublicCompanies } from "@/lib/public-actions";
+import { getPublicCompanies, type PublicCompany } from "@/lib/public-actions";
 import { CompanyCard } from "@/components/public/CompanyCard";
 import { Pagination } from "@/components/public/Pagination";
 
@@ -62,10 +62,10 @@ export default async function CompanyListingPage({ searchParams }: PageProps) {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {result.companies.map((company) => (
-                <CompanyCard key={company.id} company={company} />
-              ))}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+               {result.companies.map((company: PublicCompany) => (
+                 <CompanyCard key={company.id} company={company} />
+               ))}
             </div>
             <Suspense>
               <Pagination currentPage={result.page} totalPages={result.totalPages} />

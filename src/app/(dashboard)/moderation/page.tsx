@@ -1,6 +1,6 @@
 import { getPendingJobPostings } from "@/lib/moderation-actions";
 import Link from "next/link";
-import { ShieldCheck, Eye, Clock } from "lucide-react";
+import { ShieldCheck, Eye, Clock, FileText, ExternalLink } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { vi } from "date-fns/locale";
 import { ModerationActions } from "./moderation-actions-ui";
@@ -65,7 +65,26 @@ export default async function ModerationPage({
         </div>
       ) : (
         <div className="space-y-4">
-          {data.jobs.map((job) => {
+          {data.jobs.map((job: {
+            id: number;
+            title: string;
+            slug: string;
+            status: string;
+            description: string | null;
+            location: string | null;
+            salaryDisplay: string | null;
+            industry: string | null;
+            workType: string | null;
+            quantity: number;
+            rejectReason: string | null;
+            viewCount: number;
+            applyCount: number;
+            createdAt: Date;
+            employer: {
+              companyName: string;
+              email: string;
+            };
+          }) => {
             const statusCfg = STATUS_CONFIG[job.status] ?? { label: job.status, className: "bg-gray-100 text-gray-600" };
             return (
               <div
@@ -118,9 +137,43 @@ export default async function ModerationPage({
                 )}
 
                 {/* Actions */}
-                {job.status === "PENDING" && (
-                  <ModerationActions jobId={job.id} />
-                )}
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex flex-wrap gap-2">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-background px-3 py-1 text-xs font-medium text-muted">
+                      <Eye className="h-3.5 w-3.5" />
+                      {job.viewCount} lượt xem
+                    </span>
+                    <span className="inline-flex items-center gap-1 rounded-full bg-background px-3 py-1 text-xs font-medium text-muted">
+                      <FileText className="h-3.5 w-3.5" />
+                      {job.applyCount} lượt ứng tuyển
+                    </span>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2">
+                    {job.status === "APPROVED" ? (
+                      <Link
+                        href={`/viec-lam/${job.slug}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/10 px-4 py-2 text-sm font-medium text-primary transition hover:bg-primary/15"
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                        Xem trên FDIWork
+                      </Link>
+                    ) : (
+                      <span
+                        className="inline-flex items-center rounded-lg border border-dashed border-border px-3 py-2 text-xs text-muted"
+                        title={`/viec-lam/${job.slug}`}
+                      >
+                        Chưa public trên FDIWork
+                      </span>
+                    )}
+
+                    {job.status === "PENDING" && (
+                      <ModerationActions jobId={job.id} />
+                    )}
+                  </div>
+                </div>
               </div>
             );
           })}

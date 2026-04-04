@@ -155,7 +155,10 @@ model User {
   createdJobOrders  JobOrder[]      @relation("JobCreatedBy")
   assignedJobOrders JobOrder[]      @relation("JobAssignedTo")
   candidateNotes    CandidateNote[]
+  assignedReminders CandidateReminder[] @relation("ReminderAssignedTo")
+  completedReminders CandidateReminder[] @relation("ReminderCompletedBy")
   uploadedCVs       CandidateCV[]   @relation("CVUploadedBy")
+  activityLogs      ActivityLog[]
 }
 
 model Candidate {
@@ -190,6 +193,7 @@ model Candidate {
   createdById Int
   tags         CandidateTag[]
   notes        CandidateNote[]
+  reminders    CandidateReminder[]
   jobLinks     JobCandidate[]
   cvFiles      CandidateCV[]
   languages    CandidateLanguage[]
@@ -202,6 +206,7 @@ model Candidate {
   @@index([level])
   @@index([location])
   @@index([isDeleted])
+  @@index([skills], type: Gin, map: "idx_candidate_skills")
 }
 
 model Tag {
@@ -228,6 +233,28 @@ model CandidateNote {
   createdBy   User      @relation(fields: [createdById], references: [id])
   createdById Int
   createdAt   DateTime  @default(now())
+}
+
+model CandidateReminder {
+  id            Int       @id @default(autoincrement())
+  title         String
+  note          String?
+  dueAt         DateTime
+  isCompleted   Boolean   @default(false)
+  completedAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  candidate     Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  candidateId   Int
+  assignedTo    User      @relation("ReminderAssignedTo", fields: [assignedToId], references: [id])
+  assignedToId  Int
+  completedBy   User?     @relation("ReminderCompletedBy", fields: [completedById], references: [id])
+  completedById Int?
+
+  @@index([candidateId, dueAt])
+  @@index([assignedToId, isCompleted, dueAt])
+  @@index([isCompleted, dueAt])
 }
 
 model CandidateCV {
@@ -344,6 +371,7 @@ model JobOrder {
   @@index([priority])
   @@index([industry])
   @@index([clientId])
+  @@index([requiredSkills], type: Gin, map: "idx_job_required_skills")
 }
 
 model JobCandidate {
@@ -361,6 +389,20 @@ model JobCandidate {
   candidateId Int
 
   @@unique([jobOrderId, candidateId])
+}
+
+model ActivityLog {
+  id         Int      @id @default(autoincrement())
+  type       String
+  entityType String
+  entityId   Int
+  userId     Int
+  user       User     @relation(fields: [userId], references: [id])
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([userId])
 }
 
 // ==================== FDIWORK MODELS ====================
@@ -432,7 +474,7 @@ model JobPosting {
   location      String?
   workType      String?          // Full-time, Part-time, Remote
   quantity      Int              @default(1)
-  skills        String?          // Comma-separated: "Java, React, SQL"
+  skills        String[]         @default([]) // Danh sách kỹ năng
   status        JobPostingStatus @default(DRAFT)
   rejectReason  String?          // Admin điền khi reject
   publishedAt   DateTime?

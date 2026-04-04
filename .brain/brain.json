@@ -2,38 +2,39 @@
   "project": {
     "name": "Headhunt Manager (FDIWork)",
     "type": "Next.js 16 App Router, Prisma ORM, PostgreSQL, TailwindCSS",
-    "status": "CRM MVP complete + FDIWork public site + Application Detail View + Dark Mode + Admin Employer Mgmt plan drafted"
+    "status": "Sprint 1-3 complete, Sprint 5 complete, production deployed on Vercel + Neon, Sprint 4 pending real-user onboarding"
   },
   "docs_index": {
     "codebase_map": "CODEBASE.md",
     "architecture": "ARCHITECTURE.md",
-    "crm_design": "docs/crm/DESIGN.md",
-    "fdiwork_specs": "docs/fdiwork/SPECS.md",
-    "fdiwork_design": "docs/fdiwork/DESIGN_FDIWORK.md",
-    "db_optimization_plan": "docs/PLAN-db-optimization.md",
-    "audit_report": "docs/reports/audit_2026-04-01.md",
-    "workspace_rules": ".agent/rules/headhunt-rules.md",
-    "admin_employer_plan": "docs/PLAN-admin-employer-mgmt.md"
+    "project_tracker": "docs/PROJECT-TRACKER.md",
+    "audit_readme": "docs/audit/README.md",
+    "product_strategy": "docs/audit/04-product-strategy.md",
+    "backend_audit": "docs/audit/05-backend-code-audit.md",
+    "refactor_plan": "docs/audit/06-refactor-3day-plan.md",
+    "import_guide": "docs/templates/IMPORT-GUIDE.md",
+    "review_report": "docs/PROJECT_REVIEW_20260403.md"
   },
   "features": [
-    "Authentication (NextAuth.js + custom JWT for employer portal)",
-    "Candidate Management (tags, seniority, skills, multi-CV, languages, work history)",
-    "Client Management (status, contacts)",
-    "Job Management & Applicant Pipeline (notes, interview tracking)",
-    "FDIWork Public Website (homepage, jobs, companies, apply)",
-    "Employer Portal (register, dashboard, manage job postings)",
-    "Admin Moderation (approve/reject jobs, employers, packages)",
-    "CRM Integration (import FDIWork applications to CRM, employer-client linking)",
-    "Application Detail View (expandable rows: applicant info + job details + cover letter)",
-    "Dashboard Dark Mode (ThemeToggle component, design tokens replacing hardcoded bg-white)"
+    "Authentication via NextAuth for CRM and custom JWT for employer portal",
+    "Candidate management with tags, seniority, skills, reminders, notes, multi-CV, languages, work history, trash/restore",
+    "Client management with contacts, revenue summary, paginated select, and client import",
+    "Job management with kanban pipeline, smart assign modal, job bridge card, and FDIWork sync",
+    "Dashboard with pipeline overview, recent activity, reminders, deadline alerts, and revenue widgets",
+    "FDIWork public website with jobs, companies, apply flow, and employer portal",
+    "Admin moderation with application import to CRM, employer linking, packages, and employer management",
+    "Global search, notification surfaces, bulk candidate actions, dark mode, and responsive dashboard UX",
+    "Excel/CSV import for candidates and clients with preview, validation, dedup, and error reporting",
+    "Production hardening with Redis rate limit, file signature validation, Sentry optional init, Neon pooled Postgres support"
   ],
   "database_schema": {
-    "summary": "ATS + employer portal + public job board",
+    "summary": "ATS CRM + employer portal + public job board + ops/audit tracking",
     "tables": [
       "User",
       "Candidate",
       "CandidateCV",
       "CandidateLanguage",
+      "CandidateReminder",
       "CandidateNote",
       "CandidateTag",
       "Tag",
@@ -45,31 +46,44 @@
       "Employer",
       "Subscription",
       "JobPosting",
-      "Application"
+      "Application",
+      "ActivityLog"
     ],
-    "relationships_explained": "Employer → JobPosting (1:N), Employer → Subscription (1:1), Employer → Client (optional 1:1 CRM link via clientId). JobPosting has slug for public FDIWork URL. Application links JobPosting ↔ Candidate.",
+    "relationships_explained": "CRM User owns Candidates, Clients, and Jobs. JobOrder links Client, assigned recruiter, and JobCandidate pipeline rows. Employer optionally links to a CRM Client and owns public JobPostings. Applications can be imported into CRM Candidate and JobCandidate pipeline. ActivityLog stores mutation history for stage, status, notes, and imports.",
     "notable_constraints": [
-      "Application has unique pair (jobPostingId, email)",
-      "Employer has unique email and unique clientId link",
-      "JobCandidate has unique pair (jobOrderId, candidateId)"
+      "JobPosting.skills is String[] and JobOrder.requiredSkills is String[]",
+      "Application unique pair (jobPostingId, email)",
+      "JobCandidate unique pair (jobOrderId, candidateId)",
+      "Employer unique email and optional unique clientId",
+      "Candidate import dedups by email/phone; client import dedups by companyName/website"
     ]
   },
   "conventions": [
-    "Use PostgreSQL String[] only for simple lists; use relation tables for structured candidate detail",
-    "Server Actions return success/error objects instead of throwing to the client",
-    "Public routes use Vietnamese slugs: /viec-lam, /cong-ty, /ung-tuyen",
-    "Admin protection must exist at route, UI, and server action layers",
-    "Candidate primary CV stays mirrored to legacy Candidate.cvFileUrl and Candidate.cvFileName during migration",
-    "Candidate import supports .xlsx and .csv only",
-    "Dashboard uses CSS design tokens (bg-surface, text-foreground, text-muted) — NO hardcoded bg-white or text-gray-*",
-    "Client components in /moderation/applications must receive serialized data (JSON.parse(JSON.stringify(...)))"
+    "Server Actions return success/error objects and user-facing errors stay in Vietnamese",
+    "Data access should go through data-layer modules instead of direct Prisma in actions",
+    "Dashboard and shared UI use semantic design tokens instead of hardcoded gray/white classes",
+    "Neon is the canonical Postgres provider; prefer pooled URL in production",
+    "Import flows must preview, validate, and report row-level errors before mutating data",
+    "Candidate primary CV remains mirrored to legacy Candidate.cvFileUrl/cvFileName for compatibility",
+    "Ownership scope uses ViewerScope and filters by createdById/assignedToId for MEMBER users"
   ],
   "security_notes": [
-    "EMPLOYER_JWT_SECRET is required and has no default fallback",
-    "Basic rate limiting is applied to CRM login, employer auth, public upload, and public apply",
-    "xlsx was removed from the codebase because of a high severity advisory"
+    "Employer JWT TTL is 1 day and employer must remain ACTIVE",
+    "Public apply, candidate CV upload, and avatar upload validate file signatures by magic bytes",
+    "Upstash Redis rate limit is wired with dev fallback when env is missing",
+    "Sentry initializes only when SENTRY_DSN is configured",
+    "Avatar upload enforces ownership checks to prevent IDOR"
+  ],
+  "infra_notes": [
+    "Production app is deployed at https://headhunt-manager-deploy.vercel.app",
+    "Prisma client uses @prisma/adapter-pg with pg Pool and pooled connection preference",
+    "postinstall runs prisma generate to keep Vercel production builds in sync with schema",
+    "There is still a pg sslmode warning recommending verify-full instead of require"
   ],
   "known_issues_fixed": [
-    "seed.ts triple-encoding bug: UTF-8 → Windows-1252 misread → UTF-8 re-encode. Fixed with 3-pass script targeting C0-FF control chars and Windows-1252 smart quote chars (0x80-0x9F). DB was re-seeded."
+    "Candidate skills and JobOrder.requiredSkills normalized and indexed with GIN",
+    "CV replace flow changed from delete-before-upload to upload-update-delete to avoid race condition",
+    "Tag update path wrapped in Prisma transaction",
+    "Parser header normalization now handles Vietnamese Đ/đ so import maps phone/address columns correctly"
   ]
 }

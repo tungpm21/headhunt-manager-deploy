@@ -1,6 +1,10 @@
 import { Suspense } from "react";
 import { Briefcase, SearchX } from "lucide-react";
-import { getPublicJobs, type JobFilters as JobFiltersType } from "@/lib/public-actions";
+import {
+  getPublicJobs,
+  type HomepageJob,
+  type JobFilters as JobFiltersType,
+} from "@/lib/public-actions";
 import { JobCard } from "@/components/public/JobCard";
 import { JobFilters } from "@/components/public/JobFilters";
 import { Pagination } from "@/components/public/Pagination";
@@ -87,7 +91,7 @@ export default async function JobListingPage({ searchParams }: PageProps) {
             ) : (
               <>
                 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-                  {result.jobs.map((job) => (
+                  {result.jobs.map((job: HomepageJob) => (
                     <JobCard key={job.id} job={job} />
                   ))}
                 </div>

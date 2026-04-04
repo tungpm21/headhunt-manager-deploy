@@ -1,4 +1,4 @@
-import { CandidateWithTags } from "@/types/candidate";
+import type { CandidateWithTags } from "@/types/candidate-ui";
 
 function escapeCsvCell(value: string | number | null | undefined) {
   return `"${String(value ?? "").replaceAll('"', '""')}"`;

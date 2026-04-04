@@ -1,9 +1,8 @@
 "use server";
 
 import { compareSync, hashSync } from "bcrypt-ts";
-import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { prisma } from "@/lib/prisma";
+import { redirect } from "next/navigation";
 import {
   clearEmployerCookie,
   requireEmployerSession,
@@ -11,9 +10,61 @@ import {
   signEmployerToken,
 } from "@/lib/employer-auth";
 import {
+  createEmployerAccount,
+  createEmployerJobPostingAndIncrementQuota,
+  findEmployerByEmail,
+  findEmployerBySlug,
+  findEmployerJobPostingBySlug,
+  getEmployerDashboardSnapshot,
+  getEmployerJobApplicants,
+  getEmployerJobPostingsForPortal,
+  getEmployerOwnedJobPosting,
+  getEmployerProfileById,
+  getEmployerSubscriptionSnapshot,
+  getEmployerWithSubscription,
+  updateEmployerJobPosting,
+  updateEmployerJobPostingStatus,
+  updateEmployerProfileById,
+} from "@/lib/employers";
+import {
   buildServerActionRateLimitKey,
   checkRateLimit,
-} from "@/lib/rate-limit";
+} from "@/lib/rate-limit-redis";
+import {
+  employerJobPostingSchema,
+  employerLoginSchema,
+  employerProfileSchema,
+  employerRegisterSchema,
+  getFirstZodErrorMessage,
+} from "@/lib/validation/forms";
+
+function parseJobPostingSkills(value: FormDataEntryValue | null): string[] {
+  const raw = value?.toString().trim() ?? "";
+
+  if (!raw) {
+    return [];
+  }
+
+  return Array.from(
+    new Set(
+      raw
+        .split(",")
+        .map((skill) => skill.trim())
+        .filter(Boolean)
+    )
+  );
+}
+
+function parseNullableNumber(value: FormDataEntryValue | null) {
+  const normalized = value?.toString().trim();
+
+  if (!normalized) {
+    return null;
+  }
+
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) ? parsed : Number.NaN;
+}
 
 function generateSlug(name: string): string {
   return name
@@ -28,17 +79,51 @@ function generateSlug(name: string): string {
     .trim();
 }
 
+function normalizeWebsite(value: string | null) {
+  if (!value) {
+    return null;
+  }
+
+  const normalized = /^https?:\/\//i.test(value) ? value : `https://${value}`;
+
+  try {
+    return new URL(normalized).toString();
+  } catch {
+    return null;
+  }
+}
+
+function buildEmployerJobPostingInput(formData: FormData) {
+  return {
+    title: formData.get("title")?.toString().trim() ?? "",
+    description: formData.get("description")?.toString().trim() ?? "",
+    requirements: formData.get("requirements")?.toString().trim() || null,
+    benefits: formData.get("benefits")?.toString().trim() || null,
+    salaryMin: parseNullableNumber(formData.get("salaryMin")),
+    salaryMax: parseNullableNumber(formData.get("salaryMax")),
+    salaryDisplay: formData.get("salaryDisplay")?.toString().trim() || null,
+    industry: formData.get("industry")?.toString().trim() || null,
+    position: formData.get("position")?.toString().trim() || null,
+    location: formData.get("location")?.toString().trim() || null,
+    workType: formData.get("workType")?.toString().trim() || null,
+    quantity: Number(formData.get("quantity")?.toString().trim() || "1"),
+    skills: parseJobPostingSkills(formData.get("skills")),
+  };
+}
+
 export async function registerEmployerAction(formData: FormData) {
-  const email = formData.get("email")?.toString().trim().toLowerCase() ?? "";
-  const password = formData.get("password") as string;
-  const confirmPassword = formData.get("confirmPassword") as string;
-  const companyName = formData.get("companyName")?.toString().trim() ?? "";
+  const parsedInput = employerRegisterSchema.safeParse({
+    email: formData.get("email")?.toString().trim().toLowerCase(),
+    password: formData.get("password")?.toString() ?? "",
+    confirmPassword: formData.get("confirmPassword")?.toString() ?? "",
+    companyName: formData.get("companyName")?.toString().trim() ?? "",
+  });
 
   const rateLimitKey = await buildServerActionRateLimitKey(
     "employer-register",
-    email || companyName
+    parsedInput.success ? parsedInput.data.email : formData.get("companyName")?.toString()
   );
-  const rateLimit = checkRateLimit(rateLimitKey, 5, 10 * 60 * 1000);
+  const rateLimit = await checkRateLimit(rateLimitKey, 5, 10 * 60 * 1000);
   if (!rateLimit.allowed) {
     return {
       success: false,
@@ -46,19 +131,15 @@ export async function registerEmployerAction(formData: FormData) {
     };
   }
 
-  if (!email || !password || !companyName) {
-    return { success: false, message: "Vui long dien day du thong tin." };
+  if (!parsedInput.success) {
+    return {
+      success: false,
+      message: getFirstZodErrorMessage(parsedInput.error),
+    };
   }
 
-  if (password.length < 8) {
-    return { success: false, message: "Mat khau phai co it nhat 8 ky tu." };
-  }
-
-  if (password !== confirmPassword) {
-    return { success: false, message: "Mat khau xac nhan khong khop." };
-  }
-
-  const existing = await prisma.employer.findUnique({ where: { email } });
+  const { email, password, companyName } = parsedInput.data;
+  const existing = await findEmployerByEmail(email);
   if (existing) {
     return { success: false, message: "Email da duoc su dung." };
   }
@@ -66,19 +147,17 @@ export async function registerEmployerAction(formData: FormData) {
   const hashedPassword = hashSync(password, 10);
   let slug = generateSlug(companyName);
 
-  const slugExists = await prisma.employer.findUnique({ where: { slug } });
+  const slugExists = await findEmployerBySlug(slug);
   if (slugExists) {
     slug = `${slug}-${Date.now().toString(36)}`;
   }
 
-  await prisma.employer.create({
-    data: {
-      email,
-      password: hashedPassword,
-      companyName,
-      slug,
-      status: "PENDING",
-    },
+  await createEmployerAccount({
+    email,
+    password: hashedPassword,
+    companyName,
+    slug,
+    status: "PENDING",
   });
 
   return {
@@ -88,11 +167,14 @@ export async function registerEmployerAction(formData: FormData) {
 }
 
 export async function loginEmployerAction(formData: FormData) {
-  const email = formData.get("email")?.toString().trim().toLowerCase() ?? "";
-  const password = formData.get("password") as string;
+  const parsedInput = employerLoginSchema.safeParse({
+    email: formData.get("email")?.toString().trim().toLowerCase(),
+    password: formData.get("password")?.toString() ?? "",
+  });
+  const email = parsedInput.success ? parsedInput.data.email : undefined;
 
   const rateLimitKey = await buildServerActionRateLimitKey("employer-login", email);
-  const rateLimit = checkRateLimit(rateLimitKey, 5, 10 * 60 * 1000);
+  const rateLimit = await checkRateLimit(rateLimitKey, 5, 10 * 60 * 1000);
   if (!rateLimit.allowed) {
     return {
       success: false,
@@ -100,11 +182,15 @@ export async function loginEmployerAction(formData: FormData) {
     };
   }
 
-  if (!email || !password) {
-    return { success: false, message: "Vui long nhap email va mat khau." };
+  if (!parsedInput.success) {
+    return {
+      success: false,
+      message: getFirstZodErrorMessage(parsedInput.error),
+    };
   }
 
-  const employer = await prisma.employer.findUnique({ where: { email } });
+  const { email: normalizedEmail, password } = parsedInput.data;
+  const employer = await findEmployerByEmail(normalizedEmail);
   if (!employer) {
     return { success: false, message: "Email hoac mat khau khong dung." };
   }
@@ -146,100 +232,44 @@ export async function logoutEmployerAction() {
 
 export async function getEmployerDashboardData() {
   const session = await requireEmployerSession();
+  const dashboardData = await getEmployerDashboardSnapshot(session.employerId);
 
-  const employer = await prisma.employer.findUnique({
-    where: { id: session.employerId },
-    include: {
-      subscription: true,
-      jobPostings: {
-        orderBy: { createdAt: "desc" },
-        take: 5,
-        include: {
-          _count: { select: { applications: true } },
-        },
-      },
-    },
-  });
+  if (!dashboardData) {
+    redirect("/employer/login");
+  }
 
-  if (!employer) redirect("/employer/login");
-
-  const totalJobs = await prisma.jobPosting.count({
-    where: { employerId: session.employerId },
-  });
-
-  const pendingJobs = await prisma.jobPosting.count({
-    where: { employerId: session.employerId, status: "PENDING" },
-  });
-
-  const approvedJobs = await prisma.jobPosting.count({
-    where: { employerId: session.employerId, status: "APPROVED" },
-  });
-
-  const totalApplicants = await prisma.application.count({
-    where: { jobPosting: { employerId: session.employerId } },
-  });
-
-  const newApplicants = await prisma.application.count({
-    where: {
-      jobPosting: { employerId: session.employerId },
-      status: "NEW",
-    },
-  });
-
-  const recentApplications = await prisma.application.findMany({
-    where: { jobPosting: { employerId: session.employerId } },
-    orderBy: { createdAt: "desc" },
-    take: 5,
-    include: {
-      jobPosting: { select: { title: true } },
-    },
-  });
-
-  return {
-    employer,
-    stats: {
-      totalJobs,
-      pendingJobs,
-      approvedJobs,
-      totalApplicants,
-      newApplicants,
-      quotaTotal: employer.subscription?.jobQuota ?? 0,
-      quotaUsed: employer.subscription?.jobsUsed ?? 0,
-    },
-    recentJobs: employer.jobPostings,
-    recentApplications,
-  };
+  return dashboardData;
 }
 
 export async function updateCompanyProfileAction(formData: FormData) {
   const session = await requireEmployerSession();
+  const websiteInput = formData.get("website")?.toString().trim() || null;
+  const normalizedWebsite = normalizeWebsite(websiteInput);
+  const parsedInput = employerProfileSchema.safeParse({
+    companyName: formData.get("companyName")?.toString().trim() ?? "",
+    description: formData.get("description")?.toString().trim() || null,
+    industry: formData.get("industry")?.toString().trim() || null,
+    companySize: formData.get("companySize")?.toString().trim() || null,
+    address: formData.get("address")?.toString().trim() || null,
+    website: websiteInput ? normalizedWebsite ?? websiteInput : null,
+    phone: formData.get("phone")?.toString().trim() || null,
+  });
 
-  const companyName = formData.get("companyName")?.toString().trim() ?? "";
-  const description = formData.get("description")?.toString().trim() ?? "";
-  const industry = formData.get("industry")?.toString().trim() ?? "";
-  const companySize = formData.get("companySize")?.toString().trim() ?? "";
-  const address = formData.get("address")?.toString().trim() ?? "";
-  const website = formData.get("website")?.toString().trim() ?? "";
-  const phone = formData.get("phone")?.toString().trim() ?? "";
-
-  if (!companyName) {
-    return { success: false, message: "Ten cong ty khong duoc de trong." };
+  if (!parsedInput.success) {
+    return {
+      success: false,
+      message: getFirstZodErrorMessage(parsedInput.error),
+    };
   }
 
-  const validSizes = ["SMALL", "MEDIUM", "LARGE", "ENTERPRISE"];
-  const sizeValue = validSizes.includes(companySize) ? companySize : undefined;
-
-  await prisma.employer.update({
-    where: { id: session.employerId },
-    data: {
-      companyName,
-      description: description || null,
-      industry: industry || null,
-      companySize: sizeValue as "SMALL" | "MEDIUM" | "LARGE" | "ENTERPRISE" | undefined,
-      address: address || null,
-      website: website || null,
-      phone: phone || null,
-    },
+  await updateEmployerProfileById(session.employerId, {
+    companyName: parsedInput.data.companyName,
+    description: parsedInput.data.description || null,
+    industry: parsedInput.data.industry || null,
+    companySize: parsedInput.data.companySize ?? undefined,
+    address: parsedInput.data.address || null,
+    website: parsedInput.data.website || null,
+    phone: parsedInput.data.phone || null,
   });
 
   revalidatePath("/employer/company");
@@ -248,64 +278,27 @@ export async function updateCompanyProfileAction(formData: FormData) {
 
 export async function getCompanyProfile() {
   const session = await requireEmployerSession();
-  return prisma.employer.findUnique({
-    where: { id: session.employerId },
-  });
+  return getEmployerProfileById(session.employerId);
 }
 
 export async function getSubscriptionData() {
-  const session = await requireEmployerSession();
-  return prisma.employer.findUnique({
-    where: { id: session.employerId },
-    include: { subscription: true },
-  });
+  const session = await requireEmployerSession({ allowExpiredSubscription: true });
+  return getEmployerSubscriptionSnapshot(session.employerId);
 }
 
 export async function getMyJobPostings(status?: string, page = 1) {
   const session = await requireEmployerSession();
-  const take = 10;
-  const skip = (page - 1) * take;
-  const where: Record<string, unknown> = { employerId: session.employerId };
-
-  if (status && status !== "ALL") {
-    where.status = status;
-  }
-
-  const [jobs, total] = await Promise.all([
-    prisma.jobPosting.findMany({
-      where,
-      orderBy: { createdAt: "desc" },
-      skip,
-      take,
-      include: { _count: { select: { applications: true } } },
-    }),
-    prisma.jobPosting.count({ where }),
-  ]);
-
-  return { jobs, total, page, totalPages: Math.ceil(total / take) };
+  return getEmployerJobPostingsForPortal(session.employerId, status, page);
 }
 
 export async function getJobPostingDetail(id: number) {
   const session = await requireEmployerSession();
-  const job = await prisma.jobPosting.findUnique({
-    where: { id },
-    include: {
-      employer: { select: { id: true, companyName: true } },
-      _count: { select: { applications: true } },
-    },
-  });
-
-  if (!job || job.employerId !== session.employerId) return null;
-  return job;
+  return getEmployerOwnedJobPosting(id, session.employerId);
 }
 
 export async function createJobPostingAction(formData: FormData) {
   const session = await requireEmployerSession();
-
-  const employer = await prisma.employer.findUnique({
-    where: { id: session.employerId },
-    include: { subscription: true },
-  });
+  const employer = await getEmployerWithSubscription(session.employerId);
 
   if (!employer) {
     return { success: false, message: "Khong tim thay tai khoan." };
@@ -323,57 +316,44 @@ export async function createJobPostingAction(formData: FormData) {
     };
   }
 
-  const title = formData.get("title")?.toString().trim() ?? "";
-  const description = formData.get("description")?.toString().trim() ?? "";
+  const parsedInput = employerJobPostingSchema.safeParse(
+    buildEmployerJobPostingInput(formData)
+  );
 
-  if (!title || !description) {
-    return { success: false, message: "Tieu de va mo ta khong duoc de trong." };
+  if (!parsedInput.success) {
+    return {
+      success: false,
+      message: getFirstZodErrorMessage(parsedInput.error),
+    };
   }
 
-  const requirements = formData.get("requirements")?.toString().trim() ?? "";
-  const benefits = formData.get("benefits")?.toString().trim() ?? "";
-  const salaryMin = formData.get("salaryMin")?.toString().trim() ?? "";
-  const salaryMax = formData.get("salaryMax")?.toString().trim() ?? "";
-  const salaryDisplay = formData.get("salaryDisplay")?.toString().trim() ?? "";
-  const industry = formData.get("industry")?.toString().trim() ?? "";
-  const position = formData.get("position")?.toString().trim() ?? "";
-  const location = formData.get("location")?.toString().trim() ?? "";
-  const workType = formData.get("workType")?.toString().trim() ?? "";
-  const quantity = formData.get("quantity")?.toString().trim() ?? "";
-  const skills = formData.get("skills")?.toString().trim() ?? "";
-
-  let slug = generateSlug(title);
-  const slugExists = await prisma.jobPosting.findUnique({ where: { slug } });
+  let slug = generateSlug(parsedInput.data.title);
+  const slugExists = await findEmployerJobPostingBySlug(slug);
   if (slugExists) {
     slug = `${slug}-${Date.now().toString(36)}`;
   }
 
-  await prisma.$transaction([
-    prisma.jobPosting.create({
-      data: {
-        title,
-        slug,
-        description,
-        requirements: requirements || null,
-        benefits: benefits || null,
-        salaryMin: salaryMin ? parseFloat(salaryMin) : null,
-        salaryMax: salaryMax ? parseFloat(salaryMax) : null,
-        salaryDisplay: salaryDisplay || null,
-        industry: industry || null,
-        position: position || null,
-        location: location || null,
-        workType: workType || null,
-        quantity: quantity ? parseInt(quantity, 10) : 1,
-        skills: skills || null,
-        status: "PENDING",
-        employerId: session.employerId,
-      },
-    }),
-    prisma.subscription.update({
-      where: { id: sub.id },
-      data: { jobsUsed: { increment: 1 } },
-    }),
-  ]);
+  await createEmployerJobPostingAndIncrementQuota({
+    employerId: session.employerId,
+    subscriptionId: sub.id,
+    jobPosting: {
+      title: parsedInput.data.title,
+      slug,
+      description: parsedInput.data.description,
+      requirements: parsedInput.data.requirements || null,
+      benefits: parsedInput.data.benefits || null,
+      salaryMin: parsedInput.data.salaryMin ?? null,
+      salaryMax: parsedInput.data.salaryMax ?? null,
+      salaryDisplay: parsedInput.data.salaryDisplay || null,
+      industry: parsedInput.data.industry || null,
+      position: parsedInput.data.position || null,
+      location: parsedInput.data.location || null,
+      workType: parsedInput.data.workType || null,
+      quantity: parsedInput.data.quantity,
+      skills: parsedInput.data.skills,
+      status: "PENDING",
+    },
+  });
 
   revalidatePath("/employer/job-postings");
   redirect("/employer/job-postings");
@@ -381,43 +361,38 @@ export async function createJobPostingAction(formData: FormData) {
 
 export async function updateJobPostingAction(id: number, formData: FormData) {
   const session = await requireEmployerSession();
+  const job = await getEmployerOwnedJobPosting(id, session.employerId);
 
-  const job = await prisma.jobPosting.findUnique({ where: { id } });
-  if (!job || job.employerId !== session.employerId) {
+  if (!job) {
     return { success: false, message: "Khong tim thay tin tuyen dung." };
   }
 
-  const title = formData.get("title")?.toString().trim() ?? "";
-  const description = formData.get("description")?.toString().trim() ?? "";
+  const parsedInput = employerJobPostingSchema.safeParse(
+    buildEmployerJobPostingInput(formData)
+  );
 
-  if (!title || !description) {
-    return { success: false, message: "Tieu de va mo ta khong duoc de trong." };
+  if (!parsedInput.success) {
+    return {
+      success: false,
+      message: getFirstZodErrorMessage(parsedInput.error),
+    };
   }
 
-  await prisma.jobPosting.update({
-    where: { id },
-    data: {
-      title,
-      description,
-      requirements: formData.get("requirements")?.toString().trim() || null,
-      benefits: formData.get("benefits")?.toString().trim() || null,
-      salaryMin: formData.get("salaryMin")
-        ? parseFloat(formData.get("salaryMin") as string)
-        : null,
-      salaryMax: formData.get("salaryMax")
-        ? parseFloat(formData.get("salaryMax") as string)
-        : null,
-      salaryDisplay: formData.get("salaryDisplay")?.toString().trim() || null,
-      industry: formData.get("industry")?.toString().trim() || null,
-      position: formData.get("position")?.toString().trim() || null,
-      location: formData.get("location")?.toString().trim() || null,
-      workType: formData.get("workType")?.toString().trim() || null,
-      quantity: formData.get("quantity")
-        ? parseInt(formData.get("quantity") as string, 10)
-        : 1,
-      skills: formData.get("skills")?.toString().trim() || null,
-      status: job.status === "REJECTED" ? "PENDING" : job.status,
-    },
+  await updateEmployerJobPosting(id, {
+    title: parsedInput.data.title,
+    description: parsedInput.data.description,
+    requirements: parsedInput.data.requirements || null,
+    benefits: parsedInput.data.benefits || null,
+    salaryMin: parsedInput.data.salaryMin ?? null,
+    salaryMax: parsedInput.data.salaryMax ?? null,
+    salaryDisplay: parsedInput.data.salaryDisplay || null,
+    industry: parsedInput.data.industry || null,
+    position: parsedInput.data.position || null,
+    location: parsedInput.data.location || null,
+    workType: parsedInput.data.workType || null,
+    quantity: parsedInput.data.quantity,
+    skills: parsedInput.data.skills,
+    status: job.status === "REJECTED" ? "PENDING" : job.status,
   });
 
   revalidatePath("/employer/job-postings");
@@ -426,17 +401,14 @@ export async function updateJobPostingAction(id: number, formData: FormData) {
 
 export async function toggleJobPostingStatus(id: number) {
   const session = await requireEmployerSession();
+  const job = await getEmployerOwnedJobPosting(id, session.employerId);
 
-  const job = await prisma.jobPosting.findUnique({ where: { id } });
-  if (!job || job.employerId !== session.employerId) {
+  if (!job) {
     return { success: false, message: "Khong tim thay tin." };
   }
 
   if (job.status === "APPROVED") {
-    await prisma.jobPosting.update({
-      where: { id },
-      data: { status: "PAUSED" },
-    });
+    await updateEmployerJobPostingStatus(id, "PAUSED");
     revalidatePath("/employer/job-postings");
     return { success: true, message: "Da tam an tin." };
   }
@@ -446,10 +418,7 @@ export async function toggleJobPostingStatus(id: number) {
       return { success: false, message: "Tin da het han, khong the bat lai." };
     }
 
-    await prisma.jobPosting.update({
-      where: { id },
-      data: { status: "APPROVED" },
-    });
+    await updateEmployerJobPostingStatus(id, "APPROVED");
     revalidatePath("/employer/job-postings");
     return { success: true, message: "Da bat lai tin." };
   }
@@ -462,18 +431,5 @@ export async function toggleJobPostingStatus(id: number) {
 
 export async function getJobApplicants(jobPostingId: number) {
   const session = await requireEmployerSession();
-
-  const job = await prisma.jobPosting.findUnique({
-    where: { id: jobPostingId },
-    select: { employerId: true, title: true },
-  });
-
-  if (!job || job.employerId !== session.employerId) return null;
-
-  const applicants = await prisma.application.findMany({
-    where: { jobPostingId },
-    orderBy: { createdAt: "desc" },
-  });
-
-  return { jobTitle: job.title, applicants };
+  return getEmployerJobApplicants(jobPostingId, session.employerId);
 }

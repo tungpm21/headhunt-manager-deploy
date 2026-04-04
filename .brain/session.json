@@ -1,132 +1,149 @@
 {
-  "updated_at": "2026-04-02T20:36:00+07:00",
+  "updated_at": "2026-04-04T16:47:00+07:00",
   "working_on": {
-    "feature": "Admin Employer & Job Posting Management",
-    "task": "Plan created, ready to implement Phase 1 (Quick Links)",
-    "status": "planning_complete",
-    "notes": "PLAN-admin-employer-mgmt.md written. 4 phases: (1) FDIWork links, (2) Employer detail page, (3) Company page editor, (4) UX polish. No schema changes needed."
+    "feature": "Release handoff and repository publish",
+    "task": "Save brain, finalize tracker state, commit and push the completed Sprint 1-5 worktree",
+    "status": "handoff",
+    "files": [
+      "docs/PROJECT-TRACKER.md",
+      ".brain/brain.json",
+      ".brain/session.json",
+      ".brain/handover.md",
+      ".brain/session_log.txt"
+    ],
+    "blockers": [],
+    "notes": "Sprint 3 is now 10/10 after PM accepted template-based E2E import verification for S3-9. Sprint 5 is already 14/14. Next product phase is Sprint 4 real-user onboarding."
   },
   "pending_tasks": [
     {
       "priority": "HIGH",
-      "task": "Phase 1 — Add FDIWork links: Application table job title → /viec-lam/[slug], Moderation page job card → /viec-lam/[slug], Employers list → /cong-ty/[slug]",
-      "plan_ref": "docs/PLAN-admin-employer-mgmt.md#phase-1"
+      "task": "Sprint 4 kickoff: onboard 1-2 recruiter noi bo and capture friction logs"
     },
     {
       "priority": "MEDIUM",
-      "task": "Phase 2 — Build /employers/[id] detail page with 3 tabs (Job Postings, Subscription, Info)",
-      "plan_ref": "docs/PLAN-admin-employer-mgmt.md#phase-2"
-    },
-    {
-      "priority": "MEDIUM",
-      "task": "Phase 3 — Build /employers/[id]/edit form to edit company info (description, logo, website...)",
-      "plan_ref": "docs/PLAN-admin-employer-mgmt.md#phase-3"
+      "task": "Manual browser QA for import page, pipeline board, and client detail after latest large batch"
     },
     {
       "priority": "LOW",
-      "task": "Phase 4 — UX polish: move Link Client from employers list to detail page, tooltip, sidebar rename",
-      "plan_ref": "docs/PLAN-admin-employer-mgmt.md#phase-4"
-    },
-    {
-      "priority": "LOW",
-      "task": "Manual browser review of candidate detail tabs and candidate upload flow on real UI"
-    },
-    {
-      "priority": "LOW",
-      "task": "Consider changing DATABASE_URL sslmode to verify-full to silence pg SSL warning"
+      "task": "Consider upgrading Postgres SSL connection strings to sslmode=verify-full"
     }
   ],
   "recent_changes": [
     {
-      "timestamp": "2026-04-02T05:30:00+07:00",
-      "type": "fix",
-      "description": "Fixed UTF-8 double-encoding mojibake in seed.ts Application records. Re-seeded DB.",
-      "commit": "80542a0",
+      "timestamp": "2026-04-03T22:41:00+07:00",
+      "type": "deploy",
+      "description": "Completed Sprint 3 deploy hardening: Vercel + Neon live deployment, Sentry optional setup, Neon pooled Prisma config, and production verification",
       "files": [
-        "prisma/seed.ts",
-        "src/lib/moderation-actions.ts"
+        "src/lib/prisma.ts",
+        "next.config.ts",
+        "instrumentation.ts",
+        "instrumentation-client.ts",
+        "sentry.client.config.ts",
+        "sentry.server.config.ts",
+        "sentry.edge.config.ts",
+        ".env.example",
+        "docs/PROJECT-TRACKER.md"
       ]
     },
     {
-      "timestamp": "2026-04-02T18:00:00+07:00",
+      "timestamp": "2026-04-04T00:00:00+07:00",
       "type": "feature",
-      "description": "Application Detail View: expandable rows in /moderation/applications showing 3-column panel (applicant info, job details, cover letter + CV download)",
-      "commit": "46772a1",
+      "description": "Completed Sprint 5 scale and backlog fixes: team scope, schema-first validation, CRM-FDIWork sync, import UX, trash restore, view batching, paginated clients, subscription expiry, and search indexing",
       "files": [
-        "src/app/(dashboard)/moderation/applications/application-table.tsx",
-        "src/app/(dashboard)/moderation/applications/page.tsx",
-        "src/lib/moderation-actions.ts"
+        "src/lib/viewer-scope.ts",
+        "src/lib/authz.ts",
+        "src/lib/validation/forms.ts",
+        "src/lib/global-search.ts",
+        "src/lib/revenue.ts",
+        "src/lib/reminders.ts",
+        "src/lib/jobs.ts",
+        "src/lib/job-actions.ts",
+        "src/lib/job-posting-view-counter.ts",
+        "src/components/jobs/job-bridge-card.tsx",
+        "src/components/candidates/candidate-header-actions.tsx",
+        "src/components/candidates/cv-viewer.tsx",
+        "src/app/(dashboard)/candidates/trash/page.tsx",
+        "prisma/migrations/20260403224500_add_candidate_search_trgm/migration.sql"
       ]
     },
     {
-      "timestamp": "2026-04-02T18:00:00+07:00",
-      "type": "ui",
-      "description": "Option A Dashboard Polish: replaced hardcoded bg-white/text-gray-* with design tokens (bg-surface, text-foreground, text-muted), added empty state for jobs list, added ThemeToggle (dark/light mode button in header)",
-      "commit": "46772a1",
+      "timestamp": "2026-04-04T15:48:00+07:00",
+      "type": "feature",
+      "description": "Added client import flow with row validation, dedup by companyName/website, import page split by entity type, and template guide updates",
       "files": [
-        "src/app/(dashboard)/dashboard/page.tsx",
-        "src/app/(dashboard)/layout.tsx",
-        "src/components/theme-toggle.tsx"
+        "src/lib/import-actions.ts",
+        "src/lib/import-service.ts",
+        "src/lib/imports.ts",
+        "src/components/import/client-spreadsheet-importer.tsx",
+        "src/components/import/spreadsheet-import-utils.ts",
+        "src/app/(dashboard)/import/page.tsx",
+        "docs/templates/IMPORT-GUIDE.md",
+        "src/types/import.ts"
       ]
     },
     {
-      "timestamp": "2026-04-02T18:30:00+07:00",
+      "timestamp": "2026-04-04T15:53:00+07:00",
       "type": "fix",
-      "description": "Fixed remaining triple-encoded Vietnamese text in seed.ts job posting data (Windows-1252 smart quotes). Re-seeded all 22 job postings and 2 applications.",
-      "commit": "dd5b0eb",
+      "description": "Fixed spreadsheet header normalization for Vietnamese Đ/đ and verified candidate/client template import end-to-end on dev/staging via dedicated script",
       "files": [
-        "prisma/seed.ts"
+        "src/components/import/spreadsheet-import-utils.ts",
+        "scripts/verify-import-templates.ts",
+        "docs/PROJECT-TRACKER.md"
       ]
     },
     {
-      "timestamp": "2026-04-02T20:35:00+07:00",
+      "timestamp": "2026-04-04T16:47:00+07:00",
       "type": "docs",
-      "description": "Created PLAN-admin-employer-mgmt.md — full 4-phase plan for employer detail page, company page editor, and FDIWork quick links",
+      "description": "Closed S3-9 after PM accepted template-based import verification and marked Sprint 3 complete in the tracker",
       "files": [
-        "docs/PLAN-admin-employer-mgmt.md"
+        "docs/PROJECT-TRACKER.md"
       ]
+    }
+  ],
+  "errors_encountered": [
+    {
+      "error": "Candidate/client import parser failed to map Vietnamese headers containing Đ/đ",
+      "solution": "Normalize header text by replacing đ with d before removing combining marks; rerun template import verification and repair partially imported template rows",
+      "resolved": true
+    },
+    {
+      "error": "Initial build failed because generic Object.entries inference treated aliases as unknown",
+      "solution": "Cast Object.entries(headerAliases) to Array<[TField, string[]]> in spreadsheet import utils",
+      "resolved": true
     }
   ],
   "decisions_made": [
     {
-      "decision": "Keep Candidate.cvFileUrl and Candidate.cvFileName synchronized with the primary CandidateCV",
-      "reason": "The old viewer and legacy flows can keep working while the new CandidateCV model rolls out"
+      "decision": "Use Neon instead of Supabase wording for pooled Postgres infrastructure",
+      "reason": "The app is Prisma/serverless centric and only needs managed Postgres, not BaaS features"
     },
     {
-      "decision": "Store languages in CandidateLanguage relation rows instead of a String[] field",
-      "reason": "Language level and certificate must be stored alongside the language name"
+      "decision": "Treat docs/templates as sufficient Sprint 3 verification input for S3-9",
+      "reason": "PM explicitly accepted template-based E2E import verification to close the sprint"
     },
     {
-      "decision": "Use CSS design tokens (bg-surface, text-foreground, text-muted) across all dashboard components",
-      "reason": "Dark mode support requires semantic tokens, not hardcoded Tailwind color utilities like bg-white or text-gray-900"
-    },
-    {
-      "decision": "Application detail view uses expandable table rows (not a modal or side drawer)",
-      "reason": "Keeps admin flow in-page, consistent with the moderation queue UX, easier to scan across multiple applications"
-    },
-    {
-      "decision": "Admin employer management: no schema changes needed — Employer model already has all required fields (slug, description, logo, website, etc.)",
-      "reason": "Only UI + server actions need to be built. Simplifies the implementation scope significantly."
+      "decision": "Keep import candidate/client logic in shared service layer and keep server actions thin",
+      "reason": "Matches recent refactor direction away from direct Prisma usage in actions"
     }
   ],
   "verification": [
     {
       "command": "npm run build",
       "result": "passed",
-      "timestamp": "2026-04-02T18:30:00+07:00",
-      "notes": "30/30 pages, 0 TypeScript errors, commit 46772a1"
+      "timestamp": "2026-04-04T15:48:00+07:00",
+      "notes": "Build passed after adding client import flow"
+    },
+    {
+      "command": "npx tsx scripts/verify-import-templates.ts",
+      "result": "passed",
+      "timestamp": "2026-04-04T15:53:00+07:00",
+      "notes": "Template import verified on dev/staging; candidate and client sample data present"
     },
     {
       "command": "npm run build",
       "result": "passed",
-      "timestamp": "2026-04-02T20:00:00+07:00",
-      "notes": "30/30 pages, 0 TypeScript errors, commit dd5b0eb"
-    },
-    {
-      "command": "npx prisma db seed",
-      "result": "passed",
-      "timestamp": "2026-04-02T18:30:00+07:00",
-      "notes": "22 job postings, 2 applications created with correct Vietnamese encoding"
+      "timestamp": "2026-04-04T16:47:00+07:00",
+      "notes": "Final clean checkpoint after closing S3-9 in tracker"
     }
   ]
 }

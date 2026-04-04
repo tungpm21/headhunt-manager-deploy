@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Tag } from "@prisma/client";
 import { CheckCircle2, Download, Tags, Briefcase, X } from "lucide-react";
-import { CandidateWithTags } from "@/types/candidate";
+import type { Tag } from "@/types";
+import type { CandidateWithTags } from "@/types/candidate-ui";
 import { exportCandidatesToCSV } from "@/lib/candidate-export";
 import { BulkAssignModal } from "@/components/candidates/bulk-assign-modal";
 import { BulkTagModal } from "@/components/candidates/bulk-tag-modal";

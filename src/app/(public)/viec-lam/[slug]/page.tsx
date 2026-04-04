@@ -16,7 +16,7 @@ import {
   CalendarDays,
   Tag,
 } from "lucide-react";
-import { getPublicJobBySlug } from "@/lib/public-actions";
+import { getPublicJobBySlug, type HomepageJob } from "@/lib/public-actions";
 import { JobCard } from "@/components/public/JobCard";
 
 type PageProps = {
@@ -58,7 +58,7 @@ export default async function JobDetailPage({ params }: PageProps) {
     { icon: CalendarDays, label: "Hạn nộp", value: job.expiresAt ? formatDate(job.expiresAt) : "Không giới hạn" },
   ];
 
-  const skills = job.skills?.split(",").map((s) => s.trim()).filter(Boolean) || [];
+  const skills = job.skills;
 
   return (
     <div className="min-h-screen bg-gray-50/50">
@@ -150,7 +150,7 @@ export default async function JobDetailPage({ params }: PageProps) {
               {/* Skills */}
               {skills.length > 0 && (
                 <div className="flex flex-wrap gap-2 mb-6">
-                  {skills.map((skill) => (
+                  {skills.map((skill: string) => (
                     <span
                       key={skill}
                       className="px-2.5 py-1 rounded-md bg-[var(--color-fdi-surface)] text-xs font-medium text-[var(--color-fdi-primary)]"
@@ -257,7 +257,7 @@ export default async function JobDetailPage({ params }: PageProps) {
               Việc làm tương tự
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {similarJobs.map((sj) => (
+              {similarJobs.map((sj: HomepageJob) => (
                 <JobCard key={sj.id} job={sj} />
               ))}
             </div>

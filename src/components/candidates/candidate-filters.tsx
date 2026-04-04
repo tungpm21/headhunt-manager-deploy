@@ -1,28 +1,25 @@
 "use client";
 
-import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useCallback, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Search, SlidersHorizontal, X } from "lucide-react";
-import { Tag } from "@prisma/client";
+import type { Tag } from "@/types";
 import { STATUS_OPTIONS } from "@/components/candidates/status-badge";
 
 interface CandidateFiltersProps {
   allTags: Tag[];
+  locations: string[];
+  industries: string[];
+  skills: string[];
 }
 
-const LOCATIONS = ["TP.HCM", "Hà Nội", "Đà Nẵng", "Cần Thơ", "Khác"];
-const INDUSTRIES = [
-  "IT / Phần mềm", "Tài chính / Ngân hàng", "Marketing / Truyền thông",
-  "Kỹ thuật / Sản xuất", "Kinh doanh / Sales", "Nhân sự", "Hành chính", "Khác",
-];
-
 const SENIORITY_OPTIONS = [
-  { value: "INTERN",    label: "Intern" },
-  { value: "JUNIOR",   label: "Junior" },
-  { value: "MID_LEVEL",label: "Mid-level" },
-  { value: "SENIOR",   label: "Senior" },
-  { value: "LEAD",     label: "Lead" },
-  { value: "MANAGER",  label: "Manager" },
+  { value: "INTERN", label: "Intern" },
+  { value: "JUNIOR", label: "Junior" },
+  { value: "MID_LEVEL", label: "Mid-level" },
+  { value: "SENIOR", label: "Senior" },
+  { value: "LEAD", label: "Lead" },
+  { value: "MANAGER", label: "Manager" },
   { value: "DIRECTOR", label: "Director" },
 ];
 
@@ -35,7 +32,26 @@ const LANGUAGE_OPTIONS = [
   "Tiếng Pháp",
 ];
 
-export function CandidateFiltersPanel({ allTags }: CandidateFiltersProps) {
+const FILTER_PARAM_KEYS = [
+  "status",
+  "level",
+  "language",
+  "skills",
+  "location",
+  "industry",
+  "minSalary",
+  "maxSalary",
+  "tagId",
+  "sortBy",
+  "sortOrder",
+] as const;
+
+export function CandidateFiltersPanel({
+  allTags,
+  locations,
+  industries,
+  skills,
+}: CandidateFiltersProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -44,11 +60,17 @@ export function CandidateFiltersPanel({ allTags }: CandidateFiltersProps) {
   const createQueryString = useCallback(
     (updates: Record<string, string | null>) => {
       const params = new URLSearchParams(searchParams.toString());
-      Object.entries(updates).forEach(([key, val]) => {
-        if (val === null || val === "") params.delete(key);
-        else params.set(key, val);
+
+      Object.entries(updates).forEach(([key, value]) => {
+        if (value === null || value === "") {
+          params.delete(key);
+          return;
+        }
+
+        params.set(key, value);
       });
-      params.delete("page"); // reset page on filter change
+
+      params.delete("page");
       return params.toString();
     },
     [searchParams]
@@ -58,111 +80,123 @@ export function CandidateFiltersPanel({ allTags }: CandidateFiltersProps) {
     router.push(`${pathname}?${createQueryString(updates)}`);
   };
 
-  const hasActiveFilters =
-    searchParams.has("status") ||
-    searchParams.has("level") ||
-    searchParams.has("language") ||
-    searchParams.has("skills") ||
-    searchParams.has("location") ||
-    searchParams.has("industry") ||
-    searchParams.has("minSalary") ||
-    searchParams.has("maxSalary") ||
-    searchParams.has("tagId");
+  const hasActiveFilters = FILTER_PARAM_KEYS.some((key) => searchParams.has(key));
 
   const clearAll = () => {
     const params = new URLSearchParams(searchParams.toString());
-    ["status", "level", "language", "skills", "location", "industry", "minSalary", "maxSalary", "tagId"].forEach(
-      (k) => params.delete(k)
-    );
+    FILTER_PARAM_KEYS.forEach((key) => params.delete(key));
     router.push(`${pathname}?${params.toString()}`);
   };
 
   return (
     <div className="space-y-3">
-      {/* Search + Filter toggle row */}
       <div className="flex gap-2">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted/50" />
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted/50" />
           <input
             type="text"
             placeholder="Tìm theo tên, SĐT, email..."
             defaultValue={searchParams.get("search") ?? ""}
-            onChange={(e) => {
-              const q = e.target.value;
-              setTimeout(() => update({ search: q || null }), 300); // debounce
+            onChange={(event) => {
+              const value = event.target.value;
+              setTimeout(() => update({ search: value || null }), 300);
             }}
-            className="w-full rounded-lg border border-border bg-background pl-9 pr-4 py-2.5 text-sm text-foreground placeholder:text-muted/50 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition"
+            className="w-full rounded-lg border border-border bg-background py-2.5 pl-9 pr-4 text-sm text-foreground transition placeholder:text-muted/50 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
           />
         </div>
+
+        {/* Sort */}
+        <select
+          value={`${searchParams.get("sortBy") ?? "createdAt"}_${searchParams.get("sortOrder") ?? "desc"}`}
+          onChange={(event) => {
+            const [sortBy, sortOrder] = event.target.value.split("_");
+            update({ sortBy, sortOrder });
+          }}
+          className="rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
+        >
+          <option value="createdAt_desc">Mới nhất</option>
+          <option value="createdAt_asc">Cũ nhất</option>
+          <option value="fullName_asc">Tên A → Z</option>
+          <option value="fullName_desc">Tên Z → A</option>
+          <option value="expectedSalary_desc">Lương cao nhất</option>
+          <option value="expectedSalary_asc">Lương thấp nhất</option>
+        </select>
+
         <button
-          onClick={() => setShowFilters((v) => !v)}
-          className={`flex items-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-medium transition ${
-            showFilters || hasActiveFilters
-              ? "border-primary bg-primary/5 text-primary"
-              : "border-border bg-background text-foreground hover:bg-surface"
-          }`}
+          type="button"
+          onClick={() => setShowFilters((current) => !current)}
+          className={`flex items-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-medium transition ${showFilters || hasActiveFilters
+            ? "border-primary bg-primary/5 text-primary"
+            : "border-border bg-background text-foreground hover:bg-surface"
+            }`}
         >
           <SlidersHorizontal className="h-4 w-4" />
           Bộ lọc
-          {hasActiveFilters && (
-            <span className="ml-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-white text-xs">
+          {hasActiveFilters ? (
+            <span className="ml-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs text-white">
               !
             </span>
-          )}
+          ) : null}
         </button>
-        {hasActiveFilters && (
+
+        {hasActiveFilters ? (
           <button
+            type="button"
             onClick={clearAll}
-            className="flex items-center gap-1 rounded-lg border border-border px-3 py-2.5 text-sm text-danger hover:bg-danger/5 transition"
+            className="flex items-center gap-1 rounded-lg border border-border px-3 py-2.5 text-sm text-danger transition hover:bg-danger/5"
           >
             <X className="h-4 w-4" />
-            Xoá lọc
+            Xóa lọc
           </button>
-        )}
+        ) : null}
       </div>
 
-      {/* Expanded filter panel */}
-      {showFilters && (
-        <div className="rounded-xl border border-border bg-surface p-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-          {/* Status */}
+      {showFilters ? (
+        <div className="grid grid-cols-2 gap-3 rounded-xl border border-border bg-surface p-4 sm:grid-cols-3 lg:grid-cols-5">
           <div>
             <label className="mb-1 block text-xs font-medium text-muted">Trạng thái</label>
             <select
               value={searchParams.get("status") ?? ""}
-              onChange={(e) => update({ status: e.target.value || null })}
+              onChange={(event) => update({ status: event.target.value || null })}
               className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
             >
               <option value="">Tất cả</option>
-              {STATUS_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>{o.label}</option>
+              {STATUS_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
               ))}
             </select>
           </div>
 
-          {/* Location */}
           <div>
             <label className="mb-1 block text-xs font-medium text-muted">Khu vực</label>
             <select
               value={searchParams.get("location") ?? ""}
-              onChange={(e) => update({ location: e.target.value || null })}
+              onChange={(event) => update({ location: event.target.value || null })}
               className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
             >
               <option value="">Tất cả</option>
-              {LOCATIONS.map((l) => (<option key={l} value={l}>{l}</option>))}
+              {locations.map((location) => (
+                <option key={location} value={location}>
+                  {location}
+                </option>
+              ))}
             </select>
           </div>
 
-          {/* Level / Seniority */}
           <div>
             <label className="mb-1 block text-xs font-medium text-muted">Cấp bậc</label>
             <select
               value={searchParams.get("level") ?? ""}
-              onChange={(e) => update({ level: e.target.value || null })}
+              onChange={(event) => update({ level: event.target.value || null })}
               className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
             >
               <option value="">Tất cả</option>
-              {SENIORITY_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>{o.label}</option>
+              {SENIORITY_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
               ))}
             </select>
           </div>
@@ -171,7 +205,7 @@ export function CandidateFiltersPanel({ allTags }: CandidateFiltersProps) {
             <label className="mb-1 block text-xs font-medium text-muted">Ngôn ngữ</label>
             <select
               value={searchParams.get("language") ?? ""}
-              onChange={(e) => update({ language: e.target.value || null })}
+              onChange={(event) => update({ language: event.target.value || null })}
               className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
             >
               <option value="">Tất cả</option>
@@ -183,79 +217,89 @@ export function CandidateFiltersPanel({ allTags }: CandidateFiltersProps) {
             </select>
           </div>
 
-          {/* Industry */}
           <div>
             <label className="mb-1 block text-xs font-medium text-muted">Ngành nghề</label>
             <select
               value={searchParams.get("industry") ?? ""}
-              onChange={(e) => update({ industry: e.target.value || null })}
+              onChange={(event) => update({ industry: event.target.value || null })}
               className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
             >
               <option value="">Tất cả</option>
-              {INDUSTRIES.map((i) => (<option key={i} value={i}>{i}</option>))}
+              {industries.map((industry) => (
+                <option key={industry} value={industry}>
+                  {industry}
+                </option>
+              ))}
             </select>
           </div>
 
-          {/* Skills search */}
           <div>
             <label className="mb-1 block text-xs font-medium text-muted">Kỹ năng</label>
             <input
               type="text"
+              list="skills-options"
               placeholder="VD: React, Java..."
               defaultValue={searchParams.get("skills") ?? ""}
-              onChange={(e) => {
-                const q = e.target.value;
-                setTimeout(() => update({ skills: q || null }), 400);
+              onChange={(event) => {
+                const value = event.target.value;
+                setTimeout(() => update({ skills: value || null }), 400);
               }}
               className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted/50 focus:outline-none focus:ring-2 focus:ring-primary/30"
             />
+            <datalist id="skills-options">
+              {skills.map((skill) => (
+                <option key={skill} value={skill} />
+              ))}
+            </datalist>
           </div>
 
-          {/* Salary */}
           <div>
-            <label className="mb-1 block text-xs font-medium text-muted">Lương tối thiểu (tr)</label>
+            <label className="mb-1 block text-xs font-medium text-muted">
+              Lương tối thiểu (tr)
+            </label>
             <input
               type="number"
               min={0}
               placeholder="VD: 10"
               defaultValue={searchParams.get("minSalary") ?? ""}
-              onChange={(e) => update({ minSalary: e.target.value || null })}
+              onChange={(event) => update({ minSalary: event.target.value || null })}
               className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
             />
           </div>
+
           <div>
-            <label className="mb-1 block text-xs font-medium text-muted">Lương tối đa (tr)</label>
+            <label className="mb-1 block text-xs font-medium text-muted">
+              Lương tối đa (tr)
+            </label>
             <input
               type="number"
               min={0}
               placeholder="VD: 50"
               defaultValue={searchParams.get("maxSalary") ?? ""}
-              onChange={(e) => update({ maxSalary: e.target.value || null })}
+              onChange={(event) => update({ maxSalary: event.target.value || null })}
               className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
             />
           </div>
 
-          {/* Tags */}
-          {allTags.length > 0 && (
+          {allTags.length > 0 ? (
             <div className="col-span-2 sm:col-span-3 lg:col-span-5">
               <label className="mb-2 block text-xs font-medium text-muted">Tags</label>
               <div className="flex flex-wrap gap-2">
                 {allTags.map((tag) => {
                   const active = searchParams.get("tagId") === String(tag.id);
+
                   return (
                     <button
                       key={tag.id}
-                      onClick={() =>
-                        update({ tagId: active ? null : String(tag.id) })
-                      }
-                      className={`rounded-full px-3 py-1 text-xs font-medium border transition ${
-                        active
-                          ? "bg-primary text-white border-primary"
-                          : "bg-background text-foreground border-border hover:border-primary/50"
-                      }`}
+                      type="button"
+                      onClick={() => update({ tagId: active ? null : String(tag.id) })}
+                      className={`rounded-full border px-3 py-1 text-xs font-medium transition ${active
+                        ? "border-primary bg-primary text-white"
+                        : "border-border bg-background text-foreground hover:border-primary/50"
+                        }`}
                       style={
                         !active && tag.color
-                          ? { borderColor: tag.color + "40", color: tag.color }
+                          ? { borderColor: `${tag.color}40`, color: tag.color }
                           : undefined
                       }
                     >
@@ -265,9 +309,9 @@ export function CandidateFiltersPanel({ allTags }: CandidateFiltersProps) {
                 })}
               </div>
             </div>
-          )}
+          ) : null}
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

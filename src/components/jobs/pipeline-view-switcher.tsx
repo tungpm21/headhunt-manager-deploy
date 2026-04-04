@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AlertCircle, Columns3, List } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import {
   EmailTemplateStage,
   shouldOpenEmailTemplate,
@@ -17,11 +17,8 @@ import {
   SubmissionResult,
 } from "@/types/job";
 import { JobPipeline } from "@/components/jobs/job-pipeline";
-import { PipelineKanban } from "@/components/jobs/pipeline-kanban";
 import { AssignCandidateModal } from "@/components/jobs/assign-candidate-modal";
 import { EmailTemplateModal } from "@/components/jobs/email-template-modal";
-
-type PipelineView = "list" | "kanban";
 
 type PipelineSaveInput = {
   result: SubmissionResult;
@@ -94,14 +91,15 @@ export function PipelineViewSwitcher({
   jobId,
   jobTitle,
   companyName,
+  requiredSkills,
   candidates,
 }: {
   jobId: number;
   jobTitle: string;
   companyName: string;
+  requiredSkills: string[];
   candidates: SerializedJobCandidateWithRelations[];
 }) {
-  const [view, setView] = useState<PipelineView>("list");
   const [items, setItems] = useState(candidates);
   const [isPending, setIsPending] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -112,13 +110,6 @@ export function PipelineViewSwitcher({
   useEffect(() => {
     setItems(candidates);
   }, [candidates]);
-
-  useEffect(() => {
-    const storedView = window.localStorage.getItem("pipeline-view");
-    if (storedView === "list" || storedView === "kanban") {
-      setView(storedView);
-    }
-  }, []);
 
   useEffect(() => {
     const storedEmailModal = parseEmailModalState(
@@ -147,11 +138,6 @@ export function PipelineViewSwitcher({
     return () => window.cancelAnimationFrame(frameId);
   }, [emailModal, pendingEmailModal]);
 
-  const handleViewChange = (nextView: PipelineView) => {
-    setView(nextView);
-    window.localStorage.setItem("pipeline-view", nextView);
-  };
-
   const queueEmailModal = (nextModal: EmailModalState) => {
     window.sessionStorage.setItem(
       PENDING_EMAIL_MODAL_KEY,
@@ -177,10 +163,10 @@ export function PipelineViewSwitcher({
       currentItems.map((item) =>
         item.id === jobCandidateId
           ? {
-              ...item,
-              stage,
-              result: nextResult,
-            }
+            ...item,
+            stage,
+            result: nextResult,
+          }
           : item
       )
     );
@@ -230,11 +216,11 @@ export function PipelineViewSwitcher({
       currentItems.map((item) =>
         item.id === jobCandidateId
           ? {
-              ...item,
-              result: data.result,
-              interviewDate: data.interviewDate,
-              notes: data.notes ?? null,
-            }
+            ...item,
+            result: data.result,
+            interviewDate: data.interviewDate,
+            notes: data.notes ?? null,
+          }
           : item
       )
     );
@@ -271,40 +257,15 @@ export function PipelineViewSwitcher({
         <div>
           <h2 className="text-base font-semibold text-foreground">Pipeline ứng viên</h2>
           <p className="mt-0.5 text-xs text-muted">
-            Đang có {items.length} hồ sơ được gán
+            Đang có {items.length} hồ sơ được gán cho job này
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="inline-flex rounded-lg border border-border bg-background p-1">
-            <button
-              type="button"
-              onClick={() => handleViewChange("list")}
-              className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition ${
-                view === "list"
-                  ? "bg-primary text-white"
-                  : "text-muted hover:bg-surface hover:text-foreground"
-              }`}
-            >
-              <List className="h-4 w-4" />
-              Danh sách
-            </button>
-            <button
-              type="button"
-              onClick={() => handleViewChange("kanban")}
-              className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition ${
-                view === "kanban"
-                  ? "bg-primary text-white"
-                  : "text-muted hover:bg-surface hover:text-foreground"
-              }`}
-            >
-              <Columns3 className="h-4 w-4" />
-              Kanban
-            </button>
-          </div>
-
-          <AssignCandidateModal jobId={jobId} />
-        </div>
+        <AssignCandidateModal
+          jobId={jobId}
+          jobTitle={jobTitle}
+          requiredSkills={requiredSkills}
+        />
       </div>
 
       {errorMessage ? (
@@ -314,22 +275,13 @@ export function PipelineViewSwitcher({
         </div>
       ) : null}
 
-      {view === "list" ? (
-        <JobPipeline
-          candidates={items}
-          isPending={isPending}
-          onStageChange={handleStageChange}
-          onPipelineSave={handlePipelineSave}
-          onRemove={handleRemove}
-        />
-      ) : (
-        <PipelineKanban
-          candidates={items}
-          isPending={isPending}
-          onStageChange={handleStageChange}
-          onPipelineSave={handlePipelineSave}
-        />
-      )}
+      <JobPipeline
+        candidates={items}
+        isPending={isPending}
+        onStageChange={handleStageChange}
+        onPipelineSave={handlePipelineSave}
+        onRemove={handleRemove}
+      />
 
       {emailModal ? (
         <EmailTemplateModal

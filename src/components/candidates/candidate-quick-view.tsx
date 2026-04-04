@@ -12,7 +12,7 @@ import {
   Languages,
   ArrowRight,
 } from "lucide-react";
-import { CandidateWithTags } from "@/types/candidate";
+import type { CandidateWithTags } from "@/types/candidate-ui";
 
 function formatSalary(amount: number | null) {
   if (!amount) {

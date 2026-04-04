@@ -1,6 +1,9 @@
 "use server";
 
+import { Prisma } from "@prisma/client";
+import { incrementJobPostingView } from "@/lib/job-posting-view-counter";
 import { prisma } from "@/lib/prisma";
+import { expireSubscriptionsIfNeeded } from "@/lib/subscriptions";
 
 export type HomepageJob = {
   id: number;
@@ -46,6 +49,7 @@ export type HomepageData = {
 };
 
 export async function getHomepageData(): Promise<HomepageData> {
+  await expireSubscriptionsIfNeeded();
   const now = new Date();
 
   const [featuredJobs, topEmployers, industryGroups, totalJobs, totalEmployers] =
@@ -164,9 +168,32 @@ export type JobListResult = {
 
 const JOBS_PER_PAGE = 12;
 
+async function findJobPostingIdsBySkillKeyword(query: string): Promise<number[]> {
+  const normalizedQuery = query.trim().toLowerCase();
+
+  if (!normalizedQuery) {
+    return [];
+  }
+
+  const rows = await prisma.$queryRaw<Array<{ id: number }>>(Prisma.sql`
+    SELECT "id"
+    FROM "JobPosting"
+    WHERE EXISTS (
+      SELECT 1
+      FROM unnest("skills") AS skill
+      WHERE lower(skill) LIKE ${`%${normalizedQuery}%`}
+    )
+  `);
+
+  return rows.map((row) => row.id);
+}
+
 export async function getPublicJobs(filters: JobFilters = {}): Promise<JobListResult> {
   const now = new Date();
   const page = Math.max(1, filters.page || 1);
+  const skillMatchedIds = filters.q
+    ? await findJobPostingIdsBySkillKeyword(filters.q)
+    : [];
 
   // Build where clause
   const where: Record<string, unknown> = {
@@ -179,8 +206,9 @@ export async function getPublicJobs(filters: JobFilters = {}): Promise<JobListRe
       {
         OR: [
           { title: { contains: filters.q, mode: "insensitive" } },
-          { skills: { contains: filters.q, mode: "insensitive" } },
+          { description: { contains: filters.q, mode: "insensitive" } },
           { employer: { companyName: { contains: filters.q, mode: "insensitive" } } },
+          ...(skillMatchedIds.length > 0 ? [{ id: { in: skillMatchedIds } }] : []),
         ],
       },
     ];
@@ -271,7 +299,7 @@ export type JobDetail = {
   location: string | null;
   workType: string | null;
   quantity: number;
-  skills: string | null;
+  skills: string[];
   publishedAt: Date | null;
   expiresAt: Date | null;
   viewCount: number;
@@ -334,10 +362,7 @@ export async function getPublicJobBySlug(
   if (!job || job.status !== "APPROVED") return null;
   if (job.expiresAt && job.expiresAt < now) return null;
 
-  // Increment view count (fire and forget)
-  prisma.jobPosting
-    .update({ where: { id: job.id }, data: { viewCount: { increment: 1 } } })
-    .catch(() => {});
+  incrementJobPostingView(job.id);
 
   // Fetch similar jobs (same industry, excluding current)
   const similarJobs = await prisma.jobPosting.findMany({
@@ -399,6 +424,7 @@ const COMPANIES_PER_PAGE = 12;
 export async function getPublicCompanies(
   filters: { q?: string; industry?: string; page?: number } = {}
 ): Promise<CompanyListResult> {
+  await expireSubscriptionsIfNeeded();
   const page = Math.max(1, filters.page || 1);
 
   const where: Record<string, unknown> = { status: "ACTIVE" as const };
@@ -464,6 +490,7 @@ export type CompanyProfile = {
 };
 
 export async function getCompanyBySlug(slug: string): Promise<CompanyProfile | null> {
+  await expireSubscriptionsIfNeeded();
   const now = new Date();
 
   const employer = await prisma.employer.findUnique({

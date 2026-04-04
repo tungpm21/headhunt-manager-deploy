@@ -1,12 +1,11 @@
 "use client";
 
-import { useState, useActionState, useRef } from "react";
-import { useRouter } from "next/navigation";
-import { Tag } from "@prisma/client";
+import { useActionState, useState } from "react";
 import { updateCandidateAction } from "@/lib/actions";
 import { TagSelector } from "@/components/candidates/tag-selector";
 import { AvatarUpload } from "@/components/candidates/avatar-upload";
-import { CandidateWithRelations } from "@/types/candidate";
+import type { Tag } from "@/types";
+import type { CandidateWithRelations } from "@/types/candidate-ui";
 import { Loader2, Save, Pencil, X } from "lucide-react";
 
 type ActionState = { error?: string; success?: boolean } | undefined;
@@ -25,17 +24,13 @@ interface EditCandidateFormProps {
 }
 
 export function EditCandidateForm({ candidate, allTags }: EditCandidateFormProps) {
-  const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
   const [selectedTagIds, setSelectedTagIds] = useState<number[]>(
     candidate.tags.map((ct) => ct.tag.id)
   );
 
-  const selectedTagIdsRef = useRef<number[]>(selectedTagIds);
-  selectedTagIdsRef.current = selectedTagIds;
-
   async function handleUpdate(_prev: ActionState, fd: FormData): Promise<ActionState> {
-    selectedTagIdsRef.current.forEach((id) => fd.append("tagIds", String(id)));
+    selectedTagIds.forEach((id) => fd.append("tagIds", String(id)));
     return updateCandidateAction(candidate.id, _prev, fd);
   }
 

@@ -56,3 +56,7 @@ session.json
 # Logs
 server.log
 *.log
+.vercel
+.gitnexus
+.tmp/
+.claude/

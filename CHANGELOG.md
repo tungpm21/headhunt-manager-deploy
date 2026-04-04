@@ -2,6 +2,43 @@
 
 Mọi thay đổi đáng chú ý của dự án Headhunt Manager sẽ được ghi chép tại đây.
 
+## [2026-04-04] - Diacritics Sweep + S3-10 Review
+
+### Sửa lỗi (Fixed)
+- **Quét dấu tiếng Việt**: Fix **37+ chuỗi thiếu dấu** trên 13 files (actions, API routes, components)
+- **S3-10 BONUS Review**: Audit code quality cho BONUS 1-5 — tất cả logic sạch, chỉ lỗi dấu
+- **TS Error Fix**: `deleteClientContact()` thiếu arg `clientId` (do S5 agent đổi signature)
+- **Candidate Page**: Thêm Sort dropdown (6 options) + Skills autocomplete (`<datalist>` native)
+
+---
+
+## [2026-04-03] - Production Hardening + Sprint 3
+
+### Bảo mật & Hạ tầng
+- **JWT Hardening**: TTL 1 ngày, cookie httpOnly + sameSite strict
+- **File Upload Security**: Magic byte validation cho ảnh + CV
+- **Connection Pooling**: `DATABASE_POOLER_URL` cho Neon pooling mode
+- **Sentry Integration**: Optional error tracking (NEXT_PUBLIC_SENTRY_DSN)
+
+### UI/UX
+- **Dark Mode**: CSS design tokens (`bg-surface`, `text-foreground`, etc.) toàn dashboard
+- **Vietnamese UI**: Sửa dấu tiếng Việt trên Global Search, Dashboard, Client actions
+- **PROJECT-TRACKER.md**: Khôi phục + cập nhật tiếng Việt có dấu đầy đủ
+
+---
+
+## [2026-04-02] - Admin Employer Management + BONUS Features
+
+### Thêm mới (Added)
+- **Admin Employer Mgmt (BONUS-6)**: 4 phases — FDIWork links, detail page, company editor, UX polish
+- **BONUS-1 Smart Dashboard**: Pipeline Summary, Deadline Alerts, Activity Feed, Follow-up Reminders
+- **BONUS-2 Pipeline Upgrade**: Optimistic updates, Email Template Modal, drag-to-stage
+- **BONUS-3 Global Search**: Cmd+K palette, debounced search, keyboard navigation
+- **BONUS-4 Bulk Actions**: Multi-select candidates, bulk assign job/tag
+- **BONUS-5 Dark Mode + Responsive**: CSS tokens, responsive sidebar, mobile-friendly tables
+
+---
+
 ## [2026-04-01] - Project Review & AI Docs System
 
 ### Docs & Infra

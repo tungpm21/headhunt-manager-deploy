@@ -1,7 +1,7 @@
 "use client";
 
 import { useTransition } from "react";
-import { Tag } from "@prisma/client";
+import type { Tag } from "@/types";
 import { TagSelector } from "@/components/candidates/tag-selector";
 import { addTagToCandidateAction, removeTagFromCandidateAction } from "@/lib/actions";
 

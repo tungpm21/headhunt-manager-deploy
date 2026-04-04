@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useRef, useTransition } from "react";
-import { Tag } from "@prisma/client";
 import { createTagAction } from "@/lib/actions";
+import type { Tag } from "@/types";
 import { X, Plus, Search } from "lucide-react";
 
 const TAG_COLORS = [

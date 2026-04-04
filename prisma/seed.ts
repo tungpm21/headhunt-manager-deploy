@@ -309,7 +309,13 @@ async function main() {
         requirements: "- ĐH Ngoại thương, Kinh tế quốc tế\n- 1+ năm kinh nghiệm XNK\n- Hiểu biết thủ tục hải quan điện tử\n- Tiếng Nhật hoặc tiếng Anh",
         salaryMin: 10, salaryMax: 16, salaryDisplay: "10 - 16 triệu", industry: "Logistics", position: "Nhân viên", location: "Hưng Yên", workType: "Full-time", quantity: 1, skills: "XNK, Hải quan, Logistics, Tiếng Nhật", status: "APPROVED", publishedAt: pub(9), expiresAt: exp(21), viewCount: 78, applyCount: 3
       },
-    ]
+    ].map((job) => ({
+      ...job,
+      skills: job.skills
+        .split(",")
+        .map((skill) => skill.trim())
+        .filter(Boolean),
+    })) as Prisma.JobPostingCreateManyInput[],
   });
 
   const jobCount = await prisma.jobPosting.count({ where: { status: "APPROVED" } });

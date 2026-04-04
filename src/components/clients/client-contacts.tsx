@@ -1,9 +1,18 @@
 "use client";
 
 import { useActionState, useRef, useTransition } from "react";
-import { ClientContact } from "@prisma/client";
 import { addClientContactAction, deleteClientContactAction } from "@/lib/client-actions";
 import { Users, Phone, Mail, Loader2, Trash2, Plus, Star } from "lucide-react";
+
+type ClientContact = {
+  id: number;
+  name: string;
+  position: string | null;
+  phone: string | null;
+  email: string | null;
+  isPrimary: boolean;
+  clientId: number;
+};
 
 interface ClientContactsProps {
   clientId: number;

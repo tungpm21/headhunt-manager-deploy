@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Calendar, CheckCircle2, MessageSquare } from "lucide-react";
 import {
   SerializedJobCandidateWithRelations,
@@ -31,17 +31,6 @@ export function PipelineDetailPanel({
   const [result, setResult] = useState<SubmissionResult>(jobCandidate.result);
   const [notes, setNotes] = useState(jobCandidate.notes || "");
   const [saved, setSaved] = useState(false);
-
-  useEffect(() => {
-    setInterviewDate(
-      jobCandidate.interviewDate
-        ? new Date(jobCandidate.interviewDate).toISOString().split("T")[0]
-        : ""
-    );
-    setResult(jobCandidate.result);
-    setNotes(jobCandidate.notes || "");
-    setSaved(false);
-  }, [jobCandidate]);
 
   const handleSave = async () => {
     const success = await onSave(jobCandidate.id, {

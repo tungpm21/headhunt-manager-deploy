@@ -1,44 +1,122 @@
 "use server";
 
-import { signIn } from "@/auth";
+import {
+  CandidateSeniority,
+  CandidateSource,
+  CandidateStatus,
+  Gender,
+} from "@prisma/client";
 import { AuthError } from "next-auth";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { requireAdmin } from "@/lib/authz";
+import { signIn } from "@/auth";
+import { logActivity } from "@/lib/activity-log";
+import { requireAdmin, requireViewerScope } from "@/lib/authz";
 import {
   addCandidateNote,
   addTagToCandidate,
   checkDuplicate,
   createCandidate,
+  getCandidateById,
   removeTagFromCandidate,
+  restoreCandidate,
   softDeleteCandidate,
   updateCandidate,
 } from "@/lib/candidates";
 import {
+  completeCandidateReminder,
+  createCandidateReminder,
+} from "@/lib/reminders";
+import {
   buildServerActionRateLimitKey,
   checkRateLimit,
-} from "@/lib/rate-limit";
+} from "@/lib/rate-limit-redis";
 import { createTag } from "@/lib/tags";
 import {
-  CandidateSeniority,
-  CandidateSource,
-  CandidateStatus,
-  CreateCandidateInput,
-  Gender,
-  UpdateCandidateInput,
-} from "@/types/candidate";
+  authLoginSchema,
+  candidateFormSchema,
+  candidateReminderSchema,
+  getFirstZodErrorMessage,
+} from "@/lib/validation/forms";
+import { CreateCandidateInput, UpdateCandidateInput } from "@/types/candidate";
+import { enumVal, strVal } from "@/lib/utils/form-helpers";
+
+function strNull(value: FormDataEntryValue | null): string | null {
+  const normalized = value?.toString()?.trim();
+  return normalized || null;
+}
+
+function parseCandidateSkills(value: FormDataEntryValue | null): string[] {
+  const raw = value?.toString().trim();
+
+  if (!raw) {
+    return [];
+  }
+
+  return [
+    ...new Set(
+      raw
+        .split(",")
+        .map((skill) => skill.toLowerCase().trim())
+        .filter(Boolean)
+    ),
+  ];
+}
+
+function buildCandidateInput(formData: FormData): CreateCandidateInput {
+  const tagIds = formData
+    .getAll("tagIds")
+    .map((value) => Number(value))
+    .filter((value) => !Number.isNaN(value) && value > 0);
+
+  const yearsOfExpRaw = formData.get("yearsOfExp")?.toString().trim();
+  const currentSalaryRaw = formData.get("currentSalary")?.toString().trim();
+  const expectedSalaryRaw = formData.get("expectedSalary")?.toString().trim();
+  const dateOfBirthRaw = formData.get("dateOfBirth")?.toString().trim();
+
+  return {
+    fullName: String(formData.get("fullName") ?? "").trim(),
+    phone: strVal(formData.get("phone")),
+    email: strVal(formData.get("email")),
+    dateOfBirth: dateOfBirthRaw ? new Date(dateOfBirthRaw) : undefined,
+    gender: enumVal(formData.get("gender"), Object.values(Gender)),
+    address: strVal(formData.get("address")),
+    currentPosition: strVal(formData.get("currentPosition")),
+    currentCompany: strVal(formData.get("currentCompany")),
+    industry: strVal(formData.get("industry")),
+    yearsOfExp: yearsOfExpRaw ? Number(yearsOfExpRaw) : undefined,
+    currentSalary: currentSalaryRaw ? Number(currentSalaryRaw) : undefined,
+    expectedSalary: expectedSalaryRaw ? Number(expectedSalaryRaw) : undefined,
+    location: strVal(formData.get("location")),
+    status: enumVal(formData.get("status"), Object.values(CandidateStatus)),
+    level: enumVal(formData.get("level"), Object.values(CandidateSeniority)),
+    skills: parseCandidateSkills(formData.get("skills")),
+    source: enumVal(formData.get("source"), Object.values(CandidateSource)),
+    sourceDetail: strVal(formData.get("sourceDetail")),
+    avatarUrl: strNull(formData.get("avatarUrl")),
+    tagIds,
+  };
+}
 
 export async function authenticate(
-  prevState: string | undefined,
+  _prevState: string | undefined,
   formData: FormData
 ) {
-  const email = formData.get("email")?.toString().trim().toLowerCase();
-  const password = formData.get("password")?.toString() ?? "";
+  const parsedInput = authLoginSchema.safeParse({
+    email: formData.get("email")?.toString().trim().toLowerCase(),
+    password: formData.get("password")?.toString() ?? "",
+  });
+  const email = parsedInput.success ? parsedInput.data.email : undefined;
+  const password = parsedInput.success ? parsedInput.data.password : "";
   const rateLimitKey = await buildServerActionRateLimitKey("crm-login", email);
-  const rateLimit = checkRateLimit(rateLimitKey, 5, 10 * 60 * 1000);
+  const rateLimit = await checkRateLimit(rateLimitKey, 5, 10 * 60 * 1000);
 
   if (!rateLimit.allowed) {
-    return `Thử lại sau ${rateLimit.retryAfterSeconds} giây.`;
+    return `Thu lai sau ${rateLimit.retryAfterSeconds} giay.`;
+  }
+
+  if (!parsedInput.success) {
+    return getFirstZodErrorMessage(parsedInput.error);
   }
 
   try {
@@ -51,9 +129,9 @@ export async function authenticate(
     if (error instanceof AuthError) {
       switch (error.type) {
         case "CredentialsSignin":
-          return "Email hoặc mật khẩu không đúng.";
+          return "Email hoac mat khau khong dung.";
         default:
-          return "Đã có lỗi xảy ra.";
+          return "Da co loi xay ra.";
       }
     }
 
@@ -61,83 +139,25 @@ export async function authenticate(
   }
 }
 
-async function getCurrentUserId(): Promise<number> {
-  const { userId } = await requireAdmin();
-  return userId;
-}
-
-function enumVal<T>(value: FormDataEntryValue | null): T | undefined {
-  const normalized = value?.toString()?.trim();
-  return normalized ? (normalized as T) : undefined;
-}
-
-function strVal(value: FormDataEntryValue | null): string | undefined {
-  const normalized = value?.toString()?.trim();
-  return normalized || undefined;
-}
-
-function strNull(value: FormDataEntryValue | null): string | null {
-  const normalized = value?.toString()?.trim();
-  return normalized || null;
-}
-
 export async function createCandidateAction(
-  prevState: { error?: string; success?: boolean } | undefined,
+  _prevState: { error?: string; success?: boolean } | undefined,
   formData: FormData
 ): Promise<{ error?: string; success?: boolean; id?: number }> {
   try {
-    const userId = await getCurrentUserId();
+    const scope = await requireViewerScope();
+    const userId = scope.userId;
+    const parsedInput = candidateFormSchema.safeParse(buildCandidateInput(formData));
 
-    const tagIds = formData
-      .getAll("tagIds")
-      .map((value) => Number(value))
-      .filter((value) => !Number.isNaN(value) && value > 0);
-
-    const yearsOfExpRaw = formData.get("yearsOfExp")?.toString().trim();
-    const currentSalaryRaw = formData.get("currentSalary")?.toString().trim();
-    const expectedSalaryRaw = formData.get("expectedSalary")?.toString().trim();
-    const dateOfBirthRaw = formData.get("dateOfBirth")?.toString().trim();
-
-    const skillsRaw = formData.get("skills")?.toString().trim();
-    const skills = skillsRaw
-      ? skillsRaw.split(",").map((skill) => skill.trim()).filter(Boolean)
-      : [];
-
-    const input: CreateCandidateInput = {
-      fullName: String(formData.get("fullName") ?? "").trim(),
-      phone: strVal(formData.get("phone")),
-      email: strVal(formData.get("email")),
-      dateOfBirth: dateOfBirthRaw ? new Date(dateOfBirthRaw) : undefined,
-      gender: enumVal<Gender>(formData.get("gender")),
-      address: strVal(formData.get("address")),
-      currentPosition: strVal(formData.get("currentPosition")),
-      currentCompany: strVal(formData.get("currentCompany")),
-      industry: strVal(formData.get("industry")),
-      yearsOfExp: yearsOfExpRaw ? Number(yearsOfExpRaw) : undefined,
-      currentSalary: currentSalaryRaw ? Number(currentSalaryRaw) : undefined,
-      expectedSalary: expectedSalaryRaw ? Number(expectedSalaryRaw) : undefined,
-      location: strVal(formData.get("location")),
-      status: enumVal<CandidateStatus>(formData.get("status")),
-      level: enumVal<CandidateSeniority>(formData.get("level")),
-      skills,
-      source: enumVal<CandidateSource>(formData.get("source")),
-      sourceDetail: strVal(formData.get("sourceDetail")),
-      avatarUrl: strNull(formData.get("avatarUrl")),
-      tagIds,
-    };
-
-    if (!input.fullName) return { error: "Họ và tên không được để trống." };
-    if (!input.email && !input.phone) {
-      return { error: "Vui lòng nhập Email hoặc Số điện thoại." };
+    if (!parsedInput.success) {
+      return { error: getFirstZodErrorMessage(parsedInput.error) };
     }
-    if (!input.location) return { error: "Khu vực là bắt buộc." };
-    if (!input.industry) return { error: "Ngành nghề là bắt buộc." };
-    if (!input.status) return { error: "Trạng thái là bắt buộc." };
 
+    const input: CreateCandidateInput = parsedInput.data;
     const duplicate = await checkDuplicate(input.email, input.phone);
+
     if (duplicate) {
       return {
-        error: `Đã có ứng viên trùng thông tin: ${duplicate.fullName}.`,
+        error: `Da co ung vien trung thong tin: ${duplicate.fullName}.`,
       };
     }
 
@@ -147,90 +167,62 @@ export async function createCandidateAction(
     return { success: true, id: candidate.id };
   } catch (error) {
     console.error("createCandidateAction error:", error);
-    return { error: "Đã có lỗi xảy ra. Vui lòng thử lại." };
+    return { error: "Da co loi xay ra. Vui long thu lai." };
   }
 }
 
 export async function updateCandidateAction(
   id: number,
-  prevState: { error?: string; success?: boolean } | undefined,
+  _prevState: { error?: string; success?: boolean } | undefined,
   formData: FormData
 ): Promise<{ error?: string; success?: boolean }> {
   try {
-    await requireAdmin();
+    const scope = await requireViewerScope();
+    const parsedInput = candidateFormSchema.safeParse(buildCandidateInput(formData));
 
-    const tagIds = formData
-      .getAll("tagIds")
-      .map((value) => Number(value))
-      .filter((value) => !Number.isNaN(value) && value > 0);
-
-    const yearsOfExpRaw = formData.get("yearsOfExp")?.toString().trim();
-    const currentSalaryRaw = formData.get("currentSalary")?.toString().trim();
-    const expectedSalaryRaw = formData.get("expectedSalary")?.toString().trim();
-    const dateOfBirthRaw = formData.get("dateOfBirth")?.toString().trim();
-
-    const skillsRaw = formData.get("skills")?.toString().trim();
-    const skills =
-      skillsRaw !== undefined
-        ? skillsRaw
-          ? skillsRaw.split(",").map((skill) => skill.trim()).filter(Boolean)
-          : []
-        : undefined;
-
-    const input: UpdateCandidateInput = {
-      fullName: strVal(formData.get("fullName")),
-      phone: strVal(formData.get("phone")),
-      email: strVal(formData.get("email")),
-      dateOfBirth: dateOfBirthRaw ? new Date(dateOfBirthRaw) : undefined,
-      gender: enumVal<Gender>(formData.get("gender")),
-      address: strVal(formData.get("address")),
-      currentPosition: strVal(formData.get("currentPosition")),
-      currentCompany: strVal(formData.get("currentCompany")),
-      industry: strVal(formData.get("industry")),
-      yearsOfExp: yearsOfExpRaw ? Number(yearsOfExpRaw) : undefined,
-      currentSalary: currentSalaryRaw ? Number(currentSalaryRaw) : undefined,
-      expectedSalary: expectedSalaryRaw ? Number(expectedSalaryRaw) : undefined,
-      location: strVal(formData.get("location")),
-      status: enumVal<CandidateStatus>(formData.get("status")),
-      level: enumVal<CandidateSeniority>(formData.get("level")),
-      skills,
-      source: enumVal<CandidateSource>(formData.get("source")),
-      sourceDetail: strVal(formData.get("sourceDetail")),
-      avatarUrl: strNull(formData.get("avatarUrl")),
-      tagIds,
-    };
-
-    if (!input.fullName) return { error: "Họ và tên không được để trống." };
-    if (!input.email && !input.phone) {
-      return { error: "Vui lòng nhập Email hoặc Số điện thoại." };
+    if (!parsedInput.success) {
+      return { error: getFirstZodErrorMessage(parsedInput.error) };
     }
-    if (!input.location) return { error: "Khu vực là bắt buộc." };
-    if (!input.industry) return { error: "Ngành nghề là bắt buộc." };
-    if (!input.status) return { error: "Trạng thái là bắt buộc." };
 
+    const input: UpdateCandidateInput = parsedInput.data;
     const duplicate = await checkDuplicate(input.email, input.phone, id);
+
     if (duplicate) {
       return {
-        error: `Đã có ứng viên trùng thông tin: ${duplicate.fullName}.`,
+        error: `Da co ung vien trung thong tin: ${duplicate.fullName}.`,
       };
     }
 
-    await updateCandidate(id, input);
+    await updateCandidate(id, input, scope);
     revalidatePath(`/candidates/${id}`);
     revalidatePath("/candidates");
 
     return { success: true };
   } catch (error) {
     console.error("updateCandidateAction error:", error);
-    return { error: "Đã có lỗi xảy ra. Vui lòng thử lại." };
+    return { error: "Da co loi xay ra. Vui long thu lai." };
   }
 }
 
 export async function deleteCandidateAction(id: number): Promise<void> {
-  await getCurrentUserId();
-  await softDeleteCandidate(id);
+  const scope = await requireViewerScope();
+  await softDeleteCandidate(id, scope);
   revalidatePath("/candidates");
+  revalidatePath("/candidates/trash");
   redirect("/candidates");
+}
+
+export async function restoreCandidateAction(id: number) {
+  try {
+    await requireAdmin();
+    await restoreCandidate(id);
+    revalidatePath("/candidates");
+    revalidatePath("/candidates/trash");
+    return { success: true };
+  } catch (error) {
+    console.error("restoreCandidateAction error:", error);
+    return { error: "Khong the khoi phuc ung vien." };
+  }
 }
 
 export async function updateCandidateStatusAction(
@@ -238,36 +230,137 @@ export async function updateCandidateStatusAction(
   status: CandidateStatus
 ) {
   try {
-    await requireAdmin();
-    await updateCandidate(id, { status } as UpdateCandidateInput);
+    const scope = await requireViewerScope();
+    const userId = scope.userId;
+    const currentCandidate = await getCandidateById(id, scope);
+
+    if (!currentCandidate) {
+      return { error: "Khong tim thay ung vien." };
+    }
+
+    await updateCandidate(id, { status } as UpdateCandidateInput, scope);
+
+    await logActivity("STATUS_CHANGE", "CANDIDATE", id, userId, {
+      from: currentCandidate.status,
+      to: status,
+      candidateName: currentCandidate.fullName,
+    });
+
     revalidatePath(`/candidates/${id}`);
     revalidatePath("/candidates");
+    revalidatePath("/dashboard");
     return { success: true };
   } catch (error) {
     console.error("updateCandidateStatusAction error:", error);
-    return { error: "Không thể cập nhật trạng thái." };
+    return { error: "Khong the cap nhat trang thai." };
   }
 }
 
-export async function addNoteAction(
+export async function addCandidateNoteAction(
   candidateId: number,
-  prevState: { error?: string; success?: boolean } | undefined,
+  _prevState: { error?: string; success?: boolean } | undefined,
   formData: FormData
 ): Promise<{ error?: string; success?: boolean }> {
   try {
-    const userId = await getCurrentUserId();
+    const scope = await requireViewerScope();
+    const userId = scope.userId;
     const content = String(formData.get("content") ?? "").trim();
 
     if (!content) {
-      return { error: "Ghi chú không được để trống." };
+      return { error: "Ghi chu khong duoc de trong." };
     }
 
-    await addCandidateNote(candidateId, content, userId);
+    await addCandidateNote(candidateId, content, userId, scope);
+
+    await logActivity("NOTE", "CANDIDATE", candidateId, userId, {
+      preview: content.slice(0, 100),
+    });
+
     revalidatePath(`/candidates/${candidateId}`);
+    revalidatePath("/dashboard");
     return { success: true };
   } catch (error) {
-    console.error("addNoteAction error:", error);
-    return { error: "Đã có lỗi xảy ra." };
+    console.error("addCandidateNoteAction error:", error);
+    return { error: "Da co loi xay ra." };
+  }
+}
+
+export const addNoteAction = addCandidateNoteAction;
+
+export async function addCandidateReminderAction(
+  candidateId: number,
+  _prevState: { error?: string; success?: boolean } | undefined,
+  formData: FormData
+): Promise<{ error?: string; success?: boolean }> {
+  try {
+    const scope = await requireViewerScope();
+    const userId = scope.userId;
+    const candidate = await getCandidateById(candidateId, scope);
+    const parsedInput = candidateReminderSchema.safeParse({
+      title: String(formData.get("title") ?? "").trim(),
+      note: strVal(formData.get("note")),
+      dueAt: new Date(String(formData.get("dueAt") ?? "").trim()),
+    });
+
+    if (!candidate) {
+      return { error: "Khong tim thay ung vien hoac ban khong co quyen." };
+    }
+
+    if (!parsedInput.success) {
+      return { error: getFirstZodErrorMessage(parsedInput.error) };
+    }
+
+    const reminder = await createCandidateReminder({
+      candidateId,
+      ...parsedInput.data,
+      assignedToId: userId,
+    });
+
+    await logActivity("REMINDER_CREATED", "CANDIDATE", candidateId, userId, {
+      candidateName: reminder.candidate.fullName,
+      reminderId: reminder.id,
+      reminderTitle: reminder.title,
+      dueAt: reminder.dueAt.toISOString(),
+      assignedTo: reminder.assignedTo.name,
+    });
+
+    revalidatePath(`/candidates/${candidateId}`);
+    revalidatePath("/dashboard");
+    return { success: true };
+  } catch (error) {
+    console.error("addCandidateReminderAction error:", error);
+    return { error: "Khong the tao nhac viec." };
+  }
+}
+
+export async function completeCandidateReminderAction(
+  reminderId: number
+): Promise<{ error?: string; success?: boolean }> {
+  try {
+    const scope = await requireViewerScope();
+    const userId = scope.userId;
+    const result = await completeCandidateReminder(reminderId, userId, scope);
+
+    if (!result) {
+      return { error: "Khong tim thay nhac viec." };
+    }
+
+    if (result.justCompleted) {
+      await logActivity("REMINDER_COMPLETED", "CANDIDATE", result.reminder.candidateId, userId, {
+        candidateName: result.reminder.candidate.fullName,
+        reminderId: result.reminder.id,
+        reminderTitle: result.reminder.title,
+        dueAt: result.reminder.dueAt.toISOString(),
+        assignedTo: result.reminder.assignedTo.name,
+      });
+    }
+
+    revalidatePath(`/candidates/${result.reminder.candidateId}`);
+    revalidatePath("/dashboard");
+    return { success: true };
+  } catch (error) {
+    console.error("completeCandidateReminderAction error:", error);
+    return { error: "Khong the cap nhat nhac viec." };
   }
 }
 
@@ -279,30 +372,42 @@ export async function createTagAction(name: string, color?: string) {
     return { tag };
   } catch (error) {
     console.error("createTagAction error:", error);
-    return { error: "Không thể tạo tag." };
+    return { error: "Khong the tao tag." };
   }
 }
 
 export async function addTagToCandidateAction(candidateId: number, tagId: number) {
   try {
-    await requireAdmin();
+    const scope = await requireViewerScope();
+    const candidate = await getCandidateById(candidateId, scope);
+
+    if (!candidate) {
+      return { error: "Khong tim thay ung vien hoac ban khong co quyen." };
+    }
+
     await addTagToCandidate(candidateId, tagId);
     revalidatePath(`/candidates/${candidateId}`);
     return { success: true };
   } catch (error) {
     console.error("addTagToCandidateAction error:", error);
-    return { error: "Không thể thêm tag." };
+    return { error: "Khong the them tag." };
   }
 }
 
 export async function removeTagFromCandidateAction(candidateId: number, tagId: number) {
   try {
-    await requireAdmin();
+    const scope = await requireViewerScope();
+    const candidate = await getCandidateById(candidateId, scope);
+
+    if (!candidate) {
+      return { error: "Khong tim thay ung vien hoac ban khong co quyen." };
+    }
+
     await removeTagFromCandidate(candidateId, tagId);
     revalidatePath(`/candidates/${candidateId}`);
     return { success: true };
   } catch (error) {
     console.error("removeTagFromCandidateAction error:", error);
-    return { error: "Không thể bỏ tag." };
+    return { error: "Khong the bo tag." };
   }
 }

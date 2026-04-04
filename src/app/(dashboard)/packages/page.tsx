@@ -51,7 +51,22 @@ export default async function PackagesPage({
               </tr>
             </thead>
             <tbody>
-              {data.subs.map((sub) => {
+              {data.subs.map((sub: {
+                id: number;
+                tier: string;
+                status: string;
+                jobsUsed: number;
+                jobQuota: number;
+                jobDuration: number;
+                startDate: Date;
+                endDate: Date;
+                showLogo: boolean;
+                showBanner: boolean;
+                employer: {
+                  companyName: string;
+                  email: string;
+                };
+              }) => {
                 const isExpired = sub.status === "EXPIRED" || new Date(sub.endDate) < new Date();
                 return (
                   <tr key={sub.id} className="border-b border-border/50 hover:bg-background/50">

@@ -5,9 +5,28 @@ import { FileText, Maximize2, Minimize2, GripVertical } from "lucide-react";
 
 interface CvViewerProps {
   cvUrl?: string | null;
+  fileName?: string | null;
 }
 
-export function CvViewer({ cvUrl }: CvViewerProps) {
+function detectCvType(cvUrl?: string | null, fileName?: string | null) {
+  const source = (fileName || cvUrl || "").toLowerCase();
+
+  if (source.endsWith(".doc") || source.endsWith(".docx")) {
+    return "word";
+  }
+
+  return "pdf";
+}
+
+function buildViewerUrl(cvUrl: string, type: "pdf" | "word") {
+  if (type === "word") {
+    return `https://docs.google.com/gview?embedded=1&url=${encodeURIComponent(cvUrl)}`;
+  }
+
+  return `${cvUrl}#toolbar=1&navpanes=0&scrollbar=1&view=FitH`;
+}
+
+export function CvViewer({ cvUrl, fileName }: CvViewerProps) {
   const [isZoomed, setIsZoomed] = useState(false);
   const [frameHeight, setFrameHeight] = useState(500);
   const isResizing = useRef(false);
@@ -62,6 +81,9 @@ export function CvViewer({ cvUrl }: CvViewerProps) {
     );
   }
 
+  const viewerType = detectCvType(cvUrl, fileName);
+  const viewerUrl = buildViewerUrl(cvUrl, viewerType);
+
   return (
     <>
       {/* Normal embedded viewer */}
@@ -90,7 +112,7 @@ export function CvViewer({ cvUrl }: CvViewerProps) {
         </div>
         <div className="w-full bg-muted/20">
           <iframe
-            src={`${cvUrl}#toolbar=1&navpanes=0&scrollbar=1&view=FitH`}
+            src={viewerUrl}
             style={{ height: `${frameHeight}px` }}
             className="w-full border-none"
             title="CV Preview"
@@ -135,7 +157,7 @@ export function CvViewer({ cvUrl }: CvViewerProps) {
           </div>
           <div className="flex-1 min-h-0">
             <iframe
-              src={`${cvUrl}#toolbar=1&navpanes=0&scrollbar=1&view=FitH`}
+              src={viewerUrl}
               className="w-full h-full border-none"
               title="CV Preview Fullscreen"
             />

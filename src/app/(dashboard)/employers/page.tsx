@@ -79,7 +79,28 @@ export default async function EmployersPage({
               </tr>
             </thead>
             <tbody>
-              {data.employers.map((emp) => {
+              {data.employers.map((emp: {
+                id: number;
+                companyName: string;
+                slug: string;
+                status: string;
+                industry: string | null;
+                address: string | null;
+                email: string;
+                createdAt: Date;
+                subscription: {
+                  tier: string;
+                  jobsUsed: number;
+                  jobQuota: number;
+                } | null;
+                client: {
+                  id: number;
+                  companyName: string;
+                } | null;
+                _count: {
+                  jobPostings: number;
+                };
+              }) => {
                 const statusCfg = STATUS_CONFIG[emp.status] ?? { label: emp.status, className: "bg-gray-100 text-gray-600" };
                 return (
                   <tr key={emp.id} className="border-b border-border/50 hover:bg-background/50">

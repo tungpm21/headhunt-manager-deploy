@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useDebouncedCallback } from "use-debounce";
 import {
@@ -62,6 +62,28 @@ export function GlobalSearch() {
     });
   }, 300);
 
+  const closeSearch = useCallback(() => {
+    debouncedSearch.cancel();
+    setIsOpen(false);
+    setQuery("");
+    setResults([]);
+    setActiveIndex(0);
+  }, [debouncedSearch]);
+
+  const handleQueryChange = (nextQuery: string) => {
+    setQuery(nextQuery);
+
+    const normalizedQuery = nextQuery.trim();
+    if (normalizedQuery.length < 2) {
+      debouncedSearch.cancel();
+      setResults([]);
+      setActiveIndex(0);
+      return;
+    }
+
+    debouncedSearch(normalizedQuery);
+  };
+
   useEffect(() => {
     const handleShortcut = (event: KeyboardEvent) => {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
@@ -69,6 +91,7 @@ export function GlobalSearch() {
         setIsOpen(true);
       }
     };
+
     const handleOpen = () => {
       setIsOpen(true);
     };
@@ -83,30 +106,10 @@ export function GlobalSearch() {
   }, []);
 
   useEffect(() => {
-    if (!isOpen) {
-      setQuery("");
-      setResults([]);
-      setActiveIndex(0);
-      return;
+    if (isOpen) {
+      inputRef.current?.focus();
     }
-
-    inputRef.current?.focus();
   }, [isOpen]);
-
-  useEffect(() => {
-    if (!isOpen) {
-      return;
-    }
-
-    const normalizedQuery = query.trim();
-    if (normalizedQuery.length < 2) {
-      setResults([]);
-      setActiveIndex(0);
-      return;
-    }
-
-    debouncedSearch(normalizedQuery);
-  }, [debouncedSearch, isOpen, query]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -116,7 +119,7 @@ export function GlobalSearch() {
     const handlePaletteKeys = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         event.preventDefault();
-        setIsOpen(false);
+        closeSearch();
         return;
       }
 
@@ -145,14 +148,14 @@ export function GlobalSearch() {
         }
 
         event.preventDefault();
-        setIsOpen(false);
+        closeSearch();
         router.push(activeItem.href);
       }
     };
 
     document.addEventListener("keydown", handlePaletteKeys);
     return () => document.removeEventListener("keydown", handlePaletteKeys);
-  }, [activeIndex, flatResults, isOpen, router]);
+  }, [activeIndex, closeSearch, flatResults, isOpen, router]);
 
   if (!isOpen) {
     return null;
@@ -164,7 +167,7 @@ export function GlobalSearch() {
         type="button"
         className="absolute inset-0"
         aria-label="Đóng tìm kiếm nhanh"
-        onClick={() => setIsOpen(false)}
+        onClick={closeSearch}
       />
 
       <div className="relative z-10 w-full max-w-2xl overflow-hidden rounded-2xl border border-border bg-surface shadow-2xl">
@@ -175,7 +178,7 @@ export function GlobalSearch() {
               ref={inputRef}
               type="text"
               value={query}
-              onChange={(event) => setQuery(event.target.value)}
+              onChange={(event) => handleQueryChange(event.target.value)}
               placeholder="Tìm ứng viên, khách hàng, job order, nhà tuyển dụng..."
               className="w-full rounded-xl border border-border bg-background py-3 pl-10 pr-4 text-sm text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary/30"
             />
@@ -206,7 +209,8 @@ export function GlobalSearch() {
                 <div className="space-y-1">
                   {group.items.map((item) => {
                     const itemIndex = flatResults.findIndex(
-                      (candidate) => candidate.type === item.type && candidate.id === item.id
+                      (candidate) =>
+                        candidate.type === item.type && candidate.id === item.id
                     );
                     const isActive = itemIndex === activeIndex;
 
@@ -215,18 +219,20 @@ export function GlobalSearch() {
                         key={`${item.type}-${item.id}`}
                         type="button"
                         onClick={() => {
-                          setIsOpen(false);
+                          closeSearch();
                           router.push(item.href);
                         }}
                         onMouseEnter={() => setActiveIndex(itemIndex)}
-                        className={`flex w-full flex-col rounded-xl px-3 py-3 text-left transition ${
-                          isActive
-                            ? "bg-primary text-white"
-                            : "text-foreground hover:bg-surface"
-                        }`}
+                        className={`flex w-full flex-col rounded-xl px-3 py-3 text-left transition ${isActive
+                          ? "bg-primary text-white"
+                          : "text-foreground hover:bg-surface"
+                          }`}
                       >
                         <span className="text-sm font-medium">{item.title}</span>
-                        <span className={`mt-1 text-xs ${isActive ? "text-white/80" : "text-muted"}`}>
+                        <span
+                          className={`mt-1 text-xs ${isActive ? "text-white/80" : "text-muted"
+                            }`}
+                        >
                           {item.subtitle || "Không có mô tả bổ sung"}
                         </span>
                       </button>

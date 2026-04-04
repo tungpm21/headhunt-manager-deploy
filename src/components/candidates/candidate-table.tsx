@@ -12,7 +12,7 @@ import {
   MapPin,
   Phone,
 } from "lucide-react";
-import { CandidateWithTags } from "@/types/candidate";
+import type { CandidateWithTags } from "@/types/candidate-ui";
 import { CandidateQuickView } from "@/components/candidates/candidate-quick-view";
 import { StatusBadge } from "@/components/candidates/status-badge";
 

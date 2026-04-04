@@ -3,9 +3,13 @@
 import { prisma } from "@/lib/prisma";
 import { deleteFile } from "@/lib/storage";
 import {
+  getFirstZodErrorMessage,
+  publicApplicationSchema,
+} from "@/lib/validation/forms";
+import {
   buildServerActionRateLimitKey,
   checkRateLimit,
-} from "@/lib/rate-limit";
+} from "@/lib/rate-limit-redis";
 
 export type SubmitApplicationInput = {
   jobPostingId: number;
@@ -25,12 +29,25 @@ export type SubmitApplicationResult = {
 export async function submitApplication(
   input: SubmitApplicationInput
 ): Promise<SubmitApplicationResult> {
-  const normalizedEmail = input.email?.trim().toLowerCase();
+  const parsedInput = publicApplicationSchema.safeParse({
+    ...input,
+    fullName: input.fullName?.trim(),
+    email: input.email?.trim().toLowerCase(),
+    phone: input.phone?.trim() || undefined,
+    coverLetter: input.coverLetter?.trim() || undefined,
+    cvFileUrl: input.cvFileUrl || undefined,
+    cvFileName: input.cvFileName || undefined,
+  });
+
+  const normalizedEmail = parsedInput.success
+    ? parsedInput.data.email
+    : input.email?.trim().toLowerCase();
+
   const rateLimitKey = await buildServerActionRateLimitKey(
     "public-apply",
     normalizedEmail
   );
-  const rateLimit = checkRateLimit(rateLimitKey, 5, 10 * 60 * 1000);
+  const rateLimit = await checkRateLimit(rateLimitKey, 5, 10 * 60 * 1000);
 
   const cleanupUploadedCv = async () => {
     if (input.cvFileUrl) {
@@ -46,21 +63,18 @@ export async function submitApplication(
     };
   }
 
-  if (!input.fullName?.trim()) {
+  if (!parsedInput.success) {
     await cleanupUploadedCv();
-    return { success: false, error: "Vui long nhap ho ten" };
-  }
-  if (!normalizedEmail) {
-    await cleanupUploadedCv();
-    return { success: false, error: "Vui long nhap email" };
-  }
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
-    await cleanupUploadedCv();
-    return { success: false, error: "Email khong hop le" };
+    return {
+      success: false,
+      error: getFirstZodErrorMessage(parsedInput.error),
+    };
   }
 
+  const validatedInput = parsedInput.data;
+
   const job = await prisma.jobPosting.findUnique({
-    where: { id: input.jobPostingId },
+    where: { id: validatedInput.jobPostingId },
     select: { id: true, status: true, expiresAt: true },
   });
 
@@ -68,14 +82,19 @@ export async function submitApplication(
     await cleanupUploadedCv();
     return { success: false, error: "Tin tuyen dung khong ton tai hoac da het han" };
   }
+
   if (job.expiresAt && job.expiresAt < new Date()) {
     await cleanupUploadedCv();
     return { success: false, error: "Tin tuyen dung da het han" };
   }
 
   const existing = await prisma.application.findFirst({
-    where: { jobPostingId: input.jobPostingId, email: normalizedEmail },
+    where: {
+      jobPostingId: validatedInput.jobPostingId,
+      email: validatedInput.email,
+    },
   });
+
   if (existing) {
     await cleanupUploadedCv();
     return { success: false, error: "Ban da ung tuyen vi tri nay roi" };
@@ -85,17 +104,17 @@ export async function submitApplication(
     await prisma.$transaction([
       prisma.application.create({
         data: {
-          jobPostingId: input.jobPostingId,
-          fullName: input.fullName.trim(),
-          email: normalizedEmail,
-          phone: input.phone?.trim() || null,
-          coverLetter: input.coverLetter?.trim() || null,
-          cvFileUrl: input.cvFileUrl || null,
-          cvFileName: input.cvFileName || null,
+          jobPostingId: validatedInput.jobPostingId,
+          fullName: validatedInput.fullName,
+          email: validatedInput.email,
+          phone: validatedInput.phone || null,
+          coverLetter: validatedInput.coverLetter || null,
+          cvFileUrl: validatedInput.cvFileUrl || null,
+          cvFileName: validatedInput.cvFileName || null,
         },
       }),
       prisma.jobPosting.update({
-        where: { id: input.jobPostingId },
+        where: { id: validatedInput.jobPostingId },
         data: { applyCount: { increment: 1 } },
       }),
     ]);

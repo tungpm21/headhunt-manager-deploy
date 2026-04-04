@@ -3,8 +3,8 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Tag, X } from "lucide-react";
-import { Tag as PrismaTag } from "@prisma/client";
 import { bulkAddTag } from "@/lib/candidate-actions";
+import type { Tag as CandidateTag } from "@/types";
 
 export function BulkTagModal({
   candidateIds,
@@ -15,7 +15,7 @@ export function BulkTagModal({
 }: {
   candidateIds: number[];
   selectedCount: number;
-  allTags: PrismaTag[];
+  allTags: CandidateTag[];
   onClose: () => void;
   onApplied: () => void;
 }) {

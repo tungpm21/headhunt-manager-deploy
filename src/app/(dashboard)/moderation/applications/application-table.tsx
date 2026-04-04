@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import Link from "next/link";
 import {
     ChevronDown,
@@ -15,6 +15,7 @@ import {
     Briefcase,
     Building2,
     DollarSign,
+    ExternalLink,
 } from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
 import { vi } from "date-fns/locale";
@@ -40,6 +41,7 @@ interface ApplicationItem {
     createdAt: string | Date;
     jobPosting: {
         title: string;
+        slug: string;
         industry: string | null;
         location: string | null;
         salaryDisplay: string | null;
@@ -88,10 +90,9 @@ export function ApplicationTable({ applications }: { applications: ApplicationIt
                             const isExpanded = expandedId === app.id;
 
                             return (
-                                <>
+                                <Fragment key={app.id}>
                                     {/* Main row */}
                                     <tr
-                                        key={app.id}
                                         onClick={() => toggle(app.id)}
                                         className={`border-b border-border/50 cursor-pointer transition-colors ${isExpanded ? "bg-primary/5" : "hover:bg-background/50"
                                             }`}
@@ -118,7 +119,17 @@ export function ApplicationTable({ applications }: { applications: ApplicationIt
                                                 )}
                                             </div>
                                         </td>
-                                        <td className="py-3 px-4 text-foreground">{app.jobPosting.title}</td>
+                                        <td className="py-3 px-4 text-foreground">
+                                            <Link
+                                                href={`/viec-lam/${app.jobPosting.slug}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                onClick={(e) => e.stopPropagation()}
+                                                className="inline-flex items-center gap-1 font-medium text-primary hover:underline"
+                                            >
+                                                {app.jobPosting.title}
+                                            </Link>
+                                        </td>
                                         <td className="py-3 px-4 text-muted">{app.jobPosting.employer.companyName}</td>
                                         <td className="py-3 px-4">
                                             <span
@@ -146,7 +157,7 @@ export function ApplicationTable({ applications }: { applications: ApplicationIt
 
                                     {/* Expanded detail panel */}
                                     {isExpanded && (
-                                        <tr key={`detail-${app.id}`} className="bg-primary/[0.03]">
+                                        <tr className="bg-primary/[0.03]">
                                             <td colSpan={7} className="p-0">
                                                 <div className="px-6 py-5 animate-in slide-in-from-top-1 duration-200">
                                                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -233,6 +244,15 @@ export function ApplicationTable({ applications }: { applications: ApplicationIt
                                                                         {app.jobPosting.industry}
                                                                     </span>
                                                                 )}
+                                                                <Link
+                                                                    href={`/viec-lam/${app.jobPosting.slug}`}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="inline-flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/10 px-3 py-2 text-sm font-medium text-primary transition hover:bg-primary/15"
+                                                                >
+                                                                    <ExternalLink className="h-4 w-4" />
+                                                                    Xem trên FDIWork
+                                                                </Link>
                                                             </div>
                                                         </div>
 
@@ -254,7 +274,7 @@ export function ApplicationTable({ applications }: { applications: ApplicationIt
                                             </td>
                                         </tr>
                                     )}
-                                </>
+                                </Fragment>
                             );
                         })}
                     </tbody>

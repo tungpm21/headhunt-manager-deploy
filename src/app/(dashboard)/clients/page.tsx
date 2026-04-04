@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { Building2 } from "lucide-react";
+import { requireViewerScope } from "@/lib/authz";
 import { getClients } from "@/lib/clients";
 import { ClientTable } from "@/components/clients/client-table";
 import { ClientFiltersPanel } from "@/components/clients/client-filters";
@@ -21,6 +22,7 @@ export const metadata = {
 };
 
 export default async function ClientsPage({ searchParams }: PageProps) {
+  const scope = await requireViewerScope();
   const sp = await searchParams;
   const page = Number(sp.page ?? 1);
 
@@ -30,7 +32,7 @@ export default async function ClientsPage({ searchParams }: PageProps) {
     companySize: sp.companySize as CompanySize | undefined,
     page,
     pageSize: 20,
-  });
+  }, scope);
 
   return (
     <div className="space-y-6">

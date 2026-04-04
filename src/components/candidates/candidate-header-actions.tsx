@@ -2,7 +2,7 @@
 
 import { useTransition } from "react";
 import { deleteCandidateAction, updateCandidateStatusAction } from "@/lib/actions";
-import { CandidateStatus } from "@prisma/client";
+import type { CandidateStatus } from "@/types";
 import { Trash2, Edit, Loader2, ChevronDown } from "lucide-react";
 import Link from "next/link";
 
@@ -32,6 +32,17 @@ export function CandidateHeaderActions({ candidateId, currentStatus }: Props) {
   const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newStatus = e.target.value as CandidateStatus;
     if (newStatus === currentStatus) return;
+
+    if (
+      newStatus === "BLACKLIST" &&
+      !window.confirm(
+        "Ban co chac chan muon chuyen ung vien nay sang trang thai Blacklist khong? Hanh dong nay danh dau ung vien la khong phu hop de tiep tuc xu ly."
+      )
+    ) {
+      e.target.value = currentStatus;
+      return;
+    }
+
     startTransition(async () => {
       await updateCandidateStatusAction(candidateId, newStatus);
     });

@@ -1,31 +1,41 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { Camera, Loader2, X } from "lucide-react";
+import { useRef, useState } from "react";
 import Image from "next/image";
+import { Camera, Loader2, X } from "lucide-react";
 
 interface AvatarUploadProps {
+  candidateId?: number;
   currentAvatarUrl?: string | null;
   disabled?: boolean;
 }
 
-export function AvatarUpload({ currentAvatarUrl, disabled = false }: AvatarUploadProps) {
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(currentAvatarUrl || null);
-  const [isUploading, setIsUploading] = useState(false);
+export function AvatarUpload({
+  candidateId,
+  currentAvatarUrl,
+  disabled = false,
+}: AvatarUploadProps) {
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(
+    currentAvatarUrl || null
+  );
   const [error, setError] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
 
-    // Validate client-side
+    if (!file) {
+      return;
+    }
+
     if (!file.type.startsWith("image/")) {
       setError("Vui lòng chọn file hình ảnh (JPG, PNG, WebP).");
       return;
     }
+
     if (file.size > 5 * 1024 * 1024) {
-      setError("File quá lớn. Tối đa 5MB.");
+      setError("File qua lon. Toi da 5MB.");
       return;
     }
 
@@ -35,24 +45,34 @@ export function AvatarUpload({ currentAvatarUrl, disabled = false }: AvatarUploa
     const formData = new FormData();
     formData.append("avatar", file);
 
+    if (candidateId) {
+      formData.append("candidateId", String(candidateId));
+    }
+
     try {
-      const res = await fetch("/api/candidates/avatar", {
+      const response = await fetch("/api/candidates/avatar", {
         method: "POST",
         body: formData,
       });
 
-      const data = await res.json();
+      const data = await response.json();
 
-      if (!res.ok) {
-        throw new Error(data.error || "Lỗi upload ảnh.");
+      if (!response.ok) {
+        throw new Error(data.error || "Loi upload anh.");
       }
 
       setAvatarUrl(data.url);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Đã có lỗi xảy ra.");
+    } catch (uploadError) {
+      setError(
+        uploadError instanceof Error
+          ? uploadError.message
+          : "\u0110\u00e3 c\u00f3 l\u1ed7i x\u1ea3y ra."
+      );
     } finally {
       setIsUploading(false);
-      if (fileInputRef.current) fileInputRef.current.value = "";
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
     }
   };
 
@@ -63,27 +83,25 @@ export function AvatarUpload({ currentAvatarUrl, disabled = false }: AvatarUploa
 
   return (
     <div className="flex flex-col items-center gap-3">
-      {/* Hidden Input field for Server Action Context */}
       <input type="hidden" name="avatarUrl" value={avatarUrl || ""} />
-      
-      {/* Avatar Display */}
-      <div className="relative h-24 w-24 rounded-full border-2 border-dashed border-border flex items-center justify-center bg-surface overflow-hidden group">
+
+      <div className="group relative flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border-2 border-dashed border-border bg-surface">
         {avatarUrl ? (
           <>
-            <Image 
-              src={avatarUrl} 
-              alt="Avatar" 
-              fill 
-              className="object-cover" 
+            <Image
+              src={avatarUrl}
+              alt="Avatar"
+              fill
+              className="object-cover"
               sizes="96px"
               unoptimized
             />
             {!disabled && (
-              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+              <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="text-white hover:text-primary transition p-1"
+                  className="p-1 text-white transition hover:text-primary"
                   title="Đổi ảnh"
                 >
                   <Camera className="h-5 w-5" />
@@ -93,19 +111,18 @@ export function AvatarUpload({ currentAvatarUrl, disabled = false }: AvatarUploa
           </>
         ) : (
           <div className="flex flex-col items-center text-muted">
-            <Camera className="h-8 w-8 mb-1 opacity-50" />
-            <span className="text-[10px] uppercase font-medium">Avatar</span>
+            <Camera className="mb-1 h-8 w-8 opacity-50" />
+            <span className="text-[10px] font-medium uppercase">Avatar</span>
           </div>
         )}
 
         {isUploading && (
-          <div className="absolute inset-0 bg-background/80 flex items-center justify-center backdrop-blur-sm">
+          <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm">
             <Loader2 className="h-6 w-6 animate-spin text-primary" />
           </div>
         )}
       </div>
 
-      {/* Constraints & Errors */}
       <div className="text-center">
         {!disabled && (
           <div className="flex items-center justify-center gap-2">
@@ -113,7 +130,7 @@ export function AvatarUpload({ currentAvatarUrl, disabled = false }: AvatarUploa
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={isUploading}
-              className="text-xs font-medium text-primary hover:text-primary-hover transition"
+              className="text-xs font-medium text-primary transition hover:text-primary-hover"
             >
               {avatarUrl ? "Đổi ảnh" : "Tải ảnh lên"}
             </button>
@@ -123,14 +140,16 @@ export function AvatarUpload({ currentAvatarUrl, disabled = false }: AvatarUploa
                 <button
                   type="button"
                   onClick={handleRemove}
-                  className="text-xs font-medium text-danger hover:text-danger/80 transition flex items-center"
+                  className="flex items-center text-xs font-medium text-danger transition hover:text-danger/80"
                 >
-                  <X className="h-3 w-3 mr-0.5" /> Xóa
+                  <X className="mr-0.5 h-3 w-3" />
+                  Xoa
                 </button>
               </>
             )}
           </div>
         )}
+
         <input
           ref={fileInputRef}
           type="file"
@@ -138,7 +157,12 @@ export function AvatarUpload({ currentAvatarUrl, disabled = false }: AvatarUploa
           className="hidden"
           onChange={handleFileChange}
         />
-        {error && <p className="text-xs text-danger mt-1.5 max-w-[200px] leading-tight">{error}</p>}
+
+        {error && (
+          <p className="mt-1.5 max-w-[200px] text-xs leading-tight text-danger">
+            {error}
+          </p>
+        )}
       </div>
     </div>
   );

@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
-import { prisma } from "@/lib/prisma";
+import { requireViewerScope } from "@/lib/authz";
+import { getCandidateById } from "@/lib/candidates";
 import { getAllTags } from "@/lib/tags";
 import { CandidateForm } from "@/components/candidates/candidate-form";
 import { ArrowLeft } from "lucide-react";
@@ -10,6 +11,7 @@ interface PageProps {
 }
 
 export default async function EditCandidatePage({ params }: PageProps) {
+  const scope = await requireViewerScope();
   const resolvedParams = await params;
   const candidateId = parseInt(resolvedParams.id, 10);
 
@@ -18,21 +20,18 @@ export default async function EditCandidatePage({ params }: PageProps) {
   }
 
   const [candidate, allTags] = await Promise.all([
-    prisma.candidate.findUnique({
-      where: { 
-        id: candidateId,
-        isDeleted: false
-      },
-      include: {
-        tags: true
-      }
-    }),
+    getCandidateById(candidateId, scope),
     getAllTags()
   ]);
 
   if (!candidate) {
     notFound();
   }
+
+  const formCandidate = {
+    ...candidate,
+    tags: candidate.tags.map((tag) => ({ tagId: tag.tag.id })),
+  };
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -55,7 +54,7 @@ export default async function EditCandidatePage({ params }: PageProps) {
 
       {/* FORM */}
       <div className="bg-surface rounded-xl border border-border p-6 shadow-sm">
-        <CandidateForm allTags={allTags} initialData={candidate} />
+        <CandidateForm allTags={allTags} initialData={formCandidate} />
       </div>
     </div>
   );

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Briefcase, FileText, Languages } from "lucide-react";
-import { CandidateWithRelations } from "@/types/candidate";
+import type { CandidateWithRelations } from "@/types/candidate-ui";
 import { CvList } from "@/components/candidates/cv-list";
 import { LanguageList } from "@/components/candidates/language-list";
 import { WorkHistory } from "@/components/candidates/work-history";

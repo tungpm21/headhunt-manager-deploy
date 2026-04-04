@@ -2,9 +2,19 @@ import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 
-const connectionString = `${process.env.DATABASE_URL}`;
+// Prefer a pooled Postgres URL in production, such as Neon pooled connections.
+const connectionString =
+  process.env.DATABASE_POOLER_URL?.trim() ||
+  process.env.DATABASE_URL?.trim() ||
+  "";
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const pool = new Pool({ connectionString }) as any;
+const pool = new Pool({
+  connectionString,
+  max: 5,
+  idleTimeoutMillis: 10000,
+  connectionTimeoutMillis: 5000,
+}) as any;
 const adapter = new PrismaPg(pool);
 
 const globalForPrisma = globalThis as unknown as {

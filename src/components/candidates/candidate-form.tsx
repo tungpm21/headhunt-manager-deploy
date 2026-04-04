@@ -3,18 +3,42 @@
 import Link from "next/link";
 import { useActionState, useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Tag } from "@prisma/client";
 import { createCandidateAction, updateCandidateAction } from "@/lib/actions";
 import { checkDuplicateAction } from "@/lib/candidate-actions";
 import { TagSelector } from "@/components/candidates/tag-selector";
 import { AvatarUpload } from "@/components/candidates/avatar-upload";
+import type { Tag } from "@/types";
 import { AlertTriangle, Save, Loader2, Upload, FileText, X, Download } from "lucide-react";
 
 type ActionState = { error?: string; success?: boolean; id?: number } | undefined;
 
 interface CandidateFormProps {
   allTags: Tag[];
-  initialData?: any;
+  initialData?: {
+    id: number;
+    fullName: string;
+    phone: string | null;
+    email: string | null;
+    dateOfBirth: Date | null;
+    gender: string | null;
+    address: string | null;
+    currentPosition: string | null;
+    currentCompany: string | null;
+    industry: string | null;
+    yearsOfExp: number | null;
+    currentSalary: number | null;
+    expectedSalary: number | null;
+    location: string | null;
+    status: string;
+    level: string | null;
+    skills: string[];
+    source: string | null;
+    sourceDetail: string | null;
+    avatarUrl: string | null;
+    cvFileUrl: string | null;
+    cvFileName: string | null;
+    tags?: { tagId: number }[];
+  } | null;
 }
 
 type DuplicateWarning = {
@@ -52,7 +76,7 @@ const inputCls = "w-full rounded-lg border border-border bg-background px-3 py-2
 export function CandidateForm({ allTags, initialData }: CandidateFormProps) {
   const router = useRouter();
   const [selectedTagIds, setSelectedTagIds] = useState<number[]>(
-    initialData?.tags?.map((t: any) => t.tagId) || []
+    initialData?.tags?.map((tag) => tag.tagId) ?? []
   );
   const [cvFile, setCvFile] = useState<File | null>(null);
   const [duplicateWarning, setDuplicateWarning] = useState<DuplicateWarning | null>(null);
@@ -60,11 +84,8 @@ export function CandidateForm({ allTags, initialData }: CandidateFormProps) {
   const emailInputRef = useRef<HTMLInputElement>(null);
   const phoneInputRef = useRef<HTMLInputElement>(null);
 
-  const selectedTagIdsRef = useRef<number[]>([]);
-  selectedTagIdsRef.current = selectedTagIds;
-
   async function handleAction(_prev: ActionState, fd: FormData): Promise<ActionState> {
-    selectedTagIdsRef.current.forEach((id) => fd.append("tagIds", String(id)));
+    selectedTagIds.forEach((id) => fd.append("tagIds", String(id)));
     if (initialData?.id) {
       const res = await updateCandidateAction(initialData.id, _prev, fd);
       return { ...res, id: initialData.id };
@@ -120,7 +141,11 @@ export function CandidateForm({ allTags, initialData }: CandidateFormProps) {
 
       {/* Avatar Upload */}
       <div className="flex justify-center mb-6">
-        <AvatarUpload disabled={isPending} />
+        <AvatarUpload
+          candidateId={initialData?.id}
+          currentAvatarUrl={initialData?.avatarUrl}
+          disabled={isPending}
+        />
       </div>
 
       {/* Section: Thông tin cơ bản */}

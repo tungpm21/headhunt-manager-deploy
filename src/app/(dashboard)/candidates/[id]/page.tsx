@@ -1,20 +1,25 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { requireViewerScope } from "@/lib/authz";
 import { getAllTags } from "@/lib/tags";
 import { getCandidateById } from "@/lib/candidates";
 import { CandidateInfo } from "@/components/candidates/candidate-info";
 import { CandidateTags } from "@/components/candidates/candidate-tags";
 import { CandidateNotes } from "@/components/candidates/candidate-notes";
+import { CandidatePipelines } from "@/components/candidates/candidate-pipelines";
+import { CandidateReminders } from "@/components/candidates/candidate-reminders";
 import { CandidateHeaderActions } from "@/components/candidates/candidate-header-actions";
 import { CandidateDetailTabs } from "@/components/candidates/candidate-detail-tabs";
 import { CvViewer } from "@/components/candidates/cv-viewer";
+import type { CandidateWithRelations } from "@/types/candidate";
 
 interface PageProps {
   params: Promise<{ id: string }>;
 }
 
 export default async function CandidateDetailPage({ params }: PageProps) {
+  const scope = await requireViewerScope();
   const resolvedParams = await params;
   const candidateId = parseInt(resolvedParams.id, 10);
 
@@ -23,7 +28,7 @@ export default async function CandidateDetailPage({ params }: PageProps) {
   }
 
   const [candidate, allTags] = await Promise.all([
-    getCandidateById(candidateId),
+    getCandidateById(candidateId, scope),
     getAllTags(),
   ]);
 
@@ -32,8 +37,15 @@ export default async function CandidateDetailPage({ params }: PageProps) {
   }
 
   const previewCvUrl =
-    candidate.cvFiles.find((cv) => cv.isPrimary)?.fileUrl ??
+    candidate.cvFiles.find(
+      (cv: CandidateWithRelations["cvFiles"][number]) => cv.isPrimary
+    )?.fileUrl ??
     candidate.cvFileUrl;
+  const previewCvFileName =
+    candidate.cvFiles.find(
+      (cv: CandidateWithRelations["cvFiles"][number]) => cv.isPrimary
+    )?.fileName ??
+    candidate.cvFileName;
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
@@ -68,6 +80,11 @@ export default async function CandidateDetailPage({ params }: PageProps) {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
         <div className="space-y-6 lg:h-[calc(100vh-140px)] lg:overflow-y-auto lg:pr-2">
           <CandidateInfo candidate={candidate} />
+          <CandidatePipelines jobLinks={candidate.jobLinks} />
+          <CandidateReminders
+            candidateId={candidate.id}
+            reminders={candidate.reminders}
+          />
 
           <CandidateDetailTabs
             candidateId={candidate.id}
@@ -89,7 +106,7 @@ export default async function CandidateDetailPage({ params }: PageProps) {
         </div>
 
         <div className="lg:h-[calc(100vh-140px)] lg:overflow-y-auto lg:pr-1">
-          <CvViewer cvUrl={previewCvUrl} />
+          <CvViewer cvUrl={previewCvUrl} fileName={previewCvFileName} />
         </div>
       </div>
     </div>

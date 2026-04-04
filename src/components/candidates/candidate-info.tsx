@@ -1,125 +1,176 @@
-import { Candidate } from "@prisma/client";
-import { Mail, Phone, Calendar, MapPin, Building2, Briefcase, DollarSign, Award, Layers, Code2 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import {
+  Award,
+  Briefcase,
+  Building2,
+  Calendar,
+  Code2,
+  DollarSign,
+  Layers,
+  Mail,
+  MapPin,
+  Phone,
+} from "lucide-react";
 
 interface CandidateInfoProps {
-  candidate: Candidate;
+  candidate: {
+    avatarUrl: string | null;
+    fullName: string;
+    source: string | null;
+    phone: string | null;
+    email: string | null;
+    dateOfBirth: Date | null;
+    gender: string | null;
+    location: string | null;
+    address: string | null;
+    currentPosition: string | null;
+    currentCompany: string | null;
+    industry: string | null;
+    yearsOfExp: number | null;
+    currentSalary: number | null;
+    expectedSalary: number | null;
+    level: string | null;
+    skills: string[];
+  };
 }
 
-export function CandidateInfo({ candidate }: CandidateInfoProps) {
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .substring(0, 2)
-      .toUpperCase();
-  };
+interface InfoRowProps {
+  icon: LucideIcon;
+  label: string;
+  value?: string | null;
+}
 
-  const getGenderText = (gender: string | null) => {
-    switch (gender) {
-      case "MALE": return "Nam";
-      case "FEMALE": return "Nữ";
-      case "OTHER": return "Khác";
-      default: return "Không khả dụng";
-    }
-  };
-
-  const getLevelText = (level: string | null) => {
-    const map: Record<string, string> = {
-      INTERN: "Intern", JUNIOR: "Junior", MID_LEVEL: "Mid-level",
-      SENIOR: "Senior", LEAD: "Lead", MANAGER: "Manager", DIRECTOR: "Director",
-    };
-    return level ? (map[level] || level) : null;
-  };
-
-  const InfoRow = ({ icon: Icon, label, value }: { icon: any, label: string, value?: string | null }) => (
-    <div className="flex items-start gap-3 py-2 border-b border-border/50 last:border-0 last:pb-0">
-      <Icon className="h-4 w-4 text-muted mt-0.5" />
+function InfoRow({ icon: Icon, label, value }: InfoRowProps) {
+  return (
+    <div className="flex items-start gap-3 border-b border-border/50 py-2 last:border-0 last:pb-0">
+      <Icon className="mt-0.5 h-4 w-4 text-muted" />
       <div className="flex-1">
-        <p className="text-xs text-muted font-medium mb-0.5">{label}</p>
-        <p className="text-sm font-medium text-foreground">{value || "—"}</p>
+        <p className="mb-0.5 text-xs font-medium text-muted">{label}</p>
+        <p className="text-sm font-medium text-foreground">{value || "-"}</p>
       </div>
     </div>
   );
+}
+
+function getInitials(name: string) {
+  return name
+    .split(" ")
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+}
+
+function getGenderText(gender: string | null) {
+  switch (gender) {
+    case "MALE":
+      return "Nam";
+    case "FEMALE":
+      return "Nữ";
+    case "OTHER":
+      return "Khác";
+    default:
+      return "Không khả dụng";
+  }
+}
+
+function getLevelText(level: string | null) {
+  const map: Record<string, string> = {
+    INTERN: "Intern",
+    JUNIOR: "Junior",
+    MID_LEVEL: "Mid-level",
+    SENIOR: "Senior",
+    LEAD: "Lead",
+    MANAGER: "Manager",
+    DIRECTOR: "Director",
+  };
+
+  return level ? map[level] || level : null;
+}
+
+export function CandidateInfo({ candidate }: CandidateInfoProps) {
+  const birthAndGender = `${candidate.dateOfBirth ? candidate.dateOfBirth.toLocaleDateString("vi-VN") : "-"} • ${getGenderText(candidate.gender)}`;
+  const locationAndAddress = `${candidate.location || "-"}${candidate.address ? ` (${candidate.address})` : ""}`;
+  const industryAndExperience = `${candidate.industry || "-"} • ${candidate.yearsOfExp || 0} năm`;
+  const salarySummary = `Hiện tại: ${candidate.currentSalary ? `${candidate.currentSalary} triệu` : "-"} / Mong muốn: ${candidate.expectedSalary ? `${candidate.expectedSalary} triệu` : "-"}`;
 
   return (
     <div className="space-y-6">
-      {/* THÔNG TIN CÁ NHÂN */}
-      <div className="bg-surface rounded-xl border border-border overflow-hidden">
-        <div className="p-4 border-b border-border bg-muted/10 font-semibold text-sm">
+      <div className="overflow-hidden rounded-xl border border-border bg-surface">
+        <div className="border-b border-border bg-muted/10 p-4 text-sm font-semibold">
           Thông tin liên hệ
         </div>
-        <div className="p-5 flex flex-col items-center border-b border-border/50">
+        <div className="flex flex-col items-center border-b border-border/50 p-5">
           {candidate.avatarUrl ? (
-            <img 
-              src={candidate.avatarUrl} 
-              alt={candidate.fullName} 
-              className="h-20 w-20 rounded-full object-cover mb-3 shadow-inner border-2 border-primary/20"
-            />
+            <>
+              {/* Avatar URLs are user-provided and not constrained to a Next image allowlist. */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={candidate.avatarUrl}
+                alt={candidate.fullName}
+                className="mb-3 h-20 w-20 rounded-full border-2 border-primary/20 object-cover shadow-inner"
+              />
+            </>
           ) : (
-            <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-2xl mb-3 shadow-inner">
+            <div className="mb-3 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 text-2xl font-bold text-primary shadow-inner">
               {getInitials(candidate.fullName)}
             </div>
           )}
-          <h2 className="text-lg font-bold text-foreground text-center">{candidate.fullName}</h2>
-          <span className="text-xs font-medium px-2.5 py-1 bg-surface border border-border rounded-full text-muted-foreground mt-2">
+          <h2 className="text-center text-lg font-bold text-foreground">
+            {candidate.fullName}
+          </h2>
+          <span className="mt-2 rounded-full border border-border bg-surface px-2.5 py-1 text-xs font-medium text-muted-foreground">
             Nguồn: {candidate.source || "Tự nhiên"}
           </span>
         </div>
-        <div className="p-5 space-y-1">
+        <div className="space-y-1 p-5">
           <InfoRow icon={Phone} label="Số điện thoại" value={candidate.phone} />
           <InfoRow icon={Mail} label="Email" value={candidate.email} />
-          <InfoRow icon={Calendar} label="Ngày sinh & Giới tính" value={
-            `${candidate.dateOfBirth ? candidate.dateOfBirth.toLocaleDateString('vi-VN') : '—'} • ${getGenderText(candidate.gender)}`
-          } />
-          <InfoRow icon={MapPin} label="Khu vực & Địa chỉ" value={
-            `${candidate.location || '—'} ${candidate.address ? `(${candidate.address})` : ''}`
-          } />
+          <InfoRow icon={Calendar} label="Ngày sinh và giới tính" value={birthAndGender} />
+          <InfoRow icon={MapPin} label="Khu vực và địa chỉ" value={locationAndAddress} />
         </div>
       </div>
 
-      {/* NGHỀ NGHIỆP */}
-      <div className="bg-surface rounded-xl border border-border overflow-hidden">
-        <div className="p-4 border-b border-border bg-muted/10 font-semibold text-sm">
+      <div className="overflow-hidden rounded-xl border border-border bg-surface">
+        <div className="border-b border-border bg-muted/10 p-4 text-sm font-semibold">
           Nghề nghiệp
         </div>
-        <div className="p-5 space-y-1">
+        <div className="space-y-1 p-5">
           <InfoRow icon={Briefcase} label="Vị trí hiện tại" value={candidate.currentPosition} />
           <InfoRow icon={Building2} label="Công ty" value={candidate.currentCompany} />
-          <InfoRow icon={Award} label="Ngành nghề &amp; Kinh nghiệm" value={
-            `${candidate.industry || '—'} • ${candidate.yearsOfExp || 0} năm`
-          } />
-          <InfoRow icon={DollarSign} label="Mức lương" value={
-            `Hiện tại: ${candidate.currentSalary ? `${candidate.currentSalary} triệu` : '—'} / Mong muốn: ${candidate.expectedSalary ? `${candidate.expectedSalary} triệu` : '—'}`
-          } />
-          {/* Level badge */}
-          {candidate.level && (
-            <div className="flex items-start gap-3 py-2 border-b border-border/50">
-              <Layers className="h-4 w-4 text-muted mt-0.5" />
+          <InfoRow icon={Award} label="Ngành nghề và kinh nghiệm" value={industryAndExperience} />
+          <InfoRow icon={DollarSign} label="Mức lương" value={salarySummary} />
+
+          {candidate.level ? (
+            <div className="flex items-start gap-3 border-b border-border/50 py-2">
+              <Layers className="mt-0.5 h-4 w-4 text-muted" />
               <div className="flex-1">
-                <p className="text-xs text-muted font-medium mb-1">Cấp bậc</p>
+                <p className="mb-1 text-xs font-medium text-muted">Cấp bậc</p>
                 <span className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">
                   {getLevelText(candidate.level)}
                 </span>
               </div>
             </div>
-          )}
-          {/* Skills chips */}
-          {candidate.skills && candidate.skills.length > 0 && (
+          ) : null}
+
+          {candidate.skills.length > 0 ? (
             <div className="flex items-start gap-3 py-2">
-              <Code2 className="h-4 w-4 text-muted mt-0.5" />
+              <Code2 className="mt-0.5 h-4 w-4 text-muted" />
               <div className="flex-1">
-                <p className="text-xs text-muted font-medium mb-2">Kỹ năng</p>
+                <p className="mb-2 text-xs font-medium text-muted">Kỹ năng</p>
                 <div className="flex flex-wrap gap-1.5">
                   {candidate.skills.map((skill) => (
-                    <span key={skill} className="inline-flex items-center rounded-md bg-surface border border-border px-2 py-0.5 text-xs font-medium text-foreground">
+                    <span
+                      key={skill}
+                      className="inline-flex items-center rounded-md border border-border bg-surface px-2 py-0.5 text-xs font-medium text-foreground"
+                    >
                       {skill}
                     </span>
                   ))}
                 </div>
               </div>
             </div>
-          )}
+          ) : null}
         </div>
       </div>
     </div>

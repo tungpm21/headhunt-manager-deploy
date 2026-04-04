@@ -1,7 +1,9 @@
 "use server";
 
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { requireAdmin } from "@/lib/authz";
+import { requireViewerScope } from "@/lib/authz";
+import { ViewerScope } from "@/lib/viewer-scope";
 
 export type SearchResultItem = {
   type: "candidate" | "client" | "job" | "employer";
@@ -11,9 +13,53 @@ export type SearchResultItem = {
   href: string;
 };
 
+function withCandidateAccess(
+  where: Prisma.CandidateWhereInput,
+  scope: ViewerScope
+): Prisma.CandidateWhereInput {
+  if (scope.isAdmin) {
+    return where;
+  }
+
+  return {
+    AND: [where, { createdById: scope.userId }],
+  };
+}
+
+function withClientAccess(
+  where: Prisma.ClientWhereInput,
+  scope: ViewerScope
+): Prisma.ClientWhereInput {
+  if (scope.isAdmin) {
+    return where;
+  }
+
+  return {
+    AND: [where, { createdById: scope.userId }],
+  };
+}
+
+function withJobAccess(
+  where: Prisma.JobOrderWhereInput,
+  scope: ViewerScope
+): Prisma.JobOrderWhereInput {
+  if (scope.isAdmin) {
+    return where;
+  }
+
+  return {
+    AND: [
+      where,
+      {
+        OR: [{ createdById: scope.userId }, { assignedToId: scope.userId }],
+      },
+    ],
+  };
+}
+
 export async function globalSearch(query: string): Promise<SearchResultItem[]> {
   try {
-    await requireAdmin();
+    const scope = await requireViewerScope();
 
     const normalizedQuery = query.trim();
     if (normalizedQuery.length < 2) {
@@ -22,14 +68,17 @@ export async function globalSearch(query: string): Promise<SearchResultItem[]> {
 
     const [candidates, clients, jobs, employers] = await Promise.all([
       prisma.candidate.findMany({
-        where: {
-          isDeleted: false,
-          OR: [
-            { fullName: { contains: normalizedQuery, mode: "insensitive" } },
-            { email: { contains: normalizedQuery, mode: "insensitive" } },
-            { phone: { contains: normalizedQuery } },
-          ],
-        },
+        where: withCandidateAccess(
+          {
+            isDeleted: false,
+            OR: [
+              { fullName: { contains: normalizedQuery, mode: "insensitive" } },
+              { email: { contains: normalizedQuery, mode: "insensitive" } },
+              { phone: { contains: normalizedQuery } },
+            ],
+          },
+          scope
+        ),
         select: {
           id: true,
           fullName: true,
@@ -40,13 +89,16 @@ export async function globalSearch(query: string): Promise<SearchResultItem[]> {
         orderBy: { fullName: "asc" },
       }),
       prisma.client.findMany({
-        where: {
-          isDeleted: false,
-          OR: [
-            { companyName: { contains: normalizedQuery, mode: "insensitive" } },
-            { industry: { contains: normalizedQuery, mode: "insensitive" } },
-          ],
-        },
+        where: withClientAccess(
+          {
+            isDeleted: false,
+            OR: [
+              { companyName: { contains: normalizedQuery, mode: "insensitive" } },
+              { industry: { contains: normalizedQuery, mode: "insensitive" } },
+            ],
+          },
+          scope
+        ),
         select: {
           id: true,
           companyName: true,
@@ -56,12 +108,15 @@ export async function globalSearch(query: string): Promise<SearchResultItem[]> {
         orderBy: { companyName: "asc" },
       }),
       prisma.jobOrder.findMany({
-        where: {
-          OR: [
-            { title: { contains: normalizedQuery, mode: "insensitive" } },
-            { client: { companyName: { contains: normalizedQuery, mode: "insensitive" } } },
-          ],
-        },
+        where: withJobAccess(
+          {
+            OR: [
+              { title: { contains: normalizedQuery, mode: "insensitive" } },
+              { client: { companyName: { contains: normalizedQuery, mode: "insensitive" } } },
+            ],
+          },
+          scope
+        ),
         select: {
           id: true,
           title: true,
@@ -73,21 +128,23 @@ export async function globalSearch(query: string): Promise<SearchResultItem[]> {
         take: 5,
         orderBy: { updatedAt: "desc" },
       }),
-      prisma.employer.findMany({
-        where: {
-          OR: [
-            { companyName: { contains: normalizedQuery, mode: "insensitive" } },
-            { email: { contains: normalizedQuery, mode: "insensitive" } },
-          ],
-        },
-        select: {
-          id: true,
-          companyName: true,
-          email: true,
-        },
-        take: 4,
-        orderBy: { updatedAt: "desc" },
-      }),
+      scope.isAdmin
+        ? prisma.employer.findMany({
+            where: {
+              OR: [
+                { companyName: { contains: normalizedQuery, mode: "insensitive" } },
+                { email: { contains: normalizedQuery, mode: "insensitive" } },
+              ],
+            },
+            select: {
+              id: true,
+              companyName: true,
+              email: true,
+            },
+            take: 4,
+            orderBy: { updatedAt: "desc" },
+          })
+        : Promise.resolve([]),
     ]);
 
     return [

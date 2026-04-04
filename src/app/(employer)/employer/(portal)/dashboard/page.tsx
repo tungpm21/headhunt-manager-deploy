@@ -117,7 +117,14 @@ export default async function EmployerDashboardPage() {
             </p>
           ) : (
             <div className="space-y-3">
-              {recentJobs.map((job) => (
+              {recentJobs.map((job: {
+                id: number;
+                title: string;
+                status: string;
+                _count: {
+                  applications: number;
+                };
+              }) => (
                 <div
                   key={job.id}
                   className="flex items-center justify-between py-3 border-b border-gray-50 last:border-0"
@@ -149,7 +156,14 @@ export default async function EmployerDashboardPage() {
             </p>
           ) : (
             <div className="space-y-3">
-              {recentApplications.map((app) => (
+              {recentApplications.map((app: {
+                id: number;
+                fullName: string;
+                createdAt: Date;
+                jobPosting: {
+                  title: string;
+                };
+              }) => (
                 <div
                   key={app.id}
                   className="flex items-center justify-between py-3 border-b border-gray-50 last:border-0"

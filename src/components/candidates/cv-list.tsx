@@ -3,7 +3,7 @@
 import { useActionState, useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Download, Eye, FileText, Loader2, Star, Trash2, Upload } from "lucide-react";
-import { CandidateWithRelations } from "@/types/candidate";
+import type { CandidateWithRelations } from "@/types/candidate-ui";
 import {
   addCandidateCVAction,
   deleteCVAction,

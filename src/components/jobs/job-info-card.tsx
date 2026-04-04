@@ -14,6 +14,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { JobForm } from "@/components/jobs/job-form";
+import { ClientSelectOption } from "@/types/client";
 import { SerializedJobOrderWithRelations } from "@/types/job";
 
 const statusMap = {
@@ -87,15 +88,19 @@ function formatDate(value: string | null) {
 
 export function JobInfoCard({
   job,
-  clients,
+  initialClients,
+  users,
 }: {
   job: SerializedJobOrderWithRelations;
-  clients: { id: number; companyName: string }[];
+  initialClients: ClientSelectOption[];
+  users: { id: number; name: string }[];
 }) {
   const [isEditing, setIsEditing] = useState(false);
 
-  const statusMeta = statusMap[job.status];
-  const priorityMeta = priorityMap[job.priority];
+  const statusMeta =
+    statusMap[job.status as keyof typeof statusMap] ?? statusMap.OPEN;
+  const priorityMeta =
+    priorityMap[job.priority as keyof typeof priorityMap] ?? priorityMap.MEDIUM;
   const skillList =
     job.requiredSkills.length > 0 ? job.requiredSkills : ["Chưa cập nhật kỹ năng"];
 
@@ -122,7 +127,8 @@ export function JobInfoCard({
 
         <JobForm
           initialData={job}
-          clients={clients}
+          initialClients={initialClients}
+          users={users}
           onCancel={() => setIsEditing(false)}
           onSuccess={() => setIsEditing(false)}
         />
@@ -210,7 +216,7 @@ export function JobInfoCard({
             <h3 className="text-sm font-semibold text-foreground">Kỹ năng yêu cầu</h3>
           </div>
           <div className="mt-3 flex flex-wrap gap-2">
-            {skillList.map((skill) => (
+            {skillList.map((skill: string) => (
               <span
                 key={skill}
                 className="rounded-full border border-border bg-surface px-3 py-1 text-xs font-medium text-foreground"

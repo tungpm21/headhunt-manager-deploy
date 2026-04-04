@@ -81,7 +81,19 @@ export default async function JobPostingsPage({
         </div>
       ) : (
         <div className="space-y-3">
-          {data.jobs.map((job) => {
+          {data.jobs.map((job: {
+            id: number;
+            title: string;
+            status: string;
+            location: string | null;
+            salaryDisplay: string | null;
+            createdAt: Date;
+            viewCount: number;
+            rejectReason: string | null;
+            _count: {
+              applications: number;
+            };
+          }) => {
             const statusCfg = STATUS_CONFIG[job.status] ?? STATUS_CONFIG.DRAFT;
             return (
               <Link

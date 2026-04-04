@@ -1,63 +1,63 @@
 "use server";
 
+import { ClientStatus, CompanySize } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { auth } from "@/auth";
+import { requireViewerScope } from "@/lib/authz";
 import {
-  createClient,
-  updateClient,
-  softDeleteClient,
   addClientContact,
+  createClient,
   deleteClientContact,
+  softDeleteClient,
+  updateClient,
 } from "@/lib/clients";
-import { CreateClientInput, UpdateClientInput, CreateClientContactInput, CompanySize, ClientStatus } from "@/types/client";
+import {
+  clientFormSchema,
+  getFirstZodErrorMessage,
+} from "@/lib/validation/forms";
+import { enumVal, strVal } from "@/lib/utils/form-helpers";
+import {
+  CreateClientContactInput,
+  CreateClientInput,
+  UpdateClientInput,
+} from "@/types/client";
 
-// Helper: get current user ID
-async function getCurrentUserId(): Promise<number> {
-  const session = await auth();
-  if (!session?.user?.id) throw new Error("Unauthorized");
-  return Number(session.user.id);
+function parseClientInput(formData: FormData) {
+  return clientFormSchema.safeParse({
+    companyName: String(formData.get("companyName") ?? "").trim(),
+    industry: strVal(formData.get("industry")),
+    companySize: enumVal(
+      formData.get("companySize"),
+      Object.values(CompanySize)
+    ),
+    address: strVal(formData.get("address")),
+    website: strVal(formData.get("website")),
+    notes: strVal(formData.get("notes")),
+    status: enumVal(formData.get("status"), Object.values(ClientStatus)),
+  });
 }
-
-function enumVal<T>(value: FormDataEntryValue | null): T | undefined {
-  const s = value?.toString()?.trim();
-  return s ? (s as T) : undefined;
-}
-
-function strVal(value: FormDataEntryValue | null): string | undefined {
-  const s = value?.toString()?.trim();
-  return s || undefined;
-}
-
-// ============================================================
-// Client Actions
-// ============================================================
 
 export async function createClientAction(
   prevState: { error?: string; success?: boolean } | undefined,
   formData: FormData
 ): Promise<{ error?: string; success?: boolean; id?: number }> {
   try {
-    const userId = await getCurrentUserId();
+    const scope = await requireViewerScope();
+    const userId = scope.userId;
+    const parsedInput = parseClientInput(formData);
 
-    const input: CreateClientInput = {
-      companyName: String(formData.get("companyName") ?? "").trim(),
-      industry: strVal(formData.get("industry")),
-      companySize: enumVal<CompanySize>(formData.get("companySize")),
-      address: strVal(formData.get("address")),
-      website: strVal(formData.get("website")),
-      notes: strVal(formData.get("notes")),
-      status: enumVal<ClientStatus>(formData.get("status")),
-    };
+    if (!parsedInput.success) {
+      return { error: getFirstZodErrorMessage(parsedInput.error) };
+    }
 
-    if (!input.companyName) return { error: "Tên doanh nghiệp không được để trống." };
-
+    const input: CreateClientInput = parsedInput.data;
     const client = await createClient(input, userId);
+
     revalidatePath("/clients");
     return { success: true, id: client.id };
-  } catch (e) {
-    console.error("createClientAction error:", e);
-    return { error: "Đã có lỗi xảy ra khi tạo doanh nghiệp." };
+  } catch (error) {
+    console.error("createClientAction error:", error);
+    return { error: "Da co loi xay ra khi tao doanh nghiep." };
   }
 }
 
@@ -67,38 +67,31 @@ export async function updateClientAction(
   formData: FormData
 ): Promise<{ error?: string; success?: boolean }> {
   try {
-    const input: UpdateClientInput = {
-      companyName: String(formData.get("companyName") ?? "").trim(),
-      industry: strVal(formData.get("industry")),
-      companySize: enumVal<CompanySize>(formData.get("companySize")),
-      address: strVal(formData.get("address")),
-      website: strVal(formData.get("website")),
-      notes: strVal(formData.get("notes")),
-      status: enumVal<ClientStatus>(formData.get("status")),
-    };
+    const scope = await requireViewerScope();
+    const parsedInput = parseClientInput(formData);
 
-    if (!input.companyName) return { error: "Tên doanh nghiệp không được để trống." };
+    if (!parsedInput.success) {
+      return { error: getFirstZodErrorMessage(parsedInput.error) };
+    }
 
-    await updateClient(id, input);
+    const input: UpdateClientInput = parsedInput.data;
+    await updateClient(id, input, scope);
+
     revalidatePath(`/clients/${id}`);
     revalidatePath("/clients");
     return { success: true };
-  } catch (e) {
-    console.error("updateClientAction error:", e);
-    return { error: "Đã có lỗi xảy ra khi cập nhật." };
+  } catch (error) {
+    console.error("updateClientAction error:", error);
+    return { error: "Da co loi xay ra khi cap nhat." };
   }
 }
 
 export async function deleteClientAction(id: number): Promise<void> {
-  await getCurrentUserId();
-  await softDeleteClient(id);
+  const scope = await requireViewerScope();
+  await softDeleteClient(id, scope);
   revalidatePath("/clients");
   redirect("/clients");
 }
-
-// ============================================================
-// Client Contact Actions
-// ============================================================
 
 export async function addClientContactAction(
   clientId: number,
@@ -106,6 +99,7 @@ export async function addClientContactAction(
   formData: FormData
 ): Promise<{ error?: string; success?: boolean }> {
   try {
+    const scope = await requireViewerScope();
     const input: CreateClientContactInput = {
       name: String(formData.get("name") ?? "").trim(),
       position: strVal(formData.get("position")),
@@ -114,24 +108,33 @@ export async function addClientContactAction(
       isPrimary: formData.get("isPrimary") === "on",
     };
 
-    if (!input.name) return { error: "Tên người liên hệ không được để trống." };
-    if (!input.phone && !input.email) return { error: "Vui lòng nhập Email hoặc SĐT." };
+    if (!input.name) {
+      return { error: "Ten nguoi lien he khong duoc de trong." };
+    }
 
-    await addClientContact(clientId, input);
+    if (!input.phone && !input.email) {
+      return { error: "Vui long nhap Email hoac SDT." };
+    }
+
+    await addClientContact(clientId, input, scope);
     revalidatePath(`/clients/${clientId}`);
     return { success: true };
-  } catch (e) {
-    console.error("addClientContactAction error:", e);
-    return { error: "Đã có lỗi xảy ra khi thêm người liên hệ." };
+  } catch (error) {
+    console.error("addClientContactAction error:", error);
+    return { error: "Da co loi xay ra khi them nguoi lien he." };
   }
 }
 
-export async function deleteClientContactAction(id: number, clientId: number): Promise<void> {
+export async function deleteClientContactAction(
+  id: number,
+  clientId: number
+): Promise<void> {
   try {
-    await deleteClientContact(id);
+    const scope = await requireViewerScope();
+    await deleteClientContact(id, clientId, scope);
     revalidatePath(`/clients/${clientId}`);
-  } catch (e) {
-    console.error("deleteClientContactAction error:", e);
-    throw new Error("Không thể xóa người liên hệ.");
+  } catch (error) {
+    console.error("deleteClientContactAction error:", error);
+    throw new Error("Khong the xoa nguoi lien he.");
   }
 }

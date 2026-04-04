@@ -1,14 +1,20 @@
 import { Briefcase, ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { requireViewerScope } from "@/lib/authz";
 import { JobForm } from "@/components/jobs/job-form";
 import { getAllClients } from "@/lib/clients";
+import { getAssignableUsers } from "@/lib/jobs";
 
 export const metadata = {
   title: "Tạo Yêu Cầu Tuyển Dụng Mới — Headhunt Manager",
 };
 
 export default async function NewJobPage() {
-  const clients = await getAllClients();
+  const scope = await requireViewerScope();
+  const [clientOptions, users] = await Promise.all([
+    getAllClients({ pageSize: 10 }, scope),
+    getAssignableUsers(),
+  ]);
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -36,7 +42,7 @@ export default async function NewJobPage() {
 
       {/* Form Card */}
       <div className="rounded-xl border border-border bg-surface shadow-sm p-6 sm:p-8">
-        <JobForm clients={clients} />
+        <JobForm initialClients={clientOptions.clients} users={users} />
       </div>
     </div>
   );

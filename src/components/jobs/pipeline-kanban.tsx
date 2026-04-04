@@ -258,6 +258,7 @@ export function PipelineKanban({
             </div>
           </div>
           <PipelineDetailPanel
+            key={selectedCandidate.id}
             jobCandidate={selectedCandidate}
             isPending={isPending}
             onSave={onPipelineSave}

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { Briefcase } from "lucide-react";
+import { requireViewerScope } from "@/lib/authz";
 import { getJobs } from "@/lib/jobs";
 import { JobTable } from "@/components/jobs/job-table";
 import { JobFiltersPanel } from "@/components/jobs/job-filters";
@@ -21,6 +22,7 @@ export const metadata = {
 };
 
 export default async function JobsPage({ searchParams }: PageProps) {
+  const scope = await requireViewerScope();
   const sp = await searchParams;
   const page = Number(sp.page ?? 1);
 
@@ -30,7 +32,7 @@ export default async function JobsPage({ searchParams }: PageProps) {
     stage: sp.stage as JobCandidateStage | undefined,
     page,
     pageSize: 20,
-  });
+  }, scope);
 
   return (
     <div className="space-y-6">

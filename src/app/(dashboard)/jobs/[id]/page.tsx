@@ -1,11 +1,14 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Briefcase, Building2 } from "lucide-react";
-import { getJobById } from "@/lib/jobs";
+import { requireViewerScope } from "@/lib/authz";
+import { getAssignableUsers, getJobBridgeSummary, getJobById } from "@/lib/jobs";
 import { getAllClients } from "@/lib/clients";
+import { JobBridgeCard } from "@/components/jobs/job-bridge-card";
 import { JobInfoCard } from "@/components/jobs/job-info-card";
 import { PipelineViewSwitcher } from "@/components/jobs/pipeline-view-switcher";
 import {
+  SerializedJobBridgeSummary,
   SerializedJobCandidateWithRelations,
   SerializedJobOrderWithRelations,
 } from "@/types/job";
@@ -17,14 +20,24 @@ interface PageProps {
 }
 
 export default async function JobDetailPage({ params }: PageProps) {
+  const scope = await requireViewerScope();
   const resolvedParams = await params;
   const id = Number(resolvedParams.id);
 
   if (Number.isNaN(id)) notFound();
 
-  const [job, clients] = await Promise.all([getJobById(id), getAllClients()]);
+  const [job, users, bridge] = await Promise.all([
+    getJobById(id, scope),
+    getAssignableUsers(),
+    getJobBridgeSummary(id, scope),
+  ]);
 
-  if (!job) notFound();
+  if (!job || !bridge) notFound();
+
+  const clientOptions = await getAllClients(
+    { pageSize: 10, includeIds: [job.clientId] },
+    scope
+  );
 
   const serializedJob = JSON.parse(
     JSON.stringify(job)
@@ -32,6 +45,9 @@ export default async function JobDetailPage({ params }: PageProps) {
   const serializedCandidates = JSON.parse(
     JSON.stringify(job.candidates || [])
   ) as SerializedJobCandidateWithRelations[];
+  const serializedBridge = JSON.parse(
+    JSON.stringify(bridge)
+  ) as SerializedJobBridgeSummary;
 
   return (
     <div className="mx-auto max-w-7xl space-y-6">
@@ -65,20 +81,23 @@ export default async function JobDetailPage({ params }: PageProps) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
-        <div className="space-y-6 xl:col-span-2">
-          <JobInfoCard job={serializedJob} clients={clients} />
-        </div>
+      <div className="space-y-6">
+        <JobInfoCard
+          job={serializedJob}
+          initialClients={clientOptions.clients}
+          users={users}
+        />
 
-        <div className="space-y-6">
-          <div className="sticky top-6 rounded-xl border border-border bg-surface p-6 shadow-sm">
-            <PipelineViewSwitcher
-              jobId={job.id}
-              jobTitle={job.title}
-              companyName={job.client.companyName}
-              candidates={serializedCandidates}
-            />
-          </div>
+        <JobBridgeCard bridge={serializedBridge} />
+
+        <div className="rounded-3xl border border-border bg-surface p-6 shadow-sm">
+          <PipelineViewSwitcher
+            jobId={job.id}
+            jobTitle={job.title}
+            companyName={job.client.companyName}
+            requiredSkills={job.requiredSkills}
+            candidates={serializedCandidates}
+          />
         </div>
       </div>
     </div>

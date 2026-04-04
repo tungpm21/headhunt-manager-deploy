@@ -103,7 +103,15 @@ export default async function JobPostingDetailPage({
                     </tr>
                   </thead>
                   <tbody>
-                    {applicantsData.applicants.map((app) => (
+                    {applicantsData.applicants.map((app: {
+                      id: number;
+                      fullName: string;
+                      email: string;
+                      phone: string | null;
+                      cvFileUrl: string | null;
+                      cvFileName: string | null;
+                      createdAt: Date;
+                    }) => (
                       <tr key={app.id} className="border-b border-gray-50 hover:bg-gray-50/50">
                         <td className="py-3 px-2 font-medium text-gray-800">{app.fullName}</td>
                         <td className="py-3 px-2 text-gray-500">{app.email}</td>
@@ -158,11 +166,11 @@ export default async function JobPostingDetailPage({
             )}
           </div>
 
-          {job.skills && (
+          {job.skills.length > 0 && (
             <div className="bg-white rounded-xl border border-gray-100 p-5">
               <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wider mb-3">Kỹ năng</h3>
               <div className="flex flex-wrap gap-2">
-                {job.skills.split(",").map((skill, i) => (
+                {job.skills.map((skill: string, i: number) => (
                   <span key={i} className="px-3 py-1 rounded-full bg-teal-50 text-teal-700 text-xs font-medium">
                     {skill.trim()}
                   </span>

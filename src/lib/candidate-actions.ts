@@ -1,30 +1,55 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { requireAdmin } from "@/lib/authz";
+import { requireViewerScope } from "@/lib/authz";
 import { checkDuplicate } from "@/lib/candidates";
 
-export async function searchOpenJobsAction(query = "") {
+type JobSearchOption = {
+  id: number;
+  title: string;
+  status: string;
+  client: {
+    companyName: string;
+  };
+};
+
+export async function searchOpenJobsAction(query = ""): Promise<JobSearchOption[]> {
   try {
-    await requireAdmin();
-
+    const scope = await requireViewerScope();
     const normalizedQuery = query.trim();
+    const where: Prisma.JobOrderWhereInput = { status: "OPEN" };
+    const andWhere: Prisma.JobOrderWhereInput[] = [];
 
-    return await prisma.jobOrder.findMany({
-      where: {
-        status: "OPEN",
-        OR: normalizedQuery
-          ? [
-              { title: { contains: normalizedQuery, mode: "insensitive" } },
-              {
-                client: {
-                  companyName: { contains: normalizedQuery, mode: "insensitive" },
-                },
+    if (!scope.isAdmin) {
+      andWhere.push({
+        OR: [{ createdById: scope.userId }, { assignedToId: scope.userId }],
+      });
+    }
+
+    if (normalizedQuery) {
+      andWhere.push({
+        OR: [
+          { title: { contains: normalizedQuery, mode: Prisma.QueryMode.insensitive } },
+          {
+            client: {
+              companyName: {
+                contains: normalizedQuery,
+                mode: Prisma.QueryMode.insensitive,
               },
-            ]
-          : undefined,
-      },
+            },
+          },
+        ],
+      });
+    }
+
+    if (andWhere.length > 0) {
+      where.AND = andWhere;
+    }
+
+    const jobs = await prisma.jobOrder.findMany({
+      where,
       select: {
         id: true,
         title: true,
@@ -38,6 +63,15 @@ export async function searchOpenJobsAction(query = "") {
       orderBy: { updatedAt: "desc" },
       take: 10,
     });
+
+    return jobs.map((job) => ({
+      id: job.id,
+      title: job.title,
+      status: job.status,
+      client: {
+        companyName: job.client.companyName,
+      },
+    }));
   } catch (error) {
     console.error("searchOpenJobsAction error:", error);
     return [];
@@ -46,27 +80,55 @@ export async function searchOpenJobsAction(query = "") {
 
 export async function bulkAssignToJob(candidateIds: number[], jobOrderId: number) {
   try {
-    await requireAdmin();
+    const scope = await requireViewerScope();
 
     if (candidateIds.length === 0) {
       return { success: false, message: "Chưa chọn ứng viên để gán." };
     }
 
+    const accessibleJob = await prisma.jobOrder.findFirst({
+      where: {
+        id: jobOrderId,
+        ...(!scope.isAdmin
+          ? { OR: [{ createdById: scope.userId }, { assignedToId: scope.userId }] }
+          : {}),
+      },
+      select: { id: true },
+    });
+
+    if (!accessibleJob) {
+      return { success: false, message: "Không tìm thấy job hoặc bạn không có quyền." };
+    }
+
+    const accessibleCandidates = await prisma.candidate.findMany({
+      where: {
+        id: { in: candidateIds },
+        isDeleted: false,
+        ...(!scope.isAdmin ? { createdById: scope.userId } : {}),
+      },
+      select: { id: true },
+    });
+    const accessibleCandidateIds = accessibleCandidates.map((candidate) => candidate.id);
+
+    if (accessibleCandidateIds.length === 0) {
+      return { success: false, message: "Không có ứng viên hợp lệ để gán." };
+    }
+
     const existing = await prisma.jobCandidate.findMany({
       where: {
         jobOrderId,
-        candidateId: { in: candidateIds },
+        candidateId: { in: accessibleCandidateIds },
       },
       select: { candidateId: true },
     });
 
     const existingIds = new Set(existing.map((item) => item.candidateId));
-    const newCandidateIds = candidateIds.filter((id) => !existingIds.has(id));
+    const newCandidateIds = accessibleCandidateIds.filter((id) => !existingIds.has(id));
 
     if (newCandidateIds.length === 0) {
       return {
         success: false,
-        message: "Tất cả ứng viên đã có trong job này.",
+        message: "Tất cả ứng viên hợp lệ đã có trong job này.",
       };
     }
 
@@ -98,27 +160,41 @@ export async function bulkAssignToJob(candidateIds: number[], jobOrderId: number
 
 export async function bulkAddTag(candidateIds: number[], tagId: number) {
   try {
-    await requireAdmin();
+    const scope = await requireViewerScope();
 
     if (candidateIds.length === 0) {
-      return { success: false, message: "Chưa chọn ứng viên để gắn tag." };
+      return { success: false, message: "Chưa chọn ứng viên để gán tag." };
+    }
+
+    const accessibleCandidates = await prisma.candidate.findMany({
+      where: {
+        id: { in: candidateIds },
+        isDeleted: false,
+        ...(!scope.isAdmin ? { createdById: scope.userId } : {}),
+      },
+      select: { id: true },
+    });
+    const accessibleCandidateIds = accessibleCandidates.map((candidate) => candidate.id);
+
+    if (accessibleCandidateIds.length === 0) {
+      return { success: false, message: "Không có ứng viên hợp lệ để gán tag." };
     }
 
     await prisma.candidateTag.createMany({
-      data: candidateIds.map((candidateId) => ({ candidateId, tagId })),
+      data: accessibleCandidateIds.map((candidateId) => ({ candidateId, tagId })),
       skipDuplicates: true,
     });
 
     revalidatePath("/candidates");
     return {
       success: true,
-      message: `Đã gắn tag cho ${candidateIds.length} ứng viên.`,
+      message: `Đã gán tag cho ${accessibleCandidateIds.length} ứng viên.`,
     };
   } catch (error) {
     console.error("bulkAddTag error:", error);
     return {
       success: false,
-      message: "Không thể gắn tag hàng loạt.",
+      message: "Không thể gán tag hàng loạt.",
     };
   }
 }
@@ -129,7 +205,7 @@ export async function checkDuplicateAction(
   excludeId?: number
 ) {
   try {
-    await requireAdmin();
+    await requireViewerScope();
     return await checkDuplicate(email, phone, excludeId);
   } catch (error) {
     console.error("checkDuplicateAction error:", error);

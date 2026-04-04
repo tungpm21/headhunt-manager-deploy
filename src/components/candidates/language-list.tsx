@@ -3,7 +3,7 @@
 import { useActionState, useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Check, Globe2, Loader2, Pencil, Plus, Trash2, X } from "lucide-react";
-import { CandidateWithRelations } from "@/types/candidate";
+import type { CandidateWithRelations } from "@/types/candidate-ui";
 import {
   addLanguageAction,
   deleteLanguageAction,

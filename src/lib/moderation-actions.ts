@@ -166,9 +166,33 @@ export async function getEmployerJobPostings(employerId: number, page = 1) {
   return getEmployerJobPostingsForModeration(employerId, page);
 }
 
+const EXTENSION_MAP: Record<string, string> = {
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/webp": "webp",
+};
+
+async function uploadImageFile(
+  folder: string,
+  prefix: string,
+  file: File,
+  maxBytes: number
+): Promise<{ url: string } | { error: string }> {
+  if (!ALLOWED_LOGO_TYPES.includes(file.type)) {
+    return { error: "Chi chap nhan file JPG, PNG hoac WebP." };
+  }
+  if (file.size > maxBytes) {
+    return { error: `File qua lon. Toi da ${Math.round(maxBytes / 1024 / 1024)}MB.` };
+  }
+  const safeExt = EXTENSION_MAP[file.type] ?? "tmp";
+  const fileName = `${prefix}-${Date.now()}.${safeExt}`;
+  const result = await uploadFile(folder, fileName, file);
+  return { url: result.url };
+}
+
 export async function updateEmployerInfo(
   employerId: number,
-  _prevState: { success?: boolean; message?: string; logoUrl?: string | null } | undefined,
+  _prevState: { success?: boolean; message?: string; logoUrl?: string | null; coverImageUrl?: string | null } | undefined,
   formData: FormData
 ) {
   await requireAdmin();
@@ -197,43 +221,43 @@ export async function updateEmployerInfo(
     };
   }
 
+  // --- Logo upload ---
   const logoFile = formData.get("logo");
   const nextLogo = logoFile instanceof File && logoFile.size > 0 ? logoFile : null;
   let uploadedLogoUrl: string | null = null;
 
   if (nextLogo) {
-    if (!ALLOWED_LOGO_TYPES.includes(nextLogo.type)) {
-      return {
-        success: false,
-        message: "Chi chap nhan logo JPG, PNG hoac WebP.",
-      };
+    const result = await uploadImageFile(
+      "logos",
+      `employer-logo-${employerId}`,
+      nextLogo,
+      MAX_LOGO_SIZE_BYTES
+    );
+    if ("error" in result) {
+      return { success: false, message: result.error };
     }
+    uploadedLogoUrl = result.url;
+  }
 
-    if (nextLogo.size > MAX_LOGO_SIZE_BYTES) {
-      return {
-        success: false,
-        message: "Logo qua lon. Toi da 2MB.",
-      };
+  // --- Cover image upload ---
+  const MAX_COVER_SIZE_BYTES = 5 * 1024 * 1024; // 5MB for banners
+  const coverFile = formData.get("coverImage");
+  const nextCover = coverFile instanceof File && coverFile.size > 0 ? coverFile : null;
+  let uploadedCoverUrl: string | null = null;
+
+  if (nextCover) {
+    const result = await uploadImageFile(
+      "covers",
+      `employer-cover-${employerId}`,
+      nextCover,
+      MAX_COVER_SIZE_BYTES
+    );
+    if ("error" in result) {
+      // Roll back logo if already uploaded
+      if (uploadedLogoUrl) await deleteFile(uploadedLogoUrl);
+      return { success: false, message: result.error };
     }
-
-    const extensionMap: Record<string, string> = {
-      "image/jpeg": "jpg",
-      "image/png": "png",
-      "image/webp": "webp",
-    };
-    const safeExt = extensionMap[nextLogo.type] ?? "tmp";
-    const fileName = `employer-logo-${employerId}-${Date.now()}.${safeExt}`;
-
-    try {
-      const uploadResult = await uploadFile("logos", fileName, nextLogo);
-      uploadedLogoUrl = uploadResult.url;
-    } catch (error) {
-      console.error("Employer logo upload error:", error);
-      return {
-        success: false,
-        message: "Khong the tai logo len. Vui long thu lai.",
-      };
-    }
+    uploadedCoverUrl = result.url;
   }
 
   try {
@@ -241,6 +265,7 @@ export async function updateEmployerInfo(
       companyName: parsedInput.data.companyName,
       description: parsedInput.data.description || null,
       logo: uploadedLogoUrl ?? employer.logo,
+      coverImage: uploadedCoverUrl ?? employer.coverImage,
       industry: parsedInput.data.industry || null,
       companySize: parsedInput.data.companySize ?? null,
       address: parsedInput.data.address || null,
@@ -248,10 +273,8 @@ export async function updateEmployerInfo(
       phone: parsedInput.data.phone || null,
     });
   } catch (error) {
-    if (uploadedLogoUrl) {
-      await deleteFile(uploadedLogoUrl);
-    }
-
+    if (uploadedLogoUrl) await deleteFile(uploadedLogoUrl);
+    if (uploadedCoverUrl) await deleteFile(uploadedCoverUrl);
     console.error("updateEmployerInfo error:", error);
     return {
       success: false,
@@ -259,8 +282,12 @@ export async function updateEmployerInfo(
     };
   }
 
+  // Delete old files only after successful DB update
   if (uploadedLogoUrl && employer.logo && employer.logo !== uploadedLogoUrl) {
     await deleteFile(employer.logo);
+  }
+  if (uploadedCoverUrl && employer.coverImage && employer.coverImage !== uploadedCoverUrl) {
+    await deleteFile(employer.coverImage);
   }
 
   revalidatePath("/employers");
@@ -277,6 +304,7 @@ export async function updateEmployerInfo(
     success: true,
     message: "Da cap nhat thong tin cong ty.",
     logoUrl: uploadedLogoUrl ?? employer.logo,
+    coverImageUrl: uploadedCoverUrl ?? employer.coverImage,
   };
 }
 

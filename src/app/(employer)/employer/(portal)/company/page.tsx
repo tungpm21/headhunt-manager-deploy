@@ -95,6 +95,16 @@ export default function CompanyProfilePage() {
       )}
 
       <form action={handleSubmit} className="bg-white rounded-xl border border-gray-100 p-6 space-y-5">
+        {/* Cover image preview */}
+        {employer?.coverImage && (
+          <div className="pb-5 border-b border-gray-100">
+            <p className="text-xs font-medium text-gray-500 mb-2 uppercase tracking-wider">Preview ảnh bìa</p>
+            <div className="w-full h-32 rounded-xl overflow-hidden bg-gray-100">
+              <img src={employer.coverImage} alt="Cover" className="w-full h-full object-cover" />
+            </div>
+          </div>
+        )}
+
         {/* Logo preview */}
         <div className="flex items-center gap-4 pb-5 border-b border-gray-100">
           <div className="h-16 w-16 rounded-xl bg-teal-50 flex items-center justify-center overflow-hidden border border-teal-100">
@@ -125,6 +135,24 @@ export default function CompanyProfilePage() {
             defaultValue={employer?.companyName}
             className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
           />
+        </div>
+
+        {/* Cover Image URL */}
+        <div>
+          <label htmlFor="coverImage" className="block text-sm font-medium text-gray-700 mb-1.5">
+            Ảnh bìa công ty (URL)
+          </label>
+          <input
+            id="coverImage"
+            name="coverImage"
+            type="url"
+            defaultValue={employer?.coverImage ?? ""}
+            placeholder="https://example.com/banner.jpg"
+            className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
+          />
+          <p className="text-xs text-gray-400 mt-1">
+            Hiển thị trên trang profile công ty và banner trang chủ (nếu gói có showBanner). Khuyến nghị: 1200×400px.
+          </p>
         </div>
 
         {/* Description */}

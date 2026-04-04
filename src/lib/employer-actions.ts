@@ -270,6 +270,7 @@ export async function updateCompanyProfileAction(formData: FormData) {
     address: parsedInput.data.address || null,
     website: parsedInput.data.website || null,
     phone: parsedInput.data.phone || null,
+    coverImage: formData.get("coverImage")?.toString().trim() || null,
   });
 
   revalidatePath("/employer/company");

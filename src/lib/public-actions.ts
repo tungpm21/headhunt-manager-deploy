@@ -26,6 +26,7 @@ export type HomepageEmployer = {
   id: number;
   companyName: string;
   logo: string | null;
+  coverImage: string | null;
   slug: string;
   industry: string | null;
   subscription: {
@@ -41,6 +42,7 @@ export type IndustryCount = {
 
 export type HomepageData = {
   featuredJobs: HomepageJob[];
+  bannerEmployers: HomepageEmployer[];
   topEmployers: HomepageEmployer[];
   industries: IndustryCount[];
   stats: {
@@ -53,7 +55,7 @@ export async function getHomepageData(): Promise<HomepageData> {
   await expireSubscriptionsIfNeeded();
   const now = new Date();
 
-  const [featuredJobs, topEmployers, industryGroups, totalJobs, totalEmployers] =
+  const [featuredJobs, bannerEmployers, allActiveEmployers, industryGroups, totalJobs, totalEmployers] =
     await Promise.all([
       // 8 latest APPROVED jobs not expired
       prisma.jobPosting.findMany({
@@ -83,19 +85,20 @@ export async function getHomepageData(): Promise<HomepageData> {
         },
       }),
 
-      // VIP/Premium employers with showLogo
+      // Banner employers — showBanner=true (VIP campaign banners)
       prisma.employer.findMany({
         where: {
           status: "ACTIVE",
           subscription: {
             status: "ACTIVE",
-            showLogo: true,
+            showBanner: true,
           },
         },
         select: {
           id: true,
           companyName: true,
           logo: true,
+          coverImage: true,
           slug: true,
           industry: true,
           subscription: {
@@ -112,7 +115,32 @@ export async function getHomepageData(): Promise<HomepageData> {
             },
           },
         },
-        take: 12,
+      }),
+
+      // All active employers — sorted by tier in JS, shown in TopEmployers grid
+      prisma.employer.findMany({
+        where: { status: "ACTIVE" },
+        select: {
+          id: true,
+          companyName: true,
+          logo: true,
+          coverImage: true,
+          slug: true,
+          industry: true,
+          subscription: {
+            select: { tier: true },
+          },
+          _count: {
+            select: {
+              jobPostings: {
+                where: {
+                  status: "APPROVED",
+                  OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
+                },
+              },
+            },
+          },
+        },
       }),
 
       // Industry counts for approved jobs
@@ -145,8 +173,26 @@ export async function getHomepageData(): Promise<HomepageData> {
       count: g._count.id,
     }));
 
+  // Sort all active employers by subscription tier: VIP → PREMIUM → STANDARD → BASIC → none
+  const TIER_ORDER: Record<string, number> = {
+    VIP: 0,
+    PREMIUM: 1,
+    STANDARD: 2,
+    BASIC: 3,
+  };
+  const topEmployers = allActiveEmployers
+    .slice()
+    .sort((a, b) => {
+      const aT = a.subscription?.tier ? (TIER_ORDER[a.subscription.tier] ?? 4) : 4;
+      const bT = b.subscription?.tier ? (TIER_ORDER[b.subscription.tier] ?? 4) : 4;
+      if (aT !== bT) return aT - bT;
+      return a.companyName.localeCompare(b.companyName);
+    })
+    .slice(0, 24);
+
   return {
     featuredJobs,
+    bannerEmployers,
     topEmployers,
     industries,
     stats: { totalJobs, totalEmployers },
@@ -489,6 +535,7 @@ export type CompanyProfile = {
   id: number;
   companyName: string;
   logo: string | null;
+  coverImage: string | null;
   slug: string;
   description: string | null;
   industry: string | null;
@@ -510,6 +557,7 @@ export async function getCompanyBySlug(slug: string): Promise<CompanyProfile | n
       id: true,
       companyName: true,
       logo: true,
+      coverImage: true,
       slug: true,
       description: true,
       industry: true,

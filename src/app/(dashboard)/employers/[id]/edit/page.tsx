@@ -38,6 +38,7 @@ export default async function EmployerEditPage({ params }: PageProps) {
     email: employer.email,
     companyName: employer.companyName,
     logo: employer.logo,
+    coverImage: employer.coverImage,
     description: employer.description,
     industry: employer.industry,
     companySize: employer.companySize,

@@ -101,6 +101,7 @@ export async function getEmployerModerationById(id: number) {
       email: true,
       companyName: true,
       logo: true,
+      coverImage: true,
       description: true,
       industry: true,
       companySize: true,
@@ -196,6 +197,7 @@ export async function getEmployerForInfoUpdate(employerId: number) {
       id: true,
       slug: true,
       logo: true,
+      coverImage: true,
       jobPostings: { select: { slug: true } },
     },
   });
@@ -207,6 +209,7 @@ export async function updateEmployerModerationInfo(
     companyName: string;
     description: string | null;
     logo: string | null;
+    coverImage?: string | null;
     industry: string | null;
     companySize: "SMALL" | "MEDIUM" | "LARGE" | "ENTERPRISE" | null;
     address: string | null;

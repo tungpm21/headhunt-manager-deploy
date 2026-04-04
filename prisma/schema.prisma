@@ -413,6 +413,7 @@ model Employer {
   password    String         // bcrypt hashed
   companyName String
   logo        String?
+  coverImage  String?        // Full-width banner image URL (for homepage carousel + company profile)
   description String?
   industry    String?
   companySize CompanySize?

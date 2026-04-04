@@ -13,6 +13,13 @@ import {
 import { getCompanyBySlug, type HomepageJob } from "@/lib/public-actions";
 import { JobCard } from "@/components/public/JobCard";
 
+const tierBadge: Record<string, { label: string; className: string }> = {
+  VIP: { label: "VIP", className: "bg-amber-100 text-amber-700" },
+  PREMIUM: { label: "Premium", className: "bg-purple-100 text-purple-700" },
+  STANDARD: { label: "Standard", className: "bg-blue-100 text-blue-700" },
+  BASIC: { label: "Basic", className: "bg-gray-100 text-gray-600" },
+};
+
 type PageProps = {
   params: Promise<{ slug: string }>;
 };
@@ -31,6 +38,8 @@ export default async function CompanyProfilePage({ params }: PageProps) {
   const { slug } = await params;
   const company = await getCompanyBySlug(slug);
   if (!company) notFound();
+
+  const badge = company.subscription ? tierBadge[company.subscription.tier] : null;
 
   const infoItems = [
     { icon: Building2, label: "Ngành nghề", value: company.industry },
@@ -66,49 +75,81 @@ export default async function CompanyProfilePage({ params }: PageProps) {
         </div>
       </div>
 
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+      {/* Cover image / gradient banner */}
+      <div className="relative h-48 sm:h-64 overflow-hidden">
+        {company.coverImage ? (
+          <img
+            src={company.coverImage}
+            alt={`${company.companyName} cover`}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="w-full h-full bg-gradient-to-r from-[var(--color-fdi-dark)] via-[#005A9E] to-[var(--color-fdi-primary)]" />
+        )}
+        {/* Dark overlay for gradient banners without cover */}
+        {company.coverImage && (
+          <div className="absolute inset-0 bg-black/10" />
+        )}
+      </div>
+
+      {/* Logo overlaid on cover — bottom-left */}
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="relative -mt-10 mb-4 flex items-end gap-4">
+          <div className="h-20 w-20 rounded-xl bg-white ring-4 ring-white shadow-md flex items-center justify-center shrink-0 overflow-hidden">
+            {company.logo ? (
+              <img src={company.logo} alt={company.companyName} className="h-full w-full object-cover" />
+            ) : (
+              <Building2 className="h-9 w-9 text-[var(--color-fdi-primary)]" />
+            )}
+          </div>
+          <div className="pb-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1
+                className="text-xl sm:text-2xl font-bold text-[var(--color-fdi-text)]"
+                style={{ fontFamily: "var(--font-heading)" }}
+              >
+                {company.companyName}
+              </h1>
+              {badge && (
+                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${badge.className}`}>
+                  {badge.label}
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-3 mt-0.5 text-sm text-[var(--color-fdi-text-secondary)]">
+              {company.industry && <span>{company.industry}</span>}
+              {company.jobPostings.length > 0 && (
+                <span className="flex items-center gap-1 text-[var(--color-fdi-primary)] font-medium">
+                  <Briefcase className="h-3.5 w-3.5" />
+                  {company.jobPostings.length} vị trí đang tuyển
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-12">
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Main Content */}
           <div className="flex-1 space-y-6">
-            {/* Company Header */}
-            <div className="bg-white rounded-xl border border-gray-100 p-6 sm:p-8">
-              <div className="flex items-center gap-4 mb-6">
-                <div className="h-16 w-16 rounded-xl bg-[var(--color-fdi-surface)] flex items-center justify-center shrink-0 overflow-hidden">
-                  {company.logo ? (
-                    <img src={company.logo} alt={company.companyName} className="h-full w-full object-cover" />
-                  ) : (
-                    <Building2 className="h-8 w-8 text-[var(--color-fdi-primary)]" />
-                  )}
-                </div>
-                <div>
-                  <h1
-                    className="text-xl sm:text-2xl font-bold text-[var(--color-fdi-text)]"
-                    style={{ fontFamily: "var(--font-heading)" }}
-                  >
-                    {company.companyName}
-                  </h1>
-                  <div className="flex items-center gap-3 mt-1 text-sm text-[var(--color-fdi-text-secondary)]">
-                    {company.industry && <span>{company.industry}</span>}
-                    {company.jobPostings.length > 0 && (
-                      <span className="flex items-center gap-1 text-[var(--color-fdi-primary)] font-medium">
-                        <Briefcase className="h-3.5 w-3.5" />
-                        {company.jobPostings.length} vị trí đang tuyển
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Description */}
-              {company.description && (
+            {/* Description */}
+            {company.description && (
+              <div className="bg-white rounded-xl border border-gray-100 p-6 sm:p-8">
+                <h2
+                  className="text-base font-semibold text-[var(--color-fdi-text)] mb-3"
+                  style={{ fontFamily: "var(--font-heading)" }}
+                >
+                  Giới thiệu công ty
+                </h2>
                 <div
                   className="prose prose-sm max-w-none text-[var(--color-fdi-text-secondary)] leading-relaxed whitespace-pre-line"
                   style={{ fontFamily: "var(--font-body)" }}
                 >
                   {company.description}
                 </div>
-              )}
-            </div>
+              </div>
+            )}
 
             {/* Active Jobs */}
             {company.jobPostings.length > 0 && (
@@ -124,6 +165,13 @@ export default async function CompanyProfilePage({ params }: PageProps) {
                     <JobCard key={job.id} job={job} />
                   ))}
                 </div>
+              </div>
+            )}
+
+            {company.jobPostings.length === 0 && !company.description && (
+              <div className="bg-white rounded-xl border border-gray-100 p-8 text-center text-[var(--color-fdi-text-secondary)]">
+                <Building2 className="h-10 w-10 mx-auto mb-3 opacity-30" />
+                <p className="text-sm">Chưa có thông tin tuyển dụng</p>
               </div>
             )}
           </div>

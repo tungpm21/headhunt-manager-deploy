@@ -1,7 +1,8 @@
 import { getHomepageData } from "@/lib/public-actions";
 import { HeroSection } from "@/components/public/HeroSection";
+import { EmployerBannerCarousel } from "@/components/public/EmployerBannerCarousel";
+import { TopEmployers } from "@/components/public/TopEmployers";
 import { FeaturedJobs } from "@/components/public/FeaturedJobs";
-import { EmployerCarousel } from "@/components/public/EmployerCarousel";
 import { IndustryGrid } from "@/components/public/IndustryGrid";
 
 export default async function HomePage() {
@@ -13,8 +14,9 @@ export default async function HomePage() {
         totalJobs={data.stats.totalJobs}
         totalEmployers={data.stats.totalEmployers}
       />
+      <EmployerBannerCarousel employers={data.bannerEmployers} />
+      <TopEmployers employers={data.topEmployers} />
       <FeaturedJobs jobs={data.featuredJobs} />
-      <EmployerCarousel employers={data.topEmployers} />
       <IndustryGrid industries={data.industries} />
     </>
   );

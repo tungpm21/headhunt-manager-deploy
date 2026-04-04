@@ -19,6 +19,7 @@ type EmployerEditData = {
   email: string;
   companyName: string;
   logo: string | null;
+  coverImage: string | null;
   description: string | null;
   industry: string | null;
   companySize: string | null;
@@ -43,7 +44,8 @@ const COMPANY_SIZES = [
 ];
 
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
-const MAX_SIZE_BYTES = 2 * 1024 * 1024;
+const MAX_LOGO_BYTES = 2 * 1024 * 1024;
+const MAX_COVER_BYTES = 5 * 1024 * 1024;
 
 const inputClassName =
   "w-full rounded-xl border border-border bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition";
@@ -52,80 +54,81 @@ interface EmployerEditFormProps {
   employer: EmployerEditData;
 }
 
-export function EmployerEditForm({ employer }: EmployerEditFormProps) {
-  const [isSaving, setIsSaving] = useState(false);
-  const [message, setMessage] = useState<MessageState>(null);
-  const [logoPreviewUrl, setLogoPreviewUrl] = useState<string | null>(employer.logo);
-  const [logoError, setLogoError] = useState<string | null>(null);
-  const [selectedLogoName, setSelectedLogoName] = useState<string>("");
+function useImageUpload(initialUrl: string | null, maxBytes: number) {
+  const [previewUrl, setPreviewUrl] = useState<string | null>(initialUrl);
+  const [selectedName, setSelectedName] = useState<string>("");
+  const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const objectUrlRef = useRef<string | null>(null);
-  const canPreviewPublicPage = employer.status === "ACTIVE";
 
-  useEffect(() => {
-    setLogoPreviewUrl(employer.logo);
-  }, [employer.logo, employer.updatedAt]);
-
-  useEffect(() => {
-    return () => {
-      if (objectUrlRef.current) {
-        URL.revokeObjectURL(objectUrlRef.current);
-      }
-    };
-  }, []);
-
-  function clearPendingObjectUrl() {
+  function clearObjectUrl() {
     if (objectUrlRef.current) {
       URL.revokeObjectURL(objectUrlRef.current);
       objectUrlRef.current = null;
     }
   }
 
-  function handleLogoChange(event: React.ChangeEvent<HTMLInputElement>) {
+  useEffect(() => {
+    setPreviewUrl(initialUrl);
+  }, [initialUrl]);
+
+  useEffect(() => {
+    return () => clearObjectUrl();
+  }, []);
+
+  function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (!file) return;
 
     if (!ALLOWED_TYPES.includes(file.type)) {
-      clearPendingObjectUrl();
-      setLogoPreviewUrl(employer.logo);
-      setSelectedLogoName("");
-      setLogoError("Chỉ chấp nhận file JPG, PNG hoặc WebP.");
+      clearObjectUrl();
+      setPreviewUrl(initialUrl);
+      setSelectedName("");
+      setError("Chỉ chấp nhận file JPG, PNG hoặc WebP.");
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+    if (file.size > maxBytes) {
+      clearObjectUrl();
+      setPreviewUrl(initialUrl);
+      setSelectedName("");
+      setError(`File quá lớn. Tối đa ${Math.round(maxBytes / 1024 / 1024)}MB.`);
       if (fileInputRef.current) fileInputRef.current.value = "";
       return;
     }
 
-    if (file.size > MAX_SIZE_BYTES) {
-      clearPendingObjectUrl();
-      setLogoPreviewUrl(employer.logo);
-      setSelectedLogoName("");
-      setLogoError("Logo quá lớn. Tối đa 2MB.");
-      if (fileInputRef.current) fileInputRef.current.value = "";
-      return;
-    }
-
-    clearPendingObjectUrl();
-
+    clearObjectUrl();
     const objectUrl = URL.createObjectURL(file);
     objectUrlRef.current = objectUrl;
-    setLogoPreviewUrl(objectUrl);
-    setSelectedLogoName(file.name);
-    setLogoError(null);
-    setMessage(null);
+    setPreviewUrl(objectUrl);
+    setSelectedName(file.name);
+    setError(null);
   }
 
-  function handleResetNewLogo() {
-    clearPendingObjectUrl();
-    setLogoPreviewUrl(employer.logo);
-    setSelectedLogoName("");
-    setLogoError(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
+  function handleReset() {
+    clearObjectUrl();
+    setPreviewUrl(initialUrl);
+    setSelectedName("");
+    setError(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
   }
+
+  return { previewUrl, selectedName, error, fileInputRef, handleFileChange, handleReset };
+}
+
+export function EmployerEditForm({ employer }: EmployerEditFormProps) {
+  const [isSaving, setIsSaving] = useState(false);
+  const [message, setMessage] = useState<MessageState>(null);
+
+  const logo = useImageUpload(employer.logo, MAX_LOGO_BYTES);
+  const cover = useImageUpload(employer.coverImage, MAX_COVER_BYTES);
+
+  const canPreviewPublicPage = employer.status === "ACTIVE";
 
   async function handleSubmit(formData: FormData) {
-    if (logoError && fileInputRef.current?.files?.length) {
-      setMessage({ type: "error", text: logoError });
+    if ((logo.error && logo.fileInputRef.current?.files?.length) ||
+        (cover.error && cover.fileInputRef.current?.files?.length)) {
+      setMessage({ type: "error", text: logo.error || cover.error || "Lỗi file ảnh." });
       return;
     }
 
@@ -140,14 +143,8 @@ export function EmployerEditForm({ employer }: EmployerEditFormProps) {
         return;
       }
 
-      clearPendingObjectUrl();
-      setSelectedLogoName("");
-      setLogoError(null);
-      setLogoPreviewUrl(result.logoUrl ?? employer.logo);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
-
+      logo.handleReset();
+      cover.handleReset();
       setMessage({ type: "success", text: result.message || "Đã lưu thay đổi." });
     } catch (error) {
       console.error("EmployerEditForm submit error:", error);
@@ -215,178 +212,226 @@ export function EmployerEditForm({ employer }: EmployerEditFormProps) {
         action={handleSubmit}
         className="space-y-6"
       >
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
+        {/* Images row: logo + cover */}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-[200px_1fr]">
+          {/* Logo upload */}
           <div className="rounded-2xl border border-border bg-background p-5 space-y-4">
-            <div className="space-y-2">
-              <p className="text-sm font-semibold text-foreground">Logo công ty</p>
-              <p className="text-xs text-muted">
-                Hỗ trợ JPG, PNG, WebP. Tối đa 2MB. Không chọn file mới sẽ giữ logo hiện tại.
-              </p>
+            <div className="space-y-1">
+              <p className="text-sm font-semibold text-foreground">Ảnh đại diện (Logo)</p>
+              <p className="text-xs text-muted">JPG, PNG, WebP. Tối đa 2MB.</p>
             </div>
 
             <div className="flex flex-col items-center gap-4">
-              <div className="h-28 w-28 rounded-2xl border border-border bg-surface overflow-hidden flex items-center justify-center">
-                {logoPreviewUrl ? (
-                  <img
-                    src={logoPreviewUrl}
-                    alt={employer.companyName}
-                    className="h-full w-full object-cover"
-                  />
+              <div className="h-24 w-24 rounded-2xl border border-border bg-surface overflow-hidden flex items-center justify-center">
+                {logo.previewUrl ? (
+                  <img src={logo.previewUrl} alt={employer.companyName} className="h-full w-full object-cover" />
                 ) : (
-                  <Building2 className="h-10 w-10 text-primary" />
+                  <Building2 className="h-9 w-9 text-primary" />
                 )}
               </div>
 
-              <div className="w-full space-y-3">
+              <div className="w-full space-y-2">
                 <input
-                  ref={fileInputRef}
+                  ref={logo.fileInputRef}
                   id="logo"
                   name="logo"
                   type="file"
                   accept="image/jpeg,image/png,image/webp"
-                  onChange={handleLogoChange}
+                  onChange={logo.handleFileChange}
                   className="hidden"
                 />
-
                 <button
                   type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-border px-4 py-3 text-sm font-medium text-foreground transition hover:bg-surface"
+                  onClick={() => logo.fileInputRef.current?.click()}
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-border px-4 py-2.5 text-sm font-medium text-foreground transition hover:bg-surface"
                 >
                   <ImagePlus className="h-4 w-4" />
-                  {logoPreviewUrl ? "Đổi logo" : "Tải logo lên"}
+                  {logo.previewUrl ? "Đổi logo" : "Tải logo lên"}
                 </button>
 
-                {selectedLogoName && (
-                  <div className="rounded-xl border border-primary/20 bg-primary/10 px-3 py-2 text-xs text-primary">
-                    File mới: {selectedLogoName}
-                  </div>
+                {logo.selectedName && (
+                  <>
+                    <div className="rounded-xl border border-primary/20 bg-primary/10 px-3 py-1.5 text-xs text-primary truncate">
+                      {logo.selectedName}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={logo.handleReset}
+                      className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl border border-border px-4 py-2 text-xs font-medium text-muted transition hover:bg-surface hover:text-foreground"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                      Bỏ logo mới
+                    </button>
+                  </>
                 )}
-
-                {selectedLogoName && (
-                  <button
-                    type="button"
-                    onClick={handleResetNewLogo}
-                    className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-border px-4 py-2 text-sm font-medium text-muted transition hover:bg-surface hover:text-foreground"
-                  >
-                    <X className="h-4 w-4" />
-                    Bỏ logo mới
-                  </button>
-                )}
-
-                {logoError && (
-                  <p className="text-xs text-red-600 leading-relaxed">{logoError}</p>
-                )}
+                {logo.error && <p className="text-xs text-red-600">{logo.error}</p>}
               </div>
             </div>
           </div>
 
-          <div className="space-y-5">
+          {/* Cover image upload */}
+          <div className="rounded-2xl border border-border bg-background p-5 space-y-4">
+            <div className="space-y-1">
+              <p className="text-sm font-semibold text-foreground">Ảnh bìa (Cover)</p>
+              <p className="text-xs text-muted">JPG, PNG, WebP. Tối đa 5MB. Khuyến nghị 1200×400px.</p>
+            </div>
+
+            {/* Cover preview */}
+            <div className="w-full h-32 rounded-xl border border-border bg-surface overflow-hidden flex items-center justify-center">
+              {cover.previewUrl ? (
+                <img src={cover.previewUrl} alt="Cover" className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-r from-[var(--color-fdi-dark)] via-[#005A9E] to-[var(--color-fdi-primary)] flex items-center justify-center">
+                  <p className="text-white/60 text-xs">Chưa có ảnh bìa — sẽ dùng gradient mặc định</p>
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <input
+                ref={cover.fileInputRef}
+                id="coverImage"
+                name="coverImage"
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={cover.handleFileChange}
+                className="hidden"
+              />
+              <button
+                type="button"
+                onClick={() => cover.fileInputRef.current?.click()}
+                className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-border px-4 py-2.5 text-sm font-medium text-foreground transition hover:bg-surface"
+              >
+                <ImagePlus className="h-4 w-4" />
+                {cover.previewUrl ? "Đổi ảnh bìa" : "Tải ảnh bìa lên"}
+              </button>
+
+              {cover.selectedName && (
+                <>
+                  <div className="rounded-xl border border-primary/20 bg-primary/10 px-3 py-1.5 text-xs text-primary truncate">
+                    {cover.selectedName}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={cover.handleReset}
+                    className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl border border-border px-4 py-2 text-xs font-medium text-muted transition hover:bg-surface hover:text-foreground"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                    Bỏ ảnh bìa mới
+                  </button>
+                </>
+              )}
+              {cover.error && <p className="text-xs text-red-600">{cover.error}</p>}
+            </div>
+          </div>
+        </div>
+
+        {/* Text fields */}
+        <div className="space-y-5">
+          <div>
+            <label htmlFor="companyName" className="block text-sm font-medium text-foreground mb-1.5">
+              Tên công ty <span className="text-red-500">*</span>
+            </label>
+            <input
+              id="companyName"
+              name="companyName"
+              type="text"
+              required
+              defaultValue={employer.companyName}
+              className={inputClassName}
+            />
+          </div>
+
+          <div>
+            <label htmlFor="description" className="block text-sm font-medium text-foreground mb-1.5">
+              Mô tả công ty
+            </label>
+            <textarea
+              id="description"
+              name="description"
+              rows={6}
+              defaultValue={employer.description ?? ""}
+              placeholder="Mô tả ngắn gọn về doanh nghiệp, văn hóa, môi trường làm việc..."
+              className={`${inputClassName} resize-y min-h-[140px]`}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
             <div>
-              <label htmlFor="companyName" className="block text-sm font-medium text-foreground mb-1.5">
-                Tên công ty <span className="text-red-500">*</span>
+              <label htmlFor="industry" className="block text-sm font-medium text-foreground mb-1.5">
+                Ngành nghề
               </label>
               <input
-                id="companyName"
-                name="companyName"
+                id="industry"
+                name="industry"
                 type="text"
-                required
-                defaultValue={employer.companyName}
+                defaultValue={employer.industry ?? ""}
+                placeholder="Ví dụ: Sản xuất, IT, Logistics..."
                 className={inputClassName}
               />
             </div>
 
             <div>
-              <label htmlFor="description" className="block text-sm font-medium text-foreground mb-1.5">
-                Mô tả công ty
+              <label htmlFor="companySize" className="block text-sm font-medium text-foreground mb-1.5">
+                Quy mô công ty
               </label>
-              <textarea
-                id="description"
-                name="description"
-                rows={6}
-                defaultValue={employer.description ?? ""}
-                placeholder="Mô tả ngắn gọn về doanh nghiệp, văn hóa, môi trường làm việc..."
-                className={`${inputClassName} resize-y min-h-[140px]`}
-              />
+              <select
+                id="companySize"
+                name="companySize"
+                defaultValue={employer.companySize ?? ""}
+                className={inputClassName}
+              >
+                <option value="">Chọn quy mô</option>
+                {COMPANY_SIZES.map((size) => (
+                  <option key={size.value} value={size.value}>
+                    {size.label}
+                  </option>
+                ))}
+              </select>
             </div>
+          </div>
 
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-              <div>
-                <label htmlFor="industry" className="block text-sm font-medium text-foreground mb-1.5">
-                  Ngành nghề
-                </label>
-                <input
-                  id="industry"
-                  name="industry"
-                  type="text"
-                  defaultValue={employer.industry ?? ""}
-                  placeholder="Ví dụ: Sản xuất, IT, Logistics..."
-                  className={inputClassName}
-                />
-              </div>
+          <div>
+            <label htmlFor="address" className="block text-sm font-medium text-foreground mb-1.5">
+              Địa chỉ
+            </label>
+            <input
+              id="address"
+              name="address"
+              type="text"
+              defaultValue={employer.address ?? ""}
+              placeholder="Ví dụ: KCN Yên Phong, Bắc Ninh"
+              className={inputClassName}
+            />
+          </div>
 
-              <div>
-                <label htmlFor="companySize" className="block text-sm font-medium text-foreground mb-1.5">
-                  Quy mô công ty
-                </label>
-                <select
-                  id="companySize"
-                  name="companySize"
-                  defaultValue={employer.companySize ?? ""}
-                  className={inputClassName}
-                >
-                  <option value="">Chọn quy mô</option>
-                  {COMPANY_SIZES.map((size) => (
-                    <option key={size.value} value={size.value}>
-                      {size.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
             <div>
-              <label htmlFor="address" className="block text-sm font-medium text-foreground mb-1.5">
-                Địa chỉ
+              <label htmlFor="website" className="block text-sm font-medium text-foreground mb-1.5">
+                Website
               </label>
               <input
-                id="address"
-                name="address"
+                id="website"
+                name="website"
                 type="text"
-                defaultValue={employer.address ?? ""}
-                placeholder="Ví dụ: KCN Yên Phong, Bắc Ninh"
+                defaultValue={employer.website ?? ""}
+                placeholder="company.com hoặc https://company.com"
                 className={inputClassName}
               />
             </div>
 
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-              <div>
-                <label htmlFor="website" className="block text-sm font-medium text-foreground mb-1.5">
-                  Website
-                </label>
-                <input
-                  id="website"
-                  name="website"
-                  type="text"
-                  defaultValue={employer.website ?? ""}
-                  placeholder="company.com hoặc https://company.com"
-                  className={inputClassName}
-                />
-              </div>
-
-              <div>
-                <label htmlFor="phone" className="block text-sm font-medium text-foreground mb-1.5">
-                  Số điện thoại
-                </label>
-                <input
-                  id="phone"
-                  name="phone"
-                  type="tel"
-                  defaultValue={employer.phone ?? ""}
-                  placeholder="0123 456 789"
-                  className={inputClassName}
-                />
-              </div>
+            <div>
+              <label htmlFor="phone" className="block text-sm font-medium text-foreground mb-1.5">
+                Số điện thoại
+              </label>
+              <input
+                id="phone"
+                name="phone"
+                type="tel"
+                defaultValue={employer.phone ?? ""}
+                placeholder="0123 456 789"
+                className={inputClassName}
+              />
             </div>
           </div>
         </div>

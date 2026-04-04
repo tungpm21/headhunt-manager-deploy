@@ -460,6 +460,7 @@ export type PublicCompany = {
   id: number;
   companyName: string;
   logo: string | null;
+  coverImage: string | null;
   slug: string;
   industry: string | null;
   companySize: string | null;
@@ -500,6 +501,7 @@ export async function getPublicCompanies(
         id: true,
         companyName: true,
         logo: true,
+        coverImage: true,
         slug: true,
         industry: true,
         companySize: true,

@@ -62,10 +62,10 @@ export default async function CompanyListingPage({ searchParams }: PageProps) {
           </div>
         ) : (
           <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-               {result.companies.map((company: PublicCompany) => (
-                 <CompanyCard key={company.id} company={company} />
-               ))}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {result.companies.map((company: PublicCompany) => (
+                <CompanyCard key={company.id} company={company} />
+              ))}
             </div>
             <Suspense>
               <Pagination currentPage={result.page} totalPages={result.totalPages} />

@@ -77,7 +77,7 @@ export default async function CompanyProfilePage({ params }: PageProps) {
       </div>
 
       {/* Cover image / gradient banner */}
-      <div className="relative h-48 sm:h-64 overflow-hidden">
+      <div className="relative h-56 sm:h-72 overflow-hidden">
         {company.coverImage ? (
           <img
             src={company.coverImage}
@@ -95,9 +95,9 @@ export default async function CompanyProfilePage({ params }: PageProps) {
 
       {/* Logo overlaid on cover — bottom-left */}
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="relative -mt-10 mb-4 flex items-end gap-4">
-          <div className="h-20 w-20 rounded-xl bg-white ring-4 ring-white shadow-md flex items-center justify-center shrink-0 overflow-hidden">
-            <LogoImage src={company.logo} alt={company.companyName} className="h-full w-full object-contain p-1" iconSize="h-9 w-9" />
+        <div className="relative -mt-12 mb-4 flex items-end gap-5">
+          <div className="h-24 w-24 rounded-2xl bg-white ring-[5px] ring-white shadow-lg flex items-center justify-center shrink-0 overflow-hidden">
+            <LogoImage src={company.logo} alt={company.companyName} className="h-full w-full object-contain p-2" iconSize="h-10 w-10" />
           </div>
           <div className="pb-1">
             <div className="flex items-center gap-2 flex-wrap">

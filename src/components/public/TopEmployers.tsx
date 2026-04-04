@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Crown } from "lucide-react";
+import { Crown, Briefcase } from "lucide-react";
 import type { HomepageEmployer } from "@/lib/public-actions";
 import { LogoImage } from "@/components/public/LogoImage";
 
@@ -36,26 +36,32 @@ export function TopEmployers({ employers }: TopEmployersProps) {
           </p>
         </div>
 
-        {/* Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        {/* Grid — bigger cards with prominent logos */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-6 gap-5">
           {employers.map((employer) => {
             const badge = employer.subscription
               ? tierBadge[employer.subscription.tier]
               : null;
+            const jobCount = employer._count?.jobPostings ?? 0;
             return (
               <Link
                 key={employer.id}
                 href={`/cong-ty/${employer.slug}`}
                 className="group block cursor-pointer"
               >
-                <div className="bg-white rounded-xl p-5 text-center transition-all duration-200 hover:shadow-md hover:-translate-y-1 border border-gray-100">
-                  {/* Logo */}
-                  <div className="mx-auto h-16 w-16 rounded-xl bg-[var(--color-fdi-surface)] flex items-center justify-center overflow-hidden mb-3">
-                    <LogoImage src={employer.logo} alt={employer.companyName} iconSize="h-7 w-7" />
+                <div className="bg-white rounded-2xl p-5 text-center transition-all duration-200 hover:shadow-md hover:-translate-y-1 border border-gray-100">
+                  {/* Logo — 80px, prominent */}
+                  <div className="mx-auto h-20 w-20 rounded-xl bg-[var(--color-fdi-surface)] flex items-center justify-center overflow-hidden mb-3 border border-gray-50">
+                    <LogoImage
+                      src={employer.logo}
+                      alt={employer.companyName}
+                      className="h-full w-full object-contain p-2"
+                      iconSize="h-8 w-8"
+                    />
                   </div>
 
                   {/* Name */}
-                  <p className="text-xs font-semibold text-[var(--color-fdi-text)] line-clamp-2 mb-1 group-hover:text-[var(--color-fdi-primary)] transition-colors">
+                  <p className="text-sm font-semibold text-[var(--color-fdi-text)] line-clamp-2 mb-1 group-hover:text-[var(--color-fdi-primary)] transition-colors leading-tight">
                     {employer.companyName}
                   </p>
 
@@ -66,16 +72,26 @@ export function TopEmployers({ employers }: TopEmployersProps) {
                     </p>
                   )}
 
+                  {/* Job count */}
+                  {jobCount > 0 && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[var(--color-fdi-surface)] text-[10px] font-medium text-[var(--color-fdi-primary)] mb-2">
+                      <Briefcase className="h-2.5 w-2.5" />
+                      {jobCount} việc làm
+                    </span>
+                  )}
+
                   {/* Tier badge */}
                   {badge && (
-                    <span
-                      className={`inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-medium ${badge.className}`}
-                    >
-                      {employer.subscription?.tier === "VIP" && (
-                        <Crown className="h-2.5 w-2.5" />
-                      )}
-                      {badge.label}
-                    </span>
+                    <div className="mt-1">
+                      <span
+                        className={`inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-medium ${badge.className}`}
+                      >
+                        {employer.subscription?.tier === "VIP" && (
+                          <Crown className="h-2.5 w-2.5" />
+                        )}
+                        {badge.label}
+                      </span>
+                    </div>
                   )}
                 </div>
               </Link>

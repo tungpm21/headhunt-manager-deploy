@@ -45,7 +45,7 @@ export function EmployerBannerCarousel({ employers }: EmployerBannerCarouselProp
       aria-label="Nhà tuyển dụng đối tác nổi bật"
     >
       {/* Banner slide */}
-      <div className="relative h-[280px] sm:h-[360px] overflow-hidden">
+      <div className="relative h-[320px] sm:h-[420px] overflow-hidden">
         {employer.coverImage ? (
           <img
             src={employer.coverImage}
@@ -64,8 +64,8 @@ export function EmployerBannerCarousel({ employers }: EmployerBannerCarouselProp
           <div className="flex items-end justify-between gap-4">
             <div className="flex items-center gap-4">
               {/* Logo */}
-              <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center shrink-0 overflow-hidden">
-                <LogoImage src={employer.logo} alt={employer.companyName} className="h-full w-full object-contain p-1" iconSize="h-7 w-7 text-white" />
+              <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center shrink-0 overflow-hidden">
+                <LogoImage src={employer.logo} alt={employer.companyName} className="h-full w-full object-contain p-1.5" iconSize="h-8 w-8 text-white" />
               </div>
               <div>
                 <p className="text-white/70 text-xs font-medium uppercase tracking-wider mb-0.5">
@@ -136,8 +136,8 @@ export function EmployerBannerCarousel({ employers }: EmployerBannerCarouselProp
               aria-label={`Banner ${idx + 1}`}
               onClick={() => setActiveIndex(idx)}
               className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${idx === safeIndex
-                  ? "w-6 bg-white"
-                  : "w-1.5 bg-white/30 hover:bg-white/60"
+                ? "w-6 bg-white"
+                : "w-1.5 bg-white/30 hover:bg-white/60"
                 }`}
             />
           ))}

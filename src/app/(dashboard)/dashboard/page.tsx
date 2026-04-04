@@ -65,9 +65,9 @@ const stageLabelMap = {
 } as const;
 
 const statusLabelMap = {
-  AVAILABLE: "San sang",
-  EMPLOYED: "Da co viec",
-  INTERVIEWING: "Dang phong van",
+  AVAILABLE: "Sẵn sàng",
+  EMPLOYED: "Đã có việc",
+  INTERVIEWING: "Đang phỏng vấn",
   BLACKLIST: "Blacklist",
 } as const;
 
@@ -132,10 +132,10 @@ function withJobAccess(
 function mapActivityItems(recentActivityLogs: RecentActivityLog[]) {
   return recentActivityLogs.map((activity) => {
     const metadata = asRecord(activity.metadata);
-    const candidateName = getString(metadata.candidateName) ?? `Ung vien #${activity.entityId}`;
+    const candidateName = getString(metadata.candidateName) ?? `Ứng viên #${activity.entityId}`;
     const jobTitle = getString(metadata.jobTitle);
     const jobOrderId = getNumber(metadata.jobOrderId);
-    const actorName = activity.user.name ?? "He thong";
+    const actorName = activity.user.name ?? "Hệ thống";
 
     if (activity.type === "STAGE_CHANGE") {
       const toStage = getString(metadata.to);
@@ -143,11 +143,10 @@ function mapActivityItems(recentActivityLogs: RecentActivityLog[]) {
         id: String(activity.id),
         type: "STAGE_CHANGE" as const,
         actorName,
-        title: `${candidateName} -> ${
-          toStage && toStage in stageLabelMap
+        title: `${candidateName} -> ${toStage && toStage in stageLabelMap
             ? stageLabelMap[toStage as keyof typeof stageLabelMap]
-            : toStage ?? "Cap nhat stage"
-        }`,
+            : toStage ?? "Cập nhật stage"
+          }`,
         subtitle: jobTitle ? `Job: ${jobTitle}` : undefined,
         href: jobOrderId ? `/jobs/${jobOrderId}` : `/candidates/${activity.entityId}`,
         timestamp: activity.createdAt,
@@ -160,12 +159,11 @@ function mapActivityItems(recentActivityLogs: RecentActivityLog[]) {
         id: String(activity.id),
         type: "STATUS_CHANGE" as const,
         actorName,
-        title: `${candidateName} -> ${
-          toStatus && toStatus in statusLabelMap
+        title: `${candidateName} -> ${toStatus && toStatus in statusLabelMap
             ? statusLabelMap[toStatus as keyof typeof statusLabelMap]
-            : toStatus ?? "Cap nhat trang thai"
-        }`,
-        subtitle: "Cap nhat trang thai ung vien",
+            : toStatus ?? "Cập nhật trạng thái"
+          }`,
+        subtitle: "Cập nhật trạng thái ứng viên",
         href: `/candidates/${activity.entityId}`,
         timestamp: activity.createdAt,
       };
@@ -175,7 +173,7 @@ function mapActivityItems(recentActivityLogs: RecentActivityLog[]) {
       activity.type === "REMINDER_CREATED" ||
       activity.type === "REMINDER_COMPLETED"
     ) {
-      const reminderTitle = getString(metadata.reminderTitle) ?? "Nhac viec";
+      const reminderTitle = getString(metadata.reminderTitle) ?? "Nhắc việc";
       const assignedTo = getString(metadata.assignedTo);
 
       return {
@@ -184,14 +182,14 @@ function mapActivityItems(recentActivityLogs: RecentActivityLog[]) {
         actorName,
         title:
           activity.type === "REMINDER_CREATED"
-            ? `Tao nhac viec cho ${candidateName}: ${reminderTitle}`
-            : `Hoan thanh nhac viec cho ${candidateName}: ${reminderTitle}`,
+            ? `Tạo nhắc việc cho ${candidateName}: ${reminderTitle}`
+            : `Hoàn thành nhắc việc cho ${candidateName}: ${reminderTitle}`,
         subtitle:
           activity.type === "REMINDER_CREATED"
             ? assignedTo
-              ? `Phu trach: ${assignedTo}`
-              : "Da tao follow-up moi"
-            : "Follow-up da duoc danh dau hoan thanh",
+              ? `Phụ trách: ${assignedTo}`
+              : "Đã tạo follow-up mới"
+            : "Follow-up đã được đánh dấu hoàn thành",
         href: `/candidates/${activity.entityId}`,
         timestamp: activity.createdAt,
       };
@@ -202,7 +200,7 @@ function mapActivityItems(recentActivityLogs: RecentActivityLog[]) {
         id: String(activity.id),
         type: "NOTE" as const,
         actorName,
-        title: `Them ghi chu cho ${candidateName}`,
+        title: `Thêm ghi chú cho ${candidateName}`,
         subtitle: getString(metadata.preview),
         href: `/candidates/${activity.entityId}`,
         timestamp: activity.createdAt,
@@ -213,8 +211,8 @@ function mapActivityItems(recentActivityLogs: RecentActivityLog[]) {
       id: String(activity.id),
       type: "IMPORT" as const,
       actorName,
-      title: `Import ${candidateName} tu FDIWork`,
-      subtitle: jobTitle ? `Nguon: ${jobTitle}` : "Ung vien duoc dua vao CRM",
+      title: `Import ${candidateName} từ FDIWork`,
+      subtitle: jobTitle ? `Nguồn: ${jobTitle}` : "Ứng viên được đưa vào CRM",
       href: jobOrderId ? `/jobs/${jobOrderId}` : `/candidates/${activity.entityId}`,
       timestamp: activity.createdAt,
     };
@@ -233,11 +231,11 @@ export default async function DashboardPage() {
   const memberCandidateIds = scope.isAdmin
     ? []
     : (
-        await prisma.candidate.findMany({
-          where: candidateWhere,
-          select: { id: true },
-        })
-      ).map((candidate) => candidate.id);
+      await prisma.candidate.findMany({
+        where: candidateWhere,
+        select: { id: true },
+      })
+    ).map((candidate) => candidate.id);
 
   const [
     candidateCount,
@@ -284,15 +282,15 @@ export default async function DashboardPage() {
     }),
     scope.isAdmin
       ? prisma.application.findMany({
-          where: { status: { in: ["NEW", "REVIEWED", "SHORTLISTED"] } },
-          orderBy: { createdAt: "desc" },
-          take: 5,
-          include: {
-            jobPosting: {
-              select: { title: true, employer: { select: { companyName: true } } },
-            },
+        where: { status: { in: ["NEW", "REVIEWED", "SHORTLISTED"] } },
+        orderBy: { createdAt: "desc" },
+        take: 5,
+        include: {
+          jobPosting: {
+            select: { title: true, employer: { select: { companyName: true } } },
           },
-        })
+        },
+      })
       : Promise.resolve([]),
     prisma.jobOrder.findMany({
       where: withJobAccess(
@@ -316,27 +314,27 @@ export default async function DashboardPage() {
     }),
     scope.isAdmin
       ? prisma.subscription.findMany({
-          where: {
-            status: "ACTIVE",
-            endDate: {
-              gte: now,
-              lte: addDays(now, 14),
+        where: {
+          status: "ACTIVE",
+          endDate: {
+            gte: now,
+            lte: addDays(now, 14),
+          },
+        },
+        select: {
+          id: true,
+          tier: true,
+          endDate: true,
+          employer: {
+            select: {
+              id: true,
+              companyName: true,
             },
           },
-          select: {
-            id: true,
-            tier: true,
-            endDate: true,
-            employer: {
-              select: {
-                id: true,
-                companyName: true,
-              },
-            },
-          },
-          orderBy: { endDate: "asc" },
-          take: 5,
-        })
+        },
+        orderBy: { endDate: "asc" },
+        take: 5,
+      })
       : Promise.resolve([]),
     prisma.jobCandidate.count({
       where: {
@@ -394,6 +392,24 @@ export default async function DashboardPage() {
     getUpcomingCandidateReminders(now, 8, scope),
     scope.isAdmin
       ? prisma.activityLog.findMany({
+        take: 10,
+        orderBy: { createdAt: "desc" },
+        include: {
+          user: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      })
+      : memberCandidateIds.length > 0
+        ? prisma.activityLog.findMany({
+          where: {
+            entityType: "CANDIDATE",
+            entityId: {
+              in: memberCandidateIds,
+            },
+          },
           take: 10,
           orderBy: { createdAt: "desc" },
           include: {
@@ -404,24 +420,6 @@ export default async function DashboardPage() {
             },
           },
         })
-      : memberCandidateIds.length > 0
-        ? prisma.activityLog.findMany({
-            where: {
-              entityType: "CANDIDATE",
-              entityId: {
-                in: memberCandidateIds,
-              },
-            },
-            take: 10,
-            orderBy: { createdAt: "desc" },
-            include: {
-              user: {
-                select: {
-                  name: true,
-                },
-              },
-            },
-          })
         : Promise.resolve([]),
     getDashboardRevenueSummary(now, scope),
   ]);
@@ -458,11 +456,11 @@ export default async function DashboardPage() {
   const averageFillTime =
     placedPipelineItems.length > 0
       ? Math.round(
-          placedPipelineItems.reduce((sum, item) => {
-            const diffMs = item.updatedAt.getTime() - item.createdAt.getTime();
-            return sum + diffMs / (1000 * 60 * 60 * 24);
-          }, 0) / placedPipelineItems.length
-        )
+        placedPipelineItems.reduce((sum, item) => {
+          const diffMs = item.updatedAt.getTime() - item.createdAt.getTime();
+          return sum + diffMs / (1000 * 60 * 60 * 24);
+        }, 0) / placedPipelineItems.length
+      )
       : 0;
   const revenueThisMonth =
     revenueSummary.headhuntRevenueThisMonth + revenueSummary.subscriptionRevenueThisMonth;
@@ -471,10 +469,10 @@ export default async function DashboardPage() {
     <div className="mx-auto max-w-7xl space-y-6">
       <div className="flex flex-col items-start justify-between gap-6 rounded-2xl bg-gradient-to-r from-primary to-blue-600 p-6 text-white shadow-sm sm:flex-row sm:items-center sm:p-10">
         <div>
-          <h1 className="text-2xl font-bold sm:text-3xl">Chao mung tro lai!</h1>
+          <h1 className="text-2xl font-bold sm:text-3xl">Chào mừng trở lại!</h1>
           <p className="mt-2 max-w-xl text-white/80">
-            Tong quan cong viec Headhunt Manager hom nay. Co {openJobCount} job dang
-            mo trong scope cua ban.
+            Tổng quan công việc Headhunt Manager hôm nay. Có {openJobCount} job đang
+            mở trong scope của bạn.
           </p>
         </div>
         <div className="flex shrink-0 gap-3">
@@ -490,7 +488,7 @@ export default async function DashboardPage() {
             className="inline-flex items-center gap-2 rounded-lg bg-surface px-4 py-2.5 text-sm font-medium text-foreground transition hover:bg-background"
           >
             <Briefcase className="h-4 w-4" />
-            Tao Job Moi
+            Tạo Job Mới
           </Link>
         </div>
       </div>
@@ -501,7 +499,7 @@ export default async function DashboardPage() {
             <Users className="h-6 w-6" />
           </div>
           <div>
-            <p className="text-sm font-medium text-muted">Tong ung vien</p>
+            <p className="text-sm font-medium text-muted">Tổng ứng viên</p>
             <p className="text-2xl font-bold text-foreground">{candidateCount}</p>
           </div>
         </div>
@@ -521,7 +519,7 @@ export default async function DashboardPage() {
             <Briefcase className="h-6 w-6" />
           </div>
           <div>
-            <p className="text-sm font-medium text-muted">Job dang mo</p>
+            <p className="text-sm font-medium text-muted">Job đang mở</p>
             <p className="text-2xl font-bold text-foreground">{openJobCount}</p>
           </div>
         </div>
@@ -535,7 +533,7 @@ export default async function DashboardPage() {
               <FileDown className="h-6 w-6" />
             </div>
             <div>
-              <p className="text-sm font-medium text-muted">CV moi (FDIWork)</p>
+              <p className="text-sm font-medium text-muted">CV mới (FDIWork)</p>
               <p className="text-2xl font-bold text-foreground">{newAppCount}</p>
             </div>
           </Link>
@@ -545,7 +543,7 @@ export default async function DashboardPage() {
               <BellRing className="h-6 w-6" />
             </div>
             <div>
-              <p className="text-sm font-medium text-muted">Nhac viec sap den han</p>
+              <p className="text-sm font-medium text-muted">Nhắc việc sắp đến hạn</p>
               <p className="text-2xl font-bold text-foreground">{upcomingReminders.length}</p>
             </div>
           </div>
@@ -564,7 +562,7 @@ export default async function DashboardPage() {
             </div>
           </div>
           <p className="mt-3 text-xs text-muted">
-            So ung vien da nhan viec trong thang nay.
+            Số ứng viên đã nhận việc trong tháng này.
           </p>
         </div>
 
@@ -579,7 +577,7 @@ export default async function DashboardPage() {
             </div>
           </div>
           <p className="mt-3 text-xs text-muted">
-            Ty le job da lap tren tong so job da dong trong scope cua ban.
+            Tỷ lệ job đã lấp trên tổng số job đã đóng trong scope của bạn.
           </p>
         </div>
 
@@ -590,11 +588,11 @@ export default async function DashboardPage() {
             </div>
             <div>
               <p className="text-sm font-medium text-muted">Avg Fill Time</p>
-              <p className="text-2xl font-bold text-foreground">{averageFillTime} ngay</p>
+              <p className="text-2xl font-bold text-foreground">{averageFillTime} ngày</p>
             </div>
           </div>
           <p className="mt-3 text-xs text-muted">
-            Trung binh tu luc gan ung vien den khi chuyen sang stage placed.
+            Trung bình từ lúc gán ứng viên đến khi chuyển sang stage placed.
           </p>
         </div>
       </div>
@@ -606,14 +604,14 @@ export default async function DashboardPage() {
               <BadgeDollarSign className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-sm font-medium text-muted">Tong doanh thu</p>
+              <p className="text-sm font-medium text-muted">Tổng doanh thu</p>
               <p className="text-2xl font-bold text-foreground">
                 {formatVnd(revenueSummary.totalRevenue)}
               </p>
             </div>
           </div>
           <p className="mt-3 text-xs text-muted">
-            Gom headhunt revenue da chot va gia tri subscription trong pham vi hien thi.
+            Gồm headhunt revenue đã chốt và giá trị subscription trong phạm vi hiện thị.
           </p>
         </div>
 
@@ -623,14 +621,14 @@ export default async function DashboardPage() {
               <TrendingUp className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-sm font-medium text-muted">Headhunt da chot</p>
+              <p className="text-sm font-medium text-muted">Headhunt đã chốt</p>
               <p className="text-2xl font-bold text-foreground">
                 {formatVnd(revenueSummary.headhuntRevenueTotal)}
               </p>
             </div>
           </div>
           <p className="mt-3 text-xs text-muted">
-            Doanh thu tu cac placement da chuyen sang stage PLACED.
+            Doanh thu từ các placement đã chuyển sang stage PLACED.
           </p>
         </div>
 
@@ -647,7 +645,7 @@ export default async function DashboardPage() {
             </div>
           </div>
           <p className="mt-3 text-xs text-muted">
-            {revenueSummary.activeSubscriptionCount} goi dang hoat dong trong scope hien thi.
+            {revenueSummary.activeSubscriptionCount} gói đang hoạt động trong scope hiện thị.
           </p>
         </div>
 
@@ -657,12 +655,12 @@ export default async function DashboardPage() {
               <Clock3 className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-sm font-medium text-muted">Doanh thu thang nay</p>
+              <p className="text-sm font-medium text-muted">Doanh thu tháng này</p>
               <p className="text-2xl font-bold text-foreground">{formatVnd(revenueThisMonth)}</p>
             </div>
           </div>
           <p className="mt-3 text-xs text-muted">
-            {placementsThisMonth} placements va {revenueSummary.subscriptionsSoldThisMonthCount} goi moi trong thang.
+            {placementsThisMonth} placements và {revenueSummary.subscriptionsSoldThisMonthCount} gói mới trong tháng.
           </p>
         </div>
       </div>
@@ -706,24 +704,23 @@ export default async function DashboardPage() {
       </div>
 
       <div
-        className={`grid grid-cols-1 gap-6 ${
-          scope.isAdmin ? "xl:grid-cols-4" : "xl:grid-cols-3"
-        }`}
+        className={`grid grid-cols-1 gap-6 ${scope.isAdmin ? "xl:grid-cols-4" : "xl:grid-cols-3"
+          }`}
       >
         <div className="flex flex-col overflow-hidden rounded-xl border bg-surface shadow-sm xl:col-span-1">
           <div className="flex items-center justify-between border-b p-4">
-            <h2 className="font-semibold text-foreground">Job gan day</h2>
+            <h2 className="font-semibold text-foreground">Job gần đây</h2>
             <Link href="/jobs" className="flex items-center text-sm text-primary hover:underline">
-              Xem tat ca <ArrowRight className="ml-1 h-3 w-3" />
+              Xem tất cả <ArrowRight className="ml-1 h-3 w-3" />
             </Link>
           </div>
           <div className="m-0 flex-1 divide-y p-0">
             {recentJobs.length === 0 ? (
               <p className="flex flex-col items-center gap-2 p-6 text-center text-sm text-muted">
                 <Briefcase className="h-8 w-8 text-muted/20" />
-                Chua co job nao -
+                Chưa có job nào -
                 <Link href="/jobs/new" className="text-primary hover:underline">
-                  tao job moi
+                  tạo job mới
                 </Link>
               </p>
             ) : (
@@ -753,22 +750,21 @@ export default async function DashboardPage() {
         </div>
 
         <div
-          className={`flex flex-col overflow-hidden rounded-xl border bg-surface shadow-sm ${
-            scope.isAdmin ? "xl:col-span-2" : "xl:col-span-2"
-          }`}
+          className={`flex flex-col overflow-hidden rounded-xl border bg-surface shadow-sm ${scope.isAdmin ? "xl:col-span-2" : "xl:col-span-2"
+            }`}
         >
           <div className="flex items-center justify-between border-b p-4">
-            <h2 className="font-semibold text-foreground">Ung vien moi</h2>
+            <h2 className="font-semibold text-foreground">Ứng viên mới</h2>
             <Link
               href="/candidates"
               className="flex items-center text-sm text-primary hover:underline"
             >
-              Xem tat ca <ArrowRight className="ml-1 h-3 w-3" />
+              Xem tất cả <ArrowRight className="ml-1 h-3 w-3" />
             </Link>
           </div>
           <div className="m-0 flex-1 divide-y p-0">
             {recentCandidates.length === 0 ? (
-              <p className="p-4 text-center text-sm text-muted">Chua co ung vien nao</p>
+              <p className="p-4 text-center text-sm text-muted">Chưa có ứng viên nào</p>
             ) : (
               recentCandidates.map((candidate) => (
                 <Link
@@ -782,8 +778,8 @@ export default async function DashboardPage() {
                   </div>
                   <div className="ml-5 mt-1 flex items-center justify-between">
                     <span className="text-xs text-muted">
-                      {candidate.currentPosition || "Chua ro"} •{" "}
-                      {candidate.industry || "Chua cap nhat"}
+                      {candidate.currentPosition || "Chưa rõ"} •{" "}
+                      {candidate.industry || "Chưa cập nhật"}
                     </span>
                     <span className="text-xs text-muted/60">
                       {formatDistanceToNow(new Date(candidate.createdAt), {

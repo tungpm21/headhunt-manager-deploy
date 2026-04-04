@@ -15,17 +15,17 @@ import { publishJobToFdiWorkAction } from "@/lib/job-actions";
 import { SerializedJobBridgeSummary } from "@/types/job";
 
 const postingStatusMap = {
-  DRAFT: { label: "Nhap", className: "bg-muted/20 text-muted" },
-  PENDING: { label: "Cho duyet", className: "bg-warning/10 text-warning" },
-  APPROVED: { label: "Da duyet", className: "bg-success/10 text-success" },
-  REJECTED: { label: "Bi tu choi", className: "bg-danger/10 text-danger" },
-  EXPIRED: { label: "Het han", className: "bg-muted/20 text-muted" },
-  PAUSED: { label: "Tam an", className: "bg-primary/10 text-primary" },
+  DRAFT: { label: "Nháp", className: "bg-muted/20 text-muted" },
+  PENDING: { label: "Chờ duyệt", className: "bg-warning/10 text-warning" },
+  APPROVED: { label: "Đã duyệt", className: "bg-success/10 text-success" },
+  REJECTED: { label: "Bị từ chối", className: "bg-danger/10 text-danger" },
+  EXPIRED: { label: "Hết hạn", className: "bg-muted/20 text-muted" },
+  PAUSED: { label: "Tạm ẩn", className: "bg-primary/10 text-primary" },
 } as const;
 
 function formatDate(value: string | Date | null) {
   if (!value) {
-    return "Chua cap nhat";
+    return "Chưa cập nhật";
   }
 
   return new Date(value).toLocaleDateString("vi-VN", {
@@ -54,18 +54,18 @@ export function JobBridgeCard({
     if (!employer) {
       return {
         tone: "warning",
-        title: "Chua co Employer FDIWork",
+        title: "Chưa có Employer FDIWork",
         description:
-          "Client nay chua duoc link voi Employer FDIWork. Neu ten cong ty trung khop, he thong se thu auto-link khi publish; neu khong, hay vao Employers de link thu cong.",
+          "Client này chưa được link với Employer FDIWork. Nếu tên công ty trùng khớp, hệ thống sẽ thử auto-link khi publish; nếu không, hãy vào Employers để link thủ công.",
       };
     }
 
     if (employer.status !== "ACTIVE") {
       return {
         tone: "warning",
-        title: "Employer chua hoat dong",
+        title: "Employer chưa hoạt động",
         description:
-          "Employer FDIWork dang o trang thai chua kich hoat. Ban can duyet employer truoc khi dang Job Order len FDIWork.",
+          "Employer FDIWork đang ở trạng thái chưa kích hoạt. Bạn cần duyệt employer trước khi đăng Job Order lên FDIWork.",
       };
     }
 
@@ -76,17 +76,17 @@ export function JobBridgeCard({
     ) {
       return {
         tone: "warning",
-        title: "Chua co goi dang tin hop le",
+        title: "Chưa có gói đăng tin hợp lệ",
         description:
-          "Employer FDIWork da het han goi dich vu hoac chua duoc cap subscription dang hoat dong.",
+          "Employer FDIWork đã hết hạn gói dịch vụ hoặc chưa được cấp subscription đang hoạt động.",
       };
     }
 
     return {
       tone: "success",
-      title: "Bridge san sang",
+      title: "Bridge sẵn sàng",
       description:
-        "Job Order nay co the publish len FDIWork. Cac thay doi noi dung va trang thai dong job se duoc dong bo sang JobPosting da link.",
+        "Job Order này có thể publish lên FDIWork. Các thay đổi nội dung và trạng thái đóng job sẽ được đồng bộ sang JobPosting đã link.",
     };
   }, [employer]);
 
@@ -124,7 +124,7 @@ export function JobBridgeCard({
           </div>
           <div>
             <h2 className="text-lg font-semibold text-foreground">
-              Dong bo Job Order sang FDIWork
+              Đồng bộ Job Order sang FDIWork
             </h2>
             <p className="mt-1 text-sm font-medium text-foreground">
               {bridgeState.title}
@@ -147,18 +147,17 @@ export function JobBridgeCard({
             ) : (
               <Send className="h-4 w-4" />
             )}
-            Dang len FDIWork
+            Đăng lên FDIWork
           </button>
         ) : null}
       </div>
 
       {feedback ? (
         <div
-          className={`mt-4 rounded-lg px-4 py-3 text-sm ${
-            feedback.type === "success"
+          className={`mt-4 rounded-lg px-4 py-3 text-sm ${feedback.type === "success"
               ? "border border-success/20 bg-success/10 text-success"
               : "border border-danger/20 bg-danger/10 text-danger"
-          }`}
+            }`}
         >
           {feedback.message}
         </div>
@@ -169,7 +168,7 @@ export function JobBridgeCard({
           <div className="flex items-center gap-2">
             <Building2 className="h-4 w-4 text-muted" />
             <h3 className="text-sm font-semibold text-foreground">
-              Employer lien ket
+              Employer liên kết
             </h3>
           </div>
 
@@ -197,20 +196,20 @@ export function JobBridgeCard({
 
               <div className="flex flex-wrap gap-3 text-xs text-muted">
                 {employer.subscription ? (
-                  <span>Het han: {formatDate(employer.subscription.endDate)}</span>
+                  <span>Hết hạn: {formatDate(employer.subscription.endDate)}</span>
                 ) : null}
                 <Link
                   href="/employers"
                   className="inline-flex items-center gap-1 font-medium text-primary transition hover:text-primary-hover"
                 >
-                  Quan ly Employers
+                  Quản lý Employers
                   <ArrowUpRight className="h-3.5 w-3.5" />
                 </Link>
               </div>
             </div>
           ) : (
             <p className="mt-3 text-sm text-muted">
-              Chua tim thay Employer FDIWork duoc link voi client nay.
+              Chưa tìm thấy Employer FDIWork được link với client này.
             </p>
           )}
         </div>
@@ -218,7 +217,7 @@ export function JobBridgeCard({
         <div className="rounded-xl border border-border bg-background p-4">
           <div className="flex items-center justify-between gap-2">
             <h3 className="text-sm font-semibold text-foreground">
-              JobPosting da link
+              JobPosting đã link
             </h3>
             <span className="rounded-full bg-surface px-2.5 py-1 text-xs font-medium text-muted">
               {bridge.jobPostings.length}
@@ -227,7 +226,7 @@ export function JobBridgeCard({
 
           {bridge.jobPostings.length === 0 ? (
             <p className="mt-3 text-sm text-muted">
-              Chua co JobPosting nao duoc tao tu Job Order nay.
+              Chưa có JobPosting nào được tạo từ Job Order này.
             </p>
           ) : (
             <div className="mt-3 space-y-3">
@@ -256,8 +255,8 @@ export function JobBridgeCard({
                     </div>
 
                     <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-muted">
-                      <span>Dang ngay: {formatDate(posting.publishedAt)}</span>
-                      <span>Het han: {formatDate(posting.expiresAt)}</span>
+                      <span>Đăng ngày: {formatDate(posting.publishedAt)}</span>
+                      <span>Hết hạn: {formatDate(posting.expiresAt)}</span>
                       <Link
                         href={`/employers/${posting.employer.id}`}
                         className="inline-flex items-center gap-1 font-medium text-primary transition hover:text-primary-hover"

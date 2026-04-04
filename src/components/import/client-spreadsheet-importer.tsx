@@ -85,33 +85,33 @@ function buildValidationMap(rows: ClientImportRow[]) {
     const companySize = row.companySize.trim().toUpperCase();
 
     if (!companyName) {
-      reasons.push("Thieu ten doanh nghiep");
+      reasons.push("Đưa tên doanh nghiệp");
     }
 
     if (
       companySize &&
       !["SMALL", "MEDIUM", "LARGE", "ENTERPRISE"].includes(companySize)
     ) {
-      reasons.push("Quy mo phai la SMALL, MEDIUM, LARGE hoac ENTERPRISE");
+      reasons.push("Quy mô phải là SMALL, MEDIUM, LARGE hoặc ENTERPRISE");
     }
 
     if (website) {
       const firstRow = seenWebsites.get(website);
       if (firstRow) {
-        reasons.push(`Trung website voi dong ${firstRow}`);
+        reasons.push(`Trùng website với dòng ${firstRow}`);
       } else {
         seenWebsites.set(website, row.rowNumber);
       }
 
       if (!URL.canParse(website)) {
-        reasons.push("Website khong hop le");
+        reasons.push("Website không hợp lệ");
       }
     }
 
     if (companyName) {
       const firstRow = seenCompanyNames.get(companyName);
       if (firstRow) {
-        reasons.push(`Trung ten doanh nghiep voi dong ${firstRow}`);
+        reasons.push(`Trùng tên doanh nghiệp với dòng ${firstRow}`);
       } else {
         seenCompanyNames.set(companyName, row.rowNumber);
       }
@@ -152,7 +152,7 @@ export function ClientSpreadsheetImporter() {
       setData([]);
       setResult({
         error:
-          error instanceof Error ? error.message : "Khong the doc file import.",
+          error instanceof Error ? error.message : "Không thể đọc file import.",
       });
     }
   }
@@ -184,11 +184,11 @@ export function ClientSpreadsheetImporter() {
           />
           <UploadCloud className="mb-4 h-12 w-12 text-primary" />
           <h3 className="text-lg font-semibold text-gray-900">
-            Keo tha hoac nhan de tai file import client
+            Kéo thả hoặc nhấn để tải file import client
           </h3>
           <p className="mt-2 max-w-md text-sm text-gray-500">
-            Ho tro .xlsx va .csv. He thong se preview, validate va bo qua cac
-            dong bi trung ten doanh nghiep hoac website.
+            Hỗ trợ .xlsx và .csv. Hệ thống sẽ preview, validate và bỏ qua các
+            dòng bị trùng tên doanh nghiệp hoặc website.
           </p>
         </div>
       ) : null}
@@ -207,7 +207,7 @@ export function ClientSpreadsheetImporter() {
               <h4
                 className={`font-medium ${result.success ? "text-green-900" : "text-red-900"}`}
               >
-                {result.success ? "Hoan tat import" : "Co loi xay ra"}
+                {result.success ? "Hoàn tất import" : "Có lỗi xảy ra"}
               </h4>
               <p
                 className={`mt-1 text-sm ${result.success ? "text-green-700" : "text-red-700"}`}
@@ -221,10 +221,10 @@ export function ClientSpreadsheetImporter() {
             <div className="mt-4 overflow-hidden rounded-lg border border-red-200 bg-white">
               <div className="border-b border-red-100 bg-red-50 px-4 py-3">
                 <p className="text-sm font-semibold text-red-900">
-                  Error report chi tiet ({result.errors.length} dong)
+                  Error report chi tiết ({result.errors.length} dòng)
                 </p>
                 <p className="mt-1 text-xs text-red-700">
-                  Cac dong nay bi bo qua khi import. Hay sua file roi import lai.
+                  Các dòng này bị bỏ qua khi import. Hãy sửa file rồi import lại.
                 </p>
               </div>
               <div className="max-h-72 overflow-auto">
@@ -232,13 +232,13 @@ export function ClientSpreadsheetImporter() {
                   <thead className="bg-red-50">
                     <tr>
                       <th className="px-4 py-2 text-left font-semibold text-red-900">
-                        Dong
+                        Dòng
                       </th>
                       <th className="px-4 py-2 text-left font-semibold text-red-900">
-                        Doanh nghiep
+                        Doanh nghiệp
                       </th>
                       <th className="px-4 py-2 text-left font-semibold text-red-900">
-                        Ly do
+                        Lý do
                       </th>
                     </tr>
                   </thead>
@@ -247,7 +247,7 @@ export function ClientSpreadsheetImporter() {
                       <tr key={`${item.rowNumber}-${item.reason}`}>
                         <td className="px-4 py-2 text-gray-700">{item.rowNumber}</td>
                         <td className="px-4 py-2 text-gray-900">
-                          {item.companyName || "Khong xac dinh"}
+                          {item.companyName || "Không xác định"}
                         </td>
                         <td className="px-4 py-2 text-gray-700">{item.reason}</td>
                       </tr>
@@ -270,7 +270,7 @@ export function ClientSpreadsheetImporter() {
                   {file.name}
                 </p>
                 <p className="text-xs text-gray-500">
-                  Da nhan dien {data.length} dong va validate toan bo file
+                  Đã nhận diện {data.length} dòng và validate toàn bộ file
                 </p>
               </div>
             </div>
@@ -286,7 +286,7 @@ export function ClientSpreadsheetImporter() {
                 className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-900"
                 disabled={isPending}
               >
-                Huy / Chon file khac
+                Huỷ / Chọn file khác
               </button>
               <button
                 onClick={handleImport}
@@ -296,12 +296,12 @@ export function ClientSpreadsheetImporter() {
                 {isPending ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    Dang xu ly...
+                    Đang xử lý...
                   </>
                 ) : (
                   <>
                     <UploadCloud className="h-4 w-4" />
-                    Xac nhan import
+                    Xác nhận import
                   </>
                 )}
               </button>
@@ -311,19 +311,19 @@ export function ClientSpreadsheetImporter() {
           <div className="grid grid-cols-1 gap-4 border-b bg-surface/60 p-4 md:grid-cols-3">
             <div className="rounded-lg border border-border bg-background px-4 py-3">
               <p className="text-xs font-medium uppercase tracking-wide text-muted">
-                Tong dong preview
+                Tổng dòng preview
               </p>
               <p className="mt-1 text-2xl font-bold text-foreground">{data.length}</p>
             </div>
             <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3">
               <p className="text-xs font-medium uppercase tracking-wide text-green-700">
-                Hop le trong file
+                Hợp lệ trong file
               </p>
               <p className="mt-1 text-2xl font-bold text-green-900">{validRowCount}</p>
             </div>
             <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
               <p className="text-xs font-medium uppercase tracking-wide text-amber-700">
-                Can xem lai
+                Cần xem lại
               </p>
               <p className="mt-1 text-2xl font-bold text-amber-900">{invalidRowCount}</p>
             </div>
@@ -334,13 +334,13 @@ export function ClientSpreadsheetImporter() {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left font-semibold text-gray-900">
-                    Dong
+                    Dòng
                   </th>
                   <th className="px-6 py-3 text-left font-semibold text-gray-900">
-                    Doanh nghiep
+                    Doanh nghiệp
                   </th>
                   <th className="px-6 py-3 text-left font-semibold text-gray-900">
-                    Nganh / Quy mo
+                    Ngành / Quy mô
                   </th>
                   <th className="px-6 py-3 text-left font-semibold text-gray-900">
                     Website
@@ -363,11 +363,11 @@ export function ClientSpreadsheetImporter() {
                       <td className="px-6 py-3 font-medium text-gray-900">
                         {row.companyName || (
                           <span className="text-xs italic text-danger">
-                            Thieu ten doanh nghiep
+                            Thiếu tên doanh nghiệp
                           </span>
                         )}
                         <div className="mt-0.5 text-xs text-gray-500">
-                          {row.address || "Khong co dia chi"}
+                          {row.address || "Không có địa chỉ"}
                         </div>
                       </td>
                       <td className="px-6 py-3 text-gray-500">
@@ -391,7 +391,7 @@ export function ClientSpreadsheetImporter() {
                           </div>
                         ) : (
                           <span className="rounded-full bg-green-100 px-2.5 py-1 text-xs font-medium text-green-700">
-                            Hop le
+                            Hợp lệ
                           </span>
                         )}
                       </td>
@@ -405,8 +405,8 @@ export function ClientSpreadsheetImporter() {
               <div className="flex flex-col gap-3 border-t bg-gray-50 px-6 py-3 sm:flex-row sm:items-center sm:justify-between">
                 <p className="text-sm text-gray-500">
                   {showAllRows
-                    ? `Dang hien thi toan bo ${data.length} dong preview.`
-                    : `Dang hien thi ${PREVIEW_LIMIT}/${data.length} dong dau tien.`}
+                    ? `Đang hiển thị toàn bộ ${data.length} dòng preview.`
+                    : `Đang hiển thị ${PREVIEW_LIMIT}/${data.length} dòng đầu tiên.`}
                 </p>
                 <button
                   type="button"
@@ -416,12 +416,12 @@ export function ClientSpreadsheetImporter() {
                   {showAllRows ? (
                     <>
                       <ChevronUp className="h-4 w-4" />
-                      Thu gon preview
+                      Thu gọn preview
                     </>
                   ) : (
                     <>
                       <ChevronDown className="h-4 w-4" />
-                      Xem toan bo {data.length} dong
+                      Xem toàn bộ {data.length} dòng
                     </>
                   )}
                 </button>

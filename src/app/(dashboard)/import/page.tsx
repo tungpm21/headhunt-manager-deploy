@@ -3,7 +3,7 @@ import { ClientSpreadsheetImporter } from "@/components/import/client-spreadshee
 import { SpreadsheetImporter } from "@/components/import/spreadsheet-importer";
 
 export const metadata = {
-  title: "Import du lieu (XLSX/CSV) - Headhunt Manager",
+  title: "Nhập dữ liệu (XLSX/CSV) - Headhunt Manager",
 };
 
 export default function ImportPage() {
@@ -15,11 +15,11 @@ export default function ImportPage() {
         </div>
         <div>
           <h1 className="text-2xl font-bold text-foreground">
-            Import du lieu tu Excel / CSV
+            Nhập dữ liệu từ Excel / CSV
           </h1>
           <p className="mt-1 text-sm text-muted">
-            Tai len file mau de them hang loat ung vien va doanh nghiep vao he
-            thong.
+            Tải lên file mẫu để thêm hàng loạt ứng viên và doanh nghiệp vào hệ
+            thống.
           </p>
         </div>
       </div>
@@ -27,20 +27,20 @@ export default function ImportPage() {
       <div className="flex gap-3 rounded-xl border border-blue-200 bg-blue-50 p-4">
         <Info className="mt-0.5 h-5 w-5 shrink-0 text-blue-600" />
         <div className="text-sm text-blue-900">
-          <p className="mb-1 font-medium">Huong dan nhanh:</p>
+          <p className="mb-1 font-medium">Hướng dẫn nhanh:</p>
           <ul className="list-disc space-y-1 pl-5 text-blue-800">
             <li>
-              Candidate import: can cot <strong>Ho va Ten</strong>, va moi dong
-              phai co it nhat <strong>Email</strong> hoac <strong>SDT</strong>.
+              Candidate import: cần cột <strong>Họ và Tên</strong>, và mỗi dòng
+              phải có ít nhất <strong>Email</strong> hoặc <strong>SĐT</strong>.
             </li>
             <li>
-              Client import: can cot <strong>Ten Cong Ty</strong>; cot{" "}
-              <strong>Quy Mo</strong> chi nhan `SMALL`, `MEDIUM`, `LARGE`,
+              Client import: cần cột <strong>Tên Công Ty</strong>; cột{" "}
+              <strong>Quy Mô</strong> chỉ nhận `SMALL`, `MEDIUM`, `LARGE`,
               `ENTERPRISE`.
             </li>
             <li>
-              He thong ho tro file <strong>.csv</strong> va <strong>.xlsx</strong>,
-              preview 10 dong dau truoc khi import.
+              Hệ thống hỗ trợ file <strong>.csv</strong> và <strong>.xlsx</strong>,
+              preview 10 dòng đầu trước khi import.
             </li>
           </ul>
         </div>
@@ -54,11 +54,11 @@ export default function ImportPage() {
             </div>
             <div>
               <h2 className="text-lg font-semibold text-foreground">
-                Import ung vien
+                Import ứng viên
               </h2>
               <p className="mt-1 text-sm text-muted">
-                Dung template candidate de tao ho so recruiter co the tim kiem
-                va gan vao pipeline ngay.
+                Dùng template candidate để tạo hồ sơ recruiter có thể tìm kiếm
+                và gán vào pipeline ngay.
               </p>
             </div>
           </div>
@@ -73,11 +73,11 @@ export default function ImportPage() {
             </div>
             <div>
               <h2 className="text-lg font-semibold text-foreground">
-                Import doanh nghiep
+                Import doanh nghiệp
               </h2>
               <p className="mt-1 text-sm text-muted">
-                Dung template client de tao CRM client list nhanh hon, tu dong
-                skip dong trung ten cong ty hoac website.
+                Dùng template client để tạo CRM client list nhanh hơn, tự động
+                skip dòng trùng tên công ty hoặc website.
               </p>
             </div>
           </div>

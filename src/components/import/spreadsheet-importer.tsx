@@ -79,17 +79,17 @@ function buildValidationMap(rows: CandidateImportRow[]) {
     const phone = row.phone.trim();
 
     if (!row.fullName.trim()) {
-      reasons.push("Thieu ho ten");
+      reasons.push("Đưa họ tên");
     }
 
     if (!email && !phone) {
-      reasons.push("Can co it nhat email hoac SDT");
+      reasons.push("Cần có ít nhất email hoặc SĐT");
     }
 
     if (email) {
       const firstRow = seenEmails.get(email);
       if (firstRow) {
-        reasons.push(`Trung email voi dong ${firstRow}`);
+        reasons.push(`Trùng email với dòng ${firstRow}`);
       } else {
         seenEmails.set(email, row.rowNumber);
       }
@@ -98,7 +98,7 @@ function buildValidationMap(rows: CandidateImportRow[]) {
     if (phone) {
       const firstRow = seenPhones.get(phone);
       if (firstRow) {
-        reasons.push(`Trung SDT voi dong ${firstRow}`);
+        reasons.push(`Trùng SĐT với dòng ${firstRow}`);
       } else {
         seenPhones.set(phone, row.rowNumber);
       }
@@ -171,11 +171,11 @@ export function SpreadsheetImporter() {
           />
           <UploadCloud className="mb-4 h-12 w-12 text-primary" />
           <h3 className="text-lg font-semibold text-gray-900">
-            Keo tha hoac nhan de tai file import
+            Kéo thả hoặc nhấn để tải file import
           </h3>
           <p className="mt-2 max-w-md text-sm text-gray-500">
-            Ho tro dinh dang .xlsx va .csv. He thong se preview va validate toan
-            bo dong truoc khi import.
+            Hỗ trợ định dạng .xlsx và .csv. Hệ thống sẽ preview và validate toàn
+            bộ dòng trước khi import.
           </p>
         </div>
       ) : null}
@@ -196,7 +196,7 @@ export function SpreadsheetImporter() {
                 className={`font-medium ${result.success ? "text-green-900" : "text-red-900"
                   }`}
               >
-                {result.success ? "Hoan tat import" : "Co loi xay ra"}
+                {result.success ? "Hoàn tất import" : "Có lỗi xảy ra"}
               </h4>
               <p
                 className={`mt-1 text-sm ${result.success ? "text-green-700" : "text-red-700"
@@ -211,10 +211,10 @@ export function SpreadsheetImporter() {
             <div className="mt-4 overflow-hidden rounded-lg border border-red-200 bg-white">
               <div className="border-b border-red-100 bg-red-50 px-4 py-3">
                 <p className="text-sm font-semibold text-red-900">
-                  Error report chi tiet ({result.errors.length} dong)
+                  Error report chi tiết ({result.errors.length} dòng)
                 </p>
                 <p className="mt-1 text-xs text-red-700">
-                  Cac dong nay bi bo qua khi import. Hay sua file roi import lai.
+                  Các dòng này bị bỏ qua khi import. Hãy sửa file rồi import lại.
                 </p>
               </div>
               <div className="max-h-72 overflow-auto">
@@ -222,13 +222,13 @@ export function SpreadsheetImporter() {
                   <thead className="bg-red-50">
                     <tr>
                       <th className="px-4 py-2 text-left font-semibold text-red-900">
-                        Dong
+                        Dòng
                       </th>
                       <th className="px-4 py-2 text-left font-semibold text-red-900">
-                        Ung vien
+                        Ứng viên
                       </th>
                       <th className="px-4 py-2 text-left font-semibold text-red-900">
-                        Ly do
+                        Lý do
                       </th>
                     </tr>
                   </thead>
@@ -237,7 +237,7 @@ export function SpreadsheetImporter() {
                       <tr key={`${item.rowNumber}-${item.reason}`}>
                         <td className="px-4 py-2 text-gray-700">{item.rowNumber}</td>
                         <td className="px-4 py-2 text-gray-900">
-                          {item.fullName || "Khong xac dinh"}
+                          {item.fullName || "Không xác định"}
                         </td>
                         <td className="px-4 py-2 text-gray-700">{item.reason}</td>
                       </tr>
@@ -260,7 +260,7 @@ export function SpreadsheetImporter() {
                   {file.name}
                 </p>
                 <p className="text-xs text-gray-500">
-                  Da nhan dien {data.length} dong va validate toan bo file
+                  Đã nhận diện {data.length} dòng và validate toàn bộ file
                 </p>
               </div>
             </div>
@@ -276,7 +276,7 @@ export function SpreadsheetImporter() {
                 className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-900"
                 disabled={isPending}
               >
-                Huy / Chon file khac
+                Huỷ / Chọn file khác
               </button>
               <button
                 onClick={handleImport}
@@ -286,12 +286,12 @@ export function SpreadsheetImporter() {
                 {isPending ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    Dang xu ly...
+                    Đang xử lý...
                   </>
                 ) : (
                   <>
                     <UploadCloud className="h-4 w-4" />
-                    Xac nhan import
+                    Xác nhận import
                   </>
                 )}
               </button>
@@ -301,19 +301,19 @@ export function SpreadsheetImporter() {
           <div className="grid grid-cols-1 gap-4 border-b bg-surface/60 p-4 md:grid-cols-3">
             <div className="rounded-lg border border-border bg-background px-4 py-3">
               <p className="text-xs font-medium uppercase tracking-wide text-muted">
-                Tong dong preview
+                Tổng dòng preview
               </p>
               <p className="mt-1 text-2xl font-bold text-foreground">{data.length}</p>
             </div>
             <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3">
               <p className="text-xs font-medium uppercase tracking-wide text-green-700">
-                Hop le trong file
+                Hợp lệ trong file
               </p>
               <p className="mt-1 text-2xl font-bold text-green-900">{validRowCount}</p>
             </div>
             <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
               <p className="text-xs font-medium uppercase tracking-wide text-amber-700">
-                Can xem lai
+                Cần xem lại
               </p>
               <p className="mt-1 text-2xl font-bold text-amber-900">{invalidRowCount}</p>
             </div>
@@ -324,19 +324,19 @@ export function SpreadsheetImporter() {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left font-semibold text-gray-900">
-                    Dong
+                    Dòng
                   </th>
                   <th className="px-6 py-3 text-left font-semibold text-gray-900">
-                    Ho va ten
+                    Họ và tên
                   </th>
                   <th className="px-6 py-3 text-left font-semibold text-gray-900">
                     Email / SDT
                   </th>
                   <th className="px-6 py-3 text-left font-semibold text-gray-900">
-                    Nganh / Vi tri
+                    Ngành / Vị trí
                   </th>
                   <th className="px-6 py-3 text-left font-semibold text-gray-900">
-                    Cong ty hien tai
+                    Công ty hiện tại
                   </th>
                   <th className="px-6 py-3 text-left font-semibold text-gray-900">
                     Validate
@@ -355,7 +355,7 @@ export function SpreadsheetImporter() {
                       <td className="px-6 py-3 text-gray-500">{row.rowNumber}</td>
                       <td className="px-6 py-3 font-medium text-gray-900">
                         {row.fullName || (
-                          <span className="text-xs italic text-danger">Thieu ten</span>
+                          <span className="text-xs italic text-danger">Thiếu tên</span>
                         )}
                       </td>
                       <td className="px-6 py-3 text-gray-500">
@@ -383,7 +383,7 @@ export function SpreadsheetImporter() {
                           </div>
                         ) : (
                           <span className="rounded-full bg-green-100 px-2.5 py-1 text-xs font-medium text-green-700">
-                            Hop le
+                            Hợp lệ
                           </span>
                         )}
                       </td>
@@ -397,8 +397,8 @@ export function SpreadsheetImporter() {
               <div className="flex flex-col gap-3 border-t bg-gray-50 px-6 py-3 sm:flex-row sm:items-center sm:justify-between">
                 <p className="text-sm text-gray-500">
                   {showAllRows
-                    ? `Dang hien thi toan bo ${data.length} dong preview.`
-                    : `Dang hien thi ${PREVIEW_LIMIT}/${data.length} dong dau tien.`}
+                    ? `Đang hiển thị toàn bộ ${data.length} dòng preview.`
+                    : `Đang hiển thị ${PREVIEW_LIMIT}/${data.length} dòng đầu tiên.`}
                 </p>
                 <button
                   type="button"
@@ -408,12 +408,12 @@ export function SpreadsheetImporter() {
                   {showAllRows ? (
                     <>
                       <ChevronUp className="h-4 w-4" />
-                      Thu gon preview
+                      Thu gọn preview
                     </>
                   ) : (
                     <>
                       <ChevronDown className="h-4 w-4" />
-                      Xem toan bo {data.length} dong
+                      Xem toàn bộ {data.length} dòng
                     </>
                   )}
                 </button>

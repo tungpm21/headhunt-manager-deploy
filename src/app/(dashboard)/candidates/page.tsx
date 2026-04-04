@@ -71,10 +71,10 @@ export default async function CandidatesPage({ searchParams }: PageProps) {
         </div>
         <Link
           href="/candidates/trash"
-          className="inline-flex items-center gap-2 rounded-lg border border-border bg-surface px-4 py-2.5 text-sm font-medium text-foreground transition hover:bg-background"
+          className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-muted transition hover:bg-surface hover:text-foreground"
         >
           <Archive className="h-4 w-4" />
-          Thung rac
+          Thùng rác
         </Link>
         <Link
           href="/candidates/new"

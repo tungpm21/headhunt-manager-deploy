@@ -99,7 +99,7 @@ export function CvList({ candidateId, cvFiles }: CvListProps) {
             <button
               type="submit"
               disabled={isPending}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-hover disabled:opacity-60 transition"
+              className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-hover disabled:opacity-60 transition whitespace-nowrap"
             >
               {isPending ? (
                 <>

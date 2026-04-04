@@ -36,7 +36,7 @@ export function HeroSection({ totalJobs, totalEmployers }: HeroSectionProps) {
   }
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-[var(--color-fdi-dark)] via-[#115e59] to-[var(--color-fdi-primary)]">
+    <section className="relative overflow-hidden bg-gradient-to-br from-[var(--color-fdi-dark)] via-[#005A9E] to-[var(--color-fdi-primary)]">
       {/* Decorative patterns */}
       <div className="absolute inset-0 opacity-10">
         <div className="absolute top-10 right-10 w-72 h-72 rounded-full bg-[var(--color-fdi-accent)] blur-3xl" />
@@ -56,7 +56,7 @@ export function HeroSection({ totalJobs, totalEmployers }: HeroSectionProps) {
             tại doanh nghiệp FDI
           </h1>
           <p
-            className="mt-4 text-base sm:text-lg text-teal-100/80 max-w-xl mx-auto"
+            className="mt-4 text-base sm:text-lg text-sky-100/80 max-w-xl mx-auto"
             style={{ fontFamily: "var(--font-body)" }}
           >
             Kết nối hàng ngàn ứng viên với các doanh nghiệp đầu tư nước ngoài hàng đầu tại Việt Nam
@@ -92,7 +92,7 @@ export function HeroSection({ totalJobs, totalEmployers }: HeroSectionProps) {
           </div>
           <button
             type="submit"
-            className="px-6 py-3 rounded-xl bg-[var(--color-fdi-primary)] text-white font-semibold text-sm hover:bg-[var(--color-fdi-primary-hover)] transition-all hover:-translate-y-0.5 cursor-pointer shrink-0"
+            className="px-6 py-3 rounded-full bg-[var(--color-fdi-primary)] text-white font-semibold text-sm hover:bg-[var(--color-fdi-primary-hover)] transition-all hover:-translate-y-0.5 cursor-pointer shrink-0"
           >
             Tìm kiếm
           </button>
@@ -100,13 +100,13 @@ export function HeroSection({ totalJobs, totalEmployers }: HeroSectionProps) {
 
         {/* Trending Tags */}
         <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
-          <TrendingUp className="h-4 w-4 text-teal-300/60" />
-          <span className="text-xs text-teal-300/60 mr-1">Xu hướng:</span>
+          <TrendingUp className="h-4 w-4 text-sky-300/60" />
+          <span className="text-xs text-sky-300/60 mr-1">Xu hướng:</span>
           {trendingTags.map((tag) => (
             <button
               key={tag}
               onClick={() => handleTagClick(tag)}
-              className="px-3 py-1 rounded-full text-xs font-medium bg-white/10 text-teal-100 hover:bg-white/20 transition-colors cursor-pointer backdrop-blur-sm"
+              className="px-3 py-1 rounded-full text-xs font-medium bg-white/10 text-sky-100 hover:bg-white/20 transition-colors cursor-pointer backdrop-blur-sm"
             >
               {tag}
             </button>
@@ -119,21 +119,21 @@ export function HeroSection({ totalJobs, totalEmployers }: HeroSectionProps) {
             <p className="text-2xl sm:text-3xl font-bold text-white" style={{ fontFamily: "var(--font-heading)" }}>
               {totalJobs.toLocaleString("vi-VN")}+
             </p>
-            <p className="text-xs sm:text-sm text-teal-200/60 mt-1">Việc làm mới</p>
+            <p className="text-xs sm:text-sm text-sky-200/60 mt-1">Việc làm mới</p>
           </div>
-          <div className="w-px h-10 bg-teal-600/30" />
+          <div className="w-px h-10 bg-blue-700/30" />
           <div className="text-center">
             <p className="text-2xl sm:text-3xl font-bold text-white" style={{ fontFamily: "var(--font-heading)" }}>
               {totalEmployers.toLocaleString("vi-VN")}+
             </p>
-            <p className="text-xs sm:text-sm text-teal-200/60 mt-1">Doanh nghiệp</p>
+            <p className="text-xs sm:text-sm text-sky-200/60 mt-1">Doanh nghiệp</p>
           </div>
-          <div className="w-px h-10 bg-teal-600/30" />
+          <div className="w-px h-10 bg-blue-700/30" />
           <div className="text-center">
             <p className="text-2xl sm:text-3xl font-bold text-white" style={{ fontFamily: "var(--font-heading)" }}>
               100%
             </p>
-            <p className="text-xs sm:text-sm text-teal-200/60 mt-1">Miễn phí</p>
+            <p className="text-xs sm:text-sm text-sky-200/60 mt-1">Miễn phí</p>
           </div>
         </div>
       </div>

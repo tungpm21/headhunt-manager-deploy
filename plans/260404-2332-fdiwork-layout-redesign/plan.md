@@ -29,7 +29,15 @@ không đổi server actions. Các file nằm trong:
 ## Mục tiêu
 
 ### 1. Color Palette & Design Tokens
-Từ teal → blue professional (#005AFF primary, #FF7D55 accent, gradient hero #005aff→#001744)
+Từ teal → Ocean Blue **#0077B6** (midpoint teal↔blue, distinct from VietnamWorks #005AFF)
+- Primary: `#0077B6`
+- Primary hover: `#005F91`
+- Accent: `#00B4D8` (cyan highlight)
+- Dark: `#023E8A`
+- Hero gradient: `#0077B6 → #023E8A`
+- Surface: `#F0F9FF` (light sky instead of teal surface)
+
+> Premise gate confirmed by user 2026-04-04. QA exit criteria per phase: mobile 375px + H1 intact + build pass.
 
 ### 2. Homepage (/)
 **Hiện tại:**
@@ -112,6 +120,57 @@ Từ teal → blue professional (#005AFF primary, #FF7D55 accent, gradient hero 
 | 02 | Homepage Redesign | page.tsx + hero, carousel, stats | P0 |
 | 03 | Job Listing Page | /viec-lam + filters + cards | P1 |
 | 04 | Company Listing Page | /cong-ty + search + cards | P1 |
+
+---
+
+## Design Spec — Critical Decisions (Phase 2 output)
+
+### Carousel Spec (EmployerCarousel)
+- Position: **After FeaturedJobs** (Hero → FeaturedJobs → EmployerCarousel → IndustryGrid)
+- Rotation: 4s auto-rotate, **pause on hover/focus** (WCAG 2.2.2)
+- Navigation: dot indicators + prev/next arrows always visible
+- Mobile (<768px): collapse to 2-col static grid
+- Threshold: only render if ≥2 employers exist
+- Card content: logo + companyName + industry + `${jobCount} việc làm` button (drop "quote" — not in data model)
+- No new DB field needed: `HomepageEmployer._count` → read `getHomepageData` employers which already has subscription tier
+
+### Phase 01 Additions (from design audit)
+- **CRITICAL: Audit and replace all hardcoded `teal-*` Tailwind classes** in:
+  - `src/components/public/HeroSection.tsx` (text-teal-100/80, text-teal-300/60, bg-teal-600/30, etc.)
+  - `src/components/public/PublicFooter.tsx` (text-teal-100, text-teal-200/*, border-teal-800)
+  - `src/app/(public)/viec-lam/[slug]/page.tsx` — color token update (out-of-scope page but shares CSS vars)
+- Replace with new Ocean Blue equivalents:
+  - `text-teal-*` → `text-sky-*/text-blue-*` or new CSS vars `text-fdi-light`
+  - `border-teal-*` → `border-sky-*`
+
+### JobCard Improvements
+- Metadata order: **Location BEFORE Salary** (FDI geography is primary filter)
+- Company name: upgrade to `text-sm font-medium text-[var(--color-fdi-text-secondary)]` (from text-xs)
+
+### Footer SEO Links — Hardcoded
+```
+Việc làm theo khu vực:
+- /viec-lam?location=Hà+Nội
+- /viec-lam?location=TP.+Hồ+Chí+Minh
+- /viec-lam?location=Bình+Dương
+- /viec-lam?location=Đồng+Nai
+- /viec-lam?location=Hải+Phòng
+
+Việc làm theo ngành:
+- /viec-lam?industry=Kỹ+thuật+cơ+khí
+- /viec-lam?industry=IT+%2F+Phần+mềm
+- /viec-lam?industry=Kế+toán
+- /viec-lam?industry=Sản+xuất
+- /viec-lam?industry=Nhân+sự
+```
+
+### Filter Sidebar — Keep `<select>` Elements
+Style upgrade only: new border-radius, focus ring in Ocean Blue, hover states.
+No conversion to pill-chips (higher risk, less accessible).
+
+### Header Category Dropdown — DEFERRED
+Too complex (positioning, keyboard nav, mobile fallback). Move to Sprint 6 Growth phase.
+Header stays: Logo + Jobs/Companies links + pill-buttons (Employer Login + Post Job).
 
 ---
 
@@ -247,6 +306,127 @@ CEO DUAL VOICES — CONSENSUS TABLE (single-reviewer):
 
 ---
 
+---
+
+## /autoplan Review — Phase 2: Design Review
+
+> Reviewer: Claude subagent [subagent-only]. Codex unavailable.
+
+**Design Litmus Scorecard:**
+
+| Dimension | Score | Key Finding |
+|-----------|-------|-------------|
+| 1. Information hierarchy | 6/10 | Carousel position was unspecified (fixed: after FeaturedJobs) |
+| 2. Missing interaction states | 4/10 | Carousel spec was entirely missing (fixed: 4s/pause/dots/mobile grid) |
+| 3. User journey | 6/10 | Stats "8+ companies" contradicts carousel (mitigated: threshold ≥2) |
+| 4. Specificity | 5/10 | "Better hierarchy" replaced with concrete decisions |
+| 5. Carousel spec | 3/10 → 9/10 | CRITICAL gaps resolved via auto-decisions |
+| 6. Implementer traps | 4/10 → 8/10 | Hardcoded teal classes, footer column count, select vs chips — all resolved |
+| 7. JobCard hierarchy | 6/10 → 8/10 | Location before Salary, company name weight upgraded |
+
+**Critical auto-fixes applied:**
+- Carousel position locked: Hero → FeaturedJobs → EmployerCarousel → IndustryGrid
+- Carousel spec fully written (4s, pause hover/focus, dots, grid <768px)
+- "Quote" field dropped — not in data model; use jobCount CTA instead
+- Hardcoded `teal-*` audit added as Phase 01 mandatory task
+- `/viec-lam/[slug]` color token update added to Phase 01
+- JobCard: Location before Salary; company name → `text-sm font-medium`
+- Footer SEO links: hardcoded static list (P5)
+- Filter sidebar: keep `<select>`, pill-styled
+- Header category dropdown: DEFERRED to Sprint 6
+
+---
+
+## /autoplan Review — Phase 3: Engineering Review
+
+> Reviewer: Claude subagent [subagent-only]. Codex unavailable.
+
+### Architecture Diagram
+
+```
+src/app/(public)/
+├── layout.tsx
+│   ├── PublicHeader.tsx  [pill buttons: rounded-full on ALL primary CTAs]
+│   └── PublicFooter.tsx  [5-col: About+Candidate+Employer+KhuVuc+Nganh]
+│                          [md:grid-cols-3 lg:grid-cols-5]
+├── page.tsx (Homepage)
+│   ├── HeroSection.tsx   [use client] [gradient #0077B6→via-[#005A9E]→#023E8A]
+│   │                      [replace all teal-* Tailwind classes]
+│   ├── FeaturedJobs.tsx  → JobCard.tsx [Location→Salary, company text-sm font-medium]
+│   ├── EmployerCarousel.tsx [NEW, use client, 4s rotate, WCAG 2.2.2, grid<768px]
+│   └── IndustryGrid.tsx
+├── viec-lam/
+│   ├── page.tsx → JobFilters.tsx [select + pill-style] + JobCard[]
+│   └── [slug]/page.tsx  [color token update only, + rounded-full CTAs]
+└── cong-ty/
+    ├── page.tsx → CompanyCard.tsx [jobCount badge: verify/style]
+    └── [slug]/page.tsx
+
+src/lib/public-actions.ts
+└── getHomepageData()  [ADD _count.jobPostings with scoped where clause]
+    HomepageEmployer   [ADD _count?: { jobPostings: number } as optional]
+
+src/app/globals.css
+└── @theme inline {}   [update 5 --color-fdi-* tokens]
+```
+
+### Phase 01 Task List (complete)
+
+1. `globals.css`: Update `--color-fdi-primary: #0077B6`, `--color-fdi-primary-hover: #005F91`, `--color-fdi-accent: #00B4D8`, `--color-fdi-dark: #023E8A`, `--color-fdi-surface: #F0F9FF`
+2. `HeroSection.tsx`: Replace `via-[#115e59]` → `via-[#005A9E]` (hardcoded teal midpoint in gradient)
+3. `HeroSection.tsx`: Replace all `teal-*` classes → `sky-*` / `blue-*` equivalents
+4. `PublicFooter.tsx`: Replace all `teal-*` classes → `sky-*` / `blue-*` equivalents
+5. `PublicFooter.tsx`: Expand 3→5 columns with location + industry SEO links; use `md:grid-cols-3 lg:grid-cols-5`
+6. `PublicHeader.tsx`: `rounded-full` on CTA buttons
+7. Also apply `rounded-full` to: `HeroSection.tsx` search button (line 93), `FeaturedJobs.tsx` mobile CTA, `viec-lam/[slug]/page.tsx` apply CTA
+
+### Phase 02 Task List (complete)
+
+8. `public-actions.ts`: Add `_count: { select: { jobPostings: { where: { status: "APPROVED", OR: [{ expiresAt: null }, { expiresAt: { gt: now } }] } } } }` to `getHomepageData()` Employer query
+9. `public-actions.ts`: Add `_count?: { jobPostings: number }` to `HomepageEmployer` type
+10. Create `src/components/public/EmployerCarousel.tsx` with:
+    - `if (employers.length < 2) return null` guard (or render static if 1)
+    - `useEffect` timer: `const id = setInterval(() => ..., 4000); return () => clearInterval(id)` 
+    - `activeIndex % employers.length` guard for safe indexing
+    - `onMouseEnter/Leave` + `onFocus/Blur` on outer `<section>` for WCAG 2.2.2
+    - `aria-live="off"`, `aria-label="Nhà tuyển dụng nổi bật"` on section
+    - Dot indicators + prev/next arrow buttons
+    - Mobile: `block md:hidden` for 2-col grid, `hidden md:block` for carousel
+    - Card: `next/image` with `width={64} height={64}` (not raw `<img>`) 
+11. `page.tsx`: Section order → HeroSection, FeaturedJobs, EmployerCarousel, IndustryGrid (replace TopEmployers)
+12. `HeroSection.tsx`: Update gradient vars
+
+### Phase 03 Task List (complete)
+
+13. `JobCard.tsx`: Move Location badge before Salary badge in JSX
+14. `JobCard.tsx`: Company name → `text-sm font-medium` (from `text-xs`)
+15. `JobFilters.tsx`: Add Ocean Blue focus ring + pill-radius to `<select>` elements
+
+### Phase 04 Task List (complete)
+
+16. `CompanyCard.tsx`: Verify `_count.jobPostings` or similar exists; style jobCount badge consistently
+
+### Failure Modes Registry
+
+| Risk | Severity | Mitigation |
+|------|----------|------------|
+| EmployerCarousel: empty array crash | HIGH | `if (length < 2) return null` |
+| EmployerCarousel: index out of bounds after ISR revalidation | MEDIUM | `activeIndex % length` guard |
+| Hero gradient: teal midpoint remains after token change | HIGH | Replace `via-[#115e59]` → `via-[#005A9E]` |
+| Footer 5-col compressed at 768px | MEDIUM | `md:grid-cols-3 lg:grid-cols-5` |
+| `_count` missing → NaN/undefined in carousel CTA | HIGH | Add to query before implementing carousel |
+| teal-* in employer portal accidentally changed | HIGH | Scope boundary: only `src/components/public/` + `src/app/(public)/` |
+| Timer leak on unmount | MEDIUM | `return () => clearInterval(id)` cleanup |
+
+### Deferred to TODOS.md
+
+- `getPublicJobs` distinct filter queries: add `unstable_cache` when traffic scales
+- Add Vitest unit test for EmployerCarousel timer (no test suite currently exists)
+- `<img>` → `next/image` migration for existing `CompanyCard`, `JobCard` logos (pre-existing tech debt, not introduced by this plan)
+- Dark mode support for `--color-fdi-*` tokens in `.dark {}` block
+
+---
+
 ## Decision Audit Trail
 
 | # | Phase | Decision | Classification | Principle | Rationale | Rejected |
@@ -254,4 +434,37 @@ CEO DUAL VOICES — CONSENSUS TABLE (single-reviewer):
 | 1 | CEO | Keep Phase 04 in scope | Mechanical | P2 (boil lakes) | Small effort, in blast radius | Defer P04 |
 | 2 | CEO | Add mobile check as exit criterion per phase | Mechanical | P1 (completeness) | Zero-cost addition, catches regressions | Skip mobile |
 | 3 | CEO | Defer SEO landing pages to TODOS | Mechanical | P3 (pragmatic) | Different task type, out of blast radius | Include |
-| T1 | CEO | Teal→Blue brand change | **TASTE** | P6 | Subagent warns brand risk. User has domain context. | Stay teal |
+| T1 | CEO | Teal→Blue brand change | **TASTE** | P6 | Subagent warns brand risk. User chose Ocean Blue #0077B6. | Stay teal |
+| 4 | CEO | Header category dropdown | Mechanical | P5 (explicit) | Too complex for Phase 01. Deferred to Sprint 6. | Include in Phase 01 |
+| 5 | CEO | Footer SEO links: static vs dynamic | Mechanical | P5 (explicit) | Hardcoded — 5 locations + 5 industries. Zero DB queries. | Dynamic query |
+| 6 | Design | Carousel position in homepage | Mechanical | P1 (completeness) | Hero → FeaturedJobs → Carousel → IndustryGrid | Carousel above jobs |
+| 7 | Design | Carousel spec (rotation, WCAG, mobile) | Mechanical | P1 (completeness) | 4s auto, pause hover, dots nav, grid on mobile | Unspecified |
+| 8 | Design | Carousel "quote" field doesn't exist | Mechanical | P4 (DRY) | Drop quote, use existing jobCount CTA | Add DB field |
+| 9 | Design | Hardcoded teal-* Tailwind classes | Mechanical | P1 (completeness) | Add explicit audit+replace task to Phase 01 | Assume CSS vars cover it |
+| 10 | Design | /viec-lam/[slug] color inconsistency | Mechanical | P1 (completeness) | Add token update to Phase 01 | Keep out of scope |
+| 11 | Design | JobCard: Salary before Location | Mechanical | P1 (completeness) | Reorder: Location → Salary (FDI geo-first behavior) | Keep current order |
+| 12 | Design | Company name visual weight in JobCard | Mechanical | P1 (completeness) | Upgrade to text-sm font-medium | Keep text-xs |
+| 13 | Design | Filter: select vs pill-chip | Mechanical | P3/P5 | Keep select, pill-style only. Less risk, more accessible. | Pill chips |
+| 14 | Design | "N new jobs" badge already exists | Mechanical | P4 (DRY) | Confirm styling only — no new logic needed | New feature |
+| 15 | Eng | `_count.jobPostings` missing from getHomepageData() | Mechanical | P1 | Add to select with scoped where; update HomepageEmployer type as optional | Skip |
+| 16 | Eng | `via-[#115e59]` hardcoded teal midpoint in hero gradient | Mechanical | P1 | Replace with `via-[#005A9E]` | Keep as-is |
+| 17 | Eng | EmployerCarousel empty array crash | Mechanical | P1 | Guard: `if (employers.length < 2) return null` | Skip |
+| 18 | Eng | teal-* scope: exclude employer portal files | Mechanical | P1 | Scope: only `src/components/public/` + `src/app/(public)/` | |
+| 19 | Eng | rounded-full inconsistency across public CTAs | Mechanical | P1 | Apply rounded-full to ALL public primary CTAs | Header only |
+| 20 | Eng | Footer 5-col compresses at 768px | Mechanical | P3 | Use `md:grid-cols-3 lg:grid-cols-5` | Equal columns |
+| 21 | Eng | Timer cleanup in carousel | Mechanical | P1 | `return () => clearInterval(id)` in useEffect | Ref-based |
+| 22 | Eng | WCAG 2.2.2 needs onFocus/onBlur not just hover | Mechanical | P1 | Add both handlers to outer section element | Mouse only |
+
+---
+
+## GSTACK REVIEW REPORT
+
+| Review | Trigger | Why | Runs | Status | Findings |
+|--------|---------|-----|------|--------|----------|
+| CEO Review | `/plan-ceo-review` | Scope & strategy | 1 | clean | 1 taste (brand color — user resolved), 3 auto-decided |
+| Codex Review | `/codex review` | Independent 2nd opinion | 0 | — | Codex unavailable — single-reviewer mode |
+| Eng Review | `/plan-eng-review` | Architecture & tests | 1 | clean | 11 issues found, all auto-fixed |
+| Design Review | `/plan-design-review` | UI/UX gaps | 1 | clean | 14 issues found, 4 CRITICAL auto-fixed |
+| DX Review | `/plan-devex-review` | Developer experience | 0 | skipped | No developer-facing scope detected |
+
+**VERDICT:** APPROVED by user 2026-04-04. All critical gaps resolved. Ready to implement Phase 01.

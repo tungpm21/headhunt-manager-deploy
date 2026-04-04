@@ -22,14 +22,14 @@ interface JobFormProps {
 }
 
 const INDUSTRIES = [
-  "IT / Phan mem",
-  "Tai chinh / Ngan hang",
-  "Marketing / Truyen thong",
-  "Ky thuat / San xuat",
+  "IT / Phần mềm",
+  "Tài chính / Ngân hàng",
+  "Marketing / Truyền thông",
+  "Kỹ thuật / Sản xuất",
   "Kinh doanh / Sales",
-  "Nhan su",
-  "Hanh chinh",
-  "Khac",
+  "Nhân sự",
+  "Hành chính",
+  "Khác",
 ];
 
 function FieldLabel({
@@ -106,13 +106,13 @@ export function JobForm({
       <section>
         <h2 className="mb-4 flex items-center gap-2 border-b border-border pb-2 text-base font-semibold text-foreground">
           <Briefcase className="h-5 w-5 text-muted" />
-          Tong quan
+          Tổng quan
         </h2>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="sm:col-span-2">
             <FieldLabel htmlFor="title" required>
-              Vi tri tuyen dung
+              Vị trí tuyển dụng
             </FieldLabel>
             <input
               id="title"
@@ -127,7 +127,7 @@ export function JobForm({
 
           <div className="sm:col-span-2">
             <FieldLabel htmlFor="clientId" required>
-              Doanh nghiep (Client)
+              Doanh nghiệp (Client)
             </FieldLabel>
             <ClientSelect
               name="clientId"
@@ -138,20 +138,20 @@ export function JobForm({
             />
             {initialClients.length === 0 ? (
               <p className="mt-1 text-xs text-danger">
-                Ban can tao doanh nghiep truoc khi tao Job Order.
+                Bạn cần tạo doanh nghiệp trước khi tạo Job Order.
               </p>
             ) : null}
           </div>
 
           <div>
-            <FieldLabel htmlFor="industry">Nganh nghe</FieldLabel>
+            <FieldLabel htmlFor="industry">Ngành nghề</FieldLabel>
             <select
               id="industry"
               name="industry"
               defaultValue={initialData?.industry || ""}
               className={inputCls}
             >
-              <option value="">Chon nganh nghe...</option>
+              <option value="">Chọn ngành nghề...</option>
               {INDUSTRIES.map((industry) => (
                 <option key={industry} value={industry}>
                   {industry}
@@ -161,19 +161,19 @@ export function JobForm({
           </div>
 
           <div>
-            <FieldLabel htmlFor="location">Khu vuc</FieldLabel>
+            <FieldLabel htmlFor="location">Khu vực</FieldLabel>
             <input
               id="location"
               name="location"
               type="text"
               defaultValue={initialData?.location || ""}
-              placeholder="TP.HCM, Ha Noi..."
+              placeholder="TP.HCM, Hà Nội..."
               className={inputCls}
             />
           </div>
 
           <div className="sm:col-span-2">
-            <FieldLabel htmlFor="requiredSkills">Ky nang yeu cau</FieldLabel>
+            <FieldLabel htmlFor="requiredSkills">Kỹ năng yêu cầu</FieldLabel>
             <input
               id="requiredSkills"
               name="requiredSkills"
@@ -183,18 +183,18 @@ export function JobForm({
               className={inputCls}
             />
             <p className="mt-1.5 text-xs text-muted">
-              Phan cach bang dau phay de dung cho tim kiem va goi y gan ung vien.
+              Phân cách bằng dấu phẩy để dùng cho tìm kiếm và gợi ý gán ứng viên.
             </p>
           </div>
 
           <div className="sm:col-span-2">
-            <FieldLabel htmlFor="description">Mo ta tom tat (JD)</FieldLabel>
+            <FieldLabel htmlFor="description">Mô tả tóm tắt (JD)</FieldLabel>
             <textarea
               id="description"
               name="description"
               rows={4}
               defaultValue={initialData?.description || ""}
-              placeholder="Yeu cau cong viec, phuc loi rut gon..."
+              placeholder="Yêu cầu công việc, phúc lợi rút gọn..."
               className={inputCls}
             />
           </div>
@@ -204,12 +204,12 @@ export function JobForm({
       <section>
         <h2 className="mb-4 flex items-center gap-2 border-b border-border pb-2 text-base font-semibold text-foreground">
           <Banknote className="h-5 w-5 text-muted" />
-          Che do va yeu cau
+          Chế độ và yêu cầu
         </h2>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
           <div>
-            <FieldLabel htmlFor="salaryMin">Luong toi thieu (Tr/thang)</FieldLabel>
+            <FieldLabel htmlFor="salaryMin">Lương tối thiểu (Tr/tháng)</FieldLabel>
             <input
               id="salaryMin"
               name="salaryMin"
@@ -222,7 +222,7 @@ export function JobForm({
           </div>
 
           <div>
-            <FieldLabel htmlFor="salaryMax">Luong toi da (Tr/thang)</FieldLabel>
+            <FieldLabel htmlFor="salaryMax">Lương tối đa (Tr/tháng)</FieldLabel>
             <input
               id="salaryMax"
               name="salaryMax"
@@ -235,7 +235,7 @@ export function JobForm({
           </div>
 
           <div>
-            <FieldLabel htmlFor="quantity">So luong can tuyen</FieldLabel>
+            <FieldLabel htmlFor="quantity">Số lượng cần tuyển</FieldLabel>
             <input
               id="quantity"
               name="quantity"
@@ -247,14 +247,14 @@ export function JobForm({
           </div>
 
           <div>
-            <FieldLabel htmlFor="assignedToId">Recruiter phu trach</FieldLabel>
+            <FieldLabel htmlFor="assignedToId">Recruiter phụ trách</FieldLabel>
             <select
               id="assignedToId"
               name="assignedToId"
               defaultValue={initialData?.assignedToId || ""}
               className={inputCls}
             >
-              <option value="">Chua phan cong...</option>
+              <option value="">Chưa phân công...</option>
               {users.map((user) => (
                 <option key={user.id} value={user.id}>
                   {user.name}
@@ -265,7 +265,7 @@ export function JobForm({
 
           <div>
             <FieldLabel htmlFor="status" required>
-              Trang thai
+              Trạng thái
             </FieldLabel>
             <select
               id="status"
@@ -273,15 +273,15 @@ export function JobForm({
               defaultValue={initialData?.status || "OPEN"}
               className={inputCls}
             >
-              <option value="OPEN">Dang tuyen (OPEN)</option>
-              <option value="PAUSED">Tam dung (PAUSED)</option>
-              <option value="FILLED">Da tuyen (FILLED)</option>
-              <option value="CANCELLED">Da huy (CANCELLED)</option>
+              <option value="OPEN">Đang tuyển (OPEN)</option>
+              <option value="PAUSED">Tạm dừng (PAUSED)</option>
+              <option value="FILLED">Đã tuyển (FILLED)</option>
+              <option value="CANCELLED">Đã huỷ (CANCELLED)</option>
             </select>
           </div>
 
           <div>
-            <FieldLabel htmlFor="deadline">Han chot</FieldLabel>
+            <FieldLabel htmlFor="deadline">Hạn chốt</FieldLabel>
             <input
               id="deadline"
               name="deadline"
@@ -296,28 +296,28 @@ export function JobForm({
           </div>
 
           <div>
-            <FieldLabel htmlFor="feeType">Hinh thuc phi dich vu</FieldLabel>
+            <FieldLabel htmlFor="feeType">Hình thức phí dịch vụ</FieldLabel>
             <select
               id="feeType"
               name="feeType"
               defaultValue={initialData?.feeType || ""}
               className={inputCls}
             >
-              <option value="">Chua chon...</option>
-              <option value="PERCENTAGE">% Luong gop/nam</option>
-              <option value="FIXED">Gia co dinh</option>
+              <option value="">Chưa chọn...</option>
+              <option value="PERCENTAGE">% Lương gộp/năm</option>
+              <option value="FIXED">Giá cố định</option>
             </select>
           </div>
 
           <div className="sm:col-span-2 xl:col-span-3">
-            <FieldLabel htmlFor="fee">Phi dich vu (% hoac VND)</FieldLabel>
+            <FieldLabel htmlFor="fee">Phí dịch vụ (% hoặc VND)</FieldLabel>
             <input
               id="fee"
               name="fee"
               type="number"
               step="0.1"
               defaultValue={initialData?.fee || ""}
-              placeholder="VD: 15 hoac 20000000"
+              placeholder="VD: 15 hoặc 20000000"
               className={inputCls}
             />
           </div>
@@ -326,14 +326,14 @@ export function JobForm({
 
       <section>
         <h2 className="mb-4 border-b border-border pb-2 text-base font-semibold text-foreground">
-          Ghi chu quan ly
+          Ghi chú quản lý
         </h2>
         <textarea
           id="notes"
           name="notes"
           rows={3}
           defaultValue={initialData?.notes || ""}
-          placeholder="Luu y ve phong van, process offer voi HR ben khach hang..."
+          placeholder="Lưu ý về phỏng vấn, process offer với HR bên khách hàng..."
           className={inputCls}
         />
       </section>
@@ -351,7 +351,7 @@ export function JobForm({
           }}
           className="rounded-lg border border-border px-5 py-2.5 text-sm font-medium text-foreground transition hover:bg-surface"
         >
-          Huy
+          Hủy
         </button>
         <button
           type="submit"
@@ -361,12 +361,12 @@ export function JobForm({
           {isPending ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" />
-              Dang luu...
+              Đang lưu...
             </>
           ) : (
             <>
               <Save className="h-4 w-4" />
-              Luu Yeu Cau Tuyen Dung
+              Lưu Yêu Cầu Tuyển Dụng
             </>
           )}
         </button>

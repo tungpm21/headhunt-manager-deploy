@@ -44,11 +44,11 @@
   --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1);
 
   /* ===== FDIWork Public Website ===== */
-  --color-fdi-primary: #0D9488;
-  --color-fdi-primary-hover: #0F766E;
-  --color-fdi-accent: #10B981;
-  --color-fdi-dark: #134E4A;
-  --color-fdi-surface: #F0FDFA;
+  --color-fdi-primary: #0077B6;
+  --color-fdi-primary-hover: #005F91;
+  --color-fdi-accent: #00B4D8;
+  --color-fdi-dark: #023E8A;
+  --color-fdi-surface: #F0F9FF;
   --color-fdi-text: #0F172A;
   --color-fdi-text-secondary: #64748B;
 

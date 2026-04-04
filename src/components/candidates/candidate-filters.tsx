@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Search, SlidersHorizontal, X } from "lucide-react";
 import type { Tag } from "@/types";
@@ -56,6 +56,8 @@ export function CandidateFiltersPanel({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [showFilters, setShowFilters] = useState(false);
+  const searchTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const skillsTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const createQueryString = useCallback(
     (updates: Record<string, string | null>) => {
@@ -99,7 +101,8 @@ export function CandidateFiltersPanel({
             defaultValue={searchParams.get("search") ?? ""}
             onChange={(event) => {
               const value = event.target.value;
-              setTimeout(() => update({ search: value || null }), 300);
+              clearTimeout(searchTimerRef.current);
+              searchTimerRef.current = setTimeout(() => update({ search: value || null }), 300);
             }}
             className="w-full rounded-lg border border-border bg-background py-2.5 pl-9 pr-4 text-sm text-foreground transition placeholder:text-muted/50 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
           />
@@ -242,7 +245,8 @@ export function CandidateFiltersPanel({
               defaultValue={searchParams.get("skills") ?? ""}
               onChange={(event) => {
                 const value = event.target.value;
-                setTimeout(() => update({ skills: value || null }), 400);
+                clearTimeout(skillsTimerRef.current);
+                skillsTimerRef.current = setTimeout(() => update({ skills: value || null }), 400);
               }}
               className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted/50 focus:outline-none focus:ring-2 focus:ring-primary/30"
             />

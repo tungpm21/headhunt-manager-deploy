@@ -31,6 +31,7 @@ export type HomepageEmployer = {
   subscription: {
     tier: string;
   } | null;
+  _count?: { jobPostings: number };
 };
 
 export type IndustryCount = {
@@ -99,6 +100,16 @@ export async function getHomepageData(): Promise<HomepageData> {
           industry: true,
           subscription: {
             select: { tier: true },
+          },
+          _count: {
+            select: {
+              jobPostings: {
+                where: {
+                  status: "APPROVED",
+                  OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
+                },
+              },
+            },
           },
         },
         take: 12,

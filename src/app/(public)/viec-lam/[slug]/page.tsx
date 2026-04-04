@@ -164,7 +164,7 @@ export default async function JobDetailPage({ params }: PageProps) {
               {/* CTA */}
               <Link
                 href={`/ung-tuyen?job=${job.id}`}
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[var(--color-fdi-primary)] text-white font-semibold text-sm hover:bg-[var(--color-fdi-primary-hover)] transition-all hover:-translate-y-0.5 cursor-pointer"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[var(--color-fdi-primary)] text-white font-semibold text-sm hover:bg-[var(--color-fdi-primary-hover)] transition-all hover:-translate-y-0.5 cursor-pointer"
               >
                 Ứng tuyển ngay
                 <ArrowRight className="h-4 w-4" />

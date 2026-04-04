@@ -50,23 +50,23 @@ export function JobCard({ job }: JobCardProps) {
             >
               {job.title}
             </h3>
-            <p className="text-xs text-[var(--color-fdi-text-secondary)] line-clamp-1 mt-0.5">
+            <p className="text-sm font-medium text-[var(--color-fdi-text-secondary)] line-clamp-1 mt-0.5">
               {job.employer.companyName}
             </p>
           </div>
         </div>
 
-        {/* Meta */}
+        {/* Meta — Location first (FDI geography is primary filter), then Salary, WorkType */}
         <div className="flex flex-wrap gap-2 mb-3">
-          {job.salaryDisplay && (
-            <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 text-xs font-medium">
-              {job.salaryDisplay}
-            </span>
-          )}
           {job.location && (
             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-gray-50 text-gray-600 text-xs">
               <MapPin className="h-3 w-3" />
               {job.location}
+            </span>
+          )}
+          {job.salaryDisplay && (
+            <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 text-xs font-medium">
+              {job.salaryDisplay}
             </span>
           )}
           {job.workType && (

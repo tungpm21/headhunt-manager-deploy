@@ -55,7 +55,7 @@ export function PublicHeader() {
           </Link>
           <Link
             href="/employer/register"
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[var(--color-fdi-primary)] text-white text-sm font-semibold hover:bg-[var(--color-fdi-primary-hover)] transition-all hover:-translate-y-0.5 cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[var(--color-fdi-primary)] text-white text-sm font-semibold hover:bg-[var(--color-fdi-primary-hover)] transition-all hover:-translate-y-0.5 cursor-pointer"
           >
             <UserPlus className="h-4 w-4" />
             Đăng tin tuyển dụng

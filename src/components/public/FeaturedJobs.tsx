@@ -49,7 +49,7 @@ export function FeaturedJobs({ jobs }: FeaturedJobsProps) {
         <div className="mt-8 text-center sm:hidden">
           <Link
             href="/viec-lam"
-            className="inline-flex items-center gap-1 px-5 py-2.5 rounded-lg bg-[var(--color-fdi-primary)] text-white text-sm font-semibold hover:bg-[var(--color-fdi-primary-hover)] transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1 px-5 py-2.5 rounded-full bg-[var(--color-fdi-primary)] text-white text-sm font-semibold hover:bg-[var(--color-fdi-primary-hover)] transition-colors cursor-pointer"
           >
             Xem tất cả việc làm
             <ArrowRight className="h-4 w-4" />

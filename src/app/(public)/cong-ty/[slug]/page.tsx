@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { getCompanyBySlug, type HomepageJob } from "@/lib/public-actions";
 import { JobCard } from "@/components/public/JobCard";
+import { LogoImage } from "@/components/public/LogoImage";
 
 const tierBadge: Record<string, { label: string; className: string }> = {
   VIP: { label: "VIP", className: "bg-amber-100 text-amber-700" },
@@ -96,11 +97,7 @@ export default async function CompanyProfilePage({ params }: PageProps) {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="relative -mt-10 mb-4 flex items-end gap-4">
           <div className="h-20 w-20 rounded-xl bg-white ring-4 ring-white shadow-md flex items-center justify-center shrink-0 overflow-hidden">
-            {company.logo ? (
-              <img src={company.logo} alt={company.companyName} className="h-full w-full object-cover" />
-            ) : (
-              <Building2 className="h-9 w-9 text-[var(--color-fdi-primary)]" />
-            )}
+            <LogoImage src={company.logo} alt={company.companyName} className="h-full w-full object-contain p-1" iconSize="h-9 w-9" />
           </div>
           <div className="pb-1">
             <div className="flex items-center gap-2 flex-wrap">

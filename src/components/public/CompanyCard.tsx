@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { Building2, MapPin, Briefcase, Crown } from "lucide-react";
+import { MapPin, Briefcase, Crown } from "lucide-react";
 import type { PublicCompany } from "@/lib/public-actions";
+import { LogoImage } from "@/components/public/LogoImage";
 
 const tierBadge: Record<string, { label: string; className: string }> = {
   VIP: { label: "VIP", className: "bg-amber-100 text-amber-700" },
@@ -23,11 +24,7 @@ export function CompanyCard({ company }: CompanyCardProps) {
         {/* Logo + Name */}
         <div className="flex items-center gap-3 mb-3">
           <div className="h-12 w-12 rounded-xl bg-[var(--color-fdi-surface)] flex items-center justify-center shrink-0 overflow-hidden">
-            {company.logo ? (
-              <img src={company.logo} alt={company.companyName} className="h-full w-full object-cover" />
-            ) : (
-              <Building2 className="h-6 w-6 text-[var(--color-fdi-primary)]" />
-            )}
+            <LogoImage src={company.logo} alt={company.companyName} iconSize="h-6 w-6" />
           </div>
           <div className="min-w-0">
             <h3

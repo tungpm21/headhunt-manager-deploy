@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, Building2 } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { HomepageEmployer } from "@/lib/public-actions";
+import { LogoImage } from "@/components/public/LogoImage";
 
 type EmployerCarouselProps = {
   employers: HomepageEmployer[];
@@ -108,11 +109,10 @@ export function EmployerCarousel({ employers }: EmployerCarouselProps) {
                 aria-selected={idx === safeIndex}
                 aria-label={`Trang ${idx + 1}`}
                 onClick={() => setActiveIndex(idx)}
-                className={`h-2 rounded-full transition-all duration-200 cursor-pointer ${
-                  idx === safeIndex
+                className={`h-2 rounded-full transition-all duration-200 cursor-pointer ${idx === safeIndex
                     ? "w-6 bg-[var(--color-fdi-primary)]"
                     : "w-2 bg-gray-300 hover:bg-gray-400"
-                }`}
+                  }`}
               />
             ))}
           </div>
@@ -130,17 +130,7 @@ function EmployerCard({ employer }: { employer: HomepageEmployer }) {
       <div className="bg-white rounded-xl p-5 text-center transition-all duration-200 hover:shadow-md hover:-translate-y-1 border border-gray-100">
         {/* Logo */}
         <div className="mx-auto h-16 w-16 rounded-xl bg-[var(--color-fdi-surface)] flex items-center justify-center overflow-hidden mb-3">
-          {employer.logo ? (
-            <img
-              src={employer.logo}
-              alt={employer.companyName}
-              width={64}
-              height={64}
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            <Building2 className="h-7 w-7 text-[var(--color-fdi-primary)]" />
-          )}
+          <LogoImage src={employer.logo} alt={employer.companyName} iconSize="h-7 w-7" />
         </div>
 
         {/* Name */}

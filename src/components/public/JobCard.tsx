@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { MapPin, Clock, Building2, Sparkles } from "lucide-react";
+import { MapPin, Clock, Sparkles } from "lucide-react";
 import type { HomepageJob } from "@/lib/public-actions";
+import { LogoImage } from "@/components/public/LogoImage";
 
 function timeAgo(date: Date | null): string {
   if (!date) return "";
@@ -33,15 +34,7 @@ export function JobCard({ job }: JobCardProps) {
         {/* Employer info */}
         <div className="flex items-start gap-3 mb-3">
           <div className="h-11 w-11 rounded-lg bg-[var(--color-fdi-surface)] flex items-center justify-center shrink-0 overflow-hidden">
-            {job.employer.logo ? (
-              <img
-                src={job.employer.logo}
-                alt={job.employer.companyName}
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <Building2 className="h-5 w-5 text-[var(--color-fdi-primary)]" />
-            )}
+            <LogoImage src={job.employer.logo} alt={job.employer.companyName} iconSize="h-5 w-5" />
           </div>
           <div className="min-w-0">
             <h3

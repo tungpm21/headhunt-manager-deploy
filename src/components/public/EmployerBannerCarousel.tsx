@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, Building2, ArrowRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
 import type { HomepageEmployer } from "@/lib/public-actions";
+import { LogoImage } from "@/components/public/LogoImage";
 
 type EmployerBannerCarouselProps = {
   employers: HomepageEmployer[];
@@ -64,15 +65,7 @@ export function EmployerBannerCarousel({ employers }: EmployerBannerCarouselProp
             <div className="flex items-center gap-4">
               {/* Logo */}
               <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center shrink-0 overflow-hidden">
-                {employer.logo ? (
-                  <img
-                    src={employer.logo}
-                    alt={employer.companyName}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <Building2 className="h-7 w-7 text-white" />
-                )}
+                <LogoImage src={employer.logo} alt={employer.companyName} className="h-full w-full object-contain p-1" iconSize="h-7 w-7 text-white" />
               </div>
               <div>
                 <p className="text-white/70 text-xs font-medium uppercase tracking-wider mb-0.5">
@@ -142,11 +135,10 @@ export function EmployerBannerCarousel({ employers }: EmployerBannerCarouselProp
               aria-selected={idx === safeIndex}
               aria-label={`Banner ${idx + 1}`}
               onClick={() => setActiveIndex(idx)}
-              className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
-                idx === safeIndex
+              className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${idx === safeIndex
                   ? "w-6 bg-white"
                   : "w-1.5 bg-white/30 hover:bg-white/60"
-              }`}
+                }`}
             />
           ))}
         </div>

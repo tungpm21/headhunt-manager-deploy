@@ -77,7 +77,7 @@ export default async function CompanyProfilePage({ params }: PageProps) {
       </div>
 
       {/* Cover image — taller, rounded corners */}
-      <div className="px-4 sm:px-6 lg:px-8 pt-4">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-4">
         <div className="relative h-72 sm:h-80 lg:h-96 rounded-2xl overflow-hidden shadow-lg">
           {company.coverImage ? (
             <img
@@ -96,13 +96,13 @@ export default async function CompanyProfilePage({ params }: PageProps) {
 
       {/* Logo + Company info — stacked, logo overlaps cover edge */}
       <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="-mt-14">
+        <div className="-mt-14 pl-6 sm:pl-10">
           <div className="h-24 w-24 sm:h-28 sm:w-28 rounded-2xl bg-white ring-[5px] ring-white shadow-lg flex items-center justify-center overflow-hidden">
             <LogoImage src={company.logo} alt={company.companyName} className="h-full w-full object-contain p-2.5" iconSize="h-10 w-10" />
           </div>
         </div>
 
-        <div className="mt-3 mb-4">
+        <div className="mt-3 mb-4 pl-6 sm:pl-10">
           <div className="flex items-center gap-2 flex-wrap">
             <h1
               className="text-xl sm:text-2xl font-bold text-[var(--color-fdi-text)]"

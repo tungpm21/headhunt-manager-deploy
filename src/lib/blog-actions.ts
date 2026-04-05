@@ -16,7 +16,7 @@ function slugify(text: string): string {
 
 // ─── Admin: List all blog posts ───
 export async function getBlogPosts(page = 1) {
-    await getCurrentUserId();
+    await requireAdmin();
     const take = 20;
     const skip = (page - 1) * take;
 

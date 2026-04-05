@@ -12,6 +12,8 @@ import {
   UserPlus,
   ChevronDown,
 } from "lucide-react";
+import { useSearchSuggestions } from "@/hooks/useSearchSuggestions";
+import { SearchAutocompleteDropdown } from "@/components/public/SearchAutocompleteDropdown";
 
 type NavItem = {
   href: string;
@@ -49,10 +51,11 @@ export function PublicHeader() {
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Close dropdown on outside click
+  const search = useSearchSuggestions();
+
+  // Close nav dropdown on outside click
   useEffect(() => {
     function handleClick(e: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
@@ -65,9 +68,10 @@ export function PublicHeader() {
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
-    if (searchQuery.trim()) {
-      router.push(`/viec-lam?q=${encodeURIComponent(searchQuery.trim())}`);
-      setSearchQuery("");
+    if (search.query.trim()) {
+      router.push(`/viec-lam?q=${encodeURIComponent(search.query.trim())}`);
+      search.setQuery("");
+      search.setIsOpen(false);
     }
   }
 
@@ -131,22 +135,36 @@ export function PublicHeader() {
           ))}
         </nav>
 
-        {/* Search bar (desktop) */}
-        <form
-          onSubmit={handleSearch}
-          className="hidden lg:flex flex-1 max-w-md mx-auto"
-        >
-          <div className="relative w-full">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Tìm việc làm, công ty..."
-              className="w-full pl-9 pr-3 py-2 rounded-full border border-gray-200 text-sm bg-gray-50 text-[var(--color-fdi-text)] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[var(--color-fdi-primary)]/30 focus:border-[var(--color-fdi-primary)] transition-all"
+        {/* Search bar (desktop) with autocomplete */}
+        <div ref={search.containerRef} className="hidden lg:flex flex-1 max-w-md mx-auto relative">
+          <form onSubmit={handleSearch} className="w-full">
+            <div className="relative w-full">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <input
+                type="text"
+                value={search.query}
+                onChange={(e) => search.setQuery(e.target.value)}
+                onFocus={search.handleFocus}
+                onKeyDown={search.handleKeyDown}
+                placeholder="Tìm việc làm, công ty..."
+                className="w-full pl-9 pr-3 py-2 rounded-full border border-gray-200 text-sm bg-gray-50 text-[var(--color-fdi-text)] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[var(--color-fdi-primary)]/30 focus:border-[var(--color-fdi-primary)] transition-all"
+                autoComplete="off"
+              />
+            </div>
+          </form>
+          {search.isOpen && (
+            <SearchAutocompleteDropdown
+              suggestions={search.suggestions}
+              isLoading={search.isLoading}
+              query={search.query}
+              activeIndex={search.activeIndex}
+              onSelectEmployer={(slug) => search.navigateTo("employer", slug)}
+              onSelectJob={(slug) => search.navigateTo("job", slug)}
+              onSelectKeyword={(kw) => search.navigateTo("keyword", kw)}
+              onHoverIndex={() => {}}
             />
-          </div>
-        </form>
+          )}
+        </div>
 
         {/* Desktop CTAs */}
         <div className="hidden md:flex items-center gap-3 shrink-0">
@@ -188,10 +206,11 @@ export function PublicHeader() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
               <input
                 type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                value={search.query}
+                onChange={(e) => search.setQuery(e.target.value)}
                 placeholder="Tìm việc làm, công ty..."
                 className="w-full pl-9 pr-3 py-2.5 rounded-lg border border-gray-200 text-sm bg-gray-50 text-[var(--color-fdi-text)] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[var(--color-fdi-primary)]/30"
+                autoComplete="off"
               />
             </div>
           </form>

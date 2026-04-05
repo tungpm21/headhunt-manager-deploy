@@ -11,7 +11,7 @@ export function FeaturedJobs({ jobs }: FeaturedJobsProps) {
   if (jobs.length === 0) return null;
 
   return (
-    <section className="py-16 lg:py-20 bg-white">
+    <section className="py-16 lg:py-20 bg-gray-50">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Heading */}
         <div className="flex items-end justify-between mb-8">

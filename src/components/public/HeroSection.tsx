@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Search, MapPin, TrendingUp } from "lucide-react";
+import { useSearchSuggestions } from "@/hooks/useSearchSuggestions";
+import { SearchAutocompleteDropdown } from "@/components/public/SearchAutocompleteDropdown";
 
 const trendingTags = [
   "Kỹ sư cơ khí",
@@ -20,15 +22,17 @@ type HeroSectionProps = {
 
 export function HeroSection({ totalJobs, totalEmployers }: HeroSectionProps) {
   const router = useRouter();
-  const [keyword, setKeyword] = useState("");
+  const search = useSearchSuggestions();
   const [location, setLocation] = useState("");
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
     const params = new URLSearchParams();
-    if (keyword.trim()) params.set("q", keyword.trim());
+    if (search.query.trim()) params.set("q", search.query.trim());
     if (location.trim()) params.set("location", location.trim());
     router.push(`/viec-lam?${params.toString()}`);
+    search.setQuery("");
+    search.setIsOpen(false);
   }
 
   function handleTagClick(tag: string) {
@@ -68,17 +72,36 @@ export function HeroSection({ totalJobs, totalEmployers }: HeroSectionProps) {
           onSubmit={handleSearch}
           className="mx-auto max-w-2xl bg-white rounded-2xl shadow-xl p-2 flex flex-col sm:flex-row gap-2"
         >
-          <div className="flex-1 flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-50">
-            <Search className="h-5 w-5 text-gray-400 shrink-0" />
-            <input
-              type="text"
-              value={keyword}
-              onChange={(e) => setKeyword(e.target.value)}
-              placeholder="Vị trí, kỹ năng, công ty..."
-              className="flex-1 bg-transparent text-sm text-gray-900 placeholder:text-gray-400 outline-none"
-              style={{ fontFamily: "var(--font-body)" }}
-            />
+          {/* Keyword input with autocomplete */}
+          <div ref={search.containerRef} className="relative flex-1">
+            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-50">
+              <Search className="h-5 w-5 text-gray-400 shrink-0" />
+              <input
+                type="text"
+                value={search.query}
+                onChange={(e) => search.setQuery(e.target.value)}
+                onFocus={search.handleFocus}
+                onKeyDown={search.handleKeyDown}
+                placeholder="Vị trí, kỹ năng, công ty..."
+                className="flex-1 bg-transparent text-sm text-gray-900 placeholder:text-gray-400 outline-none"
+                style={{ fontFamily: "var(--font-body)" }}
+                autoComplete="off"
+              />
+            </div>
+            {search.isOpen && (
+              <SearchAutocompleteDropdown
+                suggestions={search.suggestions}
+                isLoading={search.isLoading}
+                query={search.query}
+                activeIndex={search.activeIndex}
+                onSelectEmployer={(slug) => search.navigateTo("employer", slug)}
+                onSelectJob={(slug) => search.navigateTo("job", slug)}
+                onSelectKeyword={(kw) => search.navigateTo("keyword", kw)}
+                onHoverIndex={() => {}}
+              />
+            )}
           </div>
+
           <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-50 sm:w-44">
             <MapPin className="h-5 w-5 text-gray-400 shrink-0" />
             <input

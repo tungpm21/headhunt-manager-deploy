@@ -49,7 +49,7 @@ export function EmployerBannerCarousel({ employers }: EmployerBannerCarouselProp
         {/* Banner card — rounded, overflow hidden */}
         <div className="relative rounded-2xl overflow-hidden bg-white shadow-xl">
           {/* Image area — aspect ratio controlled */}
-          <div className="relative aspect-[16/7] sm:aspect-[16/6] lg:aspect-[16/5]">
+          <div className="relative aspect-[16/8] sm:aspect-[16/7] lg:aspect-[16/6]">
             {employer.coverImage ? (
               <img
                 src={employer.coverImage}
@@ -85,12 +85,12 @@ export function EmployerBannerCarousel({ employers }: EmployerBannerCarouselProp
           <div className="px-5 py-4 sm:px-6 sm:py-5 flex items-center justify-between gap-4">
             {/* Logo + Company info */}
             <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-              <div className="h-12 w-12 sm:h-14 sm:w-14 rounded-xl bg-[var(--color-fdi-surface)] border border-gray-100 flex items-center justify-center shrink-0 overflow-hidden">
+              <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-xl bg-[var(--color-fdi-surface)] border border-gray-100 flex items-center justify-center shrink-0 overflow-hidden">
                 <LogoImage
                   src={employer.logo}
                   alt={employer.companyName}
-                  className="h-full w-full object-contain p-1.5"
-                  iconSize="h-6 w-6"
+                  className="h-full w-full object-contain p-2"
+                  iconSize="h-7 w-7"
                 />
               </div>
               <div className="min-w-0">

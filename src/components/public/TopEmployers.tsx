@@ -111,14 +111,14 @@ export function TopEmployers({ employers }: TopEmployersProps) {
                 href={`/cong-ty/${employer.slug}`}
                 className="group block cursor-pointer snap-start"
               >
-                <div className="w-[200px] sm:w-[220px] bg-white rounded-2xl p-5 text-center transition-all duration-200 hover:shadow-md hover:-translate-y-1 border border-gray-100 shrink-0">
-                  {/* Logo — 80px, prominent */}
-                  <div className="mx-auto h-20 w-20 rounded-xl bg-[var(--color-fdi-surface)] flex items-center justify-center overflow-hidden mb-3 border border-gray-50">
+                <div className="w-[180px] sm:w-[200px] bg-white rounded-2xl p-5 text-center transition-all duration-200 hover:shadow-md hover:-translate-y-1 border border-gray-100 shrink-0">
+                  {/* Logo — 96px, prominent like VietnamWorks */}
+                  <div className="mx-auto h-24 w-24 rounded-xl bg-[var(--color-fdi-surface)] flex items-center justify-center overflow-hidden mb-3 border border-gray-50">
                     <LogoImage
                       src={employer.logo}
                       alt={employer.companyName}
-                      className="h-full w-full object-contain p-2"
-                      iconSize="h-8 w-8"
+                      className="h-full w-full object-contain p-2.5"
+                      iconSize="h-9 w-9"
                     />
                   </div>
 

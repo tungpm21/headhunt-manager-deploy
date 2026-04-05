@@ -160,6 +160,15 @@ export function TopEmployers({ employers }: TopEmployersProps) {
             );
           })}
         </div>
+
+        <div className="text-center mt-6">
+          <Link
+            href="/cong-ty"
+            className="inline-flex items-center gap-1 text-sm font-medium text-[var(--color-fdi-primary)] hover:underline cursor-pointer"
+          >
+            Khám phá thêm →
+          </Link>
+        </div>
       </div>
     </section>
   );

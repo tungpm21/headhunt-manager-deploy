@@ -22,7 +22,12 @@ type JobCardProps = {
 export function JobCard({ job }: JobCardProps) {
   return (
     <Link href={`/viec-lam/${job.slug}`} className="group block cursor-pointer">
-      <article className="relative bg-white rounded-xl border border-gray-100 p-5 transition-all duration-200 hover:shadow-lg hover:-translate-y-1 hover:border-[var(--color-fdi-primary)]/20">
+      <article
+        className={`relative bg-white rounded-xl border p-5 transition-all duration-200 hover:shadow-lg hover:-translate-y-1 hover:border-[var(--color-fdi-primary)]/20 ${job.isFeatured
+            ? "border-amber-200 border-l-[3px] border-l-amber-400"
+            : "border-gray-100"
+          }`}
+      >
         {/* Featured badge */}
         {job.isFeatured && (
           <div className="absolute top-3 right-3 flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 text-xs font-medium">

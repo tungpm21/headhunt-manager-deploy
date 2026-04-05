@@ -20,7 +20,12 @@ export function CompanyCard({ company }: CompanyCardProps) {
 
   return (
     <Link href={`/cong-ty/${company.slug}`} className="group block cursor-pointer">
-      <article className="bg-white rounded-2xl border border-gray-100 overflow-hidden transition-all duration-200 hover:shadow-lg hover:-translate-y-1 hover:border-[var(--color-fdi-primary)]/20 h-full flex flex-col">
+      <article
+        className={`bg-white rounded-2xl border overflow-hidden transition-all duration-200 hover:shadow-lg hover:-translate-y-1 hover:border-[var(--color-fdi-primary)]/20 h-full flex flex-col ${company.subscription && ["VIP", "PREMIUM"].includes(company.subscription.tier)
+            ? "border-amber-200 border-l-[3px] border-l-amber-400"
+            : "border-gray-100"
+          }`}
+      >
         {/* Cover image header */}
         <div className="h-28 sm:h-32 w-full overflow-hidden relative">
           {company.coverImage ? (

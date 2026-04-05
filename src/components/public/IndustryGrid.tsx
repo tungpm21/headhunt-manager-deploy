@@ -8,6 +8,7 @@ import {
   Truck,
   BriefcaseBusiness,
   HardHat,
+  ArrowRight,
 } from "lucide-react";
 import type { IndustryCount } from "@/lib/public-actions";
 
@@ -74,6 +75,15 @@ export function IndustryGrid({ industries }: IndustryGridProps) {
               </Link>
             );
           })}
+        </div>
+
+        <div className="text-center mt-8">
+          <Link
+            href="/viec-lam"
+            className="inline-flex items-center gap-1 text-sm font-medium text-[var(--color-fdi-primary)] hover:underline cursor-pointer"
+          >
+            Khám phá thêm →
+          </Link>
         </div>
       </div>
     </section>

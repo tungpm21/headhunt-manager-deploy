@@ -4,6 +4,7 @@ import { EmployerBannerCarousel } from "@/components/public/EmployerBannerCarous
 import { TopEmployers } from "@/components/public/TopEmployers";
 import { FeaturedJobs } from "@/components/public/FeaturedJobs";
 import { IndustryGrid } from "@/components/public/IndustryGrid";
+import { BlogSection } from "@/components/public/BlogSection";
 
 export default async function HomePage() {
   const data = await getHomepageData();
@@ -18,6 +19,7 @@ export default async function HomePage() {
       <TopEmployers employers={data.topEmployers} />
       <FeaturedJobs jobs={data.featuredJobs} />
       <IndustryGrid industries={data.industries} />
+      <BlogSection />
     </>
   );
 }

@@ -38,6 +38,11 @@ const navLinks: NavItem[] = [
       { href: "/cong-ty", label: "Tất cả doanh nghiệp" },
     ],
   },
+  {
+    href: "/chia-se",
+    label: "Chia sẻ",
+    icon: Briefcase,
+  },
 ];
 
 export function PublicHeader() {

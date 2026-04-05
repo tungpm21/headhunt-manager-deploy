@@ -9,6 +9,10 @@ const footerLinks = {
   employer: [
     { href: "/employer/register", label: "Đăng tin tuyển dụng" },
     { href: "/employer/login", label: "Đăng nhập NTD" },
+    { href: "/lien-he", label: "Liên hệ tư vấn" },
+  ],
+  blog: [
+    { href: "/chia-se", label: "Tất cả bài viết" },
   ],
   byLocation: [
     { href: "/viec-lam?location=H%C3%A0+N%E1%BB%99i", label: "Việc làm Hà Nội" },
@@ -30,7 +34,7 @@ export function PublicFooter() {
   return (
     <footer className="bg-[var(--color-fdi-dark)] text-sky-100">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-8 lg:gap-10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 lg:gap-8">
           {/* About */}
           <div className="sm:col-span-2 md:col-span-1">
             <Link href="/" className="flex items-center gap-2 mb-4 cursor-pointer">
@@ -61,6 +65,21 @@ export function PublicFooter() {
                 <MapPin className="h-4 w-4 shrink-0" />
                 <span>TP. Hồ Chí Minh, Việt Nam</span>
               </div>
+            </div>
+            {/* Zalo */}
+            <div className="mt-4 flex items-center gap-3">
+              <a
+                href="https://zalo.me/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-600 text-white text-xs font-medium hover:bg-blue-700 transition-colors cursor-pointer"
+              >
+                <svg className="h-4 w-4" viewBox="0 0 48 48" fill="currentColor">
+                  <path d="M24 2C11.8 2 2 11.8 2 24s9.8 22 22 22 22-9.8 22-22S36.2 2 24 2zm0 40c-9.9 0-18-8.1-18-18S14.1 6 24 6s18 8.1 18 18-8.1 18-18 18z" />
+                  <path d="M24 10c-7.7 0-14 6.3-14 14 0 3.7 1.5 7.1 3.9 9.6L12 38l4.7-1.5c2.3 1.2 4.7 1.8 7.3 1.8 7.7 0 14-6.3 14-14S31.7 10 24 10z" />
+                </svg>
+                Zalo
+              </a>
             </div>
           </div>
 
@@ -96,6 +115,28 @@ export function PublicFooter() {
             </h3>
             <ul className="space-y-2.5">
               {footerLinks.employer.map((link) => (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    className="text-sm text-sky-200/70 hover:text-white transition-colors cursor-pointer"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Blog Links */}
+          <div>
+            <h3
+              className="text-sm font-semibold text-white uppercase tracking-wider mb-4"
+              style={{ fontFamily: "var(--font-heading)" }}
+            >
+              Thông tin chia sẻ
+            </h3>
+            <ul className="space-y-2.5">
+              {footerLinks.blog.map((link) => (
                 <li key={link.href}>
                   <Link
                     href={link.href}

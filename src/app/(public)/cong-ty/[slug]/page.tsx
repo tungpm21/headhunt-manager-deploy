@@ -77,7 +77,7 @@ export default async function CompanyProfilePage({ params }: PageProps) {
       </div>
 
       {/* Cover image — taller, rounded corners */}
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-4">
+      <div className="px-4 sm:px-6 lg:px-8 pt-4">
         <div className="relative h-72 sm:h-80 lg:h-96 rounded-2xl overflow-hidden shadow-lg">
           {company.coverImage ? (
             <img

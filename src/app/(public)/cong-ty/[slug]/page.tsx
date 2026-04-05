@@ -77,7 +77,7 @@ export default async function CompanyProfilePage({ params }: PageProps) {
       </div>
 
       {/* Cover image / gradient banner */}
-      <div className="relative h-56 sm:h-72 overflow-hidden">
+      <div className="relative h-64 sm:h-80 overflow-hidden">
         {company.coverImage ? (
           <img
             src={company.coverImage}
@@ -93,35 +93,38 @@ export default async function CompanyProfilePage({ params }: PageProps) {
         )}
       </div>
 
-      {/* Logo overlaid on cover — bottom-left */}
+      {/* Logo + Company info — stacked, no overlap collision */}
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="relative -mt-12 mb-4 flex items-end gap-5">
-          <div className="h-24 w-24 rounded-2xl bg-white ring-[5px] ring-white shadow-lg flex items-center justify-center shrink-0 overflow-hidden">
-            <LogoImage src={company.logo} alt={company.companyName} className="h-full w-full object-contain p-2" iconSize="h-10 w-10" />
+        {/* Logo — overlaps cover edge */}
+        <div className="-mt-14">
+          <div className="h-24 w-24 sm:h-28 sm:w-28 rounded-2xl bg-white ring-[5px] ring-white shadow-lg flex items-center justify-center overflow-hidden">
+            <LogoImage src={company.logo} alt={company.companyName} className="h-full w-full object-contain p-2.5" iconSize="h-10 w-10" />
           </div>
-          <div className="pb-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h1
-                className="text-xl sm:text-2xl font-bold text-[var(--color-fdi-text)]"
-                style={{ fontFamily: "var(--font-heading)" }}
-              >
-                {company.companyName}
-              </h1>
-              {badge && (
-                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${badge.className}`}>
-                  {badge.label}
-                </span>
-              )}
-            </div>
-            <div className="flex items-center gap-3 mt-0.5 text-sm text-[var(--color-fdi-text-secondary)]">
-              {company.industry && <span>{company.industry}</span>}
-              {company.jobPostings.length > 0 && (
-                <span className="flex items-center gap-1 text-[var(--color-fdi-primary)] font-medium">
-                  <Briefcase className="h-3.5 w-3.5" />
-                  {company.jobPostings.length} vị trí đang tuyển
-                </span>
-              )}
-            </div>
+        </div>
+
+        {/* Company name + meta — below logo, no overlap */}
+        <div className="mt-3 mb-4">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h1
+              className="text-xl sm:text-2xl font-bold text-[var(--color-fdi-text)]"
+              style={{ fontFamily: "var(--font-heading)" }}
+            >
+              {company.companyName}
+            </h1>
+            {badge && (
+              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${badge.className}`}>
+                {badge.label}
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-3 mt-1 text-sm text-[var(--color-fdi-text-secondary)]">
+            {company.industry && <span>{company.industry}</span>}
+            {company.jobPostings.length > 0 && (
+              <span className="flex items-center gap-1 text-[var(--color-fdi-primary)] font-medium">
+                <Briefcase className="h-3.5 w-3.5" />
+                {company.jobPostings.length} vị trí đang tuyển
+              </span>
+            )}
           </div>
         </div>
       </div>

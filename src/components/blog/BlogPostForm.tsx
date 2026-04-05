@@ -42,7 +42,7 @@ export function BlogPostForm({ post }: { post?: BlogPostData }) {
                 : await createBlogPost(formData);
 
             if ("error" in result) {
-                setMessage({ type: "error", text: result.error });
+                setMessage({ type: "error", text: result.error ?? "Đã có lỗi xảy ra." });
                 return;
             }
 
@@ -77,8 +77,8 @@ export function BlogPostForm({ post }: { post?: BlogPostData }) {
             {message && (
                 <div
                     className={`flex items-center gap-3 rounded-xl border p-4 ${message.type === "success"
-                            ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-                            : "border-red-200 bg-red-50 text-red-700"
+                        ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                        : "border-red-200 bg-red-50 text-red-700"
                         }`}
                 >
                     <p className="text-sm">{message.text}</p>
@@ -213,8 +213,8 @@ export function BlogPostForm({ post }: { post?: BlogPostData }) {
                         type="button"
                         onClick={() => setIsPublished(!isPublished)}
                         className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium border transition cursor-pointer ${isPublished
-                                ? "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-                                : "border-border text-muted hover:bg-surface"
+                            ? "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                            : "border-border text-muted hover:bg-surface"
                             }`}
                     >
                         {isPublished ? (

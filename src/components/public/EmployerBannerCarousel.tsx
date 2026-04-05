@@ -37,7 +37,7 @@ export function EmployerBannerCarousel({ employers }: EmployerBannerCarouselProp
 
   return (
     <section
-      className="w-full bg-[var(--color-fdi-dark)] py-6 sm:py-8"
+      className="w-full bg-gradient-to-b from-[var(--color-fdi-primary)] to-[#004A87] py-10 sm:py-16 lg:py-20"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       onFocus={() => setPaused(true)}
@@ -47,9 +47,9 @@ export function EmployerBannerCarousel({ employers }: EmployerBannerCarouselProp
       {/* Centered container — equal padding on both sides */}
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Banner card — rounded, overflow hidden */}
-        <div className="relative rounded-2xl overflow-hidden bg-white shadow-xl">
+        <div className="relative rounded-2xl overflow-hidden bg-white shadow-2xl">
           {/* Image area — aspect ratio controlled */}
-          <div className="relative h-[220px] sm:h-[300px] lg:h-[380px] w-full">
+          <div className="relative h-[250px] sm:h-[350px] lg:h-[450px] xl:h-[500px] w-full">
             {employer.coverImage ? (
               <img
                 src={employer.coverImage}
@@ -85,7 +85,7 @@ export function EmployerBannerCarousel({ employers }: EmployerBannerCarouselProp
           <div className="px-5 py-4 sm:px-6 sm:py-5 flex items-center justify-between gap-4">
             {/* Logo + Company info */}
             <div className="flex items-end gap-4 min-w-0 relative">
-              <div className="h-20 w-20 sm:h-28 sm:w-28 rounded-xl bg-white border border-gray-100 shadow-md flex items-center justify-center shrink-0 overflow-hidden relative -mt-10 sm:-mt-16 z-10">
+              <div className="h-20 w-20 sm:h-28 sm:w-28 rounded-xl bg-white border border-gray-100 shadow-md flex items-center justify-center shrink-0 overflow-hidden relative -mt-12 sm:-mt-20 z-10">
                 <LogoImage
                   src={employer.logo}
                   alt={employer.companyName}

@@ -53,7 +53,7 @@ export function TopEmployers({ employers }: TopEmployersProps) {
   };
 
   return (
-    <section className="py-16 lg:py-20 bg-[var(--color-fdi-surface)]">
+    <section className="py-16 lg:py-20 bg-gradient-to-b from-[#EDF5FF] to-white">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Heading + nav arrows */}
         <div className="flex items-end justify-between mb-8">
@@ -112,13 +112,13 @@ export function TopEmployers({ employers }: TopEmployersProps) {
                 className="group block cursor-pointer snap-start shrink-0"
               >
                 <div className="w-[200px] sm:w-[220px] rounded-2xl border border-gray-200 overflow-hidden transition-all duration-300 ease-out hover:shadow-xl hover:-translate-y-1 hover:border-[var(--color-fdi-primary)] bg-white">
-                  {/* Logo zone — light blue background */}
-                  <div className="h-[140px] sm:h-[160px] bg-[#F0F7FF] flex items-center justify-center p-5 border-b border-gray-100">
+                  {/* Logo zone — full bleed */}
+                  <div className="h-[140px] sm:h-[160px] bg-white flex items-center justify-center border-b border-gray-100">
                     <LogoImage
                       src={employer.logo}
                       alt={employer.companyName}
-                      className="max-h-[110px] max-w-[160px] object-contain"
-                      iconSize="h-14 w-14"
+                      className="h-full w-full object-contain p-3"
+                      iconSize="h-16 w-16"
                     />
                   </div>
 
@@ -134,20 +134,6 @@ export function TopEmployers({ employers }: TopEmployersProps) {
                         {jobCount > 0 ? `${jobCount} VIỆC MỚI` : "VIỆC MỚI"}
                       </span>
                     </div>
-
-                    {/* Tier badge */}
-                    {badge && (
-                      <div className="mt-2">
-                        <span
-                          className={`inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-medium ${badge.className}`}
-                        >
-                          {employer.subscription?.tier === "VIP" && (
-                            <Crown className="h-2.5 w-2.5" />
-                          )}
-                          {badge.label}
-                        </span>
-                      </div>
-                    )}
                   </div>
                 </div>
               </Link>

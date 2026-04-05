@@ -6,6 +6,7 @@ import {
   Briefcase,
   Building2,
   FileDown,
+  FileText,
   LayoutDashboard,
   type LucideIcon,
   LogOut,
@@ -56,6 +57,7 @@ const fdiworkNav: SidebarNavItem[] = [
     badgeKey: "pendingEmployers",
   },
   { name: "Gói dịch vụ", href: "/packages", icon: Package },
+  { name: "Bài viết", href: "/blog", icon: FileText },
 ];
 
 export function Sidebar({

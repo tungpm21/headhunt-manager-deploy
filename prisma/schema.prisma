@@ -532,3 +532,20 @@ model Application {
   @@index([email])
   @@unique([jobPostingId, email])
 }
+
+model BlogPost {
+  id          Int      @id @default(autoincrement())
+  title       String
+  slug        String   @unique
+  excerpt     String
+  content     String
+  category    String
+  emoji       String   @default("📝")
+  isPublished Boolean  @default(false)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isPublished, sortOrder])
+  @@index([slug])
+}

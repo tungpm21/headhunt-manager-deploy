@@ -64,9 +64,8 @@ export function SearchAutocompleteDropdown({
                 type="button"
                 onClick={() => onSelectEmployer(emp.slug)}
                 onMouseEnter={() => onHoverIndex(idx)}
-                className={`w-full flex items-center gap-3 px-2 py-2 rounded-lg cursor-pointer transition-colors ${
-                  activeIndex === idx ? "bg-[var(--color-fdi-surface)]" : "hover:bg-gray-50"
-                }`}
+                className={`w-full flex items-center gap-3 px-2 py-2 rounded-lg cursor-pointer transition-colors ${activeIndex === idx ? "bg-[var(--color-fdi-surface)]" : "hover:bg-gray-50"
+                  }`}
               >
                 <div className="h-9 w-9 rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-center overflow-hidden shrink-0">
                   <LogoImage
@@ -95,7 +94,7 @@ export function SearchAutocompleteDropdown({
 
       {/* Job suggestions */}
       {hasJobs && (
-        <div className={`px-3 pb-1 ${hasEmployers ? "pt-1 border-t border-gray-50" : "pt-3"}`}>
+        <div className={`px-3 pb-1 ${hasEmployers ? "pt-3 border-t-4 border-gray-50/80" : "pt-3"}`}>
           <p className="px-1 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
             Việc làm bạn sẽ thích
           </p>
@@ -107,9 +106,8 @@ export function SearchAutocompleteDropdown({
                 type="button"
                 onClick={() => onSelectJob(job.slug)}
                 onMouseEnter={() => onHoverIndex(idx)}
-                className={`w-full flex items-center gap-3 px-2 py-2 rounded-lg cursor-pointer transition-colors ${
-                  activeIndex === idx ? "bg-[var(--color-fdi-surface)]" : "hover:bg-gray-50"
-                }`}
+                className={`w-full flex items-center gap-3 px-2 py-2 rounded-lg cursor-pointer transition-colors ${activeIndex === idx ? "bg-[var(--color-fdi-surface)]" : "hover:bg-gray-50"
+                  }`}
               >
                 <div className="h-9 w-9 rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-center overflow-hidden shrink-0">
                   <LogoImage
@@ -126,7 +124,7 @@ export function SearchAutocompleteDropdown({
                   <div className="flex items-center gap-2 text-xs text-gray-400 truncate">
                     <span className="truncate">{job.employer.companyName}</span>
                     {job.salaryDisplay && (
-                      <span className="text-red-500 font-medium shrink-0">
+                      <span className="text-[var(--color-fdi-accent-orange)] font-bold shrink-0">
                         {job.salaryDisplay}
                       </span>
                     )}
@@ -164,11 +162,10 @@ export function SearchAutocompleteDropdown({
                   type="button"
                   onClick={() => onSelectKeyword(kw)}
                   onMouseEnter={() => onHoverIndex(idx)}
-                  className={`px-3 py-1 rounded-full text-xs font-medium cursor-pointer transition-colors ${
-                    activeIndex === idx
+                  className={`px-3 py-1 rounded-full text-xs font-medium cursor-pointer transition-colors ${activeIndex === idx
                       ? "bg-[var(--color-fdi-primary)] text-white"
                       : "bg-gray-100 text-gray-600 hover:bg-[var(--color-fdi-primary)]/10 hover:text-[var(--color-fdi-primary)]"
-                  }`}
+                    }`}
                 >
                   {kw}
                 </button>

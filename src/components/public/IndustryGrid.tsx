@@ -50,7 +50,7 @@ export function IndustryGrid({ industries }: IndustryGridProps) {
         </div>
 
         {/* Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-4 shadow-[0_0_15px_-3px_rgba(0,0,0,0.05)] rounded-2xl bg-white p-4">
           {industries.map((item) => {
             const Icon = industryIcons[item.industry] || BriefcaseBusiness;
             return (
@@ -59,16 +59,16 @@ export function IndustryGrid({ industries }: IndustryGridProps) {
                 href={`/viec-lam?industry=${encodeURIComponent(item.industry)}`}
                 className="group block cursor-pointer"
               >
-                <div className="flex items-center gap-4 p-5 rounded-xl border border-gray-100 bg-white transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 hover:border-[var(--color-fdi-primary)]/20">
-                  <div className="h-12 w-12 rounded-xl bg-[var(--color-fdi-surface)] flex items-center justify-center shrink-0 group-hover:bg-[var(--color-fdi-primary)]/10 transition-colors">
-                    <Icon className="h-6 w-6 text-[var(--color-fdi-primary)]" />
+                <div className="flex flex-col items-center justify-center gap-4 p-6 rounded-2xl border border-transparent bg-white hover:border-gray-200 hover:shadow-xl transition-all duration-300">
+                  <div className="h-20 w-20 rounded-full bg-[#F2F8FF] flex items-center justify-center shrink-0 group-hover:bg-[#E8F3FF] group-hover:scale-105 transition-transform">
+                    <Icon className="h-10 w-10 text-[#005A9E]" />
                   </div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold text-[var(--color-fdi-text)] group-hover:text-[var(--color-fdi-primary)] transition-colors">
+                  <div className="text-center">
+                    <p className="text-sm font-bold text-[var(--color-fdi-text)] group-hover:text-[var(--color-fdi-accent-orange)] transition-colors uppercase leading-snug h-10 flex items-center justify-center">
                       {item.industry}
                     </p>
-                    <p className="text-xs text-[var(--color-fdi-text-secondary)] mt-0.5">
-                      {item.count} việc làm
+                    <p className="text-sm text-gray-500 font-medium whitespace-nowrap mt-2">
+                      {item.count} Việc Làm
                     </p>
                   </div>
                 </div>

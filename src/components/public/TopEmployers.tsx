@@ -111,36 +111,28 @@ export function TopEmployers({ employers }: TopEmployersProps) {
                 href={`/cong-ty/${employer.slug}`}
                 className="group block cursor-pointer snap-start"
               >
-                <div className="w-[180px] sm:w-[200px] bg-white rounded-xl p-4 text-center transition-all duration-300 ease-out hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] hover:-translate-y-1 hover:border-[var(--color-fdi-accent-orange)]/30 border border-gray-100 shrink-0">
-                  {/* Logo — 96px, prominent like VietnamWorks */}
-                  <div className="mx-auto h-24 w-24 rounded-xl bg-[var(--color-fdi-surface)] flex items-center justify-center overflow-hidden mb-3 border border-gray-50">
+                <div className="w-[180px] sm:w-[200px] bg-white rounded-xl p-4 flex flex-col items-center justify-between text-center transition-all duration-300 ease-out hover:shadow-xl hover:-translate-y-1 hover:border-[var(--color-fdi-primary)] border border-gray-200 shrink-0 h-[220px]">
+                  {/* Logo Center */}
+                  <div className="flex-1 flex items-center justify-center w-full mb-3">
                     <LogoImage
                       src={employer.logo}
                       alt={employer.companyName}
-                      className="h-full w-full object-contain p-2.5"
-                      iconSize="h-9 w-9"
+                      className="max-h-[80px] max-w-full object-contain p-1"
+                      iconSize="h-10 w-10"
                     />
                   </div>
 
-                  {/* Name */}
-                  <p className="text-sm font-semibold text-[var(--color-fdi-text)] line-clamp-2 mb-1 group-hover:text-[var(--color-fdi-accent-orange)] transition-colors leading-tight min-h-[2.5rem]">
+                  {/* Name Optional (Fallback) */}
+                  <p className="text-xs font-semibold text-[var(--color-fdi-text)] line-clamp-1 mb-3 group-hover:text-[var(--color-fdi-primary)] transition-colors w-full uppercase">
                     {employer.companyName}
                   </p>
 
-                  {/* Industry */}
-                  {employer.industry && (
-                    <p className="text-[10px] text-[var(--color-fdi-text-secondary)] line-clamp-1 mb-2">
-                      {employer.industry}
-                    </p>
-                  )}
-
-                  {/* Job count */}
-                  {jobCount > 0 && (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[var(--color-fdi-surface)] text-[10px] font-medium text-[var(--color-fdi-primary)] mb-2">
-                      <Briefcase className="h-2.5 w-2.5" />
-                      {jobCount} việc làm
+                  {/* VietnamWorks Style Badge */}
+                  <div className="w-full mt-auto">
+                    <span className="inline-block px-5 py-2 whitespace-nowrap bg-[#E8F3FF] text-[var(--color-fdi-accent-orange)] group-hover:bg-[var(--color-fdi-accent-orange)] group-hover:text-white transition-all text-xs font-bold rounded-lg uppercase w-full max-w-[140px]">
+                      {jobCount > 0 ? `${jobCount} VIỆC MỚI` : "VIỆC MỚI"}
                     </span>
-                  )}
+                  </div>
 
                   {/* Tier badge */}
                   {badge && (

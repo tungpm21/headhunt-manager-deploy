@@ -94,7 +94,7 @@ export default async function CompanyProfilePage({ params }: PageProps) {
       </div>
 
       {/* Logo + Company info — stacked, no overlap collision */}
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Logo — overlaps cover edge */}
         <div className="-mt-14">
           <div className="h-24 w-24 sm:h-28 sm:w-28 rounded-2xl bg-white ring-[5px] ring-white shadow-lg flex items-center justify-center overflow-hidden">

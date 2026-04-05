@@ -19,8 +19,23 @@ export async function GET(req: NextRequest) {
   const now = new Date();
 
   if (!q) {
+    // Return top employers (VIP/Premium first) even on empty query
+    const topEmployers = await prisma.employer.findMany({
+      where: { status: "ACTIVE" },
+      select: {
+        id: true,
+        companyName: true,
+        logo: true,
+        slug: true,
+        industry: true,
+        subscription: { select: { tier: true } },
+      },
+      orderBy: [{ subscription: { tier: "asc" } }, { companyName: "asc" }],
+      take: 5,
+    });
+
     return NextResponse.json(
-      { employers: [], jobs: [], popularKeywords: POPULAR_KEYWORDS },
+      { employers: topEmployers, jobs: [], popularKeywords: POPULAR_KEYWORDS },
       { headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=120" } }
     );
   }

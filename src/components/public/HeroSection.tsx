@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Search, MapPin, TrendingUp } from "lucide-react";
+import { Search, MapPin, TrendingUp, ChevronDown } from "lucide-react";
 import { useSearchSuggestions } from "@/hooks/useSearchSuggestions";
 import { SearchAutocompleteDropdown } from "@/components/public/SearchAutocompleteDropdown";
 
@@ -24,8 +24,34 @@ export function HeroSection({ totalJobs, totalEmployers }: HeroSectionProps) {
   const router = useRouter();
   const search = useSearchSuggestions();
   const [location, setLocation] = useState("");
+  const [locationOpen, setLocationOpen] = useState(false);
+  const [locations, setLocations] = useState<string[]>([]);
   const [expanded, setExpanded] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const locationRef = useRef<HTMLDivElement>(null);
+
+  // Fetch available locations once
+  useEffect(() => {
+    fetch("/api/public/locations")
+      .then((r) => r.json())
+      .then((data) => setLocations(data.locations ?? []))
+      .catch(() => { });
+  }, []);
+
+  // Close location dropdown on outside click
+  useEffect(() => {
+    function onDown(e: MouseEvent) {
+      if (locationRef.current && !locationRef.current.contains(e.target as Node)) {
+        setLocationOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", onDown);
+    return () => document.removeEventListener("mousedown", onDown);
+  }, []);
+
+  const filteredLocations = locations.filter((l) =>
+    l.toLowerCase().includes(location.toLowerCase())
+  );
 
   // Listen for expand event from PublicHeader
   useEffect(() => {
@@ -124,16 +150,35 @@ export function HeroSection({ totalJobs, totalEmployers }: HeroSectionProps) {
               )}
             </div>
 
-            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-50 sm:w-44">
+            <div ref={locationRef} className="relative flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-50 sm:w-52">
               <MapPin className="h-5 w-5 text-gray-400 shrink-0" />
               <input
                 type="text"
                 value={location}
-                onChange={(e) => setLocation(e.target.value)}
+                onChange={(e) => { setLocation(e.target.value); setLocationOpen(true); }}
+                onFocus={() => setLocationOpen(true)}
                 placeholder="Địa điểm"
-                className="flex-1 bg-transparent text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-accent-orange)]/50 focus-visible:rounded"
+                className="flex-1 bg-transparent text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none"
                 style={{ fontFamily: "var(--font-body)" }}
               />
+              <ChevronDown className={`h-4 w-4 text-gray-400 shrink-0 transition-transform cursor-pointer ${locationOpen ? "rotate-180" : ""}`} onClick={() => setLocationOpen(!locationOpen)} />
+
+              {/* Location dropdown */}
+              {locationOpen && filteredLocations.length > 0 && (
+                <div className="absolute top-full left-0 right-0 mt-1.5 bg-white rounded-xl border border-gray-100 shadow-xl z-50 max-h-60 overflow-y-auto py-1">
+                  {filteredLocations.map((loc) => (
+                    <button
+                      key={loc}
+                      type="button"
+                      onClick={() => { setLocation(loc); setLocationOpen(false); }}
+                      className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-[var(--color-fdi-surface)] hover:text-[var(--color-fdi-primary)] transition-colors cursor-pointer"
+                    >
+                      <MapPin className="h-3 w-3 inline mr-2 text-gray-400" />
+                      {loc}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
             <button
               type="submit"

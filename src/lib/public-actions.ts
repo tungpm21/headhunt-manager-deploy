@@ -57,14 +57,14 @@ export async function getHomepageData(): Promise<HomepageData> {
 
   const [featuredJobs, bannerEmployers, allActiveEmployers, industryGroups, totalJobs, totalEmployers] =
     await Promise.all([
-      // 8 latest APPROVED jobs not expired
+      // 18 latest APPROVED jobs (9 per carousel page)
       prisma.jobPosting.findMany({
         where: {
           status: "APPROVED",
           OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
         },
         orderBy: [{ isFeatured: "desc" }, { publishedAt: "desc" }],
-        take: 8,
+        take: 18,
         select: {
           id: true,
           title: true,

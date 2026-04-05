@@ -147,7 +147,7 @@ export function PublicHeader() {
                 onFocus={search.handleFocus}
                 onKeyDown={search.handleKeyDown}
                 placeholder="Tìm việc làm, công ty..."
-                className="w-full pl-9 pr-3 py-2 rounded-full border border-gray-200 text-sm bg-gray-50 text-[var(--color-fdi-text)] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[var(--color-fdi-primary)]/30 focus:border-[var(--color-fdi-primary)] transition-all"
+                className="w-full pl-9 pr-3 py-2 rounded-full border border-gray-200 text-sm bg-gray-50 text-[var(--color-fdi-text)] placeholder-gray-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-accent-orange)]/50 focus-visible:border-[var(--color-fdi-accent-orange)] transition-all"
                 autoComplete="off"
               />
             </div>
@@ -161,7 +161,7 @@ export function PublicHeader() {
               onSelectEmployer={(slug) => search.navigateTo("employer", slug)}
               onSelectJob={(slug) => search.navigateTo("job", slug)}
               onSelectKeyword={(kw) => search.navigateTo("keyword", kw)}
-              onHoverIndex={() => {}}
+              onHoverIndex={() => { }}
             />
           )}
         </div>
@@ -176,7 +176,7 @@ export function PublicHeader() {
           </Link>
           <Link
             href="/employer/register"
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[var(--color-fdi-primary)] text-white text-sm font-semibold hover:bg-[var(--color-fdi-primary-hover)] transition-all hover:-translate-y-0.5 cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[var(--color-fdi-accent-orange)] text-white text-sm font-semibold hover:bg-[#E65C00] transition-transform duration-300 ease-out hover:-translate-y-0.5 hover:shadow-md cursor-pointer"
           >
             <UserPlus className="h-4 w-4" />
             Đăng tin tuyển dụng
@@ -209,7 +209,7 @@ export function PublicHeader() {
                 value={search.query}
                 onChange={(e) => search.setQuery(e.target.value)}
                 placeholder="Tìm việc làm, công ty..."
-                className="w-full pl-9 pr-3 py-2.5 rounded-lg border border-gray-200 text-sm bg-gray-50 text-[var(--color-fdi-text)] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[var(--color-fdi-primary)]/30"
+                className="w-full pl-9 pr-3 py-2.5 rounded-lg border border-gray-200 text-sm bg-gray-50 text-[var(--color-fdi-text)] placeholder-gray-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-accent-orange)]/50"
                 autoComplete="off"
               />
             </div>
@@ -253,7 +253,7 @@ export function PublicHeader() {
               <Link
                 href="/employer/register"
                 onClick={() => setMobileOpen(false)}
-                className="block px-3 py-2.5 text-sm font-semibold text-[var(--color-fdi-primary)] cursor-pointer"
+                className="block px-3 py-2.5 text-sm font-semibold text-[var(--color-fdi-accent-orange)] cursor-pointer"
               >
                 Đăng tin tuyển dụng
               </Link>

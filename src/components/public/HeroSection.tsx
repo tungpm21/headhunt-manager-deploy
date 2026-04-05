@@ -70,7 +70,7 @@ export function HeroSection({ totalJobs, totalEmployers }: HeroSectionProps) {
         {/* Search Bar */}
         <form
           onSubmit={handleSearch}
-          className="mx-auto max-w-2xl bg-white rounded-2xl shadow-xl p-2 flex flex-col sm:flex-row gap-2"
+          className="mx-auto max-w-2xl bg-white rounded-xl shadow-2xl p-2 flex flex-col sm:flex-row gap-2 transform relative z-10"
         >
           {/* Keyword input with autocomplete */}
           <div ref={search.containerRef} className="relative flex-1">
@@ -83,7 +83,7 @@ export function HeroSection({ totalJobs, totalEmployers }: HeroSectionProps) {
                 onFocus={search.handleFocus}
                 onKeyDown={search.handleKeyDown}
                 placeholder="Vị trí, kỹ năng, công ty..."
-                className="flex-1 bg-transparent text-sm text-gray-900 placeholder:text-gray-400 outline-none"
+                className="flex-1 bg-transparent text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-accent-orange)]/50 focus-visible:rounded"
                 style={{ fontFamily: "var(--font-body)" }}
                 autoComplete="off"
               />
@@ -97,7 +97,7 @@ export function HeroSection({ totalJobs, totalEmployers }: HeroSectionProps) {
                 onSelectEmployer={(slug) => search.navigateTo("employer", slug)}
                 onSelectJob={(slug) => search.navigateTo("job", slug)}
                 onSelectKeyword={(kw) => search.navigateTo("keyword", kw)}
-                onHoverIndex={() => {}}
+                onHoverIndex={() => { }}
               />
             )}
           </div>
@@ -109,13 +109,13 @@ export function HeroSection({ totalJobs, totalEmployers }: HeroSectionProps) {
               value={location}
               onChange={(e) => setLocation(e.target.value)}
               placeholder="Địa điểm"
-              className="flex-1 bg-transparent text-sm text-gray-900 placeholder:text-gray-400 outline-none"
+              className="flex-1 bg-transparent text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-accent-orange)]/50 focus-visible:rounded"
               style={{ fontFamily: "var(--font-body)" }}
             />
           </div>
           <button
             type="submit"
-            className="px-6 py-3 rounded-full bg-[var(--color-fdi-primary)] text-white font-semibold text-sm hover:bg-[var(--color-fdi-primary-hover)] transition-all hover:-translate-y-0.5 cursor-pointer shrink-0"
+            className="px-8 py-3 rounded-xl bg-[var(--color-fdi-accent-orange)] text-white font-semibold text-sm hover:bg-[#E65C00] transition-transform duration-300 ease-out hover:-translate-y-1 hover:shadow-lg cursor-pointer shrink-0"
           >
             Tìm kiếm
           </button>

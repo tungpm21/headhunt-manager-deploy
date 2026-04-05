@@ -39,14 +39,18 @@
   --radius-lg: 12px;
 
   /* Shadows */
-  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1);
-  --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 
   /* ===== FDIWork Public Website ===== */
   --color-fdi-primary: #0077B6;
   --color-fdi-primary-hover: #005F91;
   --color-fdi-accent: #00B4D8;
+  --color-fdi-accent-orange: #FF6600;
+  /* VietnamWorks inspired */
+  --color-fdi-accent-red: #E11D48;
+  --color-fdi-dark: #023E8A;
   --color-fdi-dark: #023E8A;
   --color-fdi-surface: #F0F9FF;
   --color-fdi-text: #0F172A;
@@ -67,9 +71,9 @@
   --color-foreground: #F1F5F9;
   --color-muted: #94A3B8;
   --color-placeholder: #64748B;
-  --shadow-sm: 0 1px 2px rgba(0,0,0,0.2);
-  --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.3);
-  --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.3);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
 }
 
 /* Base styles */
@@ -77,6 +81,15 @@ body {
   background: var(--color-background);
   color: var(--color-foreground);
   font-family: var(--font-inter, 'Inter', system-ui, sans-serif);
+  /* Typography enhancements */
+  text-rendering: optimizeLegibility;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Accessibility Global override */
+*:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 /* Smooth transitions for theme toggle */
@@ -84,8 +97,8 @@ body {
 *::before,
 *::after {
   transition: background-color 200ms ease-in-out,
-              border-color 200ms ease-in-out,
-              color 200ms ease-in-out;
+    border-color 200ms ease-in-out,
+    color 200ms ease-in-out;
 }
 
 /* Scrollbar styling */

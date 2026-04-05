@@ -23,9 +23,9 @@ export function JobCard({ job }: JobCardProps) {
   return (
     <Link href={`/viec-lam/${job.slug}`} className="group block cursor-pointer">
       <article
-        className={`relative bg-white rounded-xl border p-5 transition-all duration-200 hover:shadow-lg hover:-translate-y-1 hover:border-[var(--color-fdi-primary)]/20 ${job.isFeatured
-            ? "border-amber-200 border-l-[3px] border-l-amber-400"
-            : "border-gray-100"
+        className={`relative bg-white rounded-xl border p-4 transition-all duration-300 ease-out hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:-translate-y-1 hover:border-[var(--color-fdi-accent-orange)]/30 ${job.isFeatured
+          ? "border-amber-200 border-l-[3px] border-l-amber-400"
+          : "border-gray-100"
           }`}
       >
         {/* Featured badge */}
@@ -43,7 +43,7 @@ export function JobCard({ job }: JobCardProps) {
           </div>
           <div className="min-w-0">
             <h3
-              className="text-sm font-semibold text-[var(--color-fdi-text)] line-clamp-1 group-hover:text-[var(--color-fdi-primary)] transition-colors"
+              className="text-sm font-semibold text-[var(--color-fdi-text)] line-clamp-1 group-hover:text-[var(--color-fdi-accent-orange)] transition-colors"
               style={{ fontFamily: "var(--font-heading)" }}
             >
               {job.title}

@@ -78,7 +78,7 @@ export function TopEmployers({ employers }: TopEmployersProps) {
               onClick={() => scroll("left")}
               disabled={!canScrollLeft}
               aria-label="Cuộn trái"
-              className="h-9 w-9 rounded-full border border-gray-200 bg-white flex items-center justify-center hover:border-[var(--color-fdi-primary)] hover:text-[var(--color-fdi-primary)] transition-colors cursor-pointer shadow-sm disabled:opacity-30 disabled:cursor-not-allowed"
+              className="h-9 w-9 rounded-full border border-gray-200 bg-white flex items-center justify-center hover:border-[var(--color-fdi-accent-orange)] hover:text-[var(--color-fdi-accent-orange)] transition-colors cursor-pointer shadow-sm disabled:opacity-30 disabled:cursor-not-allowed"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
@@ -86,7 +86,7 @@ export function TopEmployers({ employers }: TopEmployersProps) {
               onClick={() => scroll("right")}
               disabled={!canScrollRight}
               aria-label="Cuộn phải"
-              className="h-9 w-9 rounded-full border border-gray-200 bg-white flex items-center justify-center hover:border-[var(--color-fdi-primary)] hover:text-[var(--color-fdi-primary)] transition-colors cursor-pointer shadow-sm disabled:opacity-30 disabled:cursor-not-allowed"
+              className="h-9 w-9 rounded-full border border-gray-200 bg-white flex items-center justify-center hover:border-[var(--color-fdi-accent-orange)] hover:text-[var(--color-fdi-accent-orange)] transition-colors cursor-pointer shadow-sm disabled:opacity-30 disabled:cursor-not-allowed"
             >
               <ChevronRight className="h-4 w-4" />
             </button>
@@ -111,7 +111,7 @@ export function TopEmployers({ employers }: TopEmployersProps) {
                 href={`/cong-ty/${employer.slug}`}
                 className="group block cursor-pointer snap-start"
               >
-                <div className="w-[180px] sm:w-[200px] bg-white rounded-2xl p-5 text-center transition-all duration-200 hover:shadow-md hover:-translate-y-1 border border-gray-100 shrink-0">
+                <div className="w-[180px] sm:w-[200px] bg-white rounded-xl p-4 text-center transition-all duration-300 ease-out hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] hover:-translate-y-1 hover:border-[var(--color-fdi-accent-orange)]/30 border border-gray-100 shrink-0">
                   {/* Logo — 96px, prominent like VietnamWorks */}
                   <div className="mx-auto h-24 w-24 rounded-xl bg-[var(--color-fdi-surface)] flex items-center justify-center overflow-hidden mb-3 border border-gray-50">
                     <LogoImage
@@ -123,7 +123,7 @@ export function TopEmployers({ employers }: TopEmployersProps) {
                   </div>
 
                   {/* Name */}
-                  <p className="text-sm font-semibold text-[var(--color-fdi-text)] line-clamp-2 mb-1 group-hover:text-[var(--color-fdi-primary)] transition-colors leading-tight min-h-[2.5rem]">
+                  <p className="text-sm font-semibold text-[var(--color-fdi-text)] line-clamp-2 mb-1 group-hover:text-[var(--color-fdi-accent-orange)] transition-colors leading-tight min-h-[2.5rem]">
                     {employer.companyName}
                   </p>
 

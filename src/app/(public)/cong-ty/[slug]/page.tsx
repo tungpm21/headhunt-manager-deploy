@@ -76,58 +76,74 @@ export default async function CompanyProfilePage({ params }: PageProps) {
         </div>
       </div>
 
-      {/* Cover image / gradient banner */}
-      <div className="relative h-64 sm:h-80 overflow-hidden">
-        {company.coverImage ? (
-          <img
-            src={company.coverImage}
-            alt={`${company.companyName} cover`}
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <div className="w-full h-full bg-gradient-to-r from-[var(--color-fdi-dark)] via-[#005A9E] to-[var(--color-fdi-primary)]" />
-        )}
-        {/* Dark overlay for gradient banners without cover */}
-        {company.coverImage && (
-          <div className="absolute inset-0 bg-black/10" />
-        )}
+      {/* Cover image — taller, rounded corners */}
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-4">
+        <div className="relative h-72 sm:h-80 lg:h-96 rounded-2xl overflow-hidden shadow-lg">
+          {company.coverImage ? (
+            <img
+              src={company.coverImage}
+              alt={`${company.companyName} cover`}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-r from-[var(--color-fdi-dark)] via-[#005A9E] to-[var(--color-fdi-primary)]" />
+          )}
+          {company.coverImage && (
+            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+          )}
+        </div>
       </div>
 
-      {/* Logo + Company info — stacked, no overlap collision */}
+      {/* Logo + Company info — floating overlapping card */}
       <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        {/* Logo — overlaps cover edge */}
-        <div className="-mt-14">
-          <div className="h-24 w-24 sm:h-28 sm:w-28 rounded-2xl bg-white ring-[5px] ring-white shadow-lg flex items-center justify-center overflow-hidden">
-            <LogoImage src={company.logo} alt={company.companyName} className="h-full w-full object-contain p-2.5" iconSize="h-10 w-10" />
+        <div className="-mt-16 sm:-mt-20 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+          {/* Left: Logo + Name */}
+          <div className="flex items-end gap-5">
+            {/* Logo — overlaps cover */}
+            <div className="h-28 w-28 sm:h-32 sm:w-32 rounded-2xl bg-white ring-[6px] ring-white shadow-xl flex items-center justify-center overflow-hidden shrink-0">
+              <LogoImage src={company.logo} alt={company.companyName} className="h-full w-full object-contain p-3" iconSize="h-12 w-12" />
+            </div>
+            <div className="pb-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1
+                  className="text-xl sm:text-2xl font-bold text-[var(--color-fdi-text)]"
+                  style={{ fontFamily: "var(--font-heading)" }}
+                >
+                  {company.companyName}
+                </h1>
+                {badge && (
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${badge.className}`}>
+                    {badge.label}
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-3 mt-1.5 text-sm text-[var(--color-fdi-text-secondary)]">
+                {company.industry && <span>{company.industry}</span>}
+                {company.jobPostings.length > 0 && (
+                  <span className="flex items-center gap-1 text-[var(--color-fdi-primary)] font-medium">
+                    <Briefcase className="h-3.5 w-3.5" />
+                    {company.jobPostings.length} vị trí đang tuyển
+                  </span>
+                )}
+              </div>
+            </div>
           </div>
-        </div>
 
-        {/* Company name + meta — below logo, no overlap */}
-        <div className="mt-3 mb-4">
-          <div className="flex items-center gap-2 flex-wrap">
-            <h1
-              className="text-xl sm:text-2xl font-bold text-[var(--color-fdi-text)]"
-              style={{ fontFamily: "var(--font-heading)" }}
+          {/* Right: Contact CTA */}
+          {(company.phone || company.website) && (
+            <a
+              href={company.phone ? `tel:${company.phone}` : company.website || "#"}
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[var(--color-fdi-primary)] text-white font-semibold text-sm hover:bg-[var(--color-fdi-dark)] transition-colors cursor-pointer shadow-lg self-start sm:self-auto shrink-0"
             >
-              {company.companyName}
-            </h1>
-            {badge && (
-              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${badge.className}`}>
-                {badge.label}
-              </span>
-            )}
-          </div>
-          <div className="flex items-center gap-3 mt-1 text-sm text-[var(--color-fdi-text-secondary)]">
-            {company.industry && <span>{company.industry}</span>}
-            {company.jobPostings.length > 0 && (
-              <span className="flex items-center gap-1 text-[var(--color-fdi-primary)] font-medium">
-                <Briefcase className="h-3.5 w-3.5" />
-                {company.jobPostings.length} vị trí đang tuyển
-              </span>
-            )}
-          </div>
+              <Phone className="h-4 w-4" />
+              Liên hệ với chúng tôi
+            </a>
+          )}
         </div>
       </div>
+
+      {/* Spacer */}
+      <div className="h-6" />
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-12">
         <div className="flex flex-col lg:flex-row gap-8">
@@ -160,10 +176,17 @@ export default async function CompanyProfilePage({ params }: PageProps) {
                 >
                   Vị trí đang tuyển ({company.jobPostings.length})
                 </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {company.jobPostings.map((job: HomepageJob) => (
-                    <JobCard key={job.id} job={job} />
-                  ))}
+                <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 divide-x divide-gray-100">
+                    {company.jobPostings.map((job: HomepageJob, i: number) => (
+                      <div
+                        key={job.id}
+                        className={`${i >= 2 ? "border-t border-gray-100" : ""}`}
+                      >
+                        <JobCard job={job} />
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             )}

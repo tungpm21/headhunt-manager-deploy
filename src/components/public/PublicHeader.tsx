@@ -144,7 +144,10 @@ export function PublicHeader() {
                 type="text"
                 value={search.query}
                 onChange={(e) => search.setQuery(e.target.value)}
-                onFocus={search.handleFocus}
+                onFocus={() => {
+                  search.handleFocus();
+                  window.dispatchEvent(new CustomEvent("fdiwork:expand-hero"));
+                }}
                 onKeyDown={search.handleKeyDown}
                 placeholder="Tìm việc làm, công ty..."
                 className="w-full pl-9 pr-3 py-2 rounded-full border border-gray-200 text-sm bg-gray-50 text-[var(--color-fdi-text)] placeholder-gray-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-accent-orange)]/50 focus-visible:border-[var(--color-fdi-accent-orange)] transition-all"

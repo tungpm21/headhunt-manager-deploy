@@ -37,7 +37,7 @@ export function EmployerBannerCarousel({ employers }: EmployerBannerCarouselProp
 
   return (
     <section
-      className="w-full bg-gradient-to-b from-[var(--color-fdi-primary)] to-[#004A87] py-10 sm:py-16 lg:py-20"
+      className="w-full bg-gradient-to-b from-[var(--color-fdi-dark)] via-[#005A9E] to-[var(--color-fdi-primary)] py-10 sm:py-16 lg:py-20"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       onFocus={() => setPaused(true)}

@@ -50,7 +50,7 @@ export function IndustryGrid({ industries }: IndustryGridProps) {
         </div>
 
         {/* Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-4 shadow-[0_0_15px_-3px_rgba(0,0,0,0.05)] rounded-2xl bg-white p-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-5 shadow-lg rounded-2xl bg-white p-6 border border-gray-100">
           {industries.map((item) => {
             const Icon = industryIcons[item.industry] || BriefcaseBusiness;
             return (
@@ -59,12 +59,12 @@ export function IndustryGrid({ industries }: IndustryGridProps) {
                 href={`/viec-lam?industry=${encodeURIComponent(item.industry)}`}
                 className="group block cursor-pointer"
               >
-                <div className="flex flex-col items-center justify-center gap-4 p-6 rounded-2xl border border-transparent bg-white hover:border-gray-200 hover:shadow-xl transition-all duration-300">
-                  <div className="h-20 w-20 rounded-full bg-[#F2F8FF] flex items-center justify-center shrink-0 group-hover:bg-[#E8F3FF] group-hover:scale-105 transition-transform">
+                <div className="flex flex-col items-center justify-center gap-3 p-5 rounded-2xl border border-gray-100 bg-white hover:border-[var(--color-fdi-primary)]/30 hover:shadow-lg transition-all duration-300">
+                  <div className="h-20 w-20 rounded-full bg-[#F2F8FF] flex items-center justify-center shrink-0 group-hover:bg-[#E8F3FF] group-hover:scale-110 transition-all duration-300">
                     <Icon className="h-10 w-10 text-[#005A9E]" />
                   </div>
                   <div className="text-center">
-                    <p className="text-sm font-bold text-[var(--color-fdi-text)] group-hover:text-[var(--color-fdi-accent-orange)] transition-colors uppercase leading-snug h-10 flex items-center justify-center">
+                    <p className="text-base font-bold text-[var(--color-fdi-text)] group-hover:text-[var(--color-fdi-accent-orange)] transition-colors uppercase leading-snug min-h-[2.5rem] flex items-center justify-center">
                       {item.industry}
                     </p>
                     <p className="text-sm text-gray-500 font-medium whitespace-nowrap mt-2">

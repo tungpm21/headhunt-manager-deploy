@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { MapPin, Clock, Sparkles } from "lucide-react";
+import { MapPin, Clock } from "lucide-react";
 import type { HomepageJob } from "@/lib/public-actions";
 import { LogoImage } from "@/components/public/LogoImage";
 
@@ -28,22 +28,21 @@ export function JobCard({ job }: JobCardProps) {
           : "border-gray-100"
           }`}
       >
-        {/* Featured badge */}
+        {/* Hot badge */}
         {job.isFeatured && (
-          <div className="absolute top-3 right-3 flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 text-xs font-medium">
-            <Sparkles className="h-3 w-3" />
-            Nổi bật
+          <div className="absolute top-3 right-3 flex items-center gap-1 px-2.5 py-1 rounded-full bg-red-500 text-white text-xs font-bold shadow-sm">
+            Hot
           </div>
         )}
 
         {/* Employer info */}
         <div className="flex items-start gap-3 mb-3">
-          <div className="h-11 w-11 rounded-lg bg-[var(--color-fdi-surface)] flex items-center justify-center shrink-0 overflow-hidden">
-            <LogoImage src={job.employer.logo} alt={job.employer.companyName} iconSize="h-5 w-5" />
+          <div className="h-14 w-14 rounded-xl bg-[var(--color-fdi-surface)] flex items-center justify-center shrink-0 overflow-hidden border border-gray-50">
+            <LogoImage src={job.employer.logo} alt={job.employer.companyName} className="max-h-full max-w-full object-contain p-1.5" iconSize="h-7 w-7" />
           </div>
           <div className="min-w-0">
             <h3
-              className="text-sm font-semibold text-[var(--color-fdi-text)] line-clamp-1 group-hover:text-[var(--color-fdi-accent-orange)] transition-colors"
+              className="text-base font-bold text-[var(--color-fdi-text)] line-clamp-1 group-hover:text-[var(--color-fdi-accent-orange)] transition-colors"
               style={{ fontFamily: "var(--font-heading)" }}
             >
               {job.title}

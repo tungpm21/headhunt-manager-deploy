@@ -111,19 +111,19 @@ export function TopEmployers({ employers }: TopEmployersProps) {
                 href={`/cong-ty/${employer.slug}`}
                 className="group block cursor-pointer snap-start"
               >
-                <div className="w-[180px] sm:w-[200px] bg-white rounded-xl p-4 flex flex-col items-center justify-between text-center transition-all duration-300 ease-out hover:shadow-xl hover:-translate-y-1 hover:border-[var(--color-fdi-primary)] border border-gray-200 shrink-0 h-[220px]">
+                <div className="w-[200px] sm:w-[220px] bg-white rounded-xl p-5 flex flex-col items-center justify-between text-center transition-all duration-300 ease-out hover:shadow-xl hover:-translate-y-1 hover:border-[var(--color-fdi-primary)] border border-gray-200 shrink-0 h-[260px]">
                   {/* Logo Center */}
-                  <div className="flex-1 flex items-center justify-center w-full mb-3">
+                  <div className="flex-1 flex items-center justify-center w-full mb-2">
                     <LogoImage
                       src={employer.logo}
                       alt={employer.companyName}
-                      className="max-h-[80px] max-w-full object-contain p-1"
-                      iconSize="h-10 w-10"
+                      className="max-h-[100px] max-w-full object-contain p-1"
+                      iconSize="h-12 w-12"
                     />
                   </div>
 
                   {/* Name Optional (Fallback) */}
-                  <p className="text-xs font-semibold text-[var(--color-fdi-text)] line-clamp-1 mb-3 group-hover:text-[var(--color-fdi-primary)] transition-colors w-full uppercase">
+                  <p className="text-sm font-bold text-[var(--color-fdi-text)] line-clamp-2 mb-2 group-hover:text-[var(--color-fdi-primary)] transition-colors w-full uppercase leading-tight min-h-[2.5rem]">
                     {employer.companyName}
                   </p>
 

@@ -22,7 +22,7 @@ type JobCardProps = {
 export function JobCard({ job }: JobCardProps) {
   return (
     <Link href={`/viec-lam/${job.slug}`} className="group block cursor-pointer">
-      <article className="relative p-5 sm:p-6 h-full min-h-[140px] hover:bg-blue-50/30 transition-colors">
+      <article className="relative p-6 sm:p-7 h-full min-h-[170px] hover:bg-blue-50/30 transition-colors">
         {/* Hot badge */}
         {job.isFeatured && (
           <div className="absolute top-3 right-3 flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-red-500 text-white text-[10px] font-bold shadow-sm z-10">
@@ -33,29 +33,29 @@ export function JobCard({ job }: JobCardProps) {
         {/* Main content: Logo + Info */}
         <div className="flex items-start gap-4">
           {/* Logo — VietnamWorks size */}
-          <div className="h-14 w-14 rounded-lg bg-white flex items-center justify-center shrink-0 overflow-hidden border border-gray-200">
+          <div className="h-16 w-16 rounded-lg bg-white flex items-center justify-center shrink-0 overflow-hidden border border-gray-200">
             <LogoImage
               src={job.employer.logo}
               alt={job.employer.companyName}
-              className="max-h-[44px] max-w-[44px] object-contain"
-              iconSize="h-7 w-7"
+              className="max-h-[52px] max-w-[52px] object-contain"
+              iconSize="h-9 w-9"
             />
           </div>
 
           {/* Text content */}
           <div className="min-w-0 flex-1">
             <h3
-              className="text-sm font-bold text-[var(--color-fdi-text)] line-clamp-1 group-hover:text-[var(--color-fdi-accent-orange)] transition-colors leading-snug"
+              className="text-base font-bold text-[var(--color-fdi-text)] line-clamp-1 group-hover:text-[var(--color-fdi-accent-orange)] transition-colors leading-snug"
               style={{ fontFamily: "var(--font-heading)" }}
             >
               {job.title}
             </h3>
-            <p className="text-xs text-[var(--color-fdi-text-secondary)] line-clamp-1 mt-1">
+            <p className="text-sm text-[var(--color-fdi-text-secondary)] line-clamp-1 mt-1">
               {job.employer.companyName}
             </p>
 
             {/* Meta row: salary + location + workType */}
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2 text-xs">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2.5 text-sm">
               {job.salaryDisplay && (
                 <span className="font-bold text-[var(--color-fdi-accent-orange)]">
                   {job.salaryDisplay}
@@ -77,7 +77,7 @@ export function JobCard({ job }: JobCardProps) {
         </div>
 
         {/* Footer */}
-        <div className="flex items-center text-[11px] text-gray-400 mt-2 pl-[72px]">
+        <div className="flex items-center text-xs text-gray-400 mt-3 pl-20">
           <Clock className="h-3 w-3 mr-1" />
           {timeAgo(job.publishedAt)}
         </div>

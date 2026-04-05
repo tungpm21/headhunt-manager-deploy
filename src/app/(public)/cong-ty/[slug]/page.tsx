@@ -83,7 +83,13 @@ export default async function CompanyProfilePage({ params }: PageProps) {
             <img
               src={company.coverImage}
               alt={`${company.companyName} cover`}
-              className="w-full h-full object-cover"
+              className="w-full h-full"
+              style={{
+                objectFit: "cover",
+                objectPosition: `${company.coverPositionX ?? 50}% ${company.coverPositionY ?? 50}%`,
+                transform: `scale(${(company.coverZoom ?? 100) / 100})`,
+                transformOrigin: `${company.coverPositionX ?? 50}% ${company.coverPositionY ?? 50}%`,
+              }}
             />
           ) : (
             <div className="w-full h-full bg-gradient-to-r from-[var(--color-fdi-dark)] via-[#005A9E] to-[var(--color-fdi-primary)]" />

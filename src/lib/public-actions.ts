@@ -545,6 +545,9 @@ export type CompanyProfile = {
   companyName: string;
   logo: string | null;
   coverImage: string | null;
+  coverPositionX: number;
+  coverPositionY: number;
+  coverZoom: number;
   slug: string;
   description: string | null;
   industry: string | null;
@@ -567,6 +570,9 @@ export async function getCompanyBySlug(slug: string): Promise<CompanyProfile | n
       companyName: true,
       logo: true,
       coverImage: true,
+      coverPositionX: true,
+      coverPositionY: true,
+      coverZoom: true,
       slug: true,
       description: true,
       industry: true,

@@ -13,6 +13,7 @@ import {
   X,
 } from "lucide-react";
 import { updateEmployerInfo } from "@/lib/moderation-actions";
+import { CoverPositionEditor } from "@/components/CoverPositionEditor";
 
 type EmployerEditData = {
   id: number;
@@ -29,6 +30,9 @@ type EmployerEditData = {
   status: string;
   slug: string;
   updatedAt: string;
+  coverPositionX: number;
+  coverPositionY: number;
+  coverZoom: number;
 };
 
 type MessageState =
@@ -122,12 +126,17 @@ export function EmployerEditForm({ employer }: EmployerEditFormProps) {
 
   const logo = useImageUpload(employer.logo, MAX_LOGO_BYTES);
   const cover = useImageUpload(employer.coverImage, MAX_COVER_BYTES);
+  const [coverPos, setCoverPos] = useState({
+    positionX: employer.coverPositionX ?? 50,
+    positionY: employer.coverPositionY ?? 50,
+    zoom: employer.coverZoom ?? 100,
+  });
 
   const canPreviewPublicPage = employer.status === "ACTIVE";
 
   async function handleSubmit(formData: FormData) {
     if ((logo.error && logo.fileInputRef.current?.files?.length) ||
-        (cover.error && cover.fileInputRef.current?.files?.length)) {
+      (cover.error && cover.fileInputRef.current?.files?.length)) {
       setMessage({ type: "error", text: logo.error || cover.error || "Lỗi file ảnh." });
       return;
     }
@@ -186,11 +195,10 @@ export function EmployerEditForm({ employer }: EmployerEditFormProps) {
 
       {message && (
         <div
-          className={`flex items-start gap-3 rounded-xl border p-4 ${
-            message.type === "success"
+          className={`flex items-start gap-3 rounded-xl border p-4 ${message.type === "success"
               ? "border-emerald-200 bg-emerald-50"
               : "border-red-200 bg-red-50"
-          }`}
+            }`}
         >
           {message.type === "success" ? (
             <CheckCircle2 className="h-5 w-5 text-emerald-500 mt-0.5 shrink-0" />
@@ -198,9 +206,8 @@ export function EmployerEditForm({ employer }: EmployerEditFormProps) {
             <AlertCircle className="h-5 w-5 text-red-500 mt-0.5 shrink-0" />
           )}
           <p
-            className={`text-sm ${
-              message.type === "success" ? "text-emerald-700" : "text-red-700"
-            }`}
+            className={`text-sm ${message.type === "success" ? "text-emerald-700" : "text-red-700"
+              }`}
           >
             {message.text}
           </p>
@@ -323,6 +330,23 @@ export function EmployerEditForm({ employer }: EmployerEditFormProps) {
               )}
               {cover.error && <p className="text-xs text-red-600">{cover.error}</p>}
             </div>
+
+            {/* Cover position editor */}
+            {cover.previewUrl && (
+              <div className="space-y-2">
+                <p className="text-xs font-medium text-foreground">Căn chỉnh vị trí hiển thị</p>
+                <CoverPositionEditor
+                  imageUrl={cover.previewUrl}
+                  positionX={coverPos.positionX}
+                  positionY={coverPos.positionY}
+                  zoom={coverPos.zoom}
+                  onChange={setCoverPos}
+                />
+              </div>
+            )}
+            <input type="hidden" name="coverPositionX" value={coverPos.positionX} />
+            <input type="hidden" name="coverPositionY" value={coverPos.positionY} />
+            <input type="hidden" name="coverZoom" value={coverPos.zoom} />
           </div>
         </div>
 

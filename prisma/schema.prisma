@@ -414,6 +414,9 @@ model Employer {
   companyName String
   logo        String?
   coverImage  String?        // Full-width banner image URL (for homepage carousel + company profile)
+  coverPositionX Int  @default(50)  // object-position X (0-100%)
+  coverPositionY Int  @default(50)  // object-position Y (0-100%)
+  coverZoom      Int  @default(100) // scale percentage (100-200%)
   description String?
   industry    String?
   companySize CompanySize?

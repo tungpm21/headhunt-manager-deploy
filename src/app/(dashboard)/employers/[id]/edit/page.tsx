@@ -48,6 +48,9 @@ export default async function EmployerEditPage({ params }: PageProps) {
     status: employer.status,
     slug: employer.slug,
     updatedAt: employer.updatedAt.toISOString(),
+    coverPositionX: employer.coverPositionX ?? 50,
+    coverPositionY: employer.coverPositionY ?? 50,
+    coverZoom: employer.coverZoom ?? 100,
   };
 
   return (

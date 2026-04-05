@@ -1,20 +1,74 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Menu, X, Search, Briefcase, Building2, UserPlus } from "lucide-react";
+import {
+  Menu,
+  X,
+  Search,
+  Briefcase,
+  Building2,
+  UserPlus,
+  ChevronDown,
+} from "lucide-react";
 
-const navLinks = [
-  { href: "/viec-lam", label: "Việc làm", icon: Briefcase },
-  { href: "/cong-ty", label: "Công ty", icon: Building2 },
+type NavItem = {
+  href: string;
+  label: string;
+  icon: typeof Briefcase;
+  sub?: { href: string; label: string }[];
+};
+
+const navLinks: NavItem[] = [
+  {
+    href: "/viec-lam",
+    label: "Việc làm",
+    icon: Briefcase,
+    sub: [
+      { href: "/viec-lam", label: "Tất cả việc làm" },
+      { href: "/viec-lam?sort=newest", label: "Việc làm mới nhất" },
+    ],
+  },
+  {
+    href: "/cong-ty",
+    label: "Doanh nghiệp",
+    icon: Building2,
+    sub: [
+      { href: "/cong-ty", label: "Tất cả doanh nghiệp" },
+    ],
+  },
 ];
 
 export function PublicHeader() {
+  const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setOpenDropdown(null);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  function handleSearch(e: React.FormEvent) {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/viec-lam?q=${encodeURIComponent(searchQuery.trim())}`);
+      setSearchQuery("");
+    }
+  }
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 h-16 bg-white border-b border-gray-100 shadow-sm">
-      <div className="mx-auto max-w-7xl h-full px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-100 shadow-sm">
+      <div className="mx-auto max-w-7xl h-16 px-4 sm:px-6 lg:px-8 flex items-center gap-4">
         {/* Logo */}
         <Link
           href="/"
@@ -24,7 +78,7 @@ export function PublicHeader() {
             <Briefcase className="h-5 w-5 text-white" />
           </div>
           <span
-            className="text-xl font-bold text-[var(--color-fdi-text)]"
+            className="text-xl font-bold text-[var(--color-fdi-text)] hidden sm:inline"
             style={{ fontFamily: "var(--font-heading)" }}
           >
             FDI<span className="text-[var(--color-fdi-primary)]">Work</span>
@@ -32,21 +86,65 @@ export function PublicHeader() {
         </Link>
 
         {/* Desktop Nav */}
-        <nav className="hidden md:flex items-center gap-1">
+        <nav
+          className="hidden md:flex items-center gap-0.5"
+          ref={dropdownRef}
+        >
           {navLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium text-[var(--color-fdi-text-secondary)] hover:text-[var(--color-fdi-primary)] hover:bg-[var(--color-fdi-surface)] transition-colors cursor-pointer"
-            >
-              <link.icon className="h-4 w-4" />
-              {link.label}
-            </Link>
+            <div key={link.href} className="relative">
+              <button
+                onClick={() =>
+                  setOpenDropdown(openDropdown === link.href ? null : link.href)
+                }
+                className="flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium text-[var(--color-fdi-text-secondary)] hover:text-[var(--color-fdi-primary)] hover:bg-[var(--color-fdi-surface)] transition-colors cursor-pointer"
+              >
+                <link.icon className="h-4 w-4" />
+                {link.label}
+                {link.sub && (
+                  <ChevronDown
+                    className={`h-3 w-3 transition-transform ${openDropdown === link.href ? "rotate-180" : ""}`}
+                  />
+                )}
+              </button>
+
+              {/* Dropdown menu */}
+              {link.sub && openDropdown === link.href && (
+                <div className="absolute top-full left-0 mt-1 w-52 bg-white rounded-xl border border-gray-100 shadow-lg py-1 z-50">
+                  {link.sub.map((subLink) => (
+                    <Link
+                      key={subLink.href}
+                      href={subLink.href}
+                      onClick={() => setOpenDropdown(null)}
+                      className="block px-4 py-2.5 text-sm text-[var(--color-fdi-text-secondary)] hover:text-[var(--color-fdi-primary)] hover:bg-[var(--color-fdi-surface)] transition-colors cursor-pointer"
+                    >
+                      {subLink.label}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
           ))}
         </nav>
 
+        {/* Search bar (desktop) */}
+        <form
+          onSubmit={handleSearch}
+          className="hidden lg:flex flex-1 max-w-md mx-auto"
+        >
+          <div className="relative w-full">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Tìm việc làm, công ty..."
+              className="w-full pl-9 pr-3 py-2 rounded-full border border-gray-200 text-sm bg-gray-50 text-[var(--color-fdi-text)] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[var(--color-fdi-primary)]/30 focus:border-[var(--color-fdi-primary)] transition-all"
+            />
+          </div>
+        </form>
+
         {/* Desktop CTAs */}
-        <div className="hidden md:flex items-center gap-3">
+        <div className="hidden md:flex items-center gap-3 shrink-0">
           <Link
             href="/employer/login"
             className="text-sm font-medium text-[var(--color-fdi-text-secondary)] hover:text-[var(--color-fdi-primary)] transition-colors cursor-pointer"
@@ -65,7 +163,7 @@ export function PublicHeader() {
         {/* Mobile Hamburger */}
         <button
           onClick={() => setMobileOpen(!mobileOpen)}
-          className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+          className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer ml-auto"
           aria-label="Toggle menu"
         >
           {mobileOpen ? (
@@ -79,17 +177,46 @@ export function PublicHeader() {
       {/* Mobile Menu */}
       {mobileOpen && (
         <div className="md:hidden bg-white border-t border-gray-100 shadow-lg">
+          {/* Mobile search */}
+          <form onSubmit={handleSearch} className="px-4 pt-3">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Tìm việc làm, công ty..."
+                className="w-full pl-9 pr-3 py-2.5 rounded-lg border border-gray-200 text-sm bg-gray-50 text-[var(--color-fdi-text)] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[var(--color-fdi-primary)]/30"
+              />
+            </div>
+          </form>
+
           <nav className="px-4 py-3 space-y-1">
             {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                onClick={() => setMobileOpen(false)}
-                className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium text-[var(--color-fdi-text)] hover:bg-[var(--color-fdi-surface)] transition-colors cursor-pointer"
-              >
-                <link.icon className="h-4 w-4 text-[var(--color-fdi-primary)]" />
-                {link.label}
-              </Link>
+              <div key={link.href}>
+                <Link
+                  href={link.href}
+                  onClick={() => setMobileOpen(false)}
+                  className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium text-[var(--color-fdi-text)] hover:bg-[var(--color-fdi-surface)] transition-colors cursor-pointer"
+                >
+                  <link.icon className="h-4 w-4 text-[var(--color-fdi-primary)]" />
+                  {link.label}
+                </Link>
+                {link.sub && (
+                  <div className="ml-9 space-y-0.5">
+                    {link.sub.map((subLink) => (
+                      <Link
+                        key={subLink.href}
+                        href={subLink.href}
+                        onClick={() => setMobileOpen(false)}
+                        className="block px-3 py-2 text-sm text-[var(--color-fdi-text-secondary)] hover:text-[var(--color-fdi-primary)] cursor-pointer"
+                      >
+                        {subLink.label}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
             ))}
             <div className="pt-2 border-t border-gray-100 space-y-1">
               <Link

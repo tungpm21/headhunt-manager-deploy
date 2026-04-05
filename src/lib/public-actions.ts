@@ -375,7 +375,7 @@ export type JobDetail = {
 
 export async function getPublicJobBySlug(
   slug: string
-): Promise<{ job: JobDetail; similarJobs: HomepageJob[] } | null> {
+): Promise<{ job: JobDetail; similarJobs: HomepageJob[]; sameEmployerJobs: HomepageJob[]; suggestedJobs: HomepageJob[] } | null> {
   const now = new Date();
 
   const job = await prisma.jobPosting.findUnique({
@@ -421,37 +421,44 @@ export async function getPublicJobBySlug(
 
   incrementJobPostingView(job.id);
 
-  // Fetch similar jobs (same industry, excluding current)
-  const similarJobs = await prisma.jobPosting.findMany({
-    where: {
-      status: "APPROVED",
-      id: { not: job.id },
-      industry: job.industry,
-      OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
-    },
-    orderBy: { publishedAt: "desc" },
-    take: 4,
-    select: {
-      id: true,
-      title: true,
-      slug: true,
-      salaryDisplay: true,
-      location: true,
-      workType: true,
-      industry: true,
-      isFeatured: true,
-      publishedAt: true,
-      employer: {
-        select: {
-          companyName: true,
-          logo: true,
-          slug: true,
-        },
-      },
-    },
-  });
+  const jobSelect = {
+    id: true, title: true, slug: true, salaryDisplay: true,
+    location: true, workType: true, industry: true, isFeatured: true,
+    publishedAt: true,
+    employer: { select: { companyName: true, logo: true, slug: true } },
+  } as const;
 
-  return { job, similarJobs };
+  const activeWhere = {
+    status: "APPROVED" as const,
+    id: { not: job.id },
+    OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
+  };
+
+  const [similarJobs, sameEmployerJobs, suggestedJobs] = await Promise.all([
+    // Similar jobs (same industry, for bottom section)
+    prisma.jobPosting.findMany({
+      where: { ...activeWhere, industry: job.industry },
+      orderBy: [{ isFeatured: "desc" }, { publishedAt: "desc" }],
+      take: 4,
+      select: jobSelect,
+    }),
+    // Same employer jobs (for "Việc làm khác cùng DN" section)
+    prisma.jobPosting.findMany({
+      where: { ...activeWhere, employerId: job.employer.id },
+      orderBy: [{ isFeatured: "desc" }, { publishedAt: "desc" }],
+      take: 3,
+      select: jobSelect,
+    }),
+    // Suggested jobs for sidebar (same industry, featured first)
+    prisma.jobPosting.findMany({
+      where: { ...activeWhere, industry: job.industry },
+      orderBy: [{ isFeatured: "desc" }, { publishedAt: "desc" }],
+      take: 5,
+      select: jobSelect,
+    }),
+  ]);
+
+  return { job, similarJobs, sameEmployerJobs, suggestedJobs };
 }
 
 // ==================== COMPANY LISTING ====================
@@ -494,7 +501,7 @@ export async function getPublicCompanies(
   const [companies, total] = await Promise.all([
     prisma.employer.findMany({
       where,
-      orderBy: { companyName: "asc" },
+      orderBy: [{ subscription: { tier: "asc" } }, { companyName: "asc" }],
       skip: (page - 1) * COMPANIES_PER_PAGE,
       take: COMPANIES_PER_PAGE,
       select: {

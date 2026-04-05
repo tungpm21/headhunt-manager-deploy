@@ -47,7 +47,7 @@ export default async function JobDetailPage({ params }: PageProps) {
   const result = await getPublicJobBySlug(slug);
   if (!result) notFound();
 
-  const { job, similarJobs } = result;
+  const { job, similarJobs, sameEmployerJobs, suggestedJobs } = result;
 
   const infoItems = [
     { icon: MapPin, label: "Khu vực", value: job.location },
@@ -244,8 +244,67 @@ export default async function JobDetailPage({ params }: PageProps) {
                 Xem trang công ty
               </Link>
             </div>
+
+            {/* Suggested Jobs sidebar */}
+            {suggestedJobs.length > 0 && (
+              <div className="bg-white rounded-xl border border-gray-100 p-5 space-y-3">
+                <h3
+                  className="text-sm font-semibold text-[var(--color-fdi-text)] uppercase tracking-wider"
+                  style={{ fontFamily: "var(--font-heading)" }}
+                >
+                  Việc làm gợi ý
+                </h3>
+                <div className="space-y-2.5">
+                  {suggestedJobs.map((sj: HomepageJob) => (
+                    <Link
+                      key={sj.id}
+                      href={`/viec-lam/${sj.slug}`}
+                      className={`block p-3 rounded-lg border transition-colors hover:bg-gray-50 cursor-pointer ${sj.isFeatured
+                          ? "border-amber-200 bg-amber-50/30"
+                          : "border-gray-100"
+                        }`}
+                    >
+                      <p className="text-sm font-medium text-[var(--color-fdi-text)] line-clamp-2 leading-snug">
+                        {sj.title}
+                      </p>
+                      <p className="text-xs text-[var(--color-fdi-text-secondary)] mt-1">
+                        {sj.employer.companyName}
+                      </p>
+                      {sj.salaryDisplay && (
+                        <p className="text-xs text-[var(--color-fdi-primary)] font-medium mt-0.5">
+                          {sj.salaryDisplay}
+                        </p>
+                      )}
+                    </Link>
+                  ))}
+                </div>
+                <Link
+                  href={`/viec-lam?industry=${encodeURIComponent(job.industry || "")}`}
+                  className="block text-center text-xs font-medium text-[var(--color-fdi-primary)] hover:underline cursor-pointer pt-1"
+                >
+                  Xem thêm việc làm →
+                </Link>
+              </div>
+            )}
           </div>
         </div>
+
+        {/* Same Employer Jobs */}
+        {sameEmployerJobs.length > 0 && (
+          <section className="mt-10">
+            <h2
+              className="text-xl font-bold text-[var(--color-fdi-text)] mb-6"
+              style={{ fontFamily: "var(--font-heading)" }}
+            >
+              Việc làm khác tại {job.employer.companyName}
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {sameEmployerJobs.map((sj: HomepageJob) => (
+                <JobCard key={sj.id} job={sj} />
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* Similar Jobs */}
         {similarJobs.length > 0 && (

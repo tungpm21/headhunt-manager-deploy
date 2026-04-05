@@ -109,44 +109,46 @@ export function TopEmployers({ employers }: TopEmployersProps) {
               <Link
                 key={employer.id}
                 href={`/cong-ty/${employer.slug}`}
-                className="group block cursor-pointer snap-start"
+                className="group block cursor-pointer snap-start shrink-0"
               >
-                <div className="w-[200px] sm:w-[220px] bg-white rounded-xl p-5 flex flex-col items-center justify-between text-center transition-all duration-300 ease-out hover:shadow-xl hover:-translate-y-1 hover:border-[var(--color-fdi-primary)] border border-gray-200 shrink-0 h-[260px]">
-                  {/* Logo Center */}
-                  <div className="flex-1 flex items-center justify-center w-full mb-2">
+                <div className="w-[200px] sm:w-[220px] rounded-2xl border border-gray-200 overflow-hidden transition-all duration-300 ease-out hover:shadow-xl hover:-translate-y-1 hover:border-[var(--color-fdi-primary)] bg-white">
+                  {/* Logo zone — light blue background */}
+                  <div className="h-[140px] sm:h-[160px] bg-[#F0F7FF] flex items-center justify-center p-5 border-b border-gray-100">
                     <LogoImage
                       src={employer.logo}
                       alt={employer.companyName}
-                      className="max-h-[100px] max-w-full object-contain p-1"
-                      iconSize="h-12 w-12"
+                      className="max-h-[110px] max-w-[160px] object-contain"
+                      iconSize="h-14 w-14"
                     />
                   </div>
 
-                  {/* Name Optional (Fallback) */}
-                  <p className="text-sm font-bold text-[var(--color-fdi-text)] line-clamp-2 mb-2 group-hover:text-[var(--color-fdi-primary)] transition-colors w-full uppercase leading-tight min-h-[2.5rem]">
-                    {employer.companyName}
-                  </p>
+                  {/* Text zone — white background */}
+                  <div className="p-4 text-center bg-white">
+                    <p className="text-sm font-bold text-[var(--color-fdi-text)] line-clamp-2 group-hover:text-[var(--color-fdi-primary)] transition-colors uppercase leading-tight min-h-[2.5rem]">
+                      {employer.companyName}
+                    </p>
 
-                  {/* VietnamWorks Style Badge */}
-                  <div className="w-full mt-auto">
-                    <span className="inline-block px-5 py-2 whitespace-nowrap bg-[#E8F3FF] text-[var(--color-fdi-accent-orange)] group-hover:bg-[var(--color-fdi-accent-orange)] group-hover:text-white transition-all text-xs font-bold rounded-lg uppercase w-full max-w-[140px]">
-                      {jobCount > 0 ? `${jobCount} VIỆC MỚI` : "VIỆC MỚI"}
-                    </span>
-                  </div>
-
-                  {/* Tier badge */}
-                  {badge && (
-                    <div className="mt-1">
-                      <span
-                        className={`inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-medium ${badge.className}`}
-                      >
-                        {employer.subscription?.tier === "VIP" && (
-                          <Crown className="h-2.5 w-2.5" />
-                        )}
-                        {badge.label}
+                    {/* VIỆC MỚI badge */}
+                    <div className="mt-3">
+                      <span className="inline-block px-5 py-2 bg-[#E8F3FF] text-[var(--color-fdi-accent-orange)] group-hover:bg-[var(--color-fdi-accent-orange)] group-hover:text-white transition-all text-xs font-bold rounded-lg uppercase">
+                        {jobCount > 0 ? `${jobCount} VIỆC MỚI` : "VIỆC MỚI"}
                       </span>
                     </div>
-                  )}
+
+                    {/* Tier badge */}
+                    {badge && (
+                      <div className="mt-2">
+                        <span
+                          className={`inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-medium ${badge.className}`}
+                        >
+                          {employer.subscription?.tier === "VIP" && (
+                            <Crown className="h-2.5 w-2.5" />
+                          )}
+                          {badge.label}
+                        </span>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </Link>
             );

@@ -11,7 +11,7 @@ export function FeaturedJobs({ jobs }: FeaturedJobsProps) {
   if (jobs.length === 0) return null;
 
   return (
-    <section className="py-16 lg:py-20 bg-white">
+    <section className="py-16 lg:py-20 bg-gray-50 border-t border-gray-100">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Heading */}
         <div className="flex items-end justify-between mb-8">
@@ -38,8 +38,8 @@ export function FeaturedJobs({ jobs }: FeaturedJobsProps) {
           </Link>
         </div>
 
-        {/* Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 bg-[var(--color-fdi-surface)] rounded-2xl p-4 border border-gray-100 shadow-sm">
+        {/* Grid — 3x3 like VietnamWorks */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {jobs.map((job) => (
             <JobCard key={job.id} job={job} />
           ))}

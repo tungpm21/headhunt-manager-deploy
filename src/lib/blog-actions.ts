@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { getCurrentUserId } from "@/lib/auth";
+import { requireAdmin } from "@/lib/authz";
 
 function slugify(text: string): string {
     return text
@@ -34,13 +34,13 @@ export async function getBlogPosts(page = 1) {
 
 // ─── Admin: Get single post ───
 export async function getBlogPostById(id: number) {
-    await getCurrentUserId();
+    await requireAdmin();
     return prisma.blogPost.findUnique({ where: { id } });
 }
 
 // ─── Admin: Create post ───
 export async function createBlogPost(formData: FormData) {
-    await getCurrentUserId();
+    await requireAdmin();
 
     const title = formData.get("title")?.toString().trim() || "";
     const excerpt = formData.get("excerpt")?.toString().trim() || "";
@@ -73,7 +73,7 @@ export async function createBlogPost(formData: FormData) {
 
 // ─── Admin: Update post ───
 export async function updateBlogPost(id: number, formData: FormData) {
-    await getCurrentUserId();
+    await requireAdmin();
 
     const title = formData.get("title")?.toString().trim() || "";
     const excerpt = formData.get("excerpt")?.toString().trim() || "";
@@ -106,7 +106,7 @@ export async function updateBlogPost(id: number, formData: FormData) {
 
 // ─── Admin: Delete post ───
 export async function deleteBlogPost(id: number) {
-    await getCurrentUserId();
+    await requireAdmin();
 
     await prisma.blogPost.delete({ where: { id } });
 
@@ -118,7 +118,7 @@ export async function deleteBlogPost(id: number) {
 
 // ─── Admin: Reorder posts ───
 export async function reorderBlogPosts(orderedIds: number[]) {
-    await getCurrentUserId();
+    await requireAdmin();
 
     await prisma.$transaction(
         orderedIds.map((id, index) =>

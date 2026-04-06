@@ -119,10 +119,10 @@ export function HeroSection({ totalJobs, totalEmployers }: HeroSectionProps) {
         </div>
 
         {/* Search Bar — with inline dropdowns */}
-        <div className="mx-auto max-w-3xl relative z-20">
+        <div className="mx-auto max-w-4xl relative z-20">
           <form
             onSubmit={handleSearch}
-            className="bg-white rounded-xl shadow-2xl p-1.5 sm:p-2 flex flex-col sm:flex-row gap-0 items-stretch"
+            className="bg-white rounded-xl shadow-2xl p-1.5 sm:p-2 flex flex-col sm:flex-row gap-0 items-center"
           >
             {/* Keyword input */}
             <div ref={searchContainerRef} className="relative flex-1">
@@ -272,7 +272,7 @@ export function HeroSection({ totalJobs, totalEmployers }: HeroSectionProps) {
             <div className="hidden sm:block w-px bg-gray-200 my-2" />
 
             {/* Location input */}
-            <div ref={locationRef} className="relative flex items-center gap-2 px-3 py-2.5 sm:py-3 sm:w-48">
+            <div ref={locationRef} className="relative flex items-center gap-2 px-3 py-2.5 sm:py-3 sm:w-56 shrink-0">
               <MapPin className="h-5 w-5 text-gray-400 shrink-0" />
               <input
                 type="text"

@@ -1,5 +1,6 @@
 import { FeeType, Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { withJobAccess, withSubscriptionAccess } from "@/lib/access-scope";
 import { expireSubscriptionsIfNeeded } from "@/lib/subscriptions";
 import { ViewerScope } from "@/lib/viewer-scope";
 
@@ -61,46 +62,6 @@ export function calculatePlacementRevenue({
   }
 
   return salaryBase * 1_000_000 * (fee / 100);
-}
-
-function withJobAccess(
-  where: Prisma.JobOrderWhereInput,
-  scope?: ViewerScope
-): Prisma.JobOrderWhereInput {
-  if (!scope || scope.isAdmin) {
-    return where;
-  }
-
-  return {
-    AND: [
-      where,
-      {
-        OR: [{ createdById: scope.userId }, { assignedToId: scope.userId }],
-      },
-    ],
-  };
-}
-
-function withSubscriptionAccess(
-  where: Prisma.SubscriptionWhereInput,
-  scope?: ViewerScope
-): Prisma.SubscriptionWhereInput {
-  if (!scope || scope.isAdmin) {
-    return where;
-  }
-
-  return {
-    AND: [
-      where,
-      {
-        employer: {
-          client: {
-            createdById: scope.userId,
-          },
-        },
-      },
-    ],
-  };
 }
 
 export async function getDashboardRevenueSummary(
@@ -336,12 +297,12 @@ export async function getClientRevenueSummary(
     totalRevenue: headhuntRevenueTotal + subscriptionRevenue,
     linkedSubscription: linkedSubscription
       ? {
-          employerId: linkedSubscription.employer.id,
-          employerName: linkedSubscription.employer.companyName,
-          tier: linkedSubscription.tier,
-          endDate: linkedSubscription.endDate,
-          price: linkedSubscription.price,
-        }
+        employerId: linkedSubscription.employer.id,
+        employerName: linkedSubscription.employer.companyName,
+        tier: linkedSubscription.tier,
+        endDate: linkedSubscription.endDate,
+        price: linkedSubscription.price,
+      }
       : null,
   };
 }

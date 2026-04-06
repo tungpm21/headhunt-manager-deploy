@@ -13,25 +13,8 @@ import {
   UpdateJobInput,
   JobOrderWithRelations,
 } from "@/types/job";
+import { withJobAccess } from "@/lib/access-scope";
 import { ViewerScope } from "@/lib/viewer-scope";
-
-function withJobAccess(
-  where: Prisma.JobOrderWhereInput,
-  scope?: ViewerScope
-): Prisma.JobOrderWhereInput {
-  if (!scope || scope.isAdmin) {
-    return where;
-  }
-
-  return {
-    AND: [
-      where,
-      {
-        OR: [{ createdById: scope.userId }, { assignedToId: scope.userId }],
-      },
-    ],
-  };
-}
 
 const JOB_LIST_INCLUDE = {
   client: { select: { id: true, companyName: true } },
@@ -603,12 +586,12 @@ export async function searchAvailableCandidates(
       NOT: { jobLinks: { some: { jobOrderId: jobId } } },
       ...(query
         ? {
-            OR: [
-              { fullName: { contains: query, mode: "insensitive" } },
-              { phone: { contains: query, mode: "insensitive" } },
-              { email: { contains: query, mode: "insensitive" } },
-            ],
-          }
+          OR: [
+            { fullName: { contains: query, mode: "insensitive" } },
+            { phone: { contains: query, mode: "insensitive" } },
+            { email: { contains: query, mode: "insensitive" } },
+          ],
+        }
         : {}),
       ...(filters.level ? { level: filters.level } : {}),
       ...(normalizedSkills.length > 0 ? { skills: { hasSome: normalizedSkills } } : {}),

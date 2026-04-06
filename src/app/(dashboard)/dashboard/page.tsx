@@ -24,6 +24,7 @@ import { DeadlineAlerts } from "@/components/dashboard/deadline-alerts";
 import { FollowUpReminders } from "@/components/dashboard/follow-up-reminders";
 import { PipelineSummary } from "@/components/dashboard/pipeline-summary";
 import { requireViewerScope } from "@/lib/authz";
+import { withCandidateAccess, withClientAccess, withJobAccess } from "@/lib/access-scope";
 import { prisma } from "@/lib/prisma";
 import { getUpcomingCandidateReminders } from "@/lib/reminders";
 import { getDashboardRevenueSummary } from "@/lib/revenue";
@@ -89,49 +90,6 @@ function getNumber(value: unknown) {
   return typeof value === "number" ? value : undefined;
 }
 
-function withCandidateAccess(
-  where: Prisma.CandidateWhereInput,
-  scope: ViewerScope
-): Prisma.CandidateWhereInput {
-  if (scope.isAdmin) {
-    return where;
-  }
-
-  return {
-    AND: [where, { createdById: scope.userId }],
-  };
-}
-
-function withClientAccess(
-  where: Prisma.ClientWhereInput,
-  scope: ViewerScope
-): Prisma.ClientWhereInput {
-  if (scope.isAdmin) {
-    return where;
-  }
-
-  return {
-    AND: [where, { createdById: scope.userId }],
-  };
-}
-
-function withJobAccess(
-  where: Prisma.JobOrderWhereInput,
-  scope: ViewerScope
-): Prisma.JobOrderWhereInput {
-  if (scope.isAdmin) {
-    return where;
-  }
-
-  return {
-    AND: [
-      where,
-      {
-        OR: [{ createdById: scope.userId }, { assignedToId: scope.userId }],
-      },
-    ],
-  };
-}
 
 function mapActivityItems(recentActivityLogs: RecentActivityLog[]) {
   return recentActivityLogs.map((activity) => {

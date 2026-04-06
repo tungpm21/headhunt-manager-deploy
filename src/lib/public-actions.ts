@@ -1,5 +1,6 @@
 "use server";
 
+import { unstable_cache } from "next/cache";
 import { Prisma } from "@prisma/client";
 import { incrementJobPostingView } from "@/lib/job-posting-view-counter";
 import { prisma } from "@/lib/prisma";
@@ -51,153 +52,157 @@ export type HomepageData = {
   };
 };
 
-export async function getHomepageData(): Promise<HomepageData> {
-  await expireSubscriptionsIfNeeded();
-  const now = new Date();
+export const getHomepageData = unstable_cache(
+  async (): Promise<HomepageData> => {
+    await expireSubscriptionsIfNeeded();
+    const now = new Date();
 
-  const [featuredJobs, bannerEmployers, allActiveEmployers, industryGroups, totalJobs, totalEmployers] =
-    await Promise.all([
-      // 18 latest APPROVED jobs (9 per carousel page)
-      prisma.jobPosting.findMany({
-        where: {
-          status: "APPROVED",
-          OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
-        },
-        orderBy: [{ isFeatured: "desc" }, { publishedAt: "desc" }],
-        take: 18,
-        select: {
-          id: true,
-          title: true,
-          slug: true,
-          salaryDisplay: true,
-          location: true,
-          workType: true,
-          industry: true,
-          isFeatured: true,
-          publishedAt: true,
-          employer: {
-            select: {
-              companyName: true,
-              logo: true,
-              slug: true,
+    const [featuredJobs, bannerEmployers, allActiveEmployers, industryGroups, totalJobs, totalEmployers] =
+      await Promise.all([
+        // 18 latest APPROVED jobs (9 per carousel page)
+        prisma.jobPosting.findMany({
+          where: {
+            status: "APPROVED",
+            OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
+          },
+          orderBy: [{ isFeatured: "desc" }, { publishedAt: "desc" }],
+          take: 18,
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            salaryDisplay: true,
+            location: true,
+            workType: true,
+            industry: true,
+            isFeatured: true,
+            publishedAt: true,
+            employer: {
+              select: {
+                companyName: true,
+                logo: true,
+                slug: true,
+              },
             },
           },
-        },
-      }),
+        }),
 
-      // Banner employers — showBanner=true (VIP campaign banners)
-      prisma.employer.findMany({
-        where: {
-          status: "ACTIVE",
-          subscription: {
+        // Banner employers — showBanner=true (VIP campaign banners)
+        prisma.employer.findMany({
+          where: {
             status: "ACTIVE",
-            showBanner: true,
+            subscription: {
+              status: "ACTIVE",
+              showBanner: true,
+            },
           },
-        },
-        select: {
-          id: true,
-          companyName: true,
-          logo: true,
-          coverImage: true,
-          slug: true,
-          industry: true,
-          subscription: {
-            select: { tier: true },
-          },
-          _count: {
-            select: {
-              jobPostings: {
-                where: {
-                  status: "APPROVED",
-                  OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
+          select: {
+            id: true,
+            companyName: true,
+            logo: true,
+            coverImage: true,
+            slug: true,
+            industry: true,
+            subscription: {
+              select: { tier: true },
+            },
+            _count: {
+              select: {
+                jobPostings: {
+                  where: {
+                    status: "APPROVED",
+                    OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
+                  },
                 },
               },
             },
           },
-        },
-      }),
+        }),
 
-      // All active employers — sorted by tier in JS, shown in TopEmployers grid
-      prisma.employer.findMany({
-        where: { status: "ACTIVE" },
-        select: {
-          id: true,
-          companyName: true,
-          logo: true,
-          coverImage: true,
-          slug: true,
-          industry: true,
-          subscription: {
-            select: { tier: true },
-          },
-          _count: {
-            select: {
-              jobPostings: {
-                where: {
-                  status: "APPROVED",
-                  OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
+        // All active employers — sorted by tier in JS, shown in TopEmployers grid
+        prisma.employer.findMany({
+          where: { status: "ACTIVE" },
+          select: {
+            id: true,
+            companyName: true,
+            logo: true,
+            coverImage: true,
+            slug: true,
+            industry: true,
+            subscription: {
+              select: { tier: true },
+            },
+            _count: {
+              select: {
+                jobPostings: {
+                  where: {
+                    status: "APPROVED",
+                    OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
+                  },
                 },
               },
             },
           },
-        },
-      }),
+        }),
 
-      // Industry counts for approved jobs
-      prisma.jobPosting.groupBy({
-        by: ["industry"],
-        where: {
-          status: "APPROVED",
-          industry: { not: null },
-          OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
-        },
-        _count: { id: true },
-        orderBy: { _count: { id: "desc" } },
-        take: 8,
-      }),
+        // Industry counts for approved jobs
+        prisma.jobPosting.groupBy({
+          by: ["industry"],
+          where: {
+            status: "APPROVED",
+            industry: { not: null },
+            OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
+          },
+          _count: { id: true },
+          orderBy: { _count: { id: "desc" } },
+          take: 8,
+        }),
 
-      // Stats
-      prisma.jobPosting.count({
-        where: {
-          status: "APPROVED",
-          OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
-        },
-      }),
-      prisma.employer.count({ where: { status: "ACTIVE" } }),
-    ]);
+        // Stats
+        prisma.jobPosting.count({
+          where: {
+            status: "APPROVED",
+            OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
+          },
+        }),
+        prisma.employer.count({ where: { status: "ACTIVE" } }),
+      ]);
 
-  const industries: IndustryCount[] = industryGroups
-    .filter((g) => g.industry !== null)
-    .map((g) => ({
-      industry: g.industry as string,
-      count: g._count.id,
-    }));
+    const industries: IndustryCount[] = industryGroups
+      .filter((g) => g.industry !== null)
+      .map((g) => ({
+        industry: g.industry as string,
+        count: g._count.id,
+      }));
 
-  // Sort all active employers by subscription tier: VIP → PREMIUM → STANDARD → BASIC → none
-  const TIER_ORDER: Record<string, number> = {
-    VIP: 0,
-    PREMIUM: 1,
-    STANDARD: 2,
-    BASIC: 3,
-  };
-  const topEmployers = allActiveEmployers
-    .slice()
-    .sort((a, b) => {
-      const aT = a.subscription?.tier ? (TIER_ORDER[a.subscription.tier] ?? 4) : 4;
-      const bT = b.subscription?.tier ? (TIER_ORDER[b.subscription.tier] ?? 4) : 4;
-      if (aT !== bT) return aT - bT;
-      return a.companyName.localeCompare(b.companyName);
-    })
-    .slice(0, 24);
+    // Sort all active employers by subscription tier: VIP → PREMIUM → STANDARD → BASIC → none
+    const TIER_ORDER: Record<string, number> = {
+      VIP: 0,
+      PREMIUM: 1,
+      STANDARD: 2,
+      BASIC: 3,
+    };
+    const topEmployers = allActiveEmployers
+      .slice()
+      .sort((a, b) => {
+        const aT = a.subscription?.tier ? (TIER_ORDER[a.subscription.tier] ?? 4) : 4;
+        const bT = b.subscription?.tier ? (TIER_ORDER[b.subscription.tier] ?? 4) : 4;
+        if (aT !== bT) return aT - bT;
+        return a.companyName.localeCompare(b.companyName);
+      })
+      .slice(0, 24);
 
-  return {
-    featuredJobs,
-    bannerEmployers,
-    topEmployers,
-    industries,
-    stats: { totalJobs, totalEmployers },
-  };
-}
+    return {
+      featuredJobs,
+      bannerEmployers,
+      topEmployers,
+      industries,
+      stats: { totalJobs, totalEmployers },
+    };
+  },
+  ["homepage-data"],
+  { revalidate: 60 }
+);
 
 // ==================== JOB LISTING ====================
 
@@ -282,6 +287,28 @@ export async function getPublicJobs(filters: JobFilters = {}): Promise<JobListRe
   if (filters.sort === "salary_high") orderBy = [{ salaryMax: "desc" }];
   if (filters.sort === "salary_low") orderBy = [{ salaryMin: "asc" }];
 
+  const getCachedFilterOptions = unstable_cache(
+    async () => Promise.all([
+      prisma.jobPosting.findMany({
+        where: { status: "APPROVED", industry: { not: null } },
+        select: { industry: true },
+        distinct: ["industry"],
+      }),
+      prisma.jobPosting.findMany({
+        where: { status: "APPROVED", location: { not: null } },
+        select: { location: true },
+        distinct: ["location"],
+      }),
+      prisma.jobPosting.findMany({
+        where: { status: "APPROVED", workType: { not: null } },
+        select: { workType: true },
+        distinct: ["workType"],
+      }),
+    ]),
+    ["job-filter-options"],
+    { revalidate: 60 }
+  );
+
   const [jobs, total, distinctIndustries, distinctLocations, distinctWorkTypes] =
     await Promise.all([
       prisma.jobPosting.findMany({
@@ -309,21 +336,7 @@ export async function getPublicJobs(filters: JobFilters = {}): Promise<JobListRe
         },
       }),
       prisma.jobPosting.count({ where }),
-      prisma.jobPosting.findMany({
-        where: { status: "APPROVED", industry: { not: null } },
-        select: { industry: true },
-        distinct: ["industry"],
-      }),
-      prisma.jobPosting.findMany({
-        where: { status: "APPROVED", location: { not: null } },
-        select: { location: true },
-        distinct: ["location"],
-      }),
-      prisma.jobPosting.findMany({
-        where: { status: "APPROVED", workType: { not: null } },
-        select: { workType: true },
-        distinct: ["workType"],
-      }),
+      ...await getCachedFilterOptions(),
     ]);
 
   return {

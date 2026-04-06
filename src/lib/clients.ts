@@ -10,20 +10,8 @@ import {
   ClientWithRelations,
 } from "@/types/client";
 import { Prisma } from "@prisma/client";
+import { withClientAccess } from "@/lib/access-scope";
 import { ViewerScope } from "@/lib/viewer-scope";
-
-function withClientAccess(
-  where: Prisma.ClientWhereInput,
-  scope?: ViewerScope
-): Prisma.ClientWhereInput {
-  if (!scope || scope.isAdmin) {
-    return where;
-  }
-
-  return {
-    AND: [where, { createdById: scope.userId }],
-  };
-}
 
 const CLIENT_LIST_INCLUDE = {
   _count: {
@@ -36,8 +24,8 @@ function getClientDetailInclude(scope?: ViewerScope): Prisma.ClientInclude {
     !scope || scope.isAdmin
       ? undefined
       : {
-          OR: [{ createdById: scope.userId }, { assignedToId: scope.userId }],
-        };
+        OR: [{ createdById: scope.userId }, { assignedToId: scope.userId }],
+      };
 
   return {
     contacts: { orderBy: { id: "asc" as const } },
@@ -117,7 +105,7 @@ function buildWhere(filters: ClientFilters): Prisma.ClientWhereInput {
 
   if (filters.industry)
     where.industry = { contains: filters.industry, mode: "insensitive" };
-  
+
   if (filters.companySize)
     where.companySize = filters.companySize;
 
@@ -300,11 +288,11 @@ export async function getAllClients(filters: {
       isDeleted: false,
       ...(search
         ? {
-            companyName: {
-              contains: search,
-              mode: "insensitive",
-            },
-          }
+          companyName: {
+            contains: search,
+            mode: "insensitive",
+          },
+        }
         : {}),
     },
     scope
@@ -321,18 +309,18 @@ export async function getAllClients(filters: {
     prisma.client.count({ where: baseWhere }),
     includeIds.length > 0
       ? prisma.client.findMany({
-          where: {
-            ...withClientAccess(
-              {
-                id: { in: includeIds },
-                isDeleted: false,
-              },
-              scope
-            ),
-          },
-          select: { id: true, companyName: true },
-          orderBy: { companyName: "asc" },
-        })
+        where: {
+          ...withClientAccess(
+            {
+              id: { in: includeIds },
+              isDeleted: false,
+            },
+            scope
+          ),
+        },
+        select: { id: true, companyName: true },
+        orderBy: { companyName: "asc" },
+      })
       : Promise.resolve([] as ClientSelectOption[]),
   ]);
 

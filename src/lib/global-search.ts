@@ -3,6 +3,7 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { requireViewerScope } from "@/lib/authz";
+import { withCandidateAccess, withClientAccess, withJobAccess } from "@/lib/access-scope";
 import { ViewerScope } from "@/lib/viewer-scope";
 
 export type SearchResultItem = {
@@ -12,50 +13,6 @@ export type SearchResultItem = {
   subtitle: string;
   href: string;
 };
-
-function withCandidateAccess(
-  where: Prisma.CandidateWhereInput,
-  scope: ViewerScope
-): Prisma.CandidateWhereInput {
-  if (scope.isAdmin) {
-    return where;
-  }
-
-  return {
-    AND: [where, { createdById: scope.userId }],
-  };
-}
-
-function withClientAccess(
-  where: Prisma.ClientWhereInput,
-  scope: ViewerScope
-): Prisma.ClientWhereInput {
-  if (scope.isAdmin) {
-    return where;
-  }
-
-  return {
-    AND: [where, { createdById: scope.userId }],
-  };
-}
-
-function withJobAccess(
-  where: Prisma.JobOrderWhereInput,
-  scope: ViewerScope
-): Prisma.JobOrderWhereInput {
-  if (scope.isAdmin) {
-    return where;
-  }
-
-  return {
-    AND: [
-      where,
-      {
-        OR: [{ createdById: scope.userId }, { assignedToId: scope.userId }],
-      },
-    ],
-  };
-}
 
 export async function globalSearch(query: string): Promise<SearchResultItem[]> {
   try {
@@ -130,20 +87,20 @@ export async function globalSearch(query: string): Promise<SearchResultItem[]> {
       }),
       scope.isAdmin
         ? prisma.employer.findMany({
-            where: {
-              OR: [
-                { companyName: { contains: normalizedQuery, mode: "insensitive" } },
-                { email: { contains: normalizedQuery, mode: "insensitive" } },
-              ],
-            },
-            select: {
-              id: true,
-              companyName: true,
-              email: true,
-            },
-            take: 4,
-            orderBy: { updatedAt: "desc" },
-          })
+          where: {
+            OR: [
+              { companyName: { contains: normalizedQuery, mode: "insensitive" } },
+              { email: { contains: normalizedQuery, mode: "insensitive" } },
+            ],
+          },
+          select: {
+            id: true,
+            companyName: true,
+            email: true,
+          },
+          take: 4,
+          orderBy: { updatedAt: "desc" },
+        })
         : Promise.resolve([]),
     ]);
 

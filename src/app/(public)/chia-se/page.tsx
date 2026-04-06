@@ -4,6 +4,10 @@ import { ArrowRight } from "lucide-react";
 import { getPublishedBlogPosts } from "@/lib/blog-actions";
 import type { BlogPost } from "@prisma/client";
 
+// Revalidate every 60 seconds — blog posts change rarely,
+// no searchParams dependency so ISR is safe here.
+export const revalidate = 60;
+
 export const metadata: Metadata = {
     title: "Thông tin chia sẻ",
     description:

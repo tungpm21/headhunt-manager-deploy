@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { withCandidateAccess } from "@/lib/access-scope";
 import { ViewerScope } from "@/lib/viewer-scope";
 import {
   CandidateFilters,
@@ -8,19 +9,6 @@ import {
   UpdateCandidateInput,
   CandidateWithRelations,
 } from "@/types/candidate";
-
-function withCandidateAccess(
-  where: Prisma.CandidateWhereInput,
-  scope?: ViewerScope
-): Prisma.CandidateWhereInput {
-  if (!scope || scope.isAdmin) {
-    return where;
-  }
-
-  return {
-    AND: [where, { createdById: scope.userId }],
-  };
-}
 
 const CANDIDATE_LIST_INCLUDE = {
   tags: { include: { tag: true } },

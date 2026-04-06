@@ -11,7 +11,7 @@ const connectionString =
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const pool = new Pool({
   connectionString,
-  max: 5,
+  max: 15,
   idleTimeoutMillis: 10000,
   connectionTimeoutMillis: 5000,
 }) as any;

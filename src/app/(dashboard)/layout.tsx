@@ -21,13 +21,13 @@ export default async function DashboardLayout({
 
   const isAdmin = session.user.role === "ADMIN";
   const counts = isAdmin
-    ? await getNotificationCounts()
+    ? await getNotificationCounts(true)
     : {
-        newApplications: 0,
-        pendingJobs: 0,
-        pendingEmployers: 0,
-        expiringJobs: 0,
-      };
+      newApplications: 0,
+      pendingJobs: 0,
+      pendingEmployers: 0,
+      expiringJobs: 0,
+    };
 
   return (
     <div className="flex min-h-screen bg-background text-foreground">

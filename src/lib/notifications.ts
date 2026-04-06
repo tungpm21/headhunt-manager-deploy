@@ -2,7 +2,6 @@
 
 import { addDays } from "date-fns";
 import { prisma } from "@/lib/prisma";
-import { requireAdmin } from "@/lib/authz";
 
 export type NotificationCounts = {
   newApplications: number;
@@ -11,10 +10,23 @@ export type NotificationCounts = {
   expiringJobs: number;
 };
 
-export async function getNotificationCounts(): Promise<NotificationCounts> {
-  try {
-    await requireAdmin();
+const EMPTY_COUNTS: NotificationCounts = {
+  newApplications: 0,
+  pendingJobs: 0,
+  pendingEmployers: 0,
+  expiringJobs: 0,
+};
 
+/**
+ * Fetch notification badge counts.
+ * Accepts `isAdmin` from caller to avoid a redundant `auth()` round-trip.
+ */
+export async function getNotificationCounts(
+  isAdmin: boolean
+): Promise<NotificationCounts> {
+  if (!isAdmin) return EMPTY_COUNTS;
+
+  try {
     const now = new Date();
     const threeDaysLater = addDays(now, 3);
 
@@ -42,11 +54,6 @@ export async function getNotificationCounts(): Promise<NotificationCounts> {
     };
   } catch (error) {
     console.error("getNotificationCounts error:", error);
-    return {
-      newApplications: 0,
-      pendingJobs: 0,
-      pendingEmployers: 0,
-      expiringJobs: 0,
-    };
+    return EMPTY_COUNTS;
   }
 }

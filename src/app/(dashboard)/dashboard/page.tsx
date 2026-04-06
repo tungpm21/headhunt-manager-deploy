@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { addDays, formatDistanceToNow } from "date-fns";
 import { vi } from "date-fns/locale";
 import { Prisma } from "@prisma/client";
@@ -26,11 +27,14 @@ import { requireViewerScope } from "@/lib/authz";
 import { prisma } from "@/lib/prisma";
 import { getUpcomingCandidateReminders } from "@/lib/reminders";
 import { getDashboardRevenueSummary } from "@/lib/revenue";
-import { expireSubscriptionsIfNeeded } from "@/lib/subscriptions";
 import { formatVnd } from "@/lib/utils";
 import { ViewerScope } from "@/lib/viewer-scope";
 
 export const metadata = { title: "Dashboard - Headhunt Manager" };
+
+// ═══════════════════════════════════════════════════════════
+// Types & Helpers (unchanged)
+// ═══════════════════════════════════════════════════════════
 
 type PipelineOverviewJob = {
   id: number;
@@ -144,8 +148,8 @@ function mapActivityItems(recentActivityLogs: RecentActivityLog[]) {
         type: "STAGE_CHANGE" as const,
         actorName,
         title: `${candidateName} -> ${toStage && toStage in stageLabelMap
-            ? stageLabelMap[toStage as keyof typeof stageLabelMap]
-            : toStage ?? "Cập nhật stage"
+          ? stageLabelMap[toStage as keyof typeof stageLabelMap]
+          : toStage ?? "Cập nhật stage"
           }`,
         subtitle: jobTitle ? `Job: ${jobTitle}` : undefined,
         href: jobOrderId ? `/jobs/${jobOrderId}` : `/candidates/${activity.entityId}`,
@@ -160,8 +164,8 @@ function mapActivityItems(recentActivityLogs: RecentActivityLog[]) {
         type: "STATUS_CHANGE" as const,
         actorName,
         title: `${candidateName} -> ${toStatus && toStatus in statusLabelMap
-            ? statusLabelMap[toStatus as keyof typeof statusLabelMap]
-            : toStatus ?? "Cập nhật trạng thái"
+          ? statusLabelMap[toStatus as keyof typeof statusLabelMap]
+          : toStatus ?? "Cập nhật trạng thái"
           }`,
         subtitle: "Cập nhật trạng thái ứng viên",
         href: `/candidates/${activity.entityId}`,
@@ -219,251 +223,100 @@ function mapActivityItems(recentActivityLogs: RecentActivityLog[]) {
   });
 }
 
+// ═══════════════════════════════════════════════════════════
+// Suspense Skeleton Fallbacks
+// ═══════════════════════════════════════════════════════════
+
+function DashboardCardSkeleton({ label }: { label: string }) {
+  return (
+    <div className="flex items-center gap-4 rounded-xl border bg-surface p-6 shadow-sm">
+      <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-amber-50 text-amber-600">
+        <BellRing className="h-6 w-6" />
+      </div>
+      <div>
+        <p className="text-sm font-medium text-muted">{label}</p>
+        <div className="mt-1 h-8 w-10 animate-pulse rounded bg-muted/20" />
+      </div>
+    </div>
+  );
+}
+
+function KpiSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="rounded-xl border border-border bg-surface p-5 shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className="h-11 w-11 animate-pulse rounded-lg bg-muted/20" />
+              <div className="space-y-2">
+                <div className="h-3 w-16 animate-pulse rounded bg-muted/20" />
+                <div className="h-7 w-12 animate-pulse rounded bg-muted/20" />
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="rounded-xl border border-border bg-surface p-5 shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className="h-11 w-11 animate-pulse rounded-lg bg-muted/20" />
+              <div className="space-y-2">
+                <div className="h-3 w-20 animate-pulse rounded bg-muted/20" />
+                <div className="h-7 w-24 animate-pulse rounded bg-muted/20" />
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function DetailsSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
+        <div className="xl:col-span-2">
+          <div className="h-64 animate-pulse rounded-xl border bg-surface shadow-sm" />
+        </div>
+        <div className="space-y-6">
+          <div className="h-40 animate-pulse rounded-xl border bg-surface shadow-sm" />
+          <div className="h-40 animate-pulse rounded-xl border bg-surface shadow-sm" />
+        </div>
+      </div>
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="h-48 animate-pulse rounded-xl border bg-surface shadow-sm" />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════
+// Main Page (fast: 4 COUNT queries only)
+// ═══════════════════════════════════════════════════════════
+
 export default async function DashboardPage() {
   const scope = await requireViewerScope();
-  await expireSubscriptionsIfNeeded();
 
   const now = new Date();
-  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
   const candidateWhere = withCandidateAccess({ isDeleted: false }, scope);
   const clientWhere = withClientAccess({ isDeleted: false }, scope);
   const openJobWhere = withJobAccess({ status: "OPEN" }, scope);
-  const memberCandidateIds = scope.isAdmin
-    ? []
-    : (
-      await prisma.candidate.findMany({
-        where: candidateWhere,
-        select: { id: true },
-      })
-    ).map((candidate) => candidate.id);
 
-  const [
-    candidateCount,
-    clientCount,
-    openJobCount,
-    newAppCount,
-    recentJobs,
-    recentCandidates,
-    recentApps,
-    jobsClosingSoon,
-    subscriptionsEndingSoon,
-    placementsThisMonth,
-    filledJobCount,
-    closedJobCount,
-    placedPipelineItems,
-    pipelineOverviewJobs,
-    upcomingReminders,
-    recentActivityLogs,
-    revenueSummary,
-  ] = await Promise.all([
-    prisma.candidate.count({ where: candidateWhere }),
-    prisma.client.count({ where: clientWhere }),
-    prisma.jobOrder.count({ where: openJobWhere }),
-    scope.isAdmin
-      ? prisma.application.count({ where: { status: "NEW" } })
-      : Promise.resolve(0),
-    prisma.jobOrder.findMany({
-      where: withJobAccess({}, scope),
-      take: 5,
-      orderBy: { createdAt: "desc" },
-      include: { client: true },
-    }),
-    prisma.candidate.findMany({
-      where: candidateWhere,
-      take: 5,
-      orderBy: { createdAt: "desc" },
-      select: {
-        id: true,
-        fullName: true,
-        currentPosition: true,
-        industry: true,
-        createdAt: true,
-      },
-    }),
-    scope.isAdmin
-      ? prisma.application.findMany({
-        where: { status: { in: ["NEW", "REVIEWED", "SHORTLISTED"] } },
-        orderBy: { createdAt: "desc" },
-        take: 5,
-        include: {
-          jobPosting: {
-            select: { title: true, employer: { select: { companyName: true } } },
-          },
-        },
-      })
-      : Promise.resolve([]),
-    prisma.jobOrder.findMany({
-      where: withJobAccess(
-        {
-          status: "OPEN",
-          deadline: {
-            gte: now,
-            lte: addDays(now, 7),
-          },
-        },
-        scope
-      ),
-      select: {
-        id: true,
-        title: true,
-        deadline: true,
-        client: { select: { companyName: true } },
-      },
-      orderBy: { deadline: "asc" },
-      take: 5,
-    }),
-    scope.isAdmin
-      ? prisma.subscription.findMany({
-        where: {
-          status: "ACTIVE",
-          endDate: {
-            gte: now,
-            lte: addDays(now, 14),
-          },
-        },
-        select: {
-          id: true,
-          tier: true,
-          endDate: true,
-          employer: {
-            select: {
-              id: true,
-              companyName: true,
-            },
-          },
-        },
-        orderBy: { endDate: "asc" },
-        take: 5,
-      })
-      : Promise.resolve([]),
-    prisma.jobCandidate.count({
-      where: {
-        stage: "PLACED",
-        updatedAt: {
-          gte: startOfMonth,
-        },
-        jobOrder: withJobAccess({}, scope),
-      },
-    }),
-    prisma.jobOrder.count({
-      where: withJobAccess(
-        {
-          status: "FILLED",
-        },
-        scope
-      ),
-    }),
-    prisma.jobOrder.count({
-      where: withJobAccess(
-        {
-          status: {
-            in: ["FILLED", "CANCELLED"],
-          },
-        },
-        scope
-      ),
-    }),
-    prisma.jobCandidate.findMany({
-      where: {
-        stage: "PLACED",
-        jobOrder: withJobAccess({}, scope),
-      },
-      select: {
-        createdAt: true,
-        updatedAt: true,
-      },
-    }),
-    prisma.jobOrder.findMany({
-      where: openJobWhere,
-      take: 6,
-      orderBy: [{ updatedAt: "desc" }, { createdAt: "desc" }],
-      select: {
-        id: true,
-        title: true,
-        quantity: true,
-        client: { select: { companyName: true } },
-        candidates: {
-          select: {
-            stage: true,
-          },
-        },
-      },
-    }),
-    getUpcomingCandidateReminders(now, 8, scope),
-    scope.isAdmin
-      ? prisma.activityLog.findMany({
-        take: 10,
-        orderBy: { createdAt: "desc" },
-        include: {
-          user: {
-            select: {
-              name: true,
-            },
-          },
-        },
-      })
-      : memberCandidateIds.length > 0
-        ? prisma.activityLog.findMany({
-          where: {
-            entityType: "CANDIDATE",
-            entityId: {
-              in: memberCandidateIds,
-            },
-          },
-          take: 10,
-          orderBy: { createdAt: "desc" },
-          include: {
-            user: {
-              select: {
-                name: true,
-              },
-            },
-          },
-        })
-        : Promise.resolve([]),
-    getDashboardRevenueSummary(now, scope),
-  ]);
-
-  const pipelineJobs = (pipelineOverviewJobs as PipelineOverviewJob[]).map((job) => {
-    const stageCounts = job.candidates.reduce(
-      (acc, candidate) => {
-        acc[candidate.stage] += 1;
-        return acc;
-      },
-      {
-        SOURCED: 0,
-        CONTACTED: 0,
-        INTERVIEW: 0,
-        OFFER: 0,
-        PLACED: 0,
-        REJECTED: 0,
-      }
-    );
-
-    return {
-      id: job.id,
-      title: job.title,
-      companyName: job.client.companyName,
-      quantity: job.quantity,
-      totalCandidates: job.candidates.length,
-      stageCounts,
-    };
-  });
-
-  const activityItems = mapActivityItems(recentActivityLogs as RecentActivityLog[]);
-  const fillRate =
-    closedJobCount > 0 ? Math.round((filledJobCount / closedJobCount) * 100) : 0;
-  const averageFillTime =
-    placedPipelineItems.length > 0
-      ? Math.round(
-        placedPipelineItems.reduce((sum, item) => {
-          const diffMs = item.updatedAt.getTime() - item.createdAt.getTime();
-          return sum + diffMs / (1000 * 60 * 60 * 24);
-        }, 0) / placedPipelineItems.length
-      )
-      : 0;
-  const revenueThisMonth =
-    revenueSummary.headhuntRevenueThisMonth + revenueSummary.subscriptionRevenueThisMonth;
+  // Group 1: Fast COUNT queries — render immediately
+  const [candidateCount, clientCount, openJobCount, newAppCount] =
+    await Promise.all([
+      prisma.candidate.count({ where: candidateWhere }),
+      prisma.client.count({ where: clientWhere }),
+      prisma.jobOrder.count({ where: openJobWhere }),
+      scope.isAdmin
+        ? prisma.application.count({ where: { status: "NEW" } })
+        : Promise.resolve(0),
+    ]);
 
   return (
     <div className="mx-auto max-w-7xl space-y-6">
@@ -538,18 +391,145 @@ export default async function DashboardPage() {
             </div>
           </Link>
         ) : (
-          <div className="flex items-center gap-4 rounded-xl border bg-surface p-6 shadow-sm">
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-amber-50 text-amber-600">
-              <BellRing className="h-6 w-6" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-muted">Nhắc việc sắp đến hạn</p>
-              <p className="text-2xl font-bold text-foreground">{upcomingReminders.length}</p>
-            </div>
-          </div>
+          <Suspense fallback={<DashboardCardSkeleton label="Nhắc việc sắp đến hạn" />}>
+            <ReminderCountCard scope={scope} now={now} />
+          </Suspense>
         )}
       </div>
 
+      {/* Group 2: KPIs + Revenue + Pipeline — streams second */}
+      <Suspense fallback={<KpiSkeleton />}>
+        <DashboardKPIs scope={scope} now={now} />
+      </Suspense>
+
+      {/* Group 3: Activity + Lists + Widgets — streams last */}
+      <Suspense fallback={<DetailsSkeleton />}>
+        <DashboardDetails scope={scope} now={now} />
+      </Suspense>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════
+// Async Streamed Components
+// ═══════════════════════════════════════════════════════════
+
+async function ReminderCountCard({
+  scope,
+  now,
+}: {
+  scope: ViewerScope;
+  now: Date;
+}) {
+  const upcomingReminders = await getUpcomingCandidateReminders(now, 8, scope);
+  return (
+    <div className="flex items-center gap-4 rounded-xl border bg-surface p-6 shadow-sm">
+      <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-amber-50 text-amber-600">
+        <BellRing className="h-6 w-6" />
+      </div>
+      <div>
+        <p className="text-sm font-medium text-muted">Nhắc việc sắp đến hạn</p>
+        <p className="text-2xl font-bold text-foreground">{upcomingReminders.length}</p>
+      </div>
+    </div>
+  );
+}
+
+async function DashboardKPIs({
+  scope,
+  now,
+}: {
+  scope: ViewerScope;
+  now: Date;
+}) {
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+  const [
+    placementsThisMonth,
+    filledJobCount,
+    closedJobCount,
+    placedPipelineItems,
+    pipelineOverviewJobs,
+    revenueSummary,
+  ] = await Promise.all([
+    prisma.jobCandidate.count({
+      where: {
+        stage: "PLACED",
+        updatedAt: { gte: startOfMonth },
+        jobOrder: withJobAccess({}, scope),
+      },
+    }),
+    prisma.jobOrder.count({
+      where: withJobAccess({ status: "FILLED" }, scope),
+    }),
+    prisma.jobOrder.count({
+      where: withJobAccess({ status: { in: ["FILLED", "CANCELLED"] } }, scope),
+    }),
+    prisma.jobCandidate.findMany({
+      where: {
+        stage: "PLACED",
+        jobOrder: withJobAccess({}, scope),
+      },
+      select: { createdAt: true, updatedAt: true },
+      orderBy: { updatedAt: "desc" },
+      take: 200,
+    }),
+    prisma.jobOrder.findMany({
+      where: withJobAccess({ status: "OPEN" }, scope),
+      take: 6,
+      orderBy: [{ updatedAt: "desc" }, { createdAt: "desc" }],
+      select: {
+        id: true,
+        title: true,
+        quantity: true,
+        client: { select: { companyName: true } },
+        candidates: { select: { stage: true } },
+      },
+    }),
+    getDashboardRevenueSummary(now, scope),
+  ]);
+
+  const pipelineJobs = (pipelineOverviewJobs as PipelineOverviewJob[]).map((job) => {
+    const stageCounts = job.candidates.reduce(
+      (acc, candidate) => {
+        acc[candidate.stage] += 1;
+        return acc;
+      },
+      {
+        SOURCED: 0,
+        CONTACTED: 0,
+        INTERVIEW: 0,
+        OFFER: 0,
+        PLACED: 0,
+        REJECTED: 0,
+      }
+    );
+    return {
+      id: job.id,
+      title: job.title,
+      companyName: job.client.companyName,
+      quantity: job.quantity,
+      totalCandidates: job.candidates.length,
+      stageCounts,
+    };
+  });
+
+  const fillRate =
+    closedJobCount > 0 ? Math.round((filledJobCount / closedJobCount) * 100) : 0;
+  const averageFillTime =
+    placedPipelineItems.length > 0
+      ? Math.round(
+        placedPipelineItems.reduce((sum, item) => {
+          const diffMs = item.updatedAt.getTime() - item.createdAt.getTime();
+          return sum + diffMs / (1000 * 60 * 60 * 24);
+        }, 0) / placedPipelineItems.length
+      )
+      : 0;
+  const revenueThisMonth =
+    revenueSummary.headhuntRevenueThisMonth + revenueSummary.subscriptionRevenueThisMonth;
+
+  return (
+    <>
       <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
         <div className="rounded-xl border border-border bg-surface p-5 shadow-sm">
           <div className="flex items-center gap-3">
@@ -669,6 +649,151 @@ export default async function DashboardPage() {
         <div className="xl:col-span-2">
           <PipelineSummary jobs={pipelineJobs} />
         </div>
+      </div>
+    </>
+  );
+}
+
+async function DashboardDetails({
+  scope,
+  now,
+}: {
+  scope: ViewerScope;
+  now: Date;
+}) {
+  const candidateWhere = withCandidateAccess({ isDeleted: false }, scope);
+  const memberCandidateIds = scope.isAdmin
+    ? []
+    : (
+      await prisma.candidate.findMany({
+        where: candidateWhere,
+        select: { id: true },
+      })
+    ).map((candidate) => candidate.id);
+
+  const [
+    recentJobs,
+    recentCandidates,
+    recentApps,
+    jobsClosingSoon,
+    subscriptionsEndingSoon,
+    upcomingReminders,
+    recentActivityLogs,
+  ] = await Promise.all([
+    prisma.jobOrder.findMany({
+      where: withJobAccess({}, scope),
+      take: 5,
+      orderBy: { createdAt: "desc" },
+      include: { client: true },
+    }),
+    prisma.candidate.findMany({
+      where: candidateWhere,
+      take: 5,
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        fullName: true,
+        currentPosition: true,
+        industry: true,
+        createdAt: true,
+      },
+    }),
+    scope.isAdmin
+      ? prisma.application.findMany({
+        where: { status: { in: ["NEW", "REVIEWED", "SHORTLISTED"] } },
+        orderBy: { createdAt: "desc" },
+        take: 5,
+        include: {
+          jobPosting: {
+            select: { title: true, employer: { select: { companyName: true } } },
+          },
+        },
+      })
+      : Promise.resolve([]),
+    prisma.jobOrder.findMany({
+      where: withJobAccess(
+        {
+          status: "OPEN",
+          deadline: {
+            gte: now,
+            lte: addDays(now, 7),
+          },
+        },
+        scope
+      ),
+      select: {
+        id: true,
+        title: true,
+        deadline: true,
+        client: { select: { companyName: true } },
+      },
+      orderBy: { deadline: "asc" },
+      take: 5,
+    }),
+    scope.isAdmin
+      ? prisma.subscription.findMany({
+        where: {
+          status: "ACTIVE",
+          endDate: {
+            gte: now,
+            lte: addDays(now, 14),
+          },
+        },
+        select: {
+          id: true,
+          tier: true,
+          endDate: true,
+          employer: {
+            select: {
+              id: true,
+              companyName: true,
+            },
+          },
+        },
+        orderBy: { endDate: "asc" },
+        take: 5,
+      })
+      : Promise.resolve([]),
+    getUpcomingCandidateReminders(now, 8, scope),
+    scope.isAdmin
+      ? prisma.activityLog.findMany({
+        take: 10,
+        orderBy: { createdAt: "desc" },
+        include: {
+          user: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      })
+      : memberCandidateIds.length > 0
+        ? prisma.activityLog.findMany({
+          where: {
+            entityType: "CANDIDATE",
+            entityId: {
+              in: memberCandidateIds,
+            },
+          },
+          take: 10,
+          orderBy: { createdAt: "desc" },
+          include: {
+            user: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        })
+        : Promise.resolve([]),
+  ]);
+
+  const activityItems = mapActivityItems(recentActivityLogs as RecentActivityLog[]);
+
+  return (
+    <>
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
+        <div className="xl:col-span-2" />
 
         <div className="grid grid-cols-1 gap-6">
           <DeadlineAlerts
@@ -859,6 +984,6 @@ export default async function DashboardPage() {
           </div>
         ) : null}
       </div>
-    </div>
+    </>
   );
 }

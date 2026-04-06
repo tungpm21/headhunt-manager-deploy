@@ -247,7 +247,28 @@ function normalizeDistinctValues(values: Array<string | null | undefined>) {
   ).sort((a, b) => a.localeCompare(b, "vi"));
 }
 
-export async function getCandidateFilterOptions(scope?: ViewerScope) {
+type FilterOptionsResult = {
+  locations: string[];
+  industries: string[];
+  skills: string[];
+};
+
+const filterOptionsCache = new Map<
+  string,
+  { data: FilterOptionsResult; expiresAt: number }
+>();
+const FILTER_CACHE_TTL_MS = 60_000; // 60 seconds
+
+export async function getCandidateFilterOptions(
+  scope?: ViewerScope
+): Promise<FilterOptionsResult> {
+  const cacheKey = scope?.isAdmin ? "admin" : `user-${scope?.userId ?? "anon"}`;
+  const cached = filterOptionsCache.get(cacheKey);
+
+  if (cached && Date.now() < cached.expiresAt) {
+    return cached.data;
+  }
+
   const baseWhere = withCandidateAccess({ isDeleted: false }, scope);
   const [locations, industries, allSkillRows] = await Promise.all([
     prisma.candidate.findMany({
@@ -283,11 +304,18 @@ export async function getCandidateFilterOptions(scope?: ViewerScope) {
     )
   ).sort((a, b) => a.localeCompare(b, "vi"));
 
-  return {
+  const data: FilterOptionsResult = {
     locations: normalizeDistinctValues(locations.map((item) => item.location)),
     industries: normalizeDistinctValues(industries.map((item) => item.industry)),
     skills,
   };
+
+  filterOptionsCache.set(cacheKey, {
+    data,
+    expiresAt: Date.now() + FILTER_CACHE_TTL_MS,
+  });
+
+  return data;
 }
 
 export async function getCandidateById(

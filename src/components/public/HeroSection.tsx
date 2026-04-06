@@ -15,6 +15,16 @@ const trendingTags = [
   "QC / QA",
 ];
 
+/** Strip Vietnamese diacritics for accent-insensitive search */
+function removeTones(str: string): string {
+  return str
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/g, "d")
+    .replace(/Đ/g, "D")
+    .toLowerCase();
+}
+
 type HeroSectionProps = {
   totalJobs: number;
   totalEmployers: number;
@@ -61,7 +71,7 @@ export function HeroSection({ totalJobs, totalEmployers }: HeroSectionProps) {
   }, [search]);
 
   const filteredLocations = locations.filter((l) =>
-    l.toLowerCase().includes(location.toLowerCase())
+    removeTones(l).includes(removeTones(location))
   );
 
   function handleSearch(e: React.FormEvent) {
@@ -269,54 +279,57 @@ export function HeroSection({ totalJobs, totalEmployers }: HeroSectionProps) {
             </div>
 
             {/* Divider */}
-            <div className="hidden sm:block w-px bg-gray-200 my-2" />
+            <div className="hidden sm:block w-px bg-gray-200 my-2 shrink-0" />
 
-            {/* Location input */}
-            <div ref={locationRef} className="relative flex items-center gap-2 px-3 py-2.5 sm:py-3 sm:w-56 shrink-0">
-              <MapPin className="h-5 w-5 text-gray-400 shrink-0" />
-              <input
-                type="text"
-                value={location}
-                onChange={(e) => { setLocation(e.target.value); setLocationOpen(true); }}
-                onFocus={() => {
-                  setLocationOpen(true);
-                  search.setIsOpen(false);
-                }}
-                placeholder="Địa điểm"
-                className="flex-1 bg-transparent text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none"
-                style={{ fontFamily: "var(--font-body)" }}
-              />
-              <ChevronDown
-                className={`h-4 w-4 text-gray-400 shrink-0 transition-transform cursor-pointer ${locationOpen ? "rotate-180" : ""}`}
-                onClick={() => { setLocationOpen(!locationOpen); search.setIsOpen(false); }}
-              />
+            {/* Location + Button group — shrink-0 to prevent overlap */}
+            <div className="flex items-center gap-2 shrink-0">
+              {/* Location input */}
+              <div ref={locationRef} className="relative flex items-center gap-1.5 px-3 py-2.5 sm:py-3 w-44">
+                <MapPin className="h-4 w-4 text-gray-400 shrink-0" />
+                <input
+                  type="text"
+                  value={location}
+                  onChange={(e) => { setLocation(e.target.value); setLocationOpen(true); }}
+                  onFocus={() => {
+                    setLocationOpen(true);
+                    search.setIsOpen(false);
+                  }}
+                  placeholder="Địa điểm"
+                  className="flex-1 min-w-0 bg-transparent text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none"
+                  style={{ fontFamily: "var(--font-body)" }}
+                />
+                <ChevronDown
+                  className={`h-3.5 w-3.5 text-gray-400 shrink-0 transition-transform cursor-pointer ${locationOpen ? "rotate-180" : ""}`}
+                  onClick={() => { setLocationOpen(!locationOpen); search.setIsOpen(false); }}
+                />
 
-              {/* ═══════ LOCATION DROPDOWN ═══════ */}
-              {locationOpen && filteredLocations.length > 0 && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-xl border border-gray-200 shadow-2xl z-50 max-h-60 overflow-y-auto py-1">
-                  {filteredLocations.map((loc) => (
-                    <button
-                      key={loc}
-                      type="button"
-                      onClick={() => { setLocation(loc); setLocationOpen(false); }}
-                      className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-[var(--color-fdi-surface)] hover:text-[var(--color-fdi-primary)] transition-colors cursor-pointer"
-                    >
-                      <MapPin className="h-3 w-3 inline mr-2 text-gray-400" />
-                      {loc}
-                    </button>
-                  ))}
-                </div>
-              )}
+                {/* ═══════ LOCATION DROPDOWN ═══════ */}
+                {locationOpen && filteredLocations.length > 0 && (
+                  <div className="absolute top-full left-0 mt-1 bg-white rounded-xl border border-gray-200 shadow-2xl z-50 max-h-60 overflow-y-auto py-1 min-w-48">
+                    {filteredLocations.map((loc) => (
+                      <button
+                        key={loc}
+                        type="button"
+                        onClick={() => { setLocation(loc); setLocationOpen(false); }}
+                        className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-[var(--color-fdi-surface)] hover:text-[var(--color-fdi-primary)] transition-colors cursor-pointer whitespace-nowrap"
+                      >
+                        <MapPin className="h-3 w-3 inline mr-2 text-gray-400" />
+                        {loc}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Search button */}
+              <button
+                type="submit"
+                className="px-6 sm:px-8 py-3 rounded-xl bg-[var(--color-fdi-accent-orange)] text-white font-semibold text-sm hover:bg-[#E65C00] transition-transform duration-300 ease-out hover:-translate-y-0.5 hover:shadow-lg cursor-pointer shrink-0"
+              >
+                <Search className="h-4 w-4 inline mr-1.5 -mt-0.5" />
+                Tìm kiếm
+              </button>
             </div>
-
-            {/* Search button */}
-            <button
-              type="submit"
-              className="px-6 sm:px-8 py-3 rounded-xl bg-[var(--color-fdi-accent-orange)] text-white font-semibold text-sm hover:bg-[#E65C00] transition-transform duration-300 ease-out hover:-translate-y-0.5 hover:shadow-lg cursor-pointer shrink-0"
-            >
-              <Search className="h-4 w-4 inline mr-1.5 -mt-0.5" />
-              Tìm kiếm
-            </button>
           </form>
         </div>
 

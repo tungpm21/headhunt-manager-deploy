@@ -3,7 +3,7 @@
 Ngày báo giá: 06/04/2026  
 Hiệu lực báo giá: 07 ngày kể từ ngày phát hành
 
-Người nhận: **FDIWork**  
+Người nhận: **Chú Thanh - FDIWork**  
 Người báo giá: **Mạnh Tùng**  
 Liên hệ: **0388210997** - **tungpm.tvhs@gmail.com**
 
@@ -11,7 +11,7 @@ Liên hệ: **0388210997** - **tungpm.tvhs@gmail.com**
 
 ## Lời mở đầu
 
-Em gửi anh/chị FDIWork bản báo giá cho gói triển khai website và hệ thống quản lý tuyển dụng ở mức MVP, mục tiêu là:
+Cháu gửi Chú Thanh bản báo giá cho gói triển khai website và hệ thống quản lý tuyển dụng ở mức MVP, mục tiêu là:
 
 - Có thể đưa vào sử dụng thực tế sớm
 - Đủ các chức năng cốt lõi để vận hành
@@ -150,7 +150,7 @@ Lưu ý:
 
 ## 5. Mốc nghiệm thu
 
-Để dễ làm việc và dễ kiểm soát tiến độ, em đề xuất nghiệm thu theo các mốc sau:
+Để dễ làm việc và dễ kiểm soát tiến độ, cháu đề xuất nghiệm thu theo các mốc sau:
 
 ### Mốc 1: Xác nhận phạm vi và giao diện
 
@@ -232,7 +232,7 @@ Tóm gọn lại, trong mức báo giá này FDIWork sẽ nhận được:
 - Source code bàn giao
 - Thời gian hỗ trợ sửa lỗi và tối ưu sau khi đưa vào chạy thử
 
-Nếu FDIWork đồng ý với hướng triển khai này, em sẽ chốt lại phạm vi cuối cùng và bắt đầu theo tiến độ đã thống nhất.
+Nếu Chú Thanh đồng ý với hướng triển khai này, cháu sẽ chốt lại phạm vi cuối cùng và bắt đầu theo tiến độ đã thống nhất.
 
 Trân trọng,  
 **Mạnh Tùng**  

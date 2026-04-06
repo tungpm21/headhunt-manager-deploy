@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -15,7 +16,9 @@
       --paper: #ffffff;
     }
 
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
 
     body {
       margin: 0;
@@ -123,14 +126,18 @@
       font-size: 11.5pt;
     }
 
-    p { margin: 0 0 10px; }
+    p {
+      margin: 0 0 10px;
+    }
 
     ul {
       margin: 8px 0 10px 18px;
       padding: 0;
     }
 
-    li { margin-bottom: 6px; }
+    li {
+      margin-bottom: 6px;
+    }
 
     .price {
       text-align: right;
@@ -165,20 +172,44 @@
     .closing {
       margin-top: 28px;
     }
+
+    @page {
+      size: A4;
+      margin: 0;
+    }
+
+    @media print {
+      html,
+      body {
+        background: #ffffff;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      .page {
+        width: auto;
+        min-height: auto;
+        margin: 0;
+        padding: 16mm 14mm 14mm;
+        box-shadow: none;
+      }
+    }
   </style>
 </head>
+
 <body>
   <div class="page">
     <div class="topbar">
       <div class="eyebrow">Báo giá dịch vụ</div>
       <h1>Phát triển Website và Hệ thống Quản lý Tuyển dụng</h1>
-      <div class="subtitle">Bản báo giá được trình bày lại theo hướng rõ phạm vi, dễ hiểu và thuận tiện để FDIWork xem xét.</div>
+      <div class="subtitle">Bản báo giá được trình bày lại theo hướng rõ phạm vi, dễ hiểu và thuận tiện để FDIWork xem
+        xét.</div>
     </div>
 
     <table class="meta-grid">
       <tr>
         <td class="label">Khách hàng / Công ty</td>
-        <td>FDIWork</td>
+        <td>Chú Thanh - FDIWork</td>
         <td class="label">Ngày báo giá</td>
         <td>06/04/2026</td>
       </tr>
@@ -196,13 +227,16 @@
       </tr>
     </table>
 
-    <p>Kính gửi anh/chị FDIWork,</p>
-    <p>Em gửi anh/chị bản báo giá cho gói triển khai website và hệ thống quản lý tuyển dụng ở mức MVP. Mục tiêu là làm một bản đủ dùng thực tế, có thể đưa vào vận hành sớm, sau đó tiếp tục sửa lỗi và tối ưu trong giai đoạn chạy thử.</p>
+    <p>Kính gửi Chú Thanh,</p>
+    <p>Cháu gửi Chú bản báo giá chi tiết cho gói triển khai website và hệ thống quản lý tuyển dụng ở mức MVP. Mục tiêu
+      là làm một bản đủ dùng thực tế, có thể đưa vào vận hành sớm, sau đó tiếp tục sửa lỗi và tối ưu trong giai đoạn
+      chạy thử.</p>
 
     <div class="summary-card">
       <div class="caption">Tổng giá trị báo giá</div>
       <p class="amount">20.000.000 VND</p>
-      <div class="note">Bao gồm phần phát triển bản đầu và 02 tháng hỗ trợ vận hành thử. Chưa bao gồm các hạng mục phát sinh ngoài phạm vi MVP.</div>
+      <div class="note">Bao gồm phần phát triển bản đầu và 02 tháng hỗ trợ vận hành thử. Chưa bao gồm các hạng mục phát
+        sinh ngoài phạm vi MVP.</div>
     </div>
 
     <h2>1. Tóm tắt hệ thống sẽ triển khai</h2>
@@ -295,12 +329,14 @@
       </tr>
       <tr>
         <td><strong>Website FDIWork</strong></td>
-        <td>Hoàn thiện giao diện website, các trang công khai, hiển thị việc làm / công ty / form ứng tuyển, kiểm tra desktop và mobile, đưa lên môi trường chạy thực tế</td>
+        <td>Hoàn thiện giao diện website, các trang công khai, hiển thị việc làm / công ty / form ứng tuyển, kiểm tra
+          desktop và mobile, đưa lên môi trường chạy thực tế</td>
         <td class="price">5.000.000 VND</td>
       </tr>
       <tr>
         <td><strong>Hệ thống quản lý tuyển dụng</strong></td>
-        <td>Hoàn thiện hệ thống quản trị dữ liệu, đăng nhập, quản lý dữ liệu chính, quản lý tin tuyển dụng, tiếp nhận dữ liệu từ website, các luồng thao tác cốt lõi ở mức MVP</td>
+        <td>Hoàn thiện hệ thống quản trị dữ liệu, đăng nhập, quản lý dữ liệu chính, quản lý tin tuyển dụng, tiếp nhận dữ
+          liệu từ website, các luồng thao tác cốt lõi ở mức MVP</td>
         <td class="price">10.000.000 VND</td>
       </tr>
       <tr class="total-row">
@@ -317,7 +353,8 @@
         <th class="price">Chi phí</th>
       </tr>
       <tr>
-        <td>Tiếp nhận phản hồi thực tế, sửa bug, tinh chỉnh luồng sử dụng, tối ưu hiệu năng và ổn định hệ thống trong giai đoạn chạy thử</td>
+        <td>Tiếp nhận phản hồi thực tế, sửa bug, tinh chỉnh luồng sử dụng, tối ưu hiệu năng và ổn định hệ thống trong
+          giai đoạn chạy thử</td>
         <td class="price">5.000.000 VND</td>
       </tr>
     </table>
@@ -397,7 +434,8 @@
 
     <h2>7. Điều khoản thanh toán</h2>
     <ul>
-      <li>Đợt 1: Thanh toán <strong>15.000.000 VND</strong> khi hoàn thành Giai đoạn 1 và bàn giao bản triển khai đầu tiên</li>
+      <li>Đợt 1: Thanh toán <strong>15.000.000 VND</strong> khi hoàn thành Giai đoạn 1 và bàn giao bản triển khai đầu
+        tiên</li>
       <li>Đợt 2: Thanh toán <strong>5.000.000 VND</strong> sau 02 tháng vận hành thử và hoàn tất Giai đoạn 2</li>
     </ul>
 
@@ -409,7 +447,8 @@
       <li>Nhập liệu số lượng lớn, làm sạch dữ liệu cũ hoặc migrate dữ liệu phức tạp</li>
       <li>Viết content, SEO tổng thể, branding, thiết kế bộ nhận diện</li>
     </ul>
-    <p>Chi phí tham khảo cho phần phát sinh: <strong>tối đa 2.000.000 VND / tính năng</strong>, tùy mức độ phức tạp và khối lượng thực tế.</p>
+    <p>Chi phí tham khảo cho phần phát sinh: <strong>tối đa 2.000.000 VND / tính năng</strong>, tùy mức độ phức tạp và
+      khối lượng thực tế.</p>
 
     <h2>9. Ghi chú áp dụng</h2>
     <table class="two-col">
@@ -439,13 +478,17 @@
     </table>
 
     <p class="closing">
-      Tóm gọn lại, trong mức báo giá này FDIWork sẽ nhận được: một website tuyển dụng có thể dùng thực tế, một khu vực dành cho nhà tuyển dụng để quản lý tin và hồ sơ, một hệ thống quản trị nội bộ để vận hành dữ liệu tuyển dụng, một bản deploy chạy được, source code bàn giao và thời gian hỗ trợ sửa lỗi sau khi đưa vào chạy thử.
+      Tóm gọn lại, trong mức báo giá này FDIWork sẽ nhận được: một website tuyển dụng có thể dùng thực tế, một khu vực
+      dành cho nhà tuyển dụng để quản lý tin và hồ sơ, một hệ thống quản trị nội bộ để vận hành dữ liệu tuyển dụng, một
+      bản deploy chạy được, source code bàn giao và thời gian hỗ trợ sửa lỗi sau khi đưa vào chạy thử.
     </p>
 
-    <p>Nếu FDIWork đồng ý với hướng triển khai này, em sẽ chốt lại phạm vi cuối cùng và bắt đầu theo tiến độ đã thống nhất.</p>
+    <p>Nếu Chú Thanh đồng ý với hướng triển khai này, cháu sẽ chốt lại phạm vi cuối cùng và bắt đầu theo tiến độ đã thống
+      nhất.</p>
 
     <p style="margin-top:28px;">Trân trọng,</p>
-    <p><strong>Mạnh Tùng</strong><br/>0388210997<br/>tungpm.tvhs@gmail.com</p>
+    <p><strong>Mạnh Tùng</strong><br />0388210997<br />tungpm.tvhs@gmail.com</p>
   </div>
 </body>
+
 </html>

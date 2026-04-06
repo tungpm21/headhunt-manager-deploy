@@ -138,6 +138,7 @@ export function useSearchSuggestions() {
     isOpen,
     setIsOpen,
     activeIndex,
+    setActiveIndex,
     handleFocus,
     handleKeyDown,
     navigateTo,

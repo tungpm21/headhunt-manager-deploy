@@ -605,11 +605,7 @@ async function DashboardKPIs({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
-        <div className="xl:col-span-2">
-          <PipelineSummary jobs={pipelineJobs} />
-        </div>
-      </div>
+      <PipelineSummary jobs={pipelineJobs} />
     </>
   );
 }
@@ -752,40 +748,36 @@ async function DashboardDetails({
 
   return (
     <>
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
-        <div className="xl:col-span-2" />
-
-        <div className="grid grid-cols-1 gap-6">
-          <DeadlineAlerts
-            jobs={jobsClosingSoon
-              .filter((job) => job.deadline)
-              .map((job) => ({
-                id: job.id,
-                title: job.title,
-                deadline: job.deadline as Date,
-                companyName: job.client.companyName,
-              }))}
-            subscriptions={(subscriptionsEndingSoon as Array<{
-              id: number;
-              tier: string;
-              endDate: Date;
-              employer: {
-                id: number;
-                companyName: string;
-              };
-            }>).map((subscription) => ({
-              id: subscription.id,
-              tier: subscription.tier,
-              endDate: subscription.endDate,
-              employerId: subscription.employer.id,
-              companyName: subscription.employer.companyName,
+      <div className="grid grid-cols-1 gap-6">
+        <DeadlineAlerts
+          jobs={jobsClosingSoon
+            .filter((job) => job.deadline)
+            .map((job) => ({
+              id: job.id,
+              title: job.title,
+              deadline: job.deadline as Date,
+              companyName: job.client.companyName,
             }))}
-          />
+          subscriptions={(subscriptionsEndingSoon as Array<{
+            id: number;
+            tier: string;
+            endDate: Date;
+            employer: {
+              id: number;
+              companyName: string;
+            };
+          }>).map((subscription) => ({
+            id: subscription.id,
+            tier: subscription.tier,
+            endDate: subscription.endDate,
+            employerId: subscription.employer.id,
+            companyName: subscription.employer.companyName,
+          }))}
+        />
 
-          <FollowUpReminders items={upcomingReminders} />
+        <FollowUpReminders items={upcomingReminders} />
 
-          <ActivityFeed items={activityItems} />
-        </div>
+        <ActivityFeed items={activityItems} />
       </div>
 
       <div

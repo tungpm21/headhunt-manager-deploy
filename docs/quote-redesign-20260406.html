@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Báo giá phát triển website và hệ thống quản lý tuyển dụng</title>
+  <style>
+    :root {
+      --ink: #14213d;
+      --muted: #5b6472;
+      --line: #d6dce5;
+      --soft: #f4f7fb;
+      --accent: #1d4ed8;
+      --accent-soft: #eef4ff;
+      --paper: #ffffff;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: #eef2f7;
+      color: var(--ink);
+      font-family: "Segoe UI", Arial, sans-serif;
+      line-height: 1.58;
+      font-size: 11pt;
+    }
+
+    .page {
+      width: 210mm;
+      min-height: 297mm;
+      margin: 0 auto;
+      background: var(--paper);
+      padding: 20mm 18mm 18mm;
+    }
+
+    .topbar {
+      border-top: 6px solid var(--accent);
+      padding-top: 14px;
+      margin-bottom: 18px;
+    }
+
+    .eyebrow {
+      color: var(--accent);
+      font-size: 9pt;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-bottom: 8px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 23pt;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+    }
+
+    .subtitle {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 11pt;
+    }
+
+    .meta-grid,
+    .scope-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0 18px;
+    }
+
+    .meta-grid td,
+    .scope-table th,
+    .scope-table td {
+      border: 1px solid var(--line);
+      padding: 10px 12px;
+      vertical-align: top;
+    }
+
+    .meta-grid .label,
+    .scope-table th {
+      background: var(--soft);
+      font-weight: 700;
+    }
+
+    .summary-card {
+      margin: 18px 0 24px;
+      padding: 16px 18px;
+      border: 1px solid #bfd2ff;
+      background: linear-gradient(180deg, #f8fbff 0%, var(--accent-soft) 100%);
+    }
+
+    .summary-card .caption {
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-size: 9pt;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .summary-card .amount {
+      font-size: 20pt;
+      font-weight: 800;
+      margin: 0;
+    }
+
+    .summary-card .note {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 10pt;
+    }
+
+    h2 {
+      margin: 24px 0 10px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--line);
+      font-size: 13.5pt;
+    }
+
+    h3 {
+      margin: 14px 0 8px;
+      font-size: 11.5pt;
+    }
+
+    p { margin: 0 0 10px; }
+
+    ul {
+      margin: 8px 0 10px 18px;
+      padding: 0;
+    }
+
+    li { margin-bottom: 6px; }
+
+    .price {
+      text-align: right;
+      white-space: nowrap;
+      width: 22%;
+    }
+
+    .total-row td {
+      background: #fafbfd;
+      font-weight: 700;
+    }
+
+    .two-col {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+
+    .two-col td {
+      width: 50%;
+      vertical-align: top;
+      padding-right: 10px;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      background: #fcfdff;
+      padding: 14px;
+      min-height: 100%;
+    }
+
+    .closing {
+      margin-top: 28px;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="topbar">
+      <div class="eyebrow">Báo giá dịch vụ</div>
+      <h1>Phát triển Website và Hệ thống Quản lý Tuyển dụng</h1>
+      <div class="subtitle">Bản báo giá được trình bày lại theo hướng rõ phạm vi, dễ hiểu và thuận tiện để FDIWork xem xét.</div>
+    </div>
+
+    <table class="meta-grid">
+      <tr>
+        <td class="label">Khách hàng / Công ty</td>
+        <td>FDIWork</td>
+        <td class="label">Ngày báo giá</td>
+        <td>06/04/2026</td>
+      </tr>
+      <tr>
+        <td class="label">Người báo giá</td>
+        <td>Mạnh Tùng</td>
+        <td class="label">Hiệu lực báo giá</td>
+        <td>07 ngày kể từ ngày phát hành</td>
+      </tr>
+      <tr>
+        <td class="label">Điện thoại</td>
+        <td>0388210997</td>
+        <td class="label">Email</td>
+        <td>tungpm.tvhs@gmail.com</td>
+      </tr>
+    </table>
+
+    <p>Kính gửi anh/chị FDIWork,</p>
+    <p>Em gửi anh/chị bản báo giá cho gói triển khai website và hệ thống quản lý tuyển dụng ở mức MVP. Mục tiêu là làm một bản đủ dùng thực tế, có thể đưa vào vận hành sớm, sau đó tiếp tục sửa lỗi và tối ưu trong giai đoạn chạy thử.</p>
+
+    <div class="summary-card">
+      <div class="caption">Tổng giá trị báo giá</div>
+      <p class="amount">20.000.000 VND</p>
+      <div class="note">Bao gồm phần phát triển bản đầu và 02 tháng hỗ trợ vận hành thử. Chưa bao gồm các hạng mục phát sinh ngoài phạm vi MVP.</div>
+    </div>
+
+    <h2>1. Tóm tắt hệ thống sẽ triển khai</h2>
+
+    <h3>1.1. Website tuyển dụng công khai</h3>
+    <p>Đây là phần khách hàng, ứng viên hoặc đối tác truy cập trực tiếp khi vào FDIWork.</p>
+    <ul>
+      <li>Trang chủ giới thiệu thương hiệu và hiển thị job nổi bật</li>
+      <li>Trang danh sách việc làm</li>
+      <li>Trang chi tiết việc làm</li>
+      <li>Trang danh sách công ty</li>
+      <li>Trang chi tiết công ty</li>
+      <li>Form ứng tuyển / gửi hồ sơ</li>
+      <li>Giao diện tối ưu trên desktop và mobile</li>
+    </ul>
+
+    <h3>1.2. Cổng dành cho nhà tuyển dụng</h3>
+    <p>Đây là khu vực để doanh nghiệp hoặc nhà tuyển dụng đăng nhập và tự quản lý thông tin tuyển dụng của mình.</p>
+    <ul>
+      <li>Đăng ký / đăng nhập tài khoản nhà tuyển dụng</li>
+      <li>Cập nhật hồ sơ công ty</li>
+      <li>Tạo và quản lý bài đăng tuyển dụng</li>
+      <li>Xem danh sách hồ sơ ứng viên đã nộp</li>
+      <li>Theo dõi trạng thái tin đăng</li>
+      <li>Theo dõi thông tin gói dịch vụ / quota nếu áp dụng</li>
+    </ul>
+
+    <h3>1.3. Hệ thống quản lý nội bộ</h3>
+    <p>Đây là phần mềm quản trị để đội ngũ FDIWork vận hành dữ liệu và kiểm soát toàn bộ hệ thống.</p>
+    <ul>
+      <li>Đăng nhập hệ thống quản trị</li>
+      <li>Quản lý danh sách ứng viên</li>
+      <li>Quản lý doanh nghiệp / khách hàng</li>
+      <li>Quản lý job / đơn tuyển dụng</li>
+      <li>Duyệt hoặc từ chối tin tuyển dụng từ nhà tuyển dụng</li>
+      <li>Theo dõi hồ sơ ứng tuyển từ website đổ về</li>
+      <li>Cập nhật trạng thái xử lý dữ liệu</li>
+      <li>Tìm kiếm, lọc và tra cứu dữ liệu nhanh</li>
+    </ul>
+
+    <h2>2. Tính năng cụ thể FDIWork nhận được</h2>
+
+    <h3>2.1. Nhóm tính năng Website</h3>
+    <ul>
+      <li>Giao diện website chuyên nghiệp, rõ ràng, dễ đọc</li>
+      <li>Trang chủ có các khối nội dung chính để giới thiệu thương hiệu và điều hướng người dùng</li>
+      <li>Hiển thị danh sách việc làm theo dữ liệu thực tế</li>
+      <li>Xem chi tiết từng vị trí tuyển dụng</li>
+      <li>Hiển thị thông tin công ty tuyển dụng</li>
+      <li>Form nộp hồ sơ / ứng tuyển trực tiếp từ website</li>
+      <li>Responsive cơ bản cho điện thoại và desktop</li>
+    </ul>
+
+    <h3>2.2. Nhóm tính năng Nhà tuyển dụng</h3>
+    <ul>
+      <li>Có tài khoản riêng để đăng nhập</li>
+      <li>Tự cập nhật thông tin công ty</li>
+      <li>Tạo bài đăng tuyển dụng mới</li>
+      <li>Quản lý các bài đã đăng</li>
+      <li>Xem các hồ sơ ứng viên nộp vào từng tin</li>
+      <li>Theo dõi trạng thái tin như chờ duyệt, đã duyệt, tạm dừng hoặc hết hạn</li>
+    </ul>
+
+    <h3>2.3. Nhóm tính năng Quản trị nội bộ</h3>
+    <ul>
+      <li>Quản lý toàn bộ dữ liệu ứng viên, công ty và đơn tuyển dụng</li>
+      <li>Kiểm tra và duyệt tin từ nhà tuyển dụng trước khi hiển thị công khai</li>
+      <li>Xem danh sách hồ sơ ứng tuyển gửi từ website</li>
+      <li>Đưa dữ liệu ứng tuyển vào hệ thống quản lý để tiếp tục xử lý</li>
+      <li>Tìm kiếm, lọc và cập nhật trạng thái dữ liệu trong quá trình làm việc</li>
+      <li>Có nền tảng để tiếp tục mở rộng thêm tính năng ở các giai đoạn sau</li>
+    </ul>
+
+    <h3>2.4. Hạng mục kỹ thuật và bàn giao</h3>
+    <ul>
+      <li>Source code đầy đủ của dự án trong phạm vi MVP</li>
+      <li>Cấu hình cơ sở dữ liệu và cấu hình hệ thống cần thiết để chạy</li>
+      <li>Bản triển khai chạy thực tế trên môi trường đã thống nhất</li>
+      <li>Hỗ trợ sửa lỗi và tinh chỉnh trong thời gian vận hành thử</li>
+    </ul>
+
+    <h2>3. Phạm vi công việc và chi phí</h2>
+
+    <h3>Giai đoạn 1: Phát triển và triển khai bản đầu</h3>
+    <table class="scope-table">
+      <tr>
+        <th>Hạng mục</th>
+        <th>Nội dung</th>
+        <th class="price">Chi phí</th>
+      </tr>
+      <tr>
+        <td><strong>Website FDIWork</strong></td>
+        <td>Hoàn thiện giao diện website, các trang công khai, hiển thị việc làm / công ty / form ứng tuyển, kiểm tra desktop và mobile, đưa lên môi trường chạy thực tế</td>
+        <td class="price">5.000.000 VND</td>
+      </tr>
+      <tr>
+        <td><strong>Hệ thống quản lý tuyển dụng</strong></td>
+        <td>Hoàn thiện hệ thống quản trị dữ liệu, đăng nhập, quản lý dữ liệu chính, quản lý tin tuyển dụng, tiếp nhận dữ liệu từ website, các luồng thao tác cốt lõi ở mức MVP</td>
+        <td class="price">10.000.000 VND</td>
+      </tr>
+      <tr class="total-row">
+        <td colspan="2">Tổng giai đoạn 1</td>
+        <td class="price">15.000.000 VND</td>
+      </tr>
+    </table>
+
+    <h3>Giai đoạn 2: Vận hành thử và tối ưu</h3>
+    <p>Thời gian áp dụng: <strong>02 tháng</strong> sau khi hoàn tất Giai đoạn 1.</p>
+    <table class="scope-table">
+      <tr>
+        <th>Nội dung</th>
+        <th class="price">Chi phí</th>
+      </tr>
+      <tr>
+        <td>Tiếp nhận phản hồi thực tế, sửa bug, tinh chỉnh luồng sử dụng, tối ưu hiệu năng và ổn định hệ thống trong giai đoạn chạy thử</td>
+        <td class="price">5.000.000 VND</td>
+      </tr>
+    </table>
+
+    <h2>4. Tiến độ dự kiến</h2>
+    <p>Tổng thời gian dự kiến: <strong>03 đến 05 tuần</strong>, tùy tốc độ chốt phản hồi và dữ liệu đầu vào.</p>
+    <table class="scope-table">
+      <tr>
+        <th>Giai đoạn</th>
+        <th>Nội dung chính</th>
+        <th class="price">Thời gian dự kiến</th>
+      </tr>
+      <tr>
+        <td>Giai đoạn A</td>
+        <td>Chốt phạm vi, chuẩn bị dữ liệu, cấu hình dự án, dựng giao diện và các màn chính</td>
+        <td class="price">05 - 07 ngày</td>
+      </tr>
+      <tr>
+        <td>Giai đoạn B</td>
+        <td>Hoàn thiện website công khai và các luồng ứng tuyển / hiển thị dữ liệu</td>
+        <td class="price">07 - 10 ngày</td>
+      </tr>
+      <tr>
+        <td>Giai đoạn C</td>
+        <td>Hoàn thiện cổng nhà tuyển dụng và phần quản trị nội bộ</td>
+        <td class="price">07 - 10 ngày</td>
+      </tr>
+      <tr>
+        <td>Giai đoạn D</td>
+        <td>Kiểm thử, sửa lỗi, deploy, hướng dẫn bàn giao bản đầu</td>
+        <td class="price">03 - 05 ngày</td>
+      </tr>
+    </table>
+    <ul>
+      <li>Tiến độ có thể thay đổi nếu phạm vi phát sinh thêm hoặc phản hồi bị kéo dài</li>
+      <li>Những phần cần nội dung / dữ liệu từ FDIWork sẽ phụ thuộc vào thời điểm bên mình cung cấp</li>
+    </ul>
+
+    <h2>5. Mốc nghiệm thu</h2>
+    <h3>Mốc 1: Xác nhận phạm vi và giao diện</h3>
+    <ul>
+      <li>Thống nhất danh sách tính năng MVP</li>
+      <li>Thống nhất bố cục các màn hình chính</li>
+      <li>Thống nhất cách vận hành cơ bản của hệ thống</li>
+    </ul>
+
+    <h3>Mốc 2: Nghiệm thu Website công khai</h3>
+    <ul>
+      <li>Trang chủ hoạt động ổn</li>
+      <li>Danh sách việc làm và trang chi tiết hiển thị đúng</li>
+      <li>Form ứng tuyển hoạt động</li>
+      <li>Giao diện xem tốt trên mobile và desktop</li>
+    </ul>
+
+    <h3>Mốc 3: Nghiệm thu phần quản lý và vận hành</h3>
+    <ul>
+      <li>Đăng nhập quản trị hoạt động</li>
+      <li>Quản lý dữ liệu chính hoạt động</li>
+      <li>Luồng nhà tuyển dụng đăng tin và theo dõi hồ sơ hoạt động</li>
+      <li>Luồng admin duyệt tin và nhận dữ liệu từ website hoạt động</li>
+    </ul>
+
+    <h3>Mốc 4: Nghiệm thu bàn giao bản đầu</h3>
+    <ul>
+      <li>Hệ thống được deploy</li>
+      <li>FDIWork có thể đăng nhập và thao tác</li>
+      <li>Bàn giao source code và hướng dẫn vận hành cơ bản</li>
+      <li>Bắt đầu giai đoạn vận hành thử 02 tháng</li>
+    </ul>
+
+    <h2>6. Tổng giá trị báo giá</h2>
+    <p><strong>Tổng chi phí dự kiến: 20.000.000 VND</strong></p>
+    <ul>
+      <li>Giai đoạn 1: <strong>15.000.000 VND</strong></li>
+      <li>Giai đoạn 2: <strong>5.000.000 VND</strong></li>
+    </ul>
+
+    <h2>7. Điều khoản thanh toán</h2>
+    <ul>
+      <li>Đợt 1: Thanh toán <strong>15.000.000 VND</strong> khi hoàn thành Giai đoạn 1 và bàn giao bản triển khai đầu tiên</li>
+      <li>Đợt 2: Thanh toán <strong>5.000.000 VND</strong> sau 02 tháng vận hành thử và hoàn tất Giai đoạn 2</li>
+    </ul>
+
+    <h2>8. Các hạng mục ngoài phạm vi báo giá</h2>
+    <ul>
+      <li>Tính năng mới ngoài danh sách MVP đã chốt</li>
+      <li>Tích hợp cổng thanh toán, SMS, email marketing hoặc dịch vụ bên thứ ba</li>
+      <li>Dashboard báo cáo nâng cao, phân quyền phức tạp hoặc quy trình đặc thù</li>
+      <li>Nhập liệu số lượng lớn, làm sạch dữ liệu cũ hoặc migrate dữ liệu phức tạp</li>
+      <li>Viết content, SEO tổng thể, branding, thiết kế bộ nhận diện</li>
+    </ul>
+    <p>Chi phí tham khảo cho phần phát sinh: <strong>tối đa 2.000.000 VND / tính năng</strong>, tùy mức độ phức tạp và khối lượng thực tế.</p>
+
+    <h2>9. Ghi chú áp dụng</h2>
+    <table class="two-col">
+      <tr>
+        <td>
+          <div class="panel">
+            <h3>Đã bao gồm</h3>
+            <ul>
+              <li>Công phát triển bản MVP theo phạm vi đã mô tả</li>
+              <li>Công deploy và đưa bản đầu vào vận hành</li>
+              <li>Thời gian sửa lỗi và tinh chỉnh trong 02 tháng chạy thử</li>
+              <li>Trao đổi và chốt phạm vi phát sinh trước khi làm thêm</li>
+            </ul>
+          </div>
+        </td>
+        <td>
+          <div class="panel">
+            <h3>Chưa bao gồm</h3>
+            <ul>
+              <li>Domain, hosting, email doanh nghiệp và phí bên thứ ba nếu có</li>
+              <li>Nội dung, dữ liệu đầu vào nếu phía FDIWork chưa cung cấp</li>
+              <li>Phạm vi thay đổi đáng kể so với bản chốt ban đầu</li>
+            </ul>
+          </div>
+        </td>
+      </tr>
+    </table>
+
+    <p class="closing">
+      Tóm gọn lại, trong mức báo giá này FDIWork sẽ nhận được: một website tuyển dụng có thể dùng thực tế, một khu vực dành cho nhà tuyển dụng để quản lý tin và hồ sơ, một hệ thống quản trị nội bộ để vận hành dữ liệu tuyển dụng, một bản deploy chạy được, source code bàn giao và thời gian hỗ trợ sửa lỗi sau khi đưa vào chạy thử.
+    </p>
+
+    <p>Nếu FDIWork đồng ý với hướng triển khai này, em sẽ chốt lại phạm vi cuối cùng và bắt đầu theo tiến độ đã thống nhất.</p>
+
+    <p style="margin-top:28px;">Trân trọng,</p>
+    <p><strong>Mạnh Tùng</strong><br/>0388210997<br/>tungpm.tvhs@gmail.com</p>
+  </div>
+</body>
+</html>

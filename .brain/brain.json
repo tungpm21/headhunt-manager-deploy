@@ -21,7 +21,8 @@
     "FDIWork public website with cached jobs, companies, apply flow, employer portal, and ISR blog",
     "Admin moderation with application import to CRM, employer linking, packages, and employer management",
     "Excel/CSV import for candidates and clients with preview, validation, dedup, and error reporting",
-    "Production hardening with Redis rate limit, Sentry, Neon pooled Postgres, and GIN trigram text search optimization"
+    "Production hardening with Redis rate limit, Sentry, Neon pooled Postgres, and GIN trigram text search optimization",
+    "7-stage recruitment pipeline with dedicated Submissions module and dual 'Import & Submit' action for seamless candidate shortlisting"
   ],
   "database_schema": {
     "summary": "ATS CRM + employer portal + public job board + ops/audit tracking",

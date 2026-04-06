@@ -1,8 +1,10 @@
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 import { auth } from "@/auth";
 import { GlobalSearch } from "@/components/global-search";
 import { GlobalSearchTrigger } from "@/components/global-search-trigger";
 import { MobileSidebar } from "@/components/mobile-sidebar";
+import { NavigationProgress } from "@/components/navigation-progress";
 import { NotificationBell } from "@/components/notification-bell";
 import { Sidebar } from "@/components/sidebar";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -32,6 +34,9 @@ export default async function DashboardLayout({
   return (
     <div className="flex min-h-screen bg-background text-foreground">
       <GlobalSearch />
+      <Suspense fallback={null}>
+        <NavigationProgress />
+      </Suspense>
       <MobileSidebar isAdmin={isAdmin} counts={counts} />
       <Sidebar isAdmin={isAdmin} counts={counts} className="hidden md:flex" />
 

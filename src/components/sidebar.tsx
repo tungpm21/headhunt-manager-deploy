@@ -11,6 +11,7 @@ import {
   type LucideIcon,
   LogOut,
   Package,
+  SendHorizonal,
   ShieldCheck,
   UploadCloud,
   UserCog,
@@ -22,9 +23,10 @@ import type { NotificationCounts } from "@/lib/notifications";
 
 const navigation = [
   { name: "Tổng quan", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Ứng viên", href: "/candidates", icon: Users },
+  { name: "Talent Pool", href: "/candidates", icon: Users },
   { name: "Khách hàng", href: "/clients", icon: Building2 },
   { name: "Job Orders", href: "/jobs", icon: Briefcase },
+  { name: "Submissions", href: "/submissions", icon: SendHorizonal },
   { name: "Nhập dữ liệu", href: "/import", icon: UploadCloud },
 ];
 

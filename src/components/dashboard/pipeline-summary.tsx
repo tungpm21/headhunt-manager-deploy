@@ -14,20 +14,22 @@ type PipelineJobSummary = {
 };
 
 const STAGE_META: Record<JobCandidateStage, { label: string; colorClass: string }> = {
-  SOURCED: { label: "Sourced", colorClass: "bg-slate-500" },
-  CONTACTED: { label: "Contacted", colorClass: "bg-sky-500" },
-  INTERVIEW: { label: "Interview", colorClass: "bg-violet-500" },
-  OFFER: { label: "Offer", colorClass: "bg-amber-500" },
-  PLACED: { label: "Placed", colorClass: "bg-emerald-500" },
-  REJECTED: { label: "Rejected", colorClass: "bg-rose-500" },
+  SENT_TO_CLIENT: { label: "Gửi CV", colorClass: "bg-slate-500" },
+  CLIENT_REVIEWING: { label: "Đang xem", colorClass: "bg-sky-500" },
+  INTERVIEW: { label: "Phỏng vấn", colorClass: "bg-violet-500" },
+  FINAL_INTERVIEW: { label: "Vòng cuối", colorClass: "bg-indigo-500" },
+  OFFER: { label: "Đề nghị", colorClass: "bg-amber-500" },
+  HIRED: { label: "Đã tuyển", colorClass: "bg-emerald-500" },
+  REJECTED: { label: "Từ chối", colorClass: "bg-rose-500" },
 };
 
 const STAGE_ORDER: JobCandidateStage[] = [
-  "SOURCED",
-  "CONTACTED",
+  "SENT_TO_CLIENT",
+  "CLIENT_REVIEWING",
   "INTERVIEW",
+  "FINAL_INTERVIEW",
   "OFFER",
-  "PLACED",
+  "HIRED",
   "REJECTED",
 ];
 

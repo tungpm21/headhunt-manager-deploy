@@ -61,12 +61,13 @@ enum FeeType {
 }
 
 enum JobCandidateStage {
-  SOURCED
-  CONTACTED
-  INTERVIEW
-  OFFER
-  PLACED
-  REJECTED
+  SENT_TO_CLIENT    // Đã gửi CV cho client
+  CLIENT_REVIEWING  // Client đang xem CV
+  INTERVIEW         // Phỏng vấn
+  FINAL_INTERVIEW   // Phỏng vấn vòng cuối
+  OFFER             // Đề nghị nhận việc
+  HIRED             // Tuyển thành công
+  REJECTED          // Từ chối
 }
 
 enum CandidateSeniority {
@@ -376,7 +377,7 @@ model JobOrder {
 
 model JobCandidate {
   id            Int                @id @default(autoincrement())
-  stage         JobCandidateStage  @default(SOURCED)
+  stage         JobCandidateStage  @default(SENT_TO_CLIENT)
   result        SubmissionResult   @default(PENDING) // Kết quả cuối cùng (theo spec)
   interviewDate DateTime?          // Ngày hẹn phỏng vấn (theo spec)
   notes         String?            // Feedback từ client / ghi chú

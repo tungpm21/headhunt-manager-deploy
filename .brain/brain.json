@@ -2,7 +2,7 @@
   "project": {
     "name": "Headhunt Manager (FDIWork)",
     "type": "Next.js 16 App Router, Prisma ORM, PostgreSQL, TailwindCSS",
-    "status": "Sprint 1-3 complete, Sprint 5 complete, production deployed on Vercel + Neon, Sprint 4 pending real-user onboarding"
+    "status": "Sprint 1-3 complete, Sprint 5 complete, Performance Hardening Complete, production deployed on Vercel + Neon, Sprint 4 pending real-user onboarding"
   },
   "docs_index": {
     "codebase_map": "CODEBASE.md",
@@ -10,22 +10,18 @@
     "project_tracker": "docs/PROJECT-TRACKER.md",
     "audit_readme": "docs/audit/README.md",
     "product_strategy": "docs/audit/04-product-strategy.md",
-    "backend_audit": "docs/audit/05-backend-code-audit.md",
-    "refactor_plan": "docs/audit/06-refactor-3day-plan.md",
-    "import_guide": "docs/templates/IMPORT-GUIDE.md",
-    "review_report": "docs/PROJECT_REVIEW_20260403.md"
+    "import_guide": "docs/templates/IMPORT-GUIDE.md"
   },
   "features": [
     "Authentication via NextAuth for CRM and custom JWT for employer portal",
     "Candidate management with tags, seniority, skills, reminders, notes, multi-CV, languages, work history, trash/restore",
     "Client management with contacts, revenue summary, paginated select, and client import",
     "Job management with kanban pipeline, smart assign modal, job bridge card, and FDIWork sync",
-    "Dashboard with pipeline overview, recent activity, reminders, deadline alerts, and revenue widgets",
-    "FDIWork public website with jobs, companies, apply flow, and employer portal",
+    "Dashboard with Suspense streaming pipeline overview, recent activity, and revenue widgets",
+    "FDIWork public website with cached jobs, companies, apply flow, employer portal, and ISR blog",
     "Admin moderation with application import to CRM, employer linking, packages, and employer management",
-    "Global search, notification surfaces, bulk candidate actions, dark mode, and responsive dashboard UX",
     "Excel/CSV import for candidates and clients with preview, validation, dedup, and error reporting",
-    "Production hardening with Redis rate limit, file signature validation, Sentry optional init, Neon pooled Postgres support"
+    "Production hardening with Redis rate limit, Sentry, Neon pooled Postgres, and GIN trigram text search optimization"
   ],
   "database_schema": {
     "summary": "ATS CRM + employer portal + public job board + ops/audit tracking",
@@ -47,43 +43,39 @@
       "Subscription",
       "JobPosting",
       "Application",
-      "ActivityLog"
+      "ActivityLog",
+      "BlogPost"
     ],
-    "relationships_explained": "CRM User owns Candidates, Clients, and Jobs. JobOrder links Client, assigned recruiter, and JobCandidate pipeline rows. Employer optionally links to a CRM Client and owns public JobPostings. Applications can be imported into CRM Candidate and JobCandidate pipeline. ActivityLog stores mutation history for stage, status, notes, and imports.",
+    "relationships_explained": "CRM User owns Candidates, Clients, and Jobs. JobOrder links Client, assigned recruiter, and pipeline rows. Employer optionally links to CRM Client and owns public JobPostings.",
     "notable_constraints": [
-      "JobPosting.skills is String[] and JobOrder.requiredSkills is String[]",
       "Application unique pair (jobPostingId, email)",
       "JobCandidate unique pair (jobOrderId, candidateId)",
-      "Employer unique email and optional unique clientId",
       "Candidate import dedups by email/phone; client import dedups by companyName/website"
     ]
   },
   "conventions": [
     "Server Actions return success/error objects and user-facing errors stay in Vietnamese",
-    "Data access should go through data-layer modules instead of direct Prisma in actions",
-    "Dashboard and shared UI use semantic design tokens instead of hardcoded gray/white classes",
+    "All ViewerScope data access logic must use Shared Helpers from access-scope.ts instead of inline duplicated scopes",
+    "Dashboard logic uses React Suspense to stream multiple isolated widgets instead of blocking layout",
     "Neon is the canonical Postgres provider; prefer pooled URL in production",
-    "Import flows must preview, validate, and report row-level errors before mutating data",
-    "Candidate primary CV remains mirrored to legacy Candidate.cvFileUrl/cvFileName for compatibility",
-    "Ownership scope uses ViewerScope and filters by createdById/assignedToId for MEMBER users"
+    "Expensive public data endpoints (homepage, filters) heavily leverage unstable_cache",
+    "ILIKE string search queries rely on GIN trigram indexes for performance speedups"
   ],
   "security_notes": [
     "Employer JWT TTL is 1 day and employer must remain ACTIVE",
     "Public apply, candidate CV upload, and avatar upload validate file signatures by magic bytes",
-    "Upstash Redis rate limit is wired with dev fallback when env is missing",
-    "Sentry initializes only when SENTRY_DSN is configured",
     "Avatar upload enforces ownership checks to prevent IDOR"
   ],
   "infra_notes": [
     "Production app is deployed at https://headhunt-manager-deploy.vercel.app",
-    "Prisma client uses @prisma/adapter-pg with pg Pool and pooled connection preference",
-    "postinstall runs prisma generate to keep Vercel production builds in sync with schema",
-    "There is still a pg sslmode warning recommending verify-full instead of require"
+    "Prisma client uses @prisma/adapter-pg with pg Pool (min 15) and pooled connection preference",
+    "postinstall runs prisma generate to keep Vercel production builds in sync with schema"
   ],
   "known_issues_fixed": [
-    "Candidate skills and JobOrder.requiredSkills normalized and indexed with GIN",
-    "CV replace flow changed from delete-before-upload to upload-update-delete to avoid race condition",
-    "Tag update path wrapped in Prisma transaction",
+    "Monolithic dashboard bottleneck fixed via React Suspense streaming",
+    "Scattered access-control logic centralized into access-scope.ts",
+    "ILIKE full table scans eliminated via idx_*_trgm indexes for JobOrder, Client, Candidate, Employer, and JobPosting",
+    "Public page dynamic-render performance fixed via unstable_cache and ISR",
     "Parser header normalization now handles Vietnamese Đ/đ so import maps phone/address columns correctly"
   ]
 }

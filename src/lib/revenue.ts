@@ -79,7 +79,7 @@ export async function getDashboardRevenueSummary(
     await Promise.all([
       prisma.jobCandidate.findMany({
         where: {
-          stage: "PLACED",
+          stage: "HIRED",
           jobOrder: withJobAccess({}, scope),
         },
         select: {
@@ -203,7 +203,7 @@ export async function getClientRevenueSummary(
     }),
     prisma.jobCandidate.findMany({
       where: {
-        stage: "PLACED",
+        stage: "HIRED",
         jobOrder: withJobAccess(
           {
             clientId,

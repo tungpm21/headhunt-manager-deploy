@@ -136,7 +136,7 @@ export async function bulkAssignToJob(candidateIds: number[], jobOrderId: number
       data: newCandidateIds.map((candidateId) => ({
         jobOrderId,
         candidateId,
-        stage: "SOURCED",
+        stage: "SENT_TO_CLIENT",
       })),
       skipDuplicates: true,
     });

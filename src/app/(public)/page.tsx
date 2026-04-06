@@ -17,8 +17,8 @@ export default async function HomePage() {
       />
       <EmployerBannerCarousel employers={data.bannerEmployers} />
       <TopEmployers employers={data.topEmployers} />
-      <IndustryGrid industries={data.industries} />
       <FeaturedJobs jobs={data.featuredJobs} />
+      <IndustryGrid industries={data.industries} />
       <BlogSection />
     </>
   );

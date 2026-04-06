@@ -326,6 +326,7 @@ export async function getApplicationsForImportData(status = "NEW", page = 1) {
             location: true,
             salaryDisplay: true,
             workType: true,
+            jobOrderId: true,
             employer: { select: { companyName: true } },
           },
         },
@@ -356,13 +357,26 @@ export async function getApplicationForImportById(applicationId: number) {
   });
 }
 
-export async function findCandidateForImportedApplication(normalizedEmail: string) {
-  if (!normalizedEmail) {
+export async function findCandidateForImportedApplication(
+  normalizedEmail: string,
+  phone?: string | null
+) {
+  const orConditions: { email?: string; phone?: string }[] = [];
+
+  if (normalizedEmail) {
+    orConditions.push({ email: normalizedEmail });
+  }
+
+  if (phone?.trim()) {
+    orConditions.push({ phone: phone.trim() });
+  }
+
+  if (orConditions.length === 0) {
     return null;
   }
 
   return prisma.candidate.findFirst({
-    where: { email: normalizedEmail, isDeleted: false },
+    where: { OR: orConditions, isDeleted: false },
   });
 }
 
@@ -429,7 +443,7 @@ export async function upsertImportedApplicationJobLink(
     create: {
       jobOrderId,
       candidateId,
-      stage: "SOURCED",
+      stage: "SENT_TO_CLIENT",
       result: "PENDING",
     },
     update: {},

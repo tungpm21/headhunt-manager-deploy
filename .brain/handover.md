@@ -1,58 +1,39 @@
-====================================================
-HANDOVER DOCUMENT - Headhunt Manager
-Updated: 2026-04-04 16:47 ICT
-====================================================
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 HANDOVER DOCUMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Dang lam:
-- Release handoff / publish repository
-- Save brain, finalize tracker, commit, push
+📍 Đang làm: Post-Deployment Monitoring 
+🔢 Đến bước: Hoàn thành đợt Tối ưu hóa Hiệu suất (Performance Hardening)
 
-Den buoc:
-- Sprint 3 complete
-- Sprint 5 complete
-- Next suggested phase: Sprint 4 real-user onboarding
+✅ ĐÃ XONG (Performance Sprint):
+   - Phase 01: Quick Wins (Cache filters, tăng Pool size Prisma, bỏ auth thừa) ✓
+   - Phase 02: Streaming Dashboard (Tách 17 queries thành 3 component Suspense) ✓
+   - Phase 03: GIN Trigram Indexes (Tối ưu search ILIKE cho 5 bảng chính) ✓
+   - Phase 04: Refactor Access Scope (Gom ~150 dòng logic phân quyền vào `access-scope.ts`) ✓
+   - Phase 05: Public Cache (Thêm `unstable_cache` & ISR cho trang chủ và Blog) ✓
+   - Build & Deploy thành công lên Vercel production. ✓
 
-DA XONG
-- Sprint 1 Audit Fixes: 14/14
-- Sprint 2 UX Recruiter: 5/5
-- Bonus features: 6/6 reviewed/done
-- Sprint 3 Production Deploy: 10/10
-- Sprint 5 Scale + Backlog: 14/14
+⏳ CÒN LẠI:
+   - Task: Onboard 1-2 recruiter nội bộ (Kickoff Sprint 4)
+   - Task: Lắng nghe feedback thực tế, thu thập friction logs
+   - Task: Mở rộng SSL mode (`verify-full`) nếu cần bảo mật nghiêm ngặt hơn
 
-MOC QUAN TRONG VUA CHOT
-- Vercel + Neon production live: `https://headhunt-manager-deploy.vercel.app`
-- S3-9 da dong bang verify E2E voi template mau trong `docs/templates`
-- Client import flow da duoc ship vao `/import`
-- Parser import da fix root cause cho header tieng Viet co ky tu Đ/đ
+🔧 QUYẾT ĐỊNH QUAN TRỌNG:
+   - ⚡ Dùng GIN Trigram Indexes thay vì Full-Text Search Server rời (đủ nhanh, ko cần sync server khác).
+   - ⚡ Chia nhỏ Dashboard với thẻ `<Suspense>` để render tức thì thay vì chờ toàn màn hình.
+   - ⚡ Dùng `unstable_cache` (Next.js) thay cho Redis ở phía public để giảm complexity hệ thống.
+   - ⚡ Tất cả quyền xem data (ViewerScope) bắt buộc đi qua module tập trung `access-scope.ts`.
 
-CON LAI
-- Sprint 4:
-  - onboard 1-2 recruiter noi bo
-  - thu thap feedback thuc te
-  - bugfix / UX tweak theo feedback
-  - onboard employer that
-  - do luong adoption / time-to-fill
+⚠️ LƯU Ý CHO SESSION SAU:
+   - Tốc độ tải trang giờ đã tối ưu, nếu còn chậm thì cần xem logs từ Vercel.
+   - Tracking lỗi có thể xem qua công cụ Sentry (nếu DSN môi trường đang bật).
+   - `index.lock` của git thi thoảng kẹt trên Windows, nhớ xóa thủ công nếu git commit báo lỗi file exists.
 
-QUYET DINH QUAN TRONG
-- Chon Neon la nha cung cap Postgres canon thay vi wording Supabase
-- Prisma uu tien `DATABASE_POOLER_URL` trong production
-- Sentry optional theo `SENTRY_DSN`
-- Import flow phai preview + validate + row-level errors truoc khi mutate
-- Ownership scope cho MEMBER thong qua `ViewerScope`
+📁 FILES QUAN TRỌNG:
+   - `src/lib/access-scope.ts` (Trung tâm rà soát quyền đọc data)
+   - `src/app/(dashboard)/dashboard/page.tsx` (Mẫu về Suspense boundaries)
+   - `docs/PROJECT-TRACKER.md` (Update tiến độ Sprint 4)
 
-LUU Y CHO SESSION SAU
-- Co warning SSL cua pg ve `sslmode=require`; neu can, doi sang `verify-full`
-- Import template script: `npx tsx scripts/verify-import-templates.ts`
-- Tracker la source of truth: `docs/PROJECT-TRACKER.md`
-- Neu vao Sprint 4, uu tien browser QA mot vong truoc khi onboard user that
-
-FILES QUAN TRONG
-- `docs/PROJECT-TRACKER.md`
-- `docs/audit/README.md`
-- `docs/templates/IMPORT-GUIDE.md`
-- `src/lib/import-service.ts`
-- `src/components/import/client-spreadsheet-importer.tsx`
-- `src/lib/viewer-scope.ts`
-- `src/lib/validation/forms.ts`
-
-Da luu. De tiep tuc, go /recap.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📍 Đã lưu vĩnh viễn! Để tiếp tục: Gõ /recap
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

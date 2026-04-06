@@ -324,7 +324,7 @@ export async function assignMultipleCandidatesAction(
       data: newCandidateIds.map((candidateId) => ({
         jobOrderId,
         candidateId,
-        stage: "SOURCED",
+        stage: "SENT_TO_CLIENT",
         result: "PENDING",
       })),
       skipDuplicates: true,
@@ -398,7 +398,7 @@ export async function updateCandidateStageAction(
 
     const nextResult =
       result ??
-      (stage === "PLACED"
+      (stage === "HIRED"
         ? "HIRED"
         : stage === "REJECTED"
           ? "REJECTED"

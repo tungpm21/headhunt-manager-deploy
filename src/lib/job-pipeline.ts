@@ -7,83 +7,91 @@ export const PIPELINE_STAGES: {
   columnClassName: string;
   badgeClassName: string;
 }[] = [
-  {
-    value: "SOURCED",
-    label: "Đã tiếp cận",
-    shortLabel: "Tiếp cận",
-    columnClassName: "border-slate-200 bg-slate-50/60",
-    badgeClassName: "bg-slate-100 text-slate-700",
-  },
-  {
-    value: "CONTACTED",
-    label: "Đã liên hệ",
-    shortLabel: "Liên hệ",
-    columnClassName: "border-sky-200 bg-sky-50/60",
-    badgeClassName: "bg-sky-100 text-sky-700",
-  },
-  {
-    value: "INTERVIEW",
-    label: "Phỏng vấn",
-    shortLabel: "Phỏng vấn",
-    columnClassName: "border-violet-200 bg-violet-50/60",
-    badgeClassName: "bg-violet-100 text-violet-700",
-  },
-  {
-    value: "OFFER",
-    label: "Đề nghị",
-    shortLabel: "Đề nghị",
-    columnClassName: "border-amber-200 bg-amber-50/60",
-    badgeClassName: "bg-amber-100 text-amber-700",
-  },
-  {
-    value: "PLACED",
-    label: "Nhận việc",
-    shortLabel: "Nhận việc",
-    columnClassName: "border-emerald-200 bg-emerald-50/60",
-    badgeClassName: "bg-emerald-100 text-emerald-700",
-  },
-  {
-    value: "REJECTED",
-    label: "Từ chối",
-    shortLabel: "Từ chối",
-    columnClassName: "border-rose-200 bg-rose-50/60",
-    badgeClassName: "bg-rose-100 text-rose-700",
-  },
-];
+    {
+      value: "SENT_TO_CLIENT",
+      label: "Đã gửi CV",
+      shortLabel: "Gửi CV",
+      columnClassName: "border-slate-200 bg-slate-50/60",
+      badgeClassName: "bg-slate-100 text-slate-700",
+    },
+    {
+      value: "CLIENT_REVIEWING",
+      label: "Client đang xem",
+      shortLabel: "Đang xem",
+      columnClassName: "border-sky-200 bg-sky-50/60",
+      badgeClassName: "bg-sky-100 text-sky-700",
+    },
+    {
+      value: "INTERVIEW",
+      label: "Phỏng vấn",
+      shortLabel: "Phỏng vấn",
+      columnClassName: "border-violet-200 bg-violet-50/60",
+      badgeClassName: "bg-violet-100 text-violet-700",
+    },
+    {
+      value: "FINAL_INTERVIEW",
+      label: "PV vòng cuối",
+      shortLabel: "Vòng cuối",
+      columnClassName: "border-indigo-200 bg-indigo-50/60",
+      badgeClassName: "bg-indigo-100 text-indigo-700",
+    },
+    {
+      value: "OFFER",
+      label: "Đề nghị",
+      shortLabel: "Đề nghị",
+      columnClassName: "border-amber-200 bg-amber-50/60",
+      badgeClassName: "bg-amber-100 text-amber-700",
+    },
+    {
+      value: "HIRED",
+      label: "Đã tuyển",
+      shortLabel: "Đã tuyển",
+      columnClassName: "border-emerald-200 bg-emerald-50/60",
+      badgeClassName: "bg-emerald-100 text-emerald-700",
+    },
+    {
+      value: "REJECTED",
+      label: "Từ chối",
+      shortLabel: "Từ chối",
+      columnClassName: "border-rose-200 bg-rose-50/60",
+      badgeClassName: "bg-rose-100 text-rose-700",
+    },
+  ];
 
 export const PIPELINE_RESULTS: {
   value: SubmissionResult;
   label: string;
   className: string;
 }[] = [
-  {
-    value: "PENDING",
-    label: "Đang xử lý",
-    className: "bg-muted/20 text-muted",
-  },
-  {
-    value: "HIRED",
-    label: "Tuyển thành công",
-    className: "bg-success/10 text-success",
-  },
-  {
-    value: "REJECTED",
-    label: "Từ chối",
-    className: "bg-danger/10 text-danger",
-  },
-  {
-    value: "WITHDRAWN",
-    label: "Rút lui",
-    className: "bg-warning/10 text-warning",
-  },
-];
+    {
+      value: "PENDING",
+      label: "Đang xử lý",
+      className: "bg-muted/20 text-muted",
+    },
+    {
+      value: "HIRED",
+      label: "Tuyển thành công",
+      className: "bg-success/10 text-success",
+    },
+    {
+      value: "REJECTED",
+      label: "Từ chối",
+      className: "bg-danger/10 text-danger",
+    },
+    {
+      value: "WITHDRAWN",
+      label: "Rút lui",
+      className: "bg-warning/10 text-warning",
+    },
+  ];
 
 const FORWARD_STAGES: JobCandidateStage[] = [
-  "SOURCED",
-  "CONTACTED",
+  "SENT_TO_CLIENT",
+  "CLIENT_REVIEWING",
   "INTERVIEW",
+  "FINAL_INTERVIEW",
   "OFFER",
-  "PLACED",
+  "HIRED",
 ];
 
 export function getStageMeta(stage: JobCandidateStage) {
@@ -117,3 +125,4 @@ export function formatPipelineDate(date: Date | string | null | undefined) {
     year: "numeric",
   });
 }
+

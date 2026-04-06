@@ -402,9 +402,10 @@ export async function importApplicationToCRM(applicationId: number) {
 
   let candidateId: number;
   const normalizedEmail = application.email.trim().toLowerCase();
-  const existingCandidate = normalizedEmail
-    ? await findCandidateForImportedApplication(normalizedEmail)
-    : null;
+  const existingCandidate = await findCandidateForImportedApplication(
+    normalizedEmail,
+    application.phone
+  );
 
   if (existingCandidate) {
     candidateId = existingCandidate.id;
@@ -461,6 +462,38 @@ export async function importApplicationToCRM(applicationId: number) {
       : `Da tao ung vien moi #${candidateId} trong CRM.`,
     candidateId,
   };
+}
+
+export async function importAndSubmitApplication(
+  applicationId: number,
+  jobOrderId: number
+) {
+  // Step 1: Import to Talent Pool (reuse existing logic)
+  const importResult = await importApplicationToCRM(applicationId);
+
+  if (!importResult.success || !importResult.candidateId) {
+    return importResult;
+  }
+
+  // Step 2: Create submission (JobCandidate) with SENT_TO_CLIENT stage
+  try {
+    await upsertImportedApplicationJobLink(jobOrderId, importResult.candidateId);
+    revalidatePath(`/jobs/${jobOrderId}`);
+    revalidatePath("/submissions");
+
+    return {
+      success: true,
+      message: `${importResult.message} Đã tạo submission cho Job #${jobOrderId}.`,
+      candidateId: importResult.candidateId,
+    };
+  } catch (error) {
+    console.error("importAndSubmitApplication error:", error);
+    return {
+      success: true,
+      message: `${importResult.message} Nhưng không thể tạo submission.`,
+      candidateId: importResult.candidateId,
+    };
+  }
 }
 
 export async function linkEmployerToClient(

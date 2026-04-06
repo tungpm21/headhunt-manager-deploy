@@ -1,6 +1,6 @@
 import { JobCandidateStage, SubmissionResult } from "@/types/job";
 
-export type EmailTemplateStage = "CONTACTED" | "INTERVIEW" | "OFFER" | "REJECTED";
+export type EmailTemplateStage = "CLIENT_REVIEWING" | "INTERVIEW" | "OFFER" | "REJECTED";
 
 type EmailTemplateData = {
   candidateName: string;
@@ -29,7 +29,7 @@ export const EMAIL_TEMPLATES: Record<
     body: (data: EmailTemplateData) => string;
   }
 > = {
-  CONTACTED: {
+  CLIENT_REVIEWING: {
     heading: "Email giới thiệu cơ hội",
     subject: (data) =>
       `Cơ hội việc làm tại ${data.companyName} - ${data.jobTitle}`,
@@ -63,7 +63,7 @@ export function shouldOpenEmailTemplate(
   stage: JobCandidateStage,
   result: SubmissionResult
 ): stage is EmailTemplateStage {
-  if (stage === "CONTACTED" || stage === "INTERVIEW" || stage === "OFFER") {
+  if (stage === "CLIENT_REVIEWING" || stage === "INTERVIEW" || stage === "OFFER") {
     return true;
   }
 

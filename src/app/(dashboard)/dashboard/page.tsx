@@ -45,7 +45,7 @@ type PipelineOverviewJob = {
     companyName: string;
   };
   candidates: {
-    stage: "SOURCED" | "CONTACTED" | "INTERVIEW" | "OFFER" | "PLACED" | "REJECTED";
+    stage: "SENT_TO_CLIENT" | "CLIENT_REVIEWING" | "INTERVIEW" | "FINAL_INTERVIEW" | "OFFER" | "HIRED" | "REJECTED";
   }[];
 };
 
@@ -61,12 +61,13 @@ type RecentActivityLog = {
 };
 
 const stageLabelMap = {
-  SOURCED: "Sourced",
-  CONTACTED: "Contacted",
-  INTERVIEW: "Interview",
-  OFFER: "Offer",
-  PLACED: "Placed",
-  REJECTED: "Rejected",
+  SENT_TO_CLIENT: "Gửi CV",
+  CLIENT_REVIEWING: "Đang xem",
+  INTERVIEW: "Phỏng vấn",
+  FINAL_INTERVIEW: "Vòng cuối",
+  OFFER: "Đề nghị",
+  HIRED: "Đã tuyển",
+  REJECTED: "Từ chối",
 } as const;
 
 const statusLabelMap = {
@@ -412,7 +413,7 @@ async function DashboardKPIs({
   ] = await Promise.all([
     prisma.jobCandidate.count({
       where: {
-        stage: "PLACED",
+        stage: "HIRED",
         updatedAt: { gte: startOfMonth },
         jobOrder: withJobAccess({}, scope),
       },
@@ -425,7 +426,7 @@ async function DashboardKPIs({
     }),
     prisma.jobCandidate.findMany({
       where: {
-        stage: "PLACED",
+        stage: "HIRED",
         jobOrder: withJobAccess({}, scope),
       },
       select: { createdAt: true, updatedAt: true },
@@ -454,11 +455,12 @@ async function DashboardKPIs({
         return acc;
       },
       {
-        SOURCED: 0,
-        CONTACTED: 0,
+        SENT_TO_CLIENT: 0,
+        CLIENT_REVIEWING: 0,
         INTERVIEW: 0,
+        FINAL_INTERVIEW: 0,
         OFFER: 0,
-        PLACED: 0,
+        HIRED: 0,
         REJECTED: 0,
       }
     );
@@ -566,7 +568,7 @@ async function DashboardKPIs({
             </div>
           </div>
           <p className="mt-3 text-xs text-muted">
-            Doanh thu từ các placement đã chuyển sang stage PLACED.
+            Doanh thu từ các placement đã chuyển sang stage HIRED.
           </p>
         </div>
 

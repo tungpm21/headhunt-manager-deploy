@@ -46,7 +46,7 @@ export type CandidateWorkExperience = {
 
 export type CandidateJobLink = {
   id: number;
-  stage: "SOURCED" | "CONTACTED" | "INTERVIEW" | "OFFER" | "PLACED" | "REJECTED";
+  stage: "SENT_TO_CLIENT" | "CLIENT_REVIEWING" | "INTERVIEW" | "FINAL_INTERVIEW" | "OFFER" | "HIRED" | "REJECTED";
   result: "PENDING" | "HIRED" | "REJECTED" | "WITHDRAWN";
   jobOrder: {
     id: number;

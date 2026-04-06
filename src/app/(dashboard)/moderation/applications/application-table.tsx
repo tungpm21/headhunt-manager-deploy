@@ -46,6 +46,7 @@ interface ApplicationItem {
         location: string | null;
         salaryDisplay: string | null;
         workType: string | null;
+        jobOrderId: number | null;
         employer: { companyName: string };
     };
     candidate: { id: number; fullName: string } | null;
@@ -150,7 +151,7 @@ export function ApplicationTable({ applications }: { applications: ApplicationIt
                                                     UV #{app.candidate.id}
                                                 </Link>
                                             ) : app.status !== "REJECTED" ? (
-                                                <ImportButton applicationId={app.id} />
+                                                <ImportButton applicationId={app.id} jobOrderId={app.jobPosting.jobOrderId} />
                                             ) : null}
                                         </td>
                                     </tr>

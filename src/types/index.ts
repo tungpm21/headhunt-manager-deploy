@@ -26,11 +26,12 @@ export type JobStatus = "OPEN" | "PAUSED" | "FILLED" | "CANCELLED";
 export type FeeType = "PERCENTAGE" | "FIXED";
 
 export type JobCandidateStage =
-  | "SOURCED"
-  | "CONTACTED"
+  | "SENT_TO_CLIENT"
+  | "CLIENT_REVIEWING"
   | "INTERVIEW"
+  | "FINAL_INTERVIEW"
   | "OFFER"
-  | "PLACED"
+  | "HIRED"
   | "REJECTED";
 
 // Frontend-friendly interfaces

@@ -6,11 +6,12 @@ import { Search } from "lucide-react";
 import { JobCandidateStage } from "@/types/job";
 
 const STAGE_OPTIONS: { value: JobCandidateStage; label: string }[] = [
-  { value: "SOURCED", label: "Đã tiếp cận" },
-  { value: "CONTACTED", label: "Đã liên hệ" },
+  { value: "SENT_TO_CLIENT", label: "Đã gửi CV" },
+  { value: "CLIENT_REVIEWING", label: "Client đang xem" },
   { value: "INTERVIEW", label: "Phỏng vấn" },
+  { value: "FINAL_INTERVIEW", label: "PV vòng cuối" },
   { value: "OFFER", label: "Đề nghị" },
-  { value: "PLACED", label: "Nhận việc" },
+  { value: "HIRED", label: "Đã tuyển" },
   { value: "REJECTED", label: "Từ chối" },
 ];
 

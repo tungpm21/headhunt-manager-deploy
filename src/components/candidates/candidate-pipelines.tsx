@@ -3,12 +3,13 @@ import { Briefcase, ChevronRight } from "lucide-react";
 import type { CandidateJobLink } from "@/types/candidate-ui";
 
 const stageLabelMap: Record<CandidateJobLink["stage"], string> = {
-  SOURCED: "Sourced",
-  CONTACTED: "Contacted",
-  INTERVIEW: "Interview",
-  OFFER: "Offer",
-  PLACED: "Placed",
-  REJECTED: "Rejected",
+  SENT_TO_CLIENT: "Đã gửi CV",
+  CLIENT_REVIEWING: "Client đang xem",
+  INTERVIEW: "Phỏng vấn",
+  FINAL_INTERVIEW: "PV vòng cuối",
+  OFFER: "Đề nghị",
+  HIRED: "Đã tuyển",
+  REJECTED: "Từ chối",
 };
 
 const resultLabelMap: Record<CandidateJobLink["result"], string> = {
@@ -19,11 +20,12 @@ const resultLabelMap: Record<CandidateJobLink["result"], string> = {
 };
 
 const stageClassMap: Record<CandidateJobLink["stage"], string> = {
-  SOURCED: "bg-slate-100 text-slate-700",
-  CONTACTED: "bg-sky-100 text-sky-700",
+  SENT_TO_CLIENT: "bg-slate-100 text-slate-700",
+  CLIENT_REVIEWING: "bg-sky-100 text-sky-700",
   INTERVIEW: "bg-violet-100 text-violet-700",
+  FINAL_INTERVIEW: "bg-indigo-100 text-indigo-700",
   OFFER: "bg-amber-100 text-amber-700",
-  PLACED: "bg-emerald-100 text-emerald-700",
+  HIRED: "bg-emerald-100 text-emerald-700",
   REJECTED: "bg-rose-100 text-rose-700",
 };
 

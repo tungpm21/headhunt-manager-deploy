@@ -43,7 +43,7 @@ function getOptimisticResult(
     return resultOverride;
   }
 
-  if (stage === "PLACED") {
+  if (stage === "HIRED") {
     return "HIRED";
   }
 
@@ -65,7 +65,7 @@ function parseEmailModalState(value: string | null): EmailModalState | null {
     if (
       !parsed ||
       typeof parsed !== "object" ||
-      (parsed.stage !== "CONTACTED" &&
+      (parsed.stage !== "CLIENT_REVIEWING" &&
         parsed.stage !== "INTERVIEW" &&
         parsed.stage !== "OFFER" &&
         parsed.stage !== "REJECTED") ||

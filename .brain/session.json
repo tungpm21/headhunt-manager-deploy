@@ -1,18 +1,16 @@
 {
-  "updated_at": "2026-04-04T16:47:00+07:00",
+  "updated_at": "2026-04-06T14:40:00+07:00",
   "working_on": {
-    "feature": "Release handoff and repository publish",
-    "task": "Save brain, finalize tracker state, commit and push the completed Sprint 1-5 worktree",
+    "feature": "Post-deployment monitoring",
+    "task": "Monitor production after performance optimization deployment",
     "status": "handoff",
     "files": [
-      "docs/PROJECT-TRACKER.md",
       ".brain/brain.json",
       ".brain/session.json",
-      ".brain/handover.md",
-      ".brain/session_log.txt"
+      ".brain/handover.md"
     ],
     "blockers": [],
-    "notes": "Sprint 3 is now 10/10 after PM accepted template-based E2E import verification for S3-9. Sprint 5 is already 14/14. Next product phase is Sprint 4 real-user onboarding."
+    "notes": "Performance hardening complete: 9 fixes deployed. Next phase is real user onboarding (Sprint 4)."
   },
   "pending_tasks": [
     {
@@ -30,120 +28,84 @@
   ],
   "recent_changes": [
     {
-      "timestamp": "2026-04-03T22:41:00+07:00",
-      "type": "deploy",
-      "description": "Completed Sprint 3 deploy hardening: Vercel + Neon live deployment, Sentry optional setup, Neon pooled Prisma config, and production verification",
+      "timestamp": "2026-04-06T12:00:00+07:00",
+      "type": "perf",
+      "description": "Completed performance hardening: GIN trigram indexes for 5 ILIKE columns, Suspense streaming dashboard, cached public homepage/filters, shared access-scope module, and ISR blog page",
       "files": [
-        "src/lib/prisma.ts",
-        "next.config.ts",
-        "instrumentation.ts",
-        "instrumentation-client.ts",
-        "sentry.client.config.ts",
-        "sentry.server.config.ts",
-        "sentry.edge.config.ts",
-        ".env.example",
-        "docs/PROJECT-TRACKER.md"
-      ]
-    },
-    {
-      "timestamp": "2026-04-04T00:00:00+07:00",
-      "type": "feature",
-      "description": "Completed Sprint 5 scale and backlog fixes: team scope, schema-first validation, CRM-FDIWork sync, import UX, trash restore, view batching, paginated clients, subscription expiry, and search indexing",
-      "files": [
-        "src/lib/viewer-scope.ts",
-        "src/lib/authz.ts",
-        "src/lib/validation/forms.ts",
-        "src/lib/global-search.ts",
+        "src/app/(dashboard)/dashboard/page.tsx",
+        "src/app/(public)/chia-se/page.tsx",
+        "src/lib/access-scope.ts",
+        "src/lib/public-actions.ts",
+        "src/lib/candidates.ts",
         "src/lib/revenue.ts",
-        "src/lib/reminders.ts",
-        "src/lib/jobs.ts",
-        "src/lib/job-actions.ts",
-        "src/lib/job-posting-view-counter.ts",
-        "src/components/jobs/job-bridge-card.tsx",
-        "src/components/candidates/candidate-header-actions.tsx",
-        "src/components/candidates/cv-viewer.tsx",
-        "src/app/(dashboard)/candidates/trash/page.tsx",
-        "prisma/migrations/20260403224500_add_candidate_search_trgm/migration.sql"
+        "src/lib/prisma.ts",
+        "prisma/migrations/20260406032300_add_search_trgm_indexes/migration.sql"
       ]
     },
     {
-      "timestamp": "2026-04-04T15:48:00+07:00",
+      "timestamp": "2026-04-06T16:00:00+07:00",
       "type": "feature",
-      "description": "Added client import flow with row validation, dedup by companyName/website, import page split by entity type, and template guide updates",
+      "description": "Implemented 7-stage submission pipeline, Submissions module, label renames, Import & Submit action, and phone duplicate check",
       "files": [
-        "src/lib/import-actions.ts",
-        "src/lib/import-service.ts",
-        "src/lib/imports.ts",
-        "src/components/import/client-spreadsheet-importer.tsx",
-        "src/components/import/spreadsheet-import-utils.ts",
-        "src/app/(dashboard)/import/page.tsx",
-        "docs/templates/IMPORT-GUIDE.md",
-        "src/types/import.ts"
-      ]
-    },
-    {
-      "timestamp": "2026-04-04T15:53:00+07:00",
-      "type": "fix",
-      "description": "Fixed spreadsheet header normalization for Vietnamese Đ/đ and verified candidate/client template import end-to-end on dev/staging via dedicated script",
-      "files": [
-        "src/components/import/spreadsheet-import-utils.ts",
-        "scripts/verify-import-templates.ts",
-        "docs/PROJECT-TRACKER.md"
+        "prisma/schema.prisma",
+        "src/lib/job-pipeline.ts",
+        "src/app/(dashboard)/submissions/page.tsx",
+        "src/components/sidebar.tsx",
+        "src/app/(dashboard)/moderation/applications/import-button.tsx",
+        "src/lib/moderation.ts",
+        "src/lib/moderation-actions.ts",
+        "prisma/migrations/20260406152933_align_submission_stages/migration.sql"
       ]
     },
     {
       "timestamp": "2026-04-04T16:47:00+07:00",
-      "type": "docs",
-      "description": "Closed S3-9 after PM accepted template-based import verification and marked Sprint 3 complete in the tracker",
+      "type": "deploy",
+      "description": "Completed Sprint 3/5: team scope, CRM-FDIWork sync, import UX, and deployment hardening on Vercel + Neon",
       "files": [
+        "src/lib/viewer-scope.ts",
+        "src/components/import/client-spreadsheet-importer.tsx",
         "docs/PROJECT-TRACKER.md"
       ]
     }
   ],
   "errors_encountered": [
     {
-      "error": "Candidate/client import parser failed to map Vietnamese headers containing Đ/đ",
-      "solution": "Normalize header text by replacing đ with d before removing combining marks; rerun template import verification and repair partially imported template rows",
+      "error": "Monolithic dashboard executed 17+ parallel DB queries causing extreme blocking",
+      "solution": "Refactored into 3 React Suspense sections with streaming skeletons, prioritizing Fast Stats first",
       "resolved": true
     },
     {
-      "error": "Initial build failed because generic Object.entries inference treated aliases as unknown",
-      "solution": "Cast Object.entries(headerAliases) to Array<[TField, string[]]> in spreadsheet import utils",
+      "error": "Duplicate row-level security logic scattered across 6 files",
+      "solution": "Extracted withCandidateAccess, withClientAccess, etc. into shared src/lib/access-scope.ts removing ~150 lines",
       "resolved": true
     }
   ],
   "decisions_made": [
     {
-      "decision": "Use Neon instead of Supabase wording for pooled Postgres infrastructure",
-      "reason": "The app is Prisma/serverless centric and only needs managed Postgres, not BaaS features"
+      "decision": "Use GIN trigram indexes in PostgreSQL for all ILIKE text search columns",
+      "reason": "Massively speeds up standard text searching without needing a heavy full-text search engine config"
     },
     {
-      "decision": "Treat docs/templates as sufficient Sprint 3 verification input for S3-9",
-      "reason": "PM explicitly accepted template-based E2E import verification to close the sprint"
+      "decision": "Apply unstable_cache and ISR to public data (FDIWork)",
+      "reason": "Public pages are read-heavy and dynamic per-request rendering queries caused unnecessary DB load"
     },
     {
-      "decision": "Keep import candidate/client logic in shared service layer and keep server actions thin",
-      "reason": "Matches recent refactor direction away from direct Prisma usage in actions"
+      "decision": "Extract access-scope.ts for row-based access control",
+      "reason": "Prevents future regressions where one entity's access scope gets updated but another's is forgotten"
     }
   ],
   "verification": [
     {
       "command": "npm run build",
-      "result": "passed",
-      "timestamp": "2026-04-04T15:48:00+07:00",
-      "notes": "Build passed after adding client import flow"
+      "result": "passed (exit 0)",
+      "timestamp": "2026-04-06T12:00:00+07:00",
+      "notes": "Compiled successfully in 92s. Generated 39/39 pages"
     },
     {
-      "command": "npx tsx scripts/verify-import-templates.ts",
+      "command": "npx prisma migrate deploy",
       "result": "passed",
-      "timestamp": "2026-04-04T15:53:00+07:00",
-      "notes": "Template import verified on dev/staging; candidate and client sample data present"
-    },
-    {
-      "command": "npm run build",
-      "result": "passed",
-      "timestamp": "2026-04-04T16:47:00+07:00",
-      "notes": "Final clean checkpoint after closing S3-9 in tracker"
+      "timestamp": "2026-04-06T11:00:00+07:00",
+      "notes": "Applied GIN trigram indexes on Neon DB"
     }
   ]
 }

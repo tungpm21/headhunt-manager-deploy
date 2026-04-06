@@ -1,8 +1,15 @@
-import { getPendingJobPostings } from "@/lib/moderation-actions";
 import Link from "next/link";
-import { ShieldCheck, Eye, Clock, FileText, ExternalLink } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { vi } from "date-fns/locale";
+import {
+  Clock,
+  ExternalLink,
+  Eye,
+  FileText,
+  Plus,
+  ShieldCheck,
+} from "lucide-react";
+import { getPendingJobPostings } from "@/lib/moderation-actions";
 import { ModerationActions } from "./moderation-actions-ui";
 
 const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
@@ -13,54 +20,77 @@ const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
   EXPIRED: { label: "Hết hạn", className: "bg-gray-100 text-gray-500" },
 };
 
+function getDescriptionPreview(description: string | null) {
+  if (!description) {
+    return "";
+  }
+
+  return description
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 export default async function ModerationPage({
   searchParams,
 }: {
   searchParams: Promise<{ status?: string; page?: string }>;
 }) {
   const params = await searchParams;
-  const status = params.status || "PENDING";
-  const page = parseInt(params.page || "1");
+  const status = params.status || "ALL";
+  const page = parseInt(params.page || "1", 10);
   const data = await getPendingJobPostings(status, page);
 
   const filters = [
     { value: "PENDING", label: "Chờ duyệt" },
     { value: "APPROVED", label: "Đã duyệt" },
+    { value: "PAUSED", label: "Tạm ẩn" },
     { value: "REJECTED", label: "Đã từ chối" },
+    { value: "EXPIRED", label: "Hết hạn" },
     { value: "ALL", label: "Tất cả" },
   ];
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
-          <ShieldCheck className="h-7 w-7 text-primary" />
-          Duyệt bài đăng FDIWork
-        </h1>
-        <p className="text-muted mt-1">{data.total} tin tổng cộng</p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h1 className="flex items-center gap-3 text-2xl font-bold text-foreground">
+            <ShieldCheck className="h-7 w-7 text-primary" />
+            Quản lý bài đăng FDIWork
+          </h1>
+          <p className="mt-1 text-muted">
+            {data.total} tin {status === "ALL" ? "trong hệ thống" : "ở trạng thái hiện tại"}
+          </p>
+        </div>
+
+        <Link
+          href="/moderation/new"
+          className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-primary/90"
+        >
+          <Plus className="h-4 w-4" />
+          Thêm mới bài đăng
+        </Link>
       </div>
 
-      {/* Filters */}
-      <div className="flex gap-2 flex-wrap">
-        {filters.map((f) => (
+      <div className="flex flex-wrap gap-2">
+        {filters.map((filter) => (
           <Link
-            key={f.value}
-            href={`/moderation?status=${f.value}`}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-              status === f.value
+            key={filter.value}
+            href={`/moderation?status=${filter.value}`}
+            className={`rounded-lg px-4 py-2 text-sm font-medium transition-all ${
+              status === filter.value
                 ? "bg-primary text-white shadow-sm"
-                : "bg-surface text-muted border border-border hover:border-primary/30 hover:text-foreground"
+                : "border border-border bg-surface text-muted hover:border-primary/30 hover:text-foreground"
             }`}
           >
-            {f.label}
+            {filter.label}
           </Link>
         ))}
       </div>
 
-      {/* Job List */}
       {data.jobs.length === 0 ? (
-        <div className="bg-surface rounded-xl border border-border p-12 text-center">
-          <ShieldCheck className="h-12 w-12 text-muted/30 mx-auto mb-4" />
+        <div className="rounded-xl border border-border bg-surface p-12 text-center">
+          <ShieldCheck className="mx-auto mb-4 h-12 w-12 text-muted/30" />
           <p className="text-muted">Không có tin nào ở trạng thái này.</p>
         </div>
       ) : (
@@ -85,16 +115,20 @@ export default async function ModerationPage({
               email: string;
             };
           }) => {
-            const statusCfg = STATUS_CONFIG[job.status] ?? { label: job.status, className: "bg-gray-100 text-gray-600" };
+            const statusCfg = STATUS_CONFIG[job.status] ?? {
+              label: job.status,
+              className: "bg-gray-100 text-gray-600",
+            };
+
             return (
               <div
                 key={job.id}
-                className="bg-surface rounded-xl border border-border p-6 hover:shadow-sm transition-shadow"
+                className="rounded-xl border border-border bg-surface p-6 transition-shadow hover:shadow-sm"
               >
-                <div className="flex items-start justify-between gap-4 mb-4">
+                <div className="mb-4 flex items-start justify-between gap-4">
                   <div className="min-w-0 flex-1">
-                    <h3 className="font-semibold text-foreground text-lg">{job.title}</h3>
-                    <div className="flex items-center gap-3 mt-1.5 text-sm text-muted">
+                    <h3 className="text-lg font-semibold text-foreground">{job.title}</h3>
+                    <div className="mt-1.5 flex flex-wrap items-center gap-3 text-sm text-muted">
                       <span className="font-medium text-primary">
                         {job.employer.companyName}
                       </span>
@@ -103,41 +137,45 @@ export default async function ModerationPage({
                       <span>•</span>
                       <span className="flex items-center gap-1">
                         <Clock className="h-3 w-3" />
-                        {formatDistanceToNow(new Date(job.createdAt), { addSuffix: true, locale: vi })}
+                        {formatDistanceToNow(new Date(job.createdAt), {
+                          addSuffix: true,
+                          locale: vi,
+                        })}
                       </span>
                     </div>
                   </div>
-                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${statusCfg.className}`}>
+                  <span
+                    className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${statusCfg.className}`}
+                  >
                     {statusCfg.label}
                   </span>
                 </div>
 
-                {/* Preview */}
-                <div className="bg-background rounded-lg border border-border/50 p-4 mb-4 space-y-3">
-                  {job.description && (
+                <div className="mb-4 space-y-3 rounded-lg border border-border/50 bg-background p-4">
+                  {job.description ? (
                     <div>
-                      <p className="text-xs font-semibold text-muted uppercase mb-1">Mô tả</p>
-                      <p className="text-sm text-foreground whitespace-pre-line line-clamp-4">{job.description}</p>
+                      <p className="mb-1 text-xs font-semibold uppercase text-muted">Mô tả</p>
+                      <p className="line-clamp-4 whitespace-pre-line text-sm text-foreground">
+                        {getDescriptionPreview(job.description)}
+                      </p>
                     </div>
-                  )}
+                  ) : null}
                   <div className="flex flex-wrap gap-4 text-xs text-muted">
-                    {job.location && <span>📍 {job.location}</span>}
-                    {job.salaryDisplay && <span>💰 {job.salaryDisplay}</span>}
-                    {job.industry && <span>🏭 {job.industry}</span>}
-                    {job.workType && <span>⏰ {job.workType}</span>}
+                    {job.location ? <span>📍 {job.location}</span> : null}
+                    {job.salaryDisplay ? <span>💰 {job.salaryDisplay}</span> : null}
+                    {job.industry ? <span>🏭 {job.industry}</span> : null}
+                    {job.workType ? <span>⏰ {job.workType}</span> : null}
                     <span>👥 {job.quantity} người</span>
                   </div>
                 </div>
 
-                {/* Rejected reason */}
-                {job.status === "REJECTED" && job.rejectReason && (
-                  <div className="rounded-lg bg-red-50 border border-red-100 p-3 mb-4 text-sm text-red-700">
+                {job.status === "REJECTED" && job.rejectReason ? (
+                  <div className="mb-4 rounded-lg border border-red-100 bg-red-50 p-3 text-sm text-red-700">
                     ❌ Lý do: {job.rejectReason}
                   </div>
-                )}
+                ) : null}
 
-                {/* Actions */}
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div className="flex flex-wrap gap-2">
                     <span className="inline-flex items-center gap-1 rounded-full bg-background px-3 py-1 text-xs font-medium text-muted">
                       <Eye className="h-3.5 w-3.5" />
@@ -169,9 +207,11 @@ export default async function ModerationPage({
                       </span>
                     )}
 
-                    {job.status === "PENDING" && (
-                      <ModerationActions jobId={job.id} />
-                    )}
+                    <ModerationActions
+                      jobId={job.id}
+                      jobTitle={job.title}
+                      status={job.status}
+                    />
                   </div>
                 </div>
               </div>
@@ -180,24 +220,23 @@ export default async function ModerationPage({
         </div>
       )}
 
-      {/* Pagination */}
-      {data.totalPages > 1 && (
+      {data.totalPages > 1 ? (
         <div className="flex justify-center gap-2">
-          {Array.from({ length: data.totalPages }, (_, i) => i + 1).map((p) => (
+          {Array.from({ length: data.totalPages }, (_, index) => index + 1).map((p) => (
             <Link
               key={p}
               href={`/moderation?status=${status}&page=${p}`}
-              className={`h-9 w-9 rounded-lg flex items-center justify-center text-sm font-medium transition-all ${
+              className={`flex h-9 w-9 items-center justify-center rounded-lg text-sm font-medium transition-all ${
                 p === page
                   ? "bg-primary text-white"
-                  : "bg-surface border border-border text-muted hover:border-primary/30"
+                  : "border border-border bg-surface text-muted hover:border-primary/30"
               }`}
             >
               {p}
             </Link>
           ))}
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

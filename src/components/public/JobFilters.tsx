@@ -8,18 +8,46 @@ type JobFiltersProps = {
   industries: string[];
   locations: string[];
   workTypes: string[];
+  languages: string[];
+  industrialZones: string[];
 };
 
-export function JobFilters({ industries, locations, workTypes }: JobFiltersProps) {
+const LANGUAGE_LABELS: Record<string, string> = {
+  Japanese: "Tiếng Nhật",
+  Korean: "Tiếng Hàn",
+  English: "Tiếng Anh",
+  Chinese: "Tiếng Trung",
+  German: "Tiếng Đức",
+  French: "Tiếng Pháp",
+};
+
+const SHIFT_LABELS: Record<string, string> = {
+  DAY: "Ca ngày",
+  NIGHT: "Ca đêm",
+  ROTATING: "Xoay ca",
+};
+
+const VISA_LABELS: Record<string, string> = {
+  YES: "Có hỗ trợ",
+  NO: "Không hỗ trợ",
+  NEGOTIABLE: "Thương lượng",
+};
+
+export function JobFilters({ industries, locations, workTypes, languages, industrialZones }: JobFiltersProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const currentIndustry = searchParams.get("industry") || "";
   const currentLocation = searchParams.get("location") || "";
   const currentWorkType = searchParams.get("workType") || "";
+  const currentLanguage = searchParams.get("language") || "";
+  const currentIndustrialZone = searchParams.get("industrialZone") || "";
+  const currentVisaSupport = searchParams.get("visaSupport") || "";
+  const currentShiftType = searchParams.get("shiftType") || "";
   const currentSort = searchParams.get("sort") || "newest";
 
-  const hasFilters = currentIndustry || currentLocation || currentWorkType;
+  const hasFilters = currentIndustry || currentLocation || currentWorkType ||
+    currentLanguage || currentIndustrialZone || currentVisaSupport || currentShiftType;
 
   const updateFilter = useCallback(
     (key: string, value: string) => {
@@ -61,27 +89,58 @@ export function JobFilters({ industries, locations, workTypes }: JobFiltersProps
         )}
       </div>
 
-      {/* Industry Filter */}
+      {/* FDI-specific filters — shown first as they're the differentiator */}
+      {languages.length > 0 && (
+        <FilterGroup
+          label="Ngôn ngữ yêu cầu"
+          value={currentLanguage}
+          options={languages.map((l) => ({ value: l, label: LANGUAGE_LABELS[l] ?? l }))}
+          onChange={(v) => updateFilter("language", v)}
+        />
+      )}
+
+      {industrialZones.length > 0 && (
+        <FilterGroup
+          label="Khu công nghiệp"
+          value={currentIndustrialZone}
+          options={industrialZones.map((z) => ({ value: z, label: z }))}
+          onChange={(v) => updateFilter("industrialZone", v)}
+        />
+      )}
+
+      <FilterGroup
+        label="Hỗ trợ visa"
+        value={currentVisaSupport}
+        options={Object.entries(VISA_LABELS).map(([v, l]) => ({ value: v, label: l }))}
+        onChange={(v) => updateFilter("visaSupport", v)}
+      />
+
+      <FilterGroup
+        label="Ca làm việc"
+        value={currentShiftType}
+        options={Object.entries(SHIFT_LABELS).map(([v, l]) => ({ value: v, label: l }))}
+        onChange={(v) => updateFilter("shiftType", v)}
+      />
+
+      {/* General filters */}
       <FilterGroup
         label="Ngành nghề"
         value={currentIndustry}
-        options={industries}
+        options={industries.map((i) => ({ value: i, label: i }))}
         onChange={(v) => updateFilter("industry", v)}
       />
 
-      {/* Location Filter */}
       <FilterGroup
         label="Khu vực"
         value={currentLocation}
-        options={locations}
+        options={locations.map((l) => ({ value: l, label: l }))}
         onChange={(v) => updateFilter("location", v)}
       />
 
-      {/* Work Type Filter */}
       <FilterGroup
         label="Hình thức"
         value={currentWorkType}
-        options={workTypes}
+        options={workTypes.map((w) => ({ value: w, label: w }))}
         onChange={(v) => updateFilter("workType", v)}
       />
 
@@ -113,7 +172,7 @@ function FilterGroup({
 }: {
   label: string;
   value: string;
-  options: string[];
+  options: { value: string; label: string }[];
   onChange: (v: string) => void;
 }) {
   if (options.length === 0) return null;
@@ -129,8 +188,8 @@ function FilterGroup({
       >
         <option value="">Tất cả</option>
         {options.map((opt) => (
-          <option key={opt} value={opt}>
-            {opt}
+          <option key={opt.value} value={opt.value}>
+            {opt.label}
           </option>
         ))}
       </select>

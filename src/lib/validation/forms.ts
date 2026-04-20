@@ -193,6 +193,11 @@ export const employerJobPostingSchema = z
     workType: nullableOptionalText,
     quantity: z.number().int().positive("So luong can tuyen phai lon hon 0.").default(1),
     skills: z.array(z.string().trim().min(1)).default([]),
+    industrialZone: nullableOptionalText,
+    requiredLanguages: z.array(z.string().trim().min(1)).default([]),
+    languageProficiency: nullableOptionalText,
+    visaSupport: nullableOptionalText,
+    shiftType: nullableOptionalText,
   })
   .superRefine((data, ctx) => {
     if (

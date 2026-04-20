@@ -480,6 +480,12 @@ model JobPosting {
   workType      String?          // Full-time, Part-time, Remote
   quantity      Int              @default(1)
   skills        String[]         @default([]) // Danh sách kỹ năng
+  // FDI-specific fields
+  industrialZone      String?
+  requiredLanguages   String[]         @default([])
+  languageProficiency String?
+  visaSupport         String?
+  shiftType           String?
   status        JobPostingStatus @default(DRAFT)
   rejectReason  String?          // Admin điền khi reject
   publishedAt   DateTime?
@@ -503,6 +509,8 @@ model JobPosting {
   @@index([status])
   @@index([industry])
   @@index([location])
+  @@index([industrialZone])
+  @@index([shiftType])
   @@index([slug])
   @@index([employerId])
   @@index([expiresAt])

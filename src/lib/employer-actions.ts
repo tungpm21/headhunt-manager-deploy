@@ -93,6 +93,12 @@ function normalizeWebsite(value: string | null) {
   }
 }
 
+function parseRequiredLanguages(formData: FormData): string[] {
+  const lang = formData.get("requiredLanguage")?.toString().trim();
+  if (!lang || lang === "none") return [];
+  return [lang];
+}
+
 function buildEmployerJobPostingInput(formData: FormData) {
   return {
     title: formData.get("title")?.toString().trim() ?? "",
@@ -108,6 +114,11 @@ function buildEmployerJobPostingInput(formData: FormData) {
     workType: formData.get("workType")?.toString().trim() || null,
     quantity: Number(formData.get("quantity")?.toString().trim() || "1"),
     skills: parseJobPostingSkills(formData.get("skills")),
+    industrialZone: formData.get("industrialZone")?.toString().trim() || null,
+    requiredLanguages: parseRequiredLanguages(formData),
+    languageProficiency: formData.get("languageProficiency")?.toString().trim() || null,
+    visaSupport: formData.get("visaSupport")?.toString().trim() || null,
+    shiftType: formData.get("shiftType")?.toString().trim() || null,
   };
 }
 
@@ -354,6 +365,11 @@ export async function createJobPostingAction(formData: FormData) {
       workType: parsedInput.data.workType || null,
       quantity: parsedInput.data.quantity,
       skills: parsedInput.data.skills,
+      industrialZone: parsedInput.data.industrialZone || null,
+      requiredLanguages: parsedInput.data.requiredLanguages,
+      languageProficiency: parsedInput.data.languageProficiency || null,
+      visaSupport: parsedInput.data.visaSupport || null,
+      shiftType: parsedInput.data.shiftType || null,
       status: "PENDING",
     },
   });
@@ -395,6 +411,11 @@ export async function updateJobPostingAction(id: number, formData: FormData) {
     workType: parsedInput.data.workType || null,
     quantity: parsedInput.data.quantity,
     skills: parsedInput.data.skills,
+    industrialZone: parsedInput.data.industrialZone || null,
+    requiredLanguages: parsedInput.data.requiredLanguages,
+    languageProficiency: parsedInput.data.languageProficiency || null,
+    visaSupport: parsedInput.data.visaSupport || null,
+    shiftType: parsedInput.data.shiftType || null,
     status: job.status === "REJECTED" ? "PENDING" : job.status,
   });
 

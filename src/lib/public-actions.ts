@@ -210,6 +210,10 @@ export type JobFilters = {
   location?: string;
   workType?: string;
   salaryMin?: number;
+  language?: string;
+  industrialZone?: string;
+  visaSupport?: string;
+  shiftType?: string;
   sort?: "newest" | "oldest" | "salary_high" | "salary_low";
   page?: number;
 };
@@ -223,6 +227,8 @@ export type JobListResult = {
     industries: string[];
     locations: string[];
     workTypes: string[];
+    languages: string[];
+    industrialZones: string[];
   };
 };
 
@@ -277,6 +283,10 @@ export async function getPublicJobs(filters: JobFilters = {}): Promise<JobListRe
   if (filters.location) where.location = filters.location;
   if (filters.workType) where.workType = filters.workType;
   if (filters.salaryMin) where.salaryMin = { gte: filters.salaryMin };
+  if (filters.language) where.requiredLanguages = { has: filters.language };
+  if (filters.industrialZone) where.industrialZone = filters.industrialZone;
+  if (filters.visaSupport) where.visaSupport = filters.visaSupport;
+  if (filters.shiftType) where.shiftType = filters.shiftType;
 
   // Build orderBy
   type OrderBy = Record<string, "asc" | "desc">;
@@ -302,12 +312,23 @@ export async function getPublicJobs(filters: JobFilters = {}): Promise<JobListRe
         select: { workType: true },
         distinct: ["workType"],
       }),
+      prisma.jobPosting.findMany({
+        where: { status: "APPROVED", industrialZone: { not: null } },
+        select: { industrialZone: true },
+        distinct: ["industrialZone"],
+      }),
+      prisma.$queryRaw<Array<{ lang: string }>>(Prisma.sql`
+        SELECT DISTINCT unnest("requiredLanguages") AS lang
+        FROM "JobPosting"
+        WHERE status = 'APPROVED' AND array_length("requiredLanguages", 1) > 0
+        ORDER BY lang
+      `),
     ]),
     ["job-filter-options"],
     { revalidate: 60 }
   );
 
-  const [jobs, total, distinctIndustries, distinctLocations, distinctWorkTypes] =
+  const [jobs, total, distinctIndustries, distinctLocations, distinctWorkTypes, distinctZones, distinctLanguages] =
     await Promise.all([
       prisma.jobPosting.findMany({
         where,
@@ -346,6 +367,8 @@ export async function getPublicJobs(filters: JobFilters = {}): Promise<JobListRe
       industries: distinctIndustries.map((d) => d.industry).filter(Boolean) as string[],
       locations: distinctLocations.map((d) => d.location).filter(Boolean) as string[],
       workTypes: distinctWorkTypes.map((d) => d.workType).filter(Boolean) as string[],
+      industrialZones: (distinctZones as Array<{ industrialZone: string | null }>).map((d) => d.industrialZone).filter(Boolean) as string[],
+      languages: (distinctLanguages as Array<{ lang: string }>).map((d) => d.lang).filter(Boolean),
     },
   };
 }

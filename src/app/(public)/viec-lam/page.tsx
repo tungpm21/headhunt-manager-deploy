@@ -26,6 +26,10 @@ export default async function JobListingPage({ searchParams }: PageProps) {
     industry: typeof params.industry === "string" ? params.industry : undefined,
     location: typeof params.location === "string" ? params.location : undefined,
     workType: typeof params.workType === "string" ? params.workType : undefined,
+    language: typeof params.language === "string" ? params.language : undefined,
+    industrialZone: typeof params.industrialZone === "string" ? params.industrialZone : undefined,
+    visaSupport: typeof params.visaSupport === "string" ? params.visaSupport : undefined,
+    shiftType: typeof params.shiftType === "string" ? params.shiftType : undefined,
     sort: (params.sort as JobFiltersType["sort"]) || "newest",
     page: params.page ? Number(params.page) : 1,
   };
@@ -68,6 +72,8 @@ export default async function JobListingPage({ searchParams }: PageProps) {
                   industries={result.filters.industries}
                   locations={result.filters.locations}
                   workTypes={result.filters.workTypes}
+                  languages={result.filters.languages}
+                  industrialZones={result.filters.industrialZones}
                 />
               </Suspense>
             </div>

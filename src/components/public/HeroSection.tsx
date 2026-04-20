@@ -39,14 +39,18 @@ export function HeroSection({ totalJobs, totalEmployers }: HeroSectionProps) {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const locationRef = useRef<HTMLDivElement>(null);
   const searchContainerRef = useRef<HTMLDivElement>(null);
+  const locationsLoadedRef = useRef(false);
 
-  // Fetch available locations once
-  useEffect(() => {
+  function loadLocations() {
+    if (locationsLoadedRef.current) return;
+    locationsLoadedRef.current = true;
     fetch("/api/public/locations")
       .then((r) => r.json())
       .then((data) => setLocations(data.locations ?? []))
-      .catch(() => { });
-  }, []);
+      .catch(() => {
+        locationsLoadedRef.current = false;
+      });
+  }
 
   // Close location dropdown on outside click
   useEffect(() => {
@@ -291,6 +295,7 @@ export function HeroSection({ totalJobs, totalEmployers }: HeroSectionProps) {
                   value={location}
                   onChange={(e) => { setLocation(e.target.value); setLocationOpen(true); }}
                   onFocus={() => {
+                    loadLocations();
                     setLocationOpen(true);
                     search.setIsOpen(false);
                   }}
@@ -300,7 +305,7 @@ export function HeroSection({ totalJobs, totalEmployers }: HeroSectionProps) {
                 />
                 <ChevronDown
                   className={`h-3.5 w-3.5 text-gray-400 shrink-0 transition-transform cursor-pointer ${locationOpen ? "rotate-180" : ""}`}
-                  onClick={() => { setLocationOpen(!locationOpen); search.setIsOpen(false); }}
+                  onClick={() => { loadLocations(); setLocationOpen(!locationOpen); search.setIsOpen(false); }}
                 />
 
                 {/* ═══════ LOCATION DROPDOWN ═══════ */}

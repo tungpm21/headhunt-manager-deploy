@@ -1,4 +1,4 @@
-import { JobPostingStatus } from "@prisma/client";
+import { ApplicationStatus, JobPostingStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 
 export async function findEmployerByEmail(email: string) {
@@ -28,13 +28,6 @@ export async function getEmployerDashboardSnapshot(employerId: number) {
     where: { id: employerId },
     include: {
       subscription: true,
-      jobPostings: {
-        orderBy: { createdAt: "desc" },
-        take: 5,
-        include: {
-          _count: { select: { applications: true } },
-        },
-      },
     },
   });
 
@@ -42,24 +35,24 @@ export async function getEmployerDashboardSnapshot(employerId: number) {
     return null;
   }
 
-  const [totalJobs, pendingJobs, approvedJobs, totalApplicants, newApplicants, recentApplications] =
+  const [jobStatusCounts, applicationStatusCounts, recentJobs, recentApplications] =
     await Promise.all([
-      prisma.jobPosting.count({
+      prisma.jobPosting.groupBy({
+        by: ["status"],
         where: { employerId },
+        _count: { _all: true },
       }),
-      prisma.jobPosting.count({
-        where: { employerId, status: "PENDING" },
-      }),
-      prisma.jobPosting.count({
-        where: { employerId, status: "APPROVED" },
-      }),
-      prisma.application.count({
+      prisma.application.groupBy({
+        by: ["status"],
         where: { jobPosting: { employerId } },
+        _count: { _all: true },
       }),
-      prisma.application.count({
-        where: {
-          jobPosting: { employerId },
-          status: "NEW",
+      prisma.jobPosting.findMany({
+        where: { employerId },
+        orderBy: { createdAt: "desc" },
+        take: 5,
+        include: {
+          _count: { select: { applications: true } },
         },
       }),
       prisma.application.findMany({
@@ -72,18 +65,25 @@ export async function getEmployerDashboardSnapshot(employerId: number) {
       }),
     ]);
 
+  const jobCounts = new Map(jobStatusCounts.map((item) => [item.status, item._count._all]));
+  const applicationCounts = new Map(
+    applicationStatusCounts.map((item) => [item.status, item._count._all])
+  );
+  const totalJobs = jobStatusCounts.reduce((sum, item) => sum + item._count._all, 0);
+  const totalApplicants = applicationStatusCounts.reduce((sum, item) => sum + item._count._all, 0);
+
   return {
     employer,
     stats: {
       totalJobs,
-      pendingJobs,
-      approvedJobs,
+      pendingJobs: jobCounts.get(JobPostingStatus.PENDING) ?? 0,
+      approvedJobs: jobCounts.get(JobPostingStatus.APPROVED) ?? 0,
       totalApplicants,
-      newApplicants,
+      newApplicants: applicationCounts.get(ApplicationStatus.NEW) ?? 0,
       quotaTotal: employer.subscription?.jobQuota ?? 0,
       quotaUsed: employer.subscription?.jobsUsed ?? 0,
     },
-    recentJobs: employer.jobPostings,
+    recentJobs,
     recentApplications,
   };
 }

@@ -1,9 +1,10 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ChevronLeft, Briefcase, Building2 } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { ApplyForm } from "@/components/public/ApplyForm";
+import { LogoImage } from "@/components/public/LogoImage";
 
 export const metadata = {
   title: "Ứng tuyển",
@@ -59,11 +60,12 @@ export default async function ApplyPage({ searchParams }: PageProps) {
           <div className="bg-gradient-to-r from-[var(--color-fdi-primary)] to-[var(--color-fdi-accent)] px-6 sm:px-8 py-6">
             <div className="flex items-center gap-3 mb-3">
               <div className="h-11 w-11 rounded-lg bg-white/20 flex items-center justify-center">
-                {job.employer.logo ? (
-                  <img src={job.employer.logo} alt={job.employer.companyName} className="h-full w-full object-cover rounded-lg" />
-                ) : (
-                  <Building2 className="h-5 w-5 text-white" />
-                )}
+                <LogoImage
+                  src={job.employer.logo}
+                  alt={job.employer.companyName}
+                  className="h-full w-full object-contain rounded-lg p-1"
+                  iconSize="h-5 w-5 text-white"
+                />
               </div>
               <div>
                 <p className="text-white/80 text-xs">{job.employer.companyName}</p>

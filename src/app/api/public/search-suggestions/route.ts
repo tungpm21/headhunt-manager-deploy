@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/prisma";
 
 const POPULAR_KEYWORDS = [
@@ -14,13 +15,9 @@ const POPULAR_KEYWORDS = [
   "Tài chính",
 ];
 
-export async function GET(req: NextRequest) {
-  const q = req.nextUrl.searchParams.get("q")?.trim() ?? "";
-  const now = new Date();
-
-  if (!q) {
-    // Return top employers (VIP/Premium first) even on empty query
-    const topEmployers = await prisma.employer.findMany({
+const getCachedTopEmployerSuggestions = unstable_cache(
+  async () =>
+    prisma.employer.findMany({
       where: { status: "ACTIVE" },
       select: {
         id: true,
@@ -32,11 +29,34 @@ export async function GET(req: NextRequest) {
       },
       orderBy: [{ subscription: { tier: "asc" } }, { companyName: "asc" }],
       take: 5,
-    });
+    }),
+  ["public-search-suggestions-top-employers"],
+  { revalidate: 60 }
+);
+
+function responseHeaders(start: number, cacheControl: string) {
+  return {
+    "Cache-Control": cacheControl,
+    "Server-Timing": `app;dur=${Math.round(performance.now() - start)}`,
+  };
+}
+
+export async function GET(req: NextRequest) {
+  const start = performance.now();
+  const q = req.nextUrl.searchParams.get("q")?.trim() ?? "";
+  const now = new Date();
+
+  if (!q) {
+    const topEmployers = await getCachedTopEmployerSuggestions();
 
     return NextResponse.json(
       { employers: topEmployers, jobs: [], popularKeywords: POPULAR_KEYWORDS },
-      { headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=120" } }
+      {
+        headers: responseHeaders(
+          start,
+          "public, s-maxage=60, stale-while-revalidate=120"
+        ),
+      }
     );
   }
 
@@ -87,13 +107,21 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(
       { employers, jobs, popularKeywords },
-      { headers: { "Cache-Control": "public, s-maxage=30, stale-while-revalidate=60" } }
+      {
+        headers: responseHeaders(
+          start,
+          "public, s-maxage=30, stale-while-revalidate=60"
+        ),
+      }
     );
   } catch (error) {
     console.error("Search suggestions error:", error);
     return NextResponse.json(
       { employers: [], jobs: [], popularKeywords: POPULAR_KEYWORDS },
-      { status: 500 }
+      {
+        status: 500,
+        headers: responseHeaders(start, "no-store"),
+      }
     );
   }
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 import { Building2 } from "lucide-react";
 
@@ -8,9 +9,10 @@ type LogoImageProps = {
     alt: string;
     className?: string;
     iconSize?: string;
+    sizes?: string;
 };
 
-export function LogoImage({ src, alt, className = "h-full w-full object-contain p-1", iconSize = "h-6 w-6" }: LogoImageProps) {
+export function LogoImage({ src, alt, className = "h-full w-full object-contain p-1", iconSize = "h-6 w-6", sizes = "96px" }: LogoImageProps) {
     const [errored, setErrored] = useState(false);
 
     if (!src || errored) {
@@ -19,10 +21,14 @@ export function LogoImage({ src, alt, className = "h-full w-full object-contain 
     }
 
     return (
-        <img
+        <Image
             src={src}
             alt={alt}
+            width={160}
+            height={160}
+            sizes={sizes}
             className={className}
+            unoptimized={src.toLowerCase().endsWith(".svg")}
             onError={() => setErrored(true)}
         />
     );

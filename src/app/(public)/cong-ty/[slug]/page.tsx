@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import {
   Building2,
@@ -80,12 +81,14 @@ export default async function CompanyProfilePage({ params }: PageProps) {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-4">
         <div className="relative h-72 sm:h-80 lg:h-96 rounded-2xl overflow-hidden shadow-lg">
           {company.coverImage ? (
-            <img
+            <Image
               src={company.coverImage}
               alt={`${company.companyName} cover`}
-              className="w-full h-full"
+              fill
+              priority
+              sizes="(max-width: 1280px) 100vw, 1280px"
+              className="object-cover"
               style={{
-                objectFit: "cover",
                 objectPosition: `${company.coverPositionX ?? 50}% ${company.coverPositionY ?? 50}%`,
                 transform: `scale(${(company.coverZoom ?? 100) / 100})`,
                 transformOrigin: `${company.coverPositionX ?? 50}% ${company.coverPositionY ?? 50}%`,

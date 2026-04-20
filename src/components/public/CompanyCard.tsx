@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Briefcase, Crown } from "lucide-react";
 import type { PublicCompany } from "@/lib/public-actions";
 import { LogoImage } from "@/components/public/LogoImage";
@@ -12,9 +13,10 @@ const tierBadge: Record<string, { label: string; className: string }> = {
 
 type CompanyCardProps = {
   company: PublicCompany;
+  imagePriority?: boolean;
 };
 
-export function CompanyCard({ company }: CompanyCardProps) {
+export function CompanyCard({ company, imagePriority = false }: CompanyCardProps) {
   const badge = company.subscription ? tierBadge[company.subscription.tier] : null;
   const jobCount = company._count.jobPostings;
 
@@ -29,10 +31,14 @@ export function CompanyCard({ company }: CompanyCardProps) {
         {/* Cover image header */}
         <div className="h-28 sm:h-32 w-full overflow-hidden relative">
           {company.coverImage ? (
-            <img
+            <Image
               src={company.coverImage}
               alt=""
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              fill
+              priority={imagePriority}
+              loading={imagePriority ? "eager" : "lazy"}
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              className="object-cover group-hover:scale-105 transition-transform duration-300"
             />
           ) : (
             <div className="w-full h-full bg-gradient-to-br from-[var(--color-fdi-dark)] via-[#005A9E] to-[var(--color-fdi-primary)]" />

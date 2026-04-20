@@ -4,6 +4,8 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useDebouncedCallback } from "use-debounce";
 
+const MIN_SUGGESTION_QUERY_LENGTH = 2;
+
 export type SuggestionEmployer = {
   id: number;
   companyName: string;
@@ -65,19 +67,28 @@ export function useSearchSuggestions() {
 
   function handleQueryChange(value: string) {
     setQuery(value);
-    setIsOpen(true);
-    if (value.trim()) {
-      debouncedFetch(value.trim());
+    const trimmed = value.trim();
+
+    if (trimmed.length >= MIN_SUGGESTION_QUERY_LENGTH) {
+      setIsOpen(true);
+      debouncedFetch(trimmed);
     } else {
       debouncedFetch.cancel();
-      fetchSuggestions("");
+      abortRef.current?.abort();
+      setSuggestions(null);
+      setIsLoading(false);
+      setActiveIndex(-1);
+      setIsOpen(false);
     }
   }
 
   function handleFocus() {
-    setIsOpen(true);
-    if (!suggestions) {
-      fetchSuggestions(query.trim());
+    const trimmed = query.trim();
+    if (trimmed.length >= MIN_SUGGESTION_QUERY_LENGTH) {
+      setIsOpen(true);
+      if (!suggestions) {
+        fetchSuggestions(trimmed);
+      }
     }
   }
 
@@ -114,6 +125,7 @@ export function useSearchSuggestions() {
     if (!isOpen) return;
     const items = getFlatItems();
     const total = items.length;
+    if (total === 0) return;
 
     if (e.key === "ArrowDown") {
       e.preventDefault();

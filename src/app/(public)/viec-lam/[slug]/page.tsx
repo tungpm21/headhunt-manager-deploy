@@ -8,7 +8,6 @@ import {
   Users,
   Eye,
   FileText,
-  Building2,
   Globe,
   ArrowRight,
   ChevronLeft,
@@ -18,6 +17,7 @@ import {
 } from "lucide-react";
 import { getPublicJobBySlug, type HomepageJob } from "@/lib/public-actions";
 import { JobCard } from "@/components/public/JobCard";
+import { LogoImage } from "@/components/public/LogoImage";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -89,11 +89,12 @@ export default async function JobDetailPage({ params }: PageProps) {
             <div className="bg-white rounded-xl border border-gray-100 p-6 sm:p-8">
               <div className="flex items-start gap-4 mb-6">
                 <div className="h-14 w-14 rounded-xl bg-[var(--color-fdi-surface)] flex items-center justify-center shrink-0 overflow-hidden">
-                  {job.employer.logo ? (
-                    <img src={job.employer.logo} alt={job.employer.companyName} className="h-full w-full object-cover" />
-                  ) : (
-                    <Building2 className="h-7 w-7 text-[var(--color-fdi-primary)]" />
-                  )}
+                  <LogoImage
+                    src={job.employer.logo}
+                    alt={job.employer.companyName}
+                    className="h-full w-full object-contain p-1"
+                    iconSize="h-7 w-7"
+                  />
                 </div>
                 <div className="min-w-0">
                   <h1
@@ -188,11 +189,12 @@ export default async function JobDetailPage({ params }: PageProps) {
               </h3>
               <div className="flex items-center gap-3">
                 <div className="h-12 w-12 rounded-xl bg-[var(--color-fdi-surface)] flex items-center justify-center overflow-hidden shrink-0">
-                  {job.employer.logo ? (
-                    <img src={job.employer.logo} alt={job.employer.companyName} className="h-full w-full object-cover" />
-                  ) : (
-                    <Building2 className="h-6 w-6 text-[var(--color-fdi-primary)]" />
-                  )}
+                  <LogoImage
+                    src={job.employer.logo}
+                    alt={job.employer.companyName}
+                    className="h-full w-full object-contain p-1"
+                    iconSize="h-6 w-6"
+                  />
                 </div>
                 <div className="min-w-0">
                   <Link

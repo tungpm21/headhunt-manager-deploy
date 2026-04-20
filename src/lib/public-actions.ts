@@ -4,7 +4,6 @@ import { unstable_cache } from "next/cache";
 import { Prisma } from "@prisma/client";
 import { incrementJobPostingView } from "@/lib/job-posting-view-counter";
 import { prisma } from "@/lib/prisma";
-import { expireSubscriptionsIfNeeded } from "@/lib/subscriptions";
 
 export type HomepageJob = {
   id: number;
@@ -54,7 +53,6 @@ export type HomepageData = {
 
 export const getHomepageData = unstable_cache(
   async (): Promise<HomepageData> => {
-    await expireSubscriptionsIfNeeded();
     const now = new Date();
 
     const [featuredJobs, bannerEmployers, allActiveEmployers, industryGroups, totalJobs, totalEmployers] =
@@ -499,56 +497,67 @@ export type CompanyListResult = {
 
 const COMPANIES_PER_PAGE = 12;
 
-export async function getPublicCompanies(
-  filters: { q?: string; industry?: string; page?: number } = {}
-): Promise<CompanyListResult> {
-  await expireSubscriptionsIfNeeded();
-  const page = Math.max(1, filters.page || 1);
+const getCachedPublicCompanies = unstable_cache(
+  async (q: string, industry: string, page: number): Promise<CompanyListResult> => {
+    const now = new Date();
+    const where: Record<string, unknown> = { status: "ACTIVE" as const };
 
-  const where: Record<string, unknown> = { status: "ACTIVE" as const };
-  if (filters.q) {
-    where.companyName = { contains: filters.q, mode: "insensitive" };
-  }
-  if (filters.industry) where.industry = filters.industry;
+    if (q) {
+      where.companyName = { contains: q, mode: "insensitive" };
+    }
+    if (industry) where.industry = industry;
 
-  const [companies, total] = await Promise.all([
-    prisma.employer.findMany({
-      where,
-      orderBy: [{ subscription: { tier: "asc" } }, { companyName: "asc" }],
-      skip: (page - 1) * COMPANIES_PER_PAGE,
-      take: COMPANIES_PER_PAGE,
-      select: {
-        id: true,
-        companyName: true,
-        logo: true,
-        coverImage: true,
-        slug: true,
-        industry: true,
-        companySize: true,
-        address: true,
-        description: true,
-        subscription: { select: { tier: true } },
-        _count: {
-          select: {
-            jobPostings: {
-              where: {
-                status: "APPROVED",
-                OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+    const [companies, total] = await Promise.all([
+      prisma.employer.findMany({
+        where,
+        orderBy: [{ subscription: { tier: "asc" } }, { companyName: "asc" }],
+        skip: (page - 1) * COMPANIES_PER_PAGE,
+        take: COMPANIES_PER_PAGE,
+        select: {
+          id: true,
+          companyName: true,
+          logo: true,
+          coverImage: true,
+          slug: true,
+          industry: true,
+          companySize: true,
+          address: true,
+          description: true,
+          subscription: { select: { tier: true } },
+          _count: {
+            select: {
+              jobPostings: {
+                where: {
+                  status: "APPROVED",
+                  OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
+                },
               },
             },
           },
         },
-      },
-    }),
-    prisma.employer.count({ where }),
-  ]);
+      }),
+      prisma.employer.count({ where }),
+    ]);
 
-  return {
-    companies,
-    total,
-    page,
-    totalPages: Math.ceil(total / COMPANIES_PER_PAGE),
-  };
+    return {
+      companies,
+      total,
+      page,
+      totalPages: Math.ceil(total / COMPANIES_PER_PAGE),
+    };
+  },
+  ["public-companies"],
+  { revalidate: 60 }
+);
+
+export async function getPublicCompanies(
+  filters: { q?: string; industry?: string; page?: number } = {}
+): Promise<CompanyListResult> {
+  return getCachedPublicCompanies(
+    filters.q?.trim() ?? "",
+    filters.industry?.trim() ?? "",
+    Math.max(1, filters.page || 1)
+  );
 }
 
 // ==================== COMPANY PROFILE ====================
@@ -572,55 +581,62 @@ export type CompanyProfile = {
   jobPostings: HomepageJob[];
 };
 
-export async function getCompanyBySlug(slug: string): Promise<CompanyProfile | null> {
-  await expireSubscriptionsIfNeeded();
-  const now = new Date();
+const getCachedCompanyBySlug = unstable_cache(
+  async (slug: string): Promise<CompanyProfile | null> => {
+    const now = new Date();
 
-  const employer = await prisma.employer.findUnique({
-    where: { slug },
-    select: {
-      id: true,
-      companyName: true,
-      logo: true,
-      coverImage: true,
-      coverPositionX: true,
-      coverPositionY: true,
-      coverZoom: true,
-      slug: true,
-      description: true,
-      industry: true,
-      companySize: true,
-      address: true,
-      website: true,
-      phone: true,
-      status: true,
-      subscription: { select: { tier: true } },
-      jobPostings: {
-        where: {
-          status: "APPROVED",
-          OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
-        },
-        orderBy: { publishedAt: "desc" },
-        select: {
-          id: true,
-          title: true,
-          slug: true,
-          salaryDisplay: true,
-          location: true,
-          workType: true,
-          industry: true,
-          isFeatured: true,
-          publishedAt: true,
-          employer: {
-            select: { companyName: true, logo: true, slug: true },
+    const employer = await prisma.employer.findUnique({
+      where: { slug },
+      select: {
+        id: true,
+        companyName: true,
+        logo: true,
+        coverImage: true,
+        coverPositionX: true,
+        coverPositionY: true,
+        coverZoom: true,
+        slug: true,
+        description: true,
+        industry: true,
+        companySize: true,
+        address: true,
+        website: true,
+        phone: true,
+        status: true,
+        subscription: { select: { tier: true } },
+        jobPostings: {
+          where: {
+            status: "APPROVED",
+            OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
+          },
+          orderBy: { publishedAt: "desc" },
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            salaryDisplay: true,
+            location: true,
+            workType: true,
+            industry: true,
+            isFeatured: true,
+            publishedAt: true,
+            employer: {
+              select: { companyName: true, logo: true, slug: true },
+            },
           },
         },
       },
-    },
-  });
+    });
 
-  if (!employer || employer.status !== "ACTIVE") return null;
-  return employer;
+    if (!employer || employer.status !== "ACTIVE") return null;
+    return employer;
+  },
+  ["company-profile"],
+  { revalidate: 60 }
+);
+
+export async function getCompanyBySlug(slug: string): Promise<CompanyProfile | null> {
+  return getCachedCompanyBySlug(slug);
 }
 
 // ==================== APPLICATION FORM ====================

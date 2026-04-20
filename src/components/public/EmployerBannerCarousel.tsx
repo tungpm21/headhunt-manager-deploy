@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
 import type { HomepageEmployer } from "@/lib/public-actions";
@@ -51,10 +52,13 @@ export function EmployerBannerCarousel({ employers }: EmployerBannerCarouselProp
           {/* Image area — aspect ratio controlled */}
           <div className="relative h-[250px] sm:h-[350px] lg:h-[450px] xl:h-[500px] w-full">
             {employer.coverImage ? (
-              <img
+              <Image
                 src={employer.coverImage}
                 alt={employer.companyName}
-                className="absolute inset-0 w-full h-full object-cover"
+                fill
+                priority={safeIndex === 0}
+                sizes="(max-width: 640px) 100vw, (max-width: 1280px) 90vw, 1280px"
+                className="object-cover"
               />
             ) : (
               <div className="absolute inset-0 bg-gradient-to-br from-[var(--color-fdi-dark)] via-[#005A9E] to-[var(--color-fdi-primary)]" />

@@ -270,7 +270,6 @@ export async function updateCompanyProfileAction(formData: FormData) {
     address: parsedInput.data.address || null,
     website: parsedInput.data.website || null,
     phone: parsedInput.data.phone || null,
-    coverImage: formData.get("coverImage")?.toString().trim() || null,
     coverPositionX: parseInt(formData.get("coverPositionX")?.toString() || "50") || 50,
     coverPositionY: parseInt(formData.get("coverPositionY")?.toString() || "50") || 50,
     coverZoom: parseInt(formData.get("coverZoom")?.toString() || "100") || 100,

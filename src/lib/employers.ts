@@ -99,6 +99,9 @@ export async function updateEmployerProfileById(
     website: string | null;
     phone: string | null;
     coverImage?: string | null;
+    coverPositionX?: number;
+    coverPositionY?: number;
+    coverZoom?: number;
   }
 ) {
   return prisma.employer.update({

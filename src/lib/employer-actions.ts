@@ -271,6 +271,9 @@ export async function updateCompanyProfileAction(formData: FormData) {
     website: parsedInput.data.website || null,
     phone: parsedInput.data.phone || null,
     coverImage: formData.get("coverImage")?.toString().trim() || null,
+    coverPositionX: parseInt(formData.get("coverPositionX")?.toString() || "50") || 50,
+    coverPositionY: parseInt(formData.get("coverPositionY")?.toString() || "50") || 50,
+    coverZoom: parseInt(formData.get("coverZoom")?.toString() || "100") || 100,
   });
 
   revalidatePath("/employer/company");

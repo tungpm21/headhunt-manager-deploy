@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useRef, useState, useEffect } from "react";
+import { CoverPositionEditor } from "@/components/CoverPositionEditor";
 import { updateCompanyProfileAction, getCompanyProfile } from "@/lib/employer-actions";
-import { Building2, Save, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Building2, Save, AlertCircle, CheckCircle2, ImagePlus, X } from "lucide-react";
 
 const INDUSTRIES = [
   "Sản xuất",
@@ -29,10 +30,21 @@ export default function CompanyProfilePage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [coverPos, setCoverPos] = useState({ positionX: 50, positionY: 50, zoom: 100 });
+  const [coverImageUrl, setCoverImageUrl] = useState<string>("");
+  const [coverPreview, setCoverPreview] = useState<string | null>(null);
+  const coverFileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     getCompanyProfile().then((data) => {
       setEmployer(data);
+      setCoverPos({
+        positionX: data?.coverPositionX ?? 50,
+        positionY: data?.coverPositionY ?? 50,
+        zoom: data?.coverZoom ?? 100,
+      });
+      setCoverImageUrl(data?.coverImage ?? "");
+      setCoverPreview(data?.coverImage ?? null);
       setLoading(false);
     });
   }, []);
@@ -95,15 +107,65 @@ export default function CompanyProfilePage() {
       )}
 
       <form action={handleSubmit} className="bg-white rounded-xl border border-gray-100 p-6 space-y-5">
-        {/* Cover image preview */}
-        {employer?.coverImage && (
-          <div className="pb-5 border-b border-gray-100">
-            <p className="text-xs font-medium text-gray-500 mb-2 uppercase tracking-wider">Preview ảnh bìa</p>
-            <div className="w-full h-32 rounded-xl overflow-hidden bg-gray-100">
-              <img src={employer.coverImage} alt="Cover" className="w-full h-full object-cover" />
+        <div className="pb-5 border-b border-gray-100 space-y-3">
+          <p className="text-sm font-medium text-gray-700">Ảnh bìa công ty</p>
+
+          {coverPreview ? (
+            <CoverPositionEditor
+              imageUrl={coverPreview}
+              positionX={coverPos.positionX}
+              positionY={coverPos.positionY}
+              zoom={coverPos.zoom}
+              onChange={setCoverPos}
+            />
+          ) : (
+            <div className="w-full h-32 rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 flex items-center justify-center">
+              <p className="text-sm text-gray-400">Chưa có ảnh bìa</p>
             </div>
+          )}
+
+          <input
+            ref={coverFileRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              const objectUrl = URL.createObjectURL(file);
+              setCoverPreview(objectUrl);
+            }}
+          />
+
+          <input type="hidden" name="coverImage" value={coverImageUrl} />
+
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => coverFileRef.current?.click()}
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 transition cursor-pointer"
+            >
+              <ImagePlus className="h-4 w-4" />
+              {coverPreview ? "Đổi ảnh bìa" : "Tải ảnh lên"}
+            </button>
+            {coverPreview && (
+              <button
+                type="button"
+                onClick={() => { setCoverPreview(null); setCoverImageUrl(""); }}
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-400 hover:bg-gray-50 transition cursor-pointer"
+              >
+                <X className="h-4 w-4" />
+                Xóa ảnh bìa
+              </button>
+            )}
           </div>
-        )}
+
+          <p className="text-xs text-gray-400">JPG, PNG, WebP. Khuyến nghị 1200×400px.</p>
+        </div>
+
+        <input type="hidden" name="coverPositionX" value={coverPos.positionX} />
+        <input type="hidden" name="coverPositionY" value={coverPos.positionY} />
+        <input type="hidden" name="coverZoom" value={coverPos.zoom} />
 
         {/* Logo preview */}
         <div className="flex items-center gap-4 pb-5 border-b border-gray-100">
@@ -135,24 +197,6 @@ export default function CompanyProfilePage() {
             defaultValue={employer?.companyName}
             className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
           />
-        </div>
-
-        {/* Cover Image URL */}
-        <div>
-          <label htmlFor="coverImage" className="block text-sm font-medium text-gray-700 mb-1.5">
-            Ảnh bìa công ty (URL)
-          </label>
-          <input
-            id="coverImage"
-            name="coverImage"
-            type="url"
-            defaultValue={employer?.coverImage ?? ""}
-            placeholder="https://example.com/banner.jpg"
-            className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
-          />
-          <p className="text-xs text-gray-400 mt-1">
-            Hiển thị trên trang profile công ty và banner trang chủ (nếu gói có showBanner). Khuyến nghị: 1200×400px.
-          </p>
         </div>
 
         {/* Description */}

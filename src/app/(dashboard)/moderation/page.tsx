@@ -12,6 +12,20 @@ import {
 import { getPendingJobPostings } from "@/lib/moderation-actions";
 import { ModerationActions } from "./moderation-actions-ui";
 
+const LANGUAGE_LABELS: Record<string, string> = {
+  Japanese: "Tiếng Nhật",
+  Korean: "Tiếng Hàn",
+  English: "Tiếng Anh",
+  Chinese: "Tiếng Trung",
+  German: "Tiếng Đức",
+  French: "Tiếng Pháp",
+};
+
+const SHIFT_LABELS: Record<string, string> = {
+  NIGHT: "Ca đêm",
+  ROTATING: "Xoay ca",
+};
+
 const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
   PENDING: { label: "Chờ duyệt", className: "bg-amber-100 text-amber-700" },
   APPROVED: { label: "Đã duyệt", className: "bg-emerald-100 text-emerald-700" },
@@ -109,6 +123,10 @@ export default async function ModerationPage({
             rejectReason: string | null;
             viewCount: number;
             applyCount: number;
+            industrialZone: string | null;
+            requiredLanguages: string[];
+            visaSupport: string | null;
+            shiftType: string | null;
             createdAt: Date;
             employer: {
               companyName: string;
@@ -143,6 +161,36 @@ export default async function ModerationPage({
                         })}
                       </span>
                     </div>
+                    {(job.requiredLanguages.length > 0 ||
+                      job.industrialZone ||
+                      job.visaSupport === "YES" ||
+                      (job.shiftType && job.shiftType !== "DAY")) && (
+                      <div className="mt-1 flex flex-wrap gap-1.5">
+                        {job.requiredLanguages.map((lang: string) => (
+                          <span
+                            key={lang}
+                            className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-700"
+                          >
+                            🌐 {LANGUAGE_LABELS[lang] ?? lang}
+                          </span>
+                        ))}
+                        {job.industrialZone && (
+                          <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-semibold text-gray-600">
+                            🏭 {job.industrialZone}
+                          </span>
+                        )}
+                        {job.visaSupport === "YES" && (
+                          <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
+                            ✅ Visa
+                          </span>
+                        )}
+                        {job.shiftType && job.shiftType !== "DAY" && (
+                          <span className="inline-flex items-center rounded-full bg-orange-50 px-2 py-0.5 text-[10px] font-semibold text-orange-700">
+                            🕐 {SHIFT_LABELS[job.shiftType] ?? job.shiftType}
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </div>
                   <span
                     className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${statusCfg.className}`}

@@ -4,6 +4,20 @@ import { Plus, Briefcase, Eye, Users, Clock } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { vi } from "date-fns/locale";
 
+const LANGUAGE_LABELS: Record<string, string> = {
+  Japanese: "Tiếng Nhật",
+  Korean: "Tiếng Hàn",
+  English: "Tiếng Anh",
+  Chinese: "Tiếng Trung",
+  German: "Tiếng Đức",
+  French: "Tiếng Pháp",
+};
+
+const SHIFT_LABELS: Record<string, string> = {
+  NIGHT: "Ca đêm",
+  ROTATING: "Xoay ca",
+};
+
 const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
   DRAFT: { label: "Nháp", className: "bg-gray-100 text-gray-600" },
   PENDING: { label: "Chờ duyệt", className: "bg-amber-100 text-amber-700" },
@@ -90,6 +104,10 @@ export default async function JobPostingsPage({
             createdAt: Date;
             viewCount: number;
             rejectReason: string | null;
+            industrialZone: string | null;
+            requiredLanguages: string[];
+            visaSupport: string | null;
+            shiftType: string | null;
             _count: {
               applications: number;
             };
@@ -106,6 +124,36 @@ export default async function JobPostingsPage({
                     <h3 className="font-semibold text-gray-800 group-hover:text-teal-600 transition-colors truncate">
                       {job.title}
                     </h3>
+                    {(job.requiredLanguages.length > 0 ||
+                      job.industrialZone ||
+                      job.visaSupport === "YES" ||
+                      (job.shiftType && job.shiftType !== "DAY")) && (
+                      <div className="mt-1 flex flex-wrap gap-1.5">
+                        {job.requiredLanguages.map((lang: string) => (
+                          <span
+                            key={lang}
+                            className="inline-flex items-center rounded-full bg-teal-50 px-2 py-0.5 text-[10px] font-semibold text-teal-700"
+                          >
+                            🌐 {LANGUAGE_LABELS[lang] ?? lang}
+                          </span>
+                        ))}
+                        {job.industrialZone && (
+                          <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-semibold text-gray-600">
+                            🏭 {job.industrialZone}
+                          </span>
+                        )}
+                        {job.visaSupport === "YES" && (
+                          <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
+                            ✅ Visa
+                          </span>
+                        )}
+                        {job.shiftType && job.shiftType !== "DAY" && (
+                          <span className="inline-flex items-center rounded-full bg-orange-50 px-2 py-0.5 text-[10px] font-semibold text-orange-700">
+                            🕐 {SHIFT_LABELS[job.shiftType] ?? job.shiftType}
+                          </span>
+                        )}
+                      </div>
+                    )}
                     <div className="flex items-center gap-4 mt-2 text-xs text-gray-400">
                       {job.location && (
                         <span className="flex items-center gap-1">📍 {job.location}</span>

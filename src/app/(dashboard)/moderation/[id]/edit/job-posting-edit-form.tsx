@@ -28,6 +28,11 @@ type EditableJobPosting = {
   workType: string | null;
   quantity: number;
   skills: string[];
+  industrialZone: string | null;
+  requiredLanguages: string[];
+  languageProficiency: string | null;
+  visaSupport: string | null;
+  shiftType: string | null;
   status: string;
   rejectReason: string | null;
   viewCount: number;
@@ -41,6 +46,58 @@ type EditableJobPosting = {
     email: string;
   };
 };
+
+const INDUSTRIAL_ZONES = [
+  {
+    group: "Miền Bắc",
+    zones: [
+      "KCN Yên Phong, Bắc Ninh",
+      "KCN Quế Võ, Bắc Ninh",
+      "KCN VSIP Bắc Ninh",
+      "KCN Thăng Long, Hà Nội",
+      "KCN Quang Minh, Vĩnh Phúc",
+      "KCN Đình Vũ, Hải Phòng",
+      "KCN Tràng Duệ, Hải Phòng",
+      "KCN Samsung, Thái Nguyên",
+      "KCN Đại Đồng, Bắc Giang",
+    ],
+  },
+  {
+    group: "Miền Trung",
+    zones: [
+      "KCN Hòa Khánh, Đà Nẵng",
+      "KCN Điện Nam - Điện Ngọc, Quảng Nam",
+    ],
+  },
+  {
+    group: "Miền Nam",
+    zones: [
+      "KCN Amata, Đồng Nai",
+      "KCN Long Thành, Đồng Nai",
+      "KCN VSIP, Bình Dương",
+      "KCN Mỹ Phước, Bình Dương",
+      "KCN Long Hậu, Long An",
+      "Quận 7 / Tân Phú, TP.HCM",
+    ],
+  },
+];
+
+const LANGUAGES = [
+  { value: "none", label: "Không yêu cầu" },
+  { value: "Japanese", label: "Tiếng Nhật" },
+  { value: "Korean", label: "Tiếng Hàn" },
+  { value: "English", label: "Tiếng Anh" },
+  { value: "Chinese", label: "Tiếng Trung" },
+  { value: "German", label: "Tiếng Đức" },
+  { value: "French", label: "Tiếng Pháp" },
+];
+
+const PROFICIENCY_LEVELS = [
+  "Cơ bản (N4 / TOPIK 1)",
+  "Trung cấp (N3 / TOPIK 2)",
+  "Khá (N2 / TOPIK 3)",
+  "Thành thạo (N1 / TOPIK 4+)",
+];
 
 const inputClassName =
   "w-full rounded-xl border border-border bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition";
@@ -411,6 +468,136 @@ export function JobPostingEditForm({ job }: { job: EditableJobPosting }) {
               />
               <p className="mt-1 text-xs text-muted">Nhập nhiều kỹ năng, ngăn cách bằng dấu phẩy.</p>
             </div>
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-primary/15 bg-primary/5 p-6 space-y-5">
+          <div className="flex items-center gap-2 border-b border-border/70 pb-4">
+            <div className="h-1.5 w-5 rounded-full bg-primary" />
+            <p className="text-sm font-semibold text-foreground">Yêu cầu đặc thù FDI</p>
+            <span className="text-xs text-muted">không có trên VietnamWorks hay TopCV</span>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label
+                htmlFor="industrialZone"
+                className="mb-1.5 block text-sm font-medium text-foreground"
+              >
+                Khu công nghiệp
+              </label>
+              <select
+                id="industrialZone"
+                name="industrialZone"
+                defaultValue={job.industrialZone ?? ""}
+                className={inputClassName}
+              >
+                <option value="">Chọn khu công nghiệp</option>
+                {INDUSTRIAL_ZONES.map((group) => (
+                  <optgroup key={group.group} label={group.group}>
+                    {group.zones.map((zone) => (
+                      <option key={zone} value={zone}>
+                        {zone}
+                      </option>
+                    ))}
+                  </optgroup>
+                ))}
+              </select>
+              <p className="mt-1 text-xs text-muted">
+                Ứng viên tìm việc theo KCN, không chỉ tỉnh thành.
+              </p>
+            </div>
+
+            <div>
+              <label
+                htmlFor="shiftType"
+                className="mb-1.5 block text-sm font-medium text-foreground"
+              >
+                Ca làm việc
+              </label>
+              <select
+                id="shiftType"
+                name="shiftType"
+                defaultValue={job.shiftType ?? ""}
+                className={inputClassName}
+              >
+                <option value="">Không chỉ định</option>
+                <option value="DAY">Ca ngày</option>
+                <option value="NIGHT">Ca đêm</option>
+                <option value="ROTATING">Xoay ca</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label
+                htmlFor="requiredLanguage"
+                className="mb-1.5 block text-sm font-medium text-foreground"
+              >
+                Ngôn ngữ yêu cầu
+              </label>
+              <select
+                id="requiredLanguage"
+                name="requiredLanguage"
+                defaultValue={job.requiredLanguages?.[0] ?? "none"}
+                className={inputClassName}
+              >
+                {LANGUAGES.map((language) => (
+                  <option key={language.value} value={language.value}>
+                    {language.label}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-1 text-xs text-muted">
+                Ứng viên có kỹ năng ngôn ngữ phù hợp sẽ được ưu tiên hiển thị.
+              </p>
+            </div>
+
+            <div>
+              <label
+                htmlFor="languageProficiency"
+                className="mb-1.5 block text-sm font-medium text-foreground"
+              >
+                Mức thành thạo
+              </label>
+              <select
+                id="languageProficiency"
+                name="languageProficiency"
+                defaultValue={job.languageProficiency ?? ""}
+                className={inputClassName}
+              >
+                <option value="">Không chỉ định</option>
+                {PROFICIENCY_LEVELS.map((level) => (
+                  <option key={level} value={level}>
+                    {level}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label
+              htmlFor="visaSupport"
+              className="mb-1.5 block text-sm font-medium text-foreground"
+            >
+              Hỗ trợ visa / giấy phép lao động
+            </label>
+            <select
+              id="visaSupport"
+              name="visaSupport"
+              defaultValue={job.visaSupport ?? ""}
+              className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition sm:w-72"
+            >
+              <option value="">Không chỉ định</option>
+              <option value="YES">Có hỗ trợ</option>
+              <option value="NO">Không hỗ trợ</option>
+              <option value="NEGOTIABLE">Thương lượng</option>
+            </select>
+            <p className="mt-1 text-xs text-muted">
+              Ứng viên nước ngoài sẽ lọc theo tiêu chí này.
+            </p>
           </div>
         </div>
 

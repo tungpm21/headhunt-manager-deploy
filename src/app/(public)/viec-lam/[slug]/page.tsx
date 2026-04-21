@@ -19,6 +19,21 @@ import { getPublicJobBySlug, type HomepageJob } from "@/lib/public-actions";
 import { JobCard } from "@/components/public/JobCard";
 import { LogoImage } from "@/components/public/LogoImage";
 
+const LANGUAGE_LABELS: Record<string, string> = {
+  Japanese: "Tiếng Nhật",
+  Korean: "Tiếng Hàn",
+  English: "Tiếng Anh",
+  Chinese: "Tiếng Trung",
+  German: "Tiếng Đức",
+  French: "Tiếng Pháp",
+};
+
+const SHIFT_LABELS: Record<string, string> = {
+  DAY: "Ca ngày",
+  NIGHT: "Ca đêm",
+  ROTATING: "Xoay ca",
+};
+
 type PageProps = {
   params: Promise<{ slug: string }>;
 };
@@ -147,6 +162,38 @@ export default async function JobDetailPage({ params }: PageProps) {
                     )
                 )}
               </div>
+
+              {(job.requiredLanguages.length > 0 ||
+                job.industrialZone ||
+                job.visaSupport === "YES" ||
+                job.shiftType) && (
+                <div className="mb-6 flex flex-wrap gap-2">
+                  {job.requiredLanguages.map((lang) => (
+                    <span
+                      key={lang}
+                      className="inline-flex items-center gap-1.5 rounded-full bg-[#0077B6]/10 px-3 py-1.5 text-xs font-semibold text-[#0077B6]"
+                    >
+                      🌐 {LANGUAGE_LABELS[lang] ?? lang}
+                      {job.languageProficiency && ` · ${job.languageProficiency}`}
+                    </span>
+                  ))}
+                  {job.industrialZone && (
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1.5 text-xs font-semibold text-gray-700">
+                      🏭 {job.industrialZone}
+                    </span>
+                  )}
+                  {job.visaSupport === "YES" && (
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1.5 text-xs font-semibold text-emerald-700">
+                      ✅ Hỗ trợ visa
+                    </span>
+                  )}
+                  {job.shiftType && (
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-orange-100 px-3 py-1.5 text-xs font-semibold text-orange-700">
+                      🕐 {SHIFT_LABELS[job.shiftType] ?? job.shiftType}
+                    </span>
+                  )}
+                </div>
+              )}
 
               {/* Skills */}
               {skills.length > 0 && (

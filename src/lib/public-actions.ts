@@ -391,6 +391,11 @@ export type JobDetail = {
   workType: string | null;
   quantity: number;
   skills: string[];
+  industrialZone: string | null;
+  requiredLanguages: string[];
+  languageProficiency: string | null;
+  visaSupport: string | null;
+  shiftType: string | null;
   publishedAt: Date | null;
   expiresAt: Date | null;
   viewCount: number;
@@ -430,6 +435,11 @@ export async function getPublicJobBySlug(
       workType: true,
       quantity: true,
       skills: true,
+      industrialZone: true,
+      requiredLanguages: true,
+      languageProficiency: true,
+      visaSupport: true,
+      shiftType: true,
       status: true,
       publishedAt: true,
       expiresAt: true,

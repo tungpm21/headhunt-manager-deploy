@@ -51,6 +51,14 @@ function buildJobPostingInput(formData: FormData) {
     workType: formData.get("workType")?.toString().trim() || null,
     quantity: Number(formData.get("quantity")?.toString().trim() || "1"),
     skills: parseJobPostingSkills(formData.get("skills")),
+    industrialZone: formData.get("industrialZone")?.toString().trim() || null,
+    requiredLanguages: (() => {
+      const lang = formData.get("requiredLanguage")?.toString().trim();
+      return lang && lang !== "none" ? [lang] : [];
+    })(),
+    languageProficiency: formData.get("languageProficiency")?.toString().trim() || null,
+    visaSupport: formData.get("visaSupport")?.toString().trim() || null,
+    shiftType: formData.get("shiftType")?.toString().trim() || null,
   };
 }
 
@@ -99,6 +107,11 @@ export async function getAdminJobPostingById(id: number) {
       workType: true,
       quantity: true,
       skills: true,
+      industrialZone: true,
+      requiredLanguages: true,
+      languageProficiency: true,
+      visaSupport: true,
+      shiftType: true,
       status: true,
       rejectReason: true,
       viewCount: true,
@@ -170,6 +183,11 @@ export async function updateAdminJobPosting(id: number, formData: FormData) {
       workType: parsedInput.data.workType || null,
       quantity: parsedInput.data.quantity,
       skills: parsedInput.data.skills,
+      industrialZone: parsedInput.data.industrialZone || null,
+      requiredLanguages: parsedInput.data.requiredLanguages,
+      languageProficiency: parsedInput.data.languageProficiency || null,
+      visaSupport: parsedInput.data.visaSupport || null,
+      shiftType: parsedInput.data.shiftType || null,
     },
   });
 
@@ -432,6 +450,11 @@ export async function createAdminJobPosting(formData: FormData) {
         workType: parsedInput.data.workType || null,
         quantity: parsedInput.data.quantity,
         skills: parsedInput.data.skills,
+        industrialZone: parsedInput.data.industrialZone || null,
+        requiredLanguages: parsedInput.data.requiredLanguages,
+        languageProficiency: parsedInput.data.languageProficiency || null,
+        visaSupport: parsedInput.data.visaSupport || null,
+        shiftType: parsedInput.data.shiftType || null,
         status: "APPROVED",
         publishedAt: now,
         expiresAt,

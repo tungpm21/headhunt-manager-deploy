@@ -144,7 +144,8 @@ async function main() {
         description: "Giám sát và tối ưu hóa quy trình sản xuất smartphone tại nhà máy Samsung Bắc Ninh. Phân tích dữ liệu sản xuất, đề xuất cải tiến năng suất và chất lượng. Phối hợp với đội ngũ kỹ sư Hàn Quốc để triển khai công nghệ mới.",
         requirements: "- Tốt nghiệp ĐH ngành Cơ khí, Điện tử, Cơ điện tử hoặc tương đương\n- Ít nhất 2 năm kinh nghiệm trong môi trường sản xuất\n- Thành thạo MS Office, AutoCAD\n- Tiếng Hàn TOPIK 3 hoặc tiếng Anh TOEIC 600+\n- Sẵn sàng làm ca theo lịch nhà máy",
         benefits: "- Lương cạnh tranh top thị trường + thưởng quý\n- Xe đưa đón Hà Nội - Bắc Ninh\n- Bảo hiểm sức khỏe PVI cao cấp cho nhân viên + gia đình\n- Cơ hội đào tạo ngắn hạn tại Hàn Quốc\n- Phụ cấp ăn trưa, đồng phục, thiết bị bảo hộ",
-        salaryMin: 18, salaryMax: 30, salaryDisplay: "18 - 30 triệu", industry: "Sản xuất", position: "Nhân viên", location: "Bắc Ninh", workType: "Full-time", quantity: 5, skills: "Sản xuất, QC, Lean, 5S, AutoCAD, Tiếng Hàn", status: "APPROVED", publishedAt: pub(3), expiresAt: exp(40), viewCount: 234, applyCount: 12
+        salaryMin: 18, salaryMax: 30, salaryDisplay: "18 - 30 triệu", industry: "Sản xuất", position: "Nhân viên", location: "Bắc Ninh", workType: "Full-time", quantity: 5, skills: "Sản xuất, QC, Lean, 5S, AutoCAD, Tiếng Hàn", status: "APPROVED", publishedAt: pub(3), expiresAt: exp(40), viewCount: 234, applyCount: 12,
+        industrialZone: "KCN Yên Phong, Bắc Ninh", requiredLanguages: ["Korean"], languageProficiency: "Trung cấp (N3 / TOPIK 2)", visaSupport: "NEGOTIABLE", shiftType: "ROTATING"
       },
 
       {
@@ -152,7 +153,8 @@ async function main() {
         description: "Quản lý toàn bộ hoạt động nhân sự tại nhà máy SEV bao gồm tuyển dụng quy mô lớn (200+ người/tháng), đào tạo onboarding, quản lý C&B cho 5.000+ nhân viên, và duy trì quan hệ lao động ổn định.",
         requirements: "- Tốt nghiệp ĐH trở lên ngành Quản trị nhân lực, Luật, QTKD\n- 5+ năm kinh nghiệm HR, trong đó 2+ năm ở vị trí quản lý\n- Kinh nghiệm trong nhà máy sản xuất FDI là bắt buộc\n- Nắm vững Luật lao động, BHXH, BHYT\n- Tiếng Anh hoặc tiếng Hàn giao tiếp tốt",
         benefits: "- Lương thỏa thuận (cạnh tranh nhất thị trường)\n- Thưởng KPI quý + thưởng cuối năm 2-4 tháng lương\n- Bảo hiểm cao cấp cho cả gia đình\n- Xe công ty, điện thoại, laptop\n- Ngày phép: 15 ngày/năm",
-        salaryMin: 35, salaryMax: 55, salaryDisplay: "35 - 55 triệu", industry: "Nhân sự", position: "Trưởng phòng", location: "Bắc Ninh", workType: "Full-time", quantity: 1, skills: "HR, Tuyển dụng, C&B, Luật lao động, Tiếng Hàn", status: "APPROVED", publishedAt: pub(1), expiresAt: exp(45), isFeatured: true, viewCount: 567, applyCount: 23
+        salaryMin: 35, salaryMax: 55, salaryDisplay: "35 - 55 triệu", industry: "Nhân sự", position: "Trưởng phòng", location: "Bắc Ninh", workType: "Full-time", quantity: 1, skills: "HR, Tuyển dụng, C&B, Luật lao động, Tiếng Hàn", status: "APPROVED", publishedAt: pub(1), expiresAt: exp(45), isFeatured: true, viewCount: 567, applyCount: 23,
+        industrialZone: "KCN Yên Phong, Bắc Ninh", requiredLanguages: ["Korean"], languageProficiency: "Trung cấp (N3 / TOPIK 2)", visaSupport: "YES", shiftType: "DAY"
       },
 
       {
@@ -160,21 +162,24 @@ async function main() {
         description: "Kiểm tra chất lượng sản phẩm smartphone theo tiêu chuẩn Samsung Global. Phân tích lỗi sản phẩm, xây dựng báo cáo chất lượng hàng tuần. Tham gia audit ISO 9001, ISO 14001.",
         requirements: "- ĐH ngành Kỹ thuật, Điện tử, Vật lý\n- 1+ năm kinh nghiệm QC trong sản xuất điện tử\n- Sử dụng thành thạo công cụ đo lường (caliper, micrometer)\n- Hiểu biết về SPC, FMEA, 8D Report",
         benefits: "- Lương tháng 13, 14 + thưởng quý\n- Xe đưa đón\n- Cơm trưa miễn phí\n- Bảo hiểm PVI",
-        salaryMin: 12, salaryMax: 20, salaryDisplay: "12 - 20 triệu", industry: "Sản xuất", position: "Nhân viên", location: "Bắc Ninh", workType: "Full-time", quantity: 8, skills: "QA, QC, ISO, SPC, FMEA", status: "APPROVED", publishedAt: pub(5), expiresAt: exp(35), viewCount: 189, applyCount: 31
+        salaryMin: 12, salaryMax: 20, salaryDisplay: "12 - 20 triệu", industry: "Sản xuất", position: "Nhân viên", location: "Bắc Ninh", workType: "Full-time", quantity: 8, skills: "QA, QC, ISO, SPC, FMEA", status: "APPROVED", publishedAt: pub(5), expiresAt: exp(35), viewCount: 189, applyCount: 31,
+        industrialZone: "KCN Yên Phong, Bắc Ninh", requiredLanguages: [], languageProficiency: null, visaSupport: "NO", shiftType: "ROTATING"
       },
 
       {
         title: "Nhân viên IT Support", slug: "it-support-samsung", employerId: samsung.id,
         description: "Hỗ trợ kỹ thuật IT cho hơn 5.000 user tại nhà máy. Quản lý hệ thống mạng LAN, WiFi, server. Triển khai và bảo trì các hệ thống MES, ERP (SAP).",
         requirements: "- ĐH CNTT, Mạng máy tính\n- 1-3 năm kinh nghiệm IT helpdesk\n- CCNA hoặc tương đương\n- Tiếng Anh đọc hiểu tài liệu kỹ thuật",
-        salaryMin: 12, salaryMax: 18, salaryDisplay: "12 - 18 triệu", industry: "IT - Phần mềm", position: "Nhân viên", location: "Bắc Ninh", workType: "Full-time", quantity: 2, skills: "IT Support, CCNA, SAP, Windows Server", status: "APPROVED", publishedAt: pub(2), expiresAt: exp(30), viewCount: 145, applyCount: 8
+        salaryMin: 12, salaryMax: 18, salaryDisplay: "12 - 18 triệu", industry: "IT - Phần mềm", position: "Nhân viên", location: "Bắc Ninh", workType: "Full-time", quantity: 2, skills: "IT Support, CCNA, SAP, Windows Server", status: "APPROVED", publishedAt: pub(2), expiresAt: exp(30), viewCount: 145, applyCount: 8,
+        industrialZone: "KCN Yên Phong, Bắc Ninh", requiredLanguages: ["English"], languageProficiency: "Cơ bản (N4 / TOPIK 1)", visaSupport: "NO", shiftType: "DAY"
       },
 
       {
         title: "Phiên dịch tiếng Hàn (Korean Interpreter)", slug: "phien-dich-tieng-han-samsung", employerId: samsung.id,
         description: "Phiên dịch các cuộc họp cấp quản lý, đào tạo kỹ thuật, và giao tiếp hàng ngày giữa chuyên gia Hàn Quốc và nhân viên Việt Nam. Dịch tài liệu kỹ thuật sản xuất.",
         requirements: "- TOPIK 5 trở lên\n- Ưu tiên có kinh nghiệm phiên dịch trong nhà máy\n- Kỹ năng giao tiếp tốt, nhanh nhẹn",
-        salaryMin: 15, salaryMax: 25, salaryDisplay: "15 - 25 triệu", industry: "Phiên dịch", position: "Nhân viên", location: "Bắc Ninh", workType: "Full-time", quantity: 3, skills: "Tiếng Hàn, Phiên dịch, TOPIK 5", status: "APPROVED", publishedAt: pub(4), expiresAt: exp(25), viewCount: 312, applyCount: 18
+        salaryMin: 15, salaryMax: 25, salaryDisplay: "15 - 25 triệu", industry: "Phiên dịch", position: "Nhân viên", location: "Bắc Ninh", workType: "Full-time", quantity: 3, skills: "Tiếng Hàn, Phiên dịch, TOPIK 5", status: "APPROVED", publishedAt: pub(4), expiresAt: exp(25), viewCount: 312, applyCount: 18,
+        industrialZone: "KCN Yên Phong, Bắc Ninh", requiredLanguages: ["Korean"], languageProficiency: "Thành thạo (N1 / TOPIK 4+)", visaSupport: "YES", shiftType: "DAY"
       },
 
       // Canon (3 jobs)
@@ -183,21 +188,24 @@ async function main() {
         description: "Thực hiện nghiệp vụ kế toán tổng hợp, lập báo cáo tài chính theo chuẩn IFRS và VAS. Quản lý thuế GTGT, TNDN. Phối hợp với kiểm toán nội bộ và kiểm toán độc lập.",
         requirements: "- ĐH Kế toán, Tài chính\n- 2+ năm kinh nghiệm kế toán tổng hợp\n- Thành thạo SAP FI/CO\n- Tiếng Nhật N3 hoặc tiếng Anh TOEIC 550+",
         benefits: "- Lương tháng 13, 14, 15\n- Xe đưa đón Hà Nội - Bắc Ninh\n- Ăn trưa miễn phí (buffet)\n- Du lịch công ty hàng năm",
-        salaryMin: 15, salaryMax: 22, salaryDisplay: "15 - 22 triệu", industry: "Kế toán - Tài chính", position: "Nhân viên", location: "Bắc Ninh", workType: "Full-time", quantity: 2, skills: "Kế toán, SAP, IFRS, Tiếng Nhật", status: "APPROVED", publishedAt: pub(8), expiresAt: exp(22), viewCount: 167, applyCount: 14
+        salaryMin: 15, salaryMax: 22, salaryDisplay: "15 - 22 triệu", industry: "Kế toán - Tài chính", position: "Nhân viên", location: "Bắc Ninh", workType: "Full-time", quantity: 2, skills: "Kế toán, SAP, IFRS, Tiếng Nhật", status: "APPROVED", publishedAt: pub(8), expiresAt: exp(22), viewCount: 167, applyCount: 14,
+        industrialZone: "KCN Quế Võ, Bắc Ninh", requiredLanguages: ["Japanese"], languageProficiency: "Trung cấp (N3 / TOPIK 2)", visaSupport: "NO", shiftType: "DAY"
       },
 
       {
         title: "Phiên dịch tiếng Nhật", slug: "phien-dich-tieng-nhat-canon", employerId: canon.id,
         description: "Phiên dịch trong cuộc họp, training, và giao tiếp giữa ban lãnh đạo Nhật Bản và nhân viên Việt Nam. Hỗ trợ dịch tài liệu kỹ thuật, hợp đồng, quy trình ISO.",
         requirements: "- Tiếng Nhật N2 trở lên (N1 ưu tiên)\n- Ưu tiên kinh nghiệm trong FDI Nhật\n- Kỹ năng viết và nói tốt cả tiếng Việt lẫn tiếng Nhật",
-        salaryMin: 18, salaryMax: 28, salaryDisplay: "18 - 28 triệu", industry: "Phiên dịch", position: "Nhân viên", location: "Bắc Ninh", workType: "Full-time", quantity: 1, skills: "Tiếng Nhật N2, Phiên dịch, FDI", status: "APPROVED", publishedAt: pub(6), expiresAt: exp(24), viewCount: 201, applyCount: 9
+        salaryMin: 18, salaryMax: 28, salaryDisplay: "18 - 28 triệu", industry: "Phiên dịch", position: "Nhân viên", location: "Bắc Ninh", workType: "Full-time", quantity: 1, skills: "Tiếng Nhật N2, Phiên dịch, FDI", status: "APPROVED", publishedAt: pub(6), expiresAt: exp(24), viewCount: 201, applyCount: 9,
+        industrialZone: "KCN Quế Võ, Bắc Ninh", requiredLanguages: ["Japanese"], languageProficiency: "Khá (N2 / TOPIK 3)", visaSupport: "YES", shiftType: "DAY"
       },
 
       {
         title: "Kỹ sư bảo trì (Maintenance Engineer)", slug: "ky-su-bao-tri-canon", employerId: canon.id,
         description: "Bảo trì, sửa chữa hệ thống máy in laser và dây chuyền sản xuất. Lập kế hoạch bảo trì phòng ngừa (PM). Quản lý phụ tùng và thiết bị dự phòng.",
         requirements: "- ĐH ngành Cơ khí, Điện, Cơ điện tử\n- 2+ năm kinh nghiệm bảo trì trong nhà máy\n- Đọc hiểu bản vẽ kỹ thuật\n- Tiếng Nhật hoặc tiếng Anh giao tiếp",
-        salaryMin: 14, salaryMax: 22, salaryDisplay: "14 - 22 triệu", industry: "Sản xuất", position: "Nhân viên", location: "Bắc Ninh", workType: "Full-time", quantity: 3, skills: "Bảo trì, PLC, Cơ khí, Điện", status: "APPROVED", publishedAt: pub(3), expiresAt: exp(27), viewCount: 98, applyCount: 5
+        salaryMin: 14, salaryMax: 22, salaryDisplay: "14 - 22 triệu", industry: "Sản xuất", position: "Nhân viên", location: "Bắc Ninh", workType: "Full-time", quantity: 3, skills: "Bảo trì, PLC, Cơ khí, Điện", status: "APPROVED", publishedAt: pub(3), expiresAt: exp(27), viewCount: 98, applyCount: 5,
+        industrialZone: "KCN Quế Võ, Bắc Ninh", requiredLanguages: ["Japanese"], languageProficiency: "Cơ bản (N4 / TOPIK 1)", visaSupport: "NO", shiftType: "ROTATING"
       },
 
       // Toyota (3 jobs)
@@ -206,21 +214,24 @@ async function main() {
         description: "Tham gia thiết kế và cải tiến quy trình lắp ráp ô tô theo Toyota Production System (TPS). Phân tích và giải quyết vấn đề chất lượng trên dây chuyền sản xuất.",
         requirements: "- ĐH ngành Cơ khí Ô tô, Cơ khí chế tạo máy\n- 2+ năm kinh nghiệm trong ngành ô tô\n- Hiểu biết về TPS, Kaizen, Just-in-Time\n- Tiếng Nhật N3 hoặc tiếng Anh TOEIC 600+",
         benefits: "- Lương 3 tháng thử việc 100%\n- Thưởng Tết 3-5 tháng lương\n- Xe đưa đón Hà Nội - Vĩnh Phúc\n- Đào tạo tại Nhật Bản",
-        salaryMin: 20, salaryMax: 35, salaryDisplay: "20 - 35 triệu", industry: "Cơ khí - Ô tô", position: "Nhân viên", location: "Vĩnh Phúc", workType: "Full-time", quantity: 4, skills: "TPS, Kaizen, AutoCAD, SolidWorks, Tiếng Nhật", status: "APPROVED", publishedAt: pub(2), expiresAt: exp(38), isFeatured: true, viewCount: 445, applyCount: 19
+        salaryMin: 20, salaryMax: 35, salaryDisplay: "20 - 35 triệu", industry: "Cơ khí - Ô tô", position: "Nhân viên", location: "Vĩnh Phúc", workType: "Full-time", quantity: 4, skills: "TPS, Kaizen, AutoCAD, SolidWorks, Tiếng Nhật", status: "APPROVED", publishedAt: pub(2), expiresAt: exp(38), isFeatured: true, viewCount: 445, applyCount: 19,
+        industrialZone: "KCN Quang Minh, Vĩnh Phúc", requiredLanguages: ["Japanese"], languageProficiency: "Trung cấp (N3 / TOPIK 2)", visaSupport: "YES", shiftType: "DAY"
       },
 
       {
         title: "Chuyên viên Marketing & Truyền thông", slug: "marketing-toyota", employerId: toyota.id,
         description: "Lên kế hoạch và triển khai các chiến dịch marketing cho dòng xe Toyota tại Việt Nam. Quản lý nội dung website, social media, và quan hệ báo chí.",
         requirements: "- ĐH Marketing, Truyền thông, Báo chí\n- 3+ năm kinh nghiệm marketing (ngành ô tô ưu tiên)\n- Sáng tạo nội dung, quản lý KOL/KOC\n- Tiếng Anh thành thạo",
-        salaryMin: 18, salaryMax: 28, salaryDisplay: "18 - 28 triệu", industry: "Marketing", position: "Chuyên viên", location: "Hà Nội", workType: "Full-time", quantity: 1, skills: "Marketing, Digital Marketing, Content, KOL", status: "APPROVED", publishedAt: pub(1), expiresAt: exp(30), viewCount: 289, applyCount: 15
+        salaryMin: 18, salaryMax: 28, salaryDisplay: "18 - 28 triệu", industry: "Marketing", position: "Chuyên viên", location: "Hà Nội", workType: "Full-time", quantity: 1, skills: "Marketing, Digital Marketing, Content, KOL", status: "APPROVED", publishedAt: pub(1), expiresAt: exp(30), viewCount: 289, applyCount: 15,
+        industrialZone: null, requiredLanguages: ["English"], languageProficiency: "Khá (N2 / TOPIK 3)", visaSupport: "NO", shiftType: "DAY"
       },
 
       {
         title: "Trưởng ca sản xuất (Production Supervisor)", slug: "truong-ca-san-xuat-toyota", employerId: toyota.id,
         description: "Quản lý ca sản xuất lắp ráp ô tô. Đảm bảo tiến độ, chất lượng và an toàn lao động. Huấn luyện công nhân mới, triển khai cải tiến Kaizen.",
         requirements: "- CĐ/ĐH ngành Cơ khí, Quản lý CN\n- 3+ năm kinh nghiệm giám sát sản xuất\n- Kỹ năng quản lý đội nhóm 50+ người",
-        salaryMin: 16, salaryMax: 25, salaryDisplay: "16 - 25 triệu", industry: "Sản xuất", position: "Trưởng ca", location: "Vĩnh Phúc", workType: "Full-time", quantity: 2, skills: "Quản lý sản xuất, TPS, Kaizen, 5S", status: "APPROVED", publishedAt: pub(5), expiresAt: exp(25), viewCount: 134, applyCount: 7
+        salaryMin: 16, salaryMax: 25, salaryDisplay: "16 - 25 triệu", industry: "Sản xuất", position: "Trưởng ca", location: "Vĩnh Phúc", workType: "Full-time", quantity: 2, skills: "Quản lý sản xuất, TPS, Kaizen, 5S", status: "APPROVED", publishedAt: pub(5), expiresAt: exp(25), viewCount: 134, applyCount: 7,
+        industrialZone: "KCN Quang Minh, Vĩnh Phúc", requiredLanguages: [], languageProficiency: null, visaSupport: "NO", shiftType: "ROTATING"
       },
 
       // LG (3 jobs)
@@ -229,21 +240,24 @@ async function main() {
         description: "Phát triển firmware cho TV và màn hình thông minh. Lập trình C/C++ trên nền tảng Linux embedded. Tối ưu hiệu năng xử lý hình ảnh và âm thanh.",
         requirements: "- ĐH CNTT, Điện tử, Viễn thông\n- 2+ năm kinh nghiệm embedded C/C++\n- Hiểu biết về Linux kernel, device driver\n- Tiếng Anh đọc hiểu tài liệu kỹ thuật",
         benefits: "- Review lương 2 lần/năm\n- Thưởng sáng kiến cải tiến\n- Bảo hiểm sức khỏe Bảo Việt\n- Câu lạc bộ thể thao, gym miễn phí",
-        salaryMin: 20, salaryMax: 40, salaryDisplay: "20 - 40 triệu", industry: "IT - Phần mềm", position: "Kỹ sư", location: "Hải Phòng", workType: "Full-time", quantity: 3, skills: "C/C++, Linux, Embedded, IoT", status: "APPROVED", publishedAt: pub(1), expiresAt: exp(40), isFeatured: true, viewCount: 523, applyCount: 27
+        salaryMin: 20, salaryMax: 40, salaryDisplay: "20 - 40 triệu", industry: "IT - Phần mềm", position: "Kỹ sư", location: "Hải Phòng", workType: "Full-time", quantity: 3, skills: "C/C++, Linux, Embedded, IoT", status: "APPROVED", publishedAt: pub(1), expiresAt: exp(40), isFeatured: true, viewCount: 523, applyCount: 27,
+        industrialZone: "KCN Tràng Duệ, Hải Phòng", requiredLanguages: ["English"], languageProficiency: "Cơ bản (N4 / TOPIK 1)", visaSupport: "NO", shiftType: "DAY"
       },
 
       {
         title: "Nhân viên Supply Chain", slug: "supply-chain-lg", employerId: lg.id,
         description: "Quản lý chuỗi cung ứng linh kiện cho nhà máy sản xuất TV. Lập kế hoạch nhập khẩu nguyên vật liệu, theo dõi tồn kho, phối hợp với nhà cung cấp quốc tế.",
         requirements: "- ĐH Logistics, Ngoại thương, QTKD\n- 2+ năm kinh nghiệm SCM trong sản xuất\n- Thành thạo SAP MM\n- Tiếng Anh TOEIC 650+",
-        salaryMin: 14, salaryMax: 22, salaryDisplay: "14 - 22 triệu", industry: "Logistics", position: "Nhân viên", location: "Hải Phòng", workType: "Full-time", quantity: 2, skills: "SCM, SAP MM, Logistics, Import/Export", status: "APPROVED", publishedAt: pub(4), expiresAt: exp(26), viewCount: 167, applyCount: 11
+        salaryMin: 14, salaryMax: 22, salaryDisplay: "14 - 22 triệu", industry: "Logistics", position: "Nhân viên", location: "Hải Phòng", workType: "Full-time", quantity: 2, skills: "SCM, SAP MM, Logistics, Import/Export", status: "APPROVED", publishedAt: pub(4), expiresAt: exp(26), viewCount: 167, applyCount: 11,
+        industrialZone: "KCN Tràng Duệ, Hải Phòng", requiredLanguages: ["English"], languageProficiency: "Cơ bản (N4 / TOPIK 1)", visaSupport: "NO", shiftType: "DAY"
       },
 
       {
         title: "Giám đốc nhà máy (Plant Manager)", slug: "giam-doc-nha-may-lg", employerId: lg.id,
         description: "Điều hành toàn bộ hoạt động nhà máy sản xuất màn hình LG tại Hải Phòng. Quản lý 3.000+ nhân viên, đảm bảo KPI sản lượng, chất lượng, chi phí và an toàn.",
         requirements: "- ThS trở lên ngành Kỹ thuật, QTKD\n- 10+ năm kinh nghiệm sản xuất, 5+ năm vị trí quản lý cấp cao\n- Kinh nghiệm trong FDI quy mô lớn\n- Tiếng Anh hoặc tiếng Hàn thành thạo",
-        salaryDisplay: "Thỏa thuận (80 - 150 triệu)", industry: "Sản xuất", position: "Giám đốc", location: "Hải Phòng", workType: "Full-time", quantity: 1, skills: "Plant Management, Lean, Six Sigma, P&L", status: "APPROVED", publishedAt: pub(0), expiresAt: exp(60), isFeatured: true, viewCount: 892, applyCount: 5
+        salaryDisplay: "Thỏa thuận (80 - 150 triệu)", industry: "Sản xuất", position: "Giám đốc", location: "Hải Phòng", workType: "Full-time", quantity: 1, skills: "Plant Management, Lean, Six Sigma, P&L", status: "APPROVED", publishedAt: pub(0), expiresAt: exp(60), isFeatured: true, viewCount: 892, applyCount: 5,
+        industrialZone: "KCN Tràng Duệ, Hải Phòng", requiredLanguages: ["Korean"], languageProficiency: "Khá (N2 / TOPIK 3)", visaSupport: "YES", shiftType: "DAY"
       },
 
       // Bosch (2 jobs)
@@ -252,14 +266,16 @@ async function main() {
         description: "Phát triển ứng dụng IoT và giải pháp công nghiệp 4.0 bằng Java/Spring Boot. Làm việc theo Agile Scrum trong team quốc tế (Đức, Ấn Độ, Việt Nam).",
         requirements: "- ĐH CNTT, Khoa học máy tính\n- 2+ năm kinh nghiệm Java, Spring Boot\n- Hiểu biết DevOps: Docker, Kubernetes, CI/CD\n- Tiếng Anh giao tiếp tốt (làm việc với team global)",
         benefits: "- Lương tháng 13, 14\n- Flexible working hours\n- 18 ngày phép/năm\n- Đào tạo tại Đức\n- Bảo hiểm sức khỏe quốc tế",
-        salaryMin: 25, salaryMax: 45, salaryDisplay: "25 - 45 triệu", industry: "IT - Phần mềm", position: "Kỹ sư", location: "TP. Hồ Chí Minh", workType: "Hybrid", quantity: 5, skills: "Java, Spring Boot, Docker, K8s, Agile", status: "APPROVED", publishedAt: pub(1), expiresAt: exp(45), isFeatured: true, viewCount: 678, applyCount: 34
+        salaryMin: 25, salaryMax: 45, salaryDisplay: "25 - 45 triệu", industry: "IT - Phần mềm", position: "Kỹ sư", location: "TP. Hồ Chí Minh", workType: "Hybrid", quantity: 5, skills: "Java, Spring Boot, Docker, K8s, Agile", status: "APPROVED", publishedAt: pub(1), expiresAt: exp(45), isFeatured: true, viewCount: 678, applyCount: 34,
+        industrialZone: "Quận 7 / Tân Phú, TP.HCM", requiredLanguages: ["English"], languageProficiency: "Khá (N2 / TOPIK 3)", visaSupport: "NO", shiftType: "DAY"
       },
 
       {
         title: "Chuyên viên An toàn lao động (HSE Specialist)", slug: "hse-bosch", employerId: bosch.id,
         description: "Triển khai hệ thống quản lý an toàn vệ sinh lao động theo tiêu chuẩn ISO 45001. Tổ chức đào tạo ATVSLĐ, điều tra sự cố, và đánh giá rủi ro tại nhà máy.",
         requirements: "- ĐH ngành Môi trường, An toàn lao động\n- 2+ năm kinh nghiệm HSE trong sản xuất\n- Chứng chỉ HSE Officer\n- Tiếng Anh giao tiếp",
-        salaryMin: 15, salaryMax: 25, salaryDisplay: "15 - 25 triệu", industry: "An toàn lao động", position: "Chuyên viên", location: "Đồng Nai", workType: "Full-time", quantity: 1, skills: "HSE, ISO 45001, Đánh giá rủi ro, PCCC", status: "APPROVED", publishedAt: pub(6), expiresAt: exp(24), viewCount: 89, applyCount: 4
+        salaryMin: 15, salaryMax: 25, salaryDisplay: "15 - 25 triệu", industry: "An toàn lao động", position: "Chuyên viên", location: "Đồng Nai", workType: "Full-time", quantity: 1, skills: "HSE, ISO 45001, Đánh giá rủi ro, PCCC", status: "APPROVED", publishedAt: pub(6), expiresAt: exp(24), viewCount: 89, applyCount: 4,
+        industrialZone: null, requiredLanguages: ["English"], languageProficiency: "Cơ bản (N4 / TOPIK 1)", visaSupport: "NO", shiftType: "DAY"
       },
 
       // Nestlé (2 jobs)
@@ -268,14 +284,16 @@ async function main() {
         description: "Quản lý thương hiệu NESCAFÉ tại thị trường Việt Nam. Xây dựng chiến lược marketing, phát triển sản phẩm mới, phân tích thị trường và đối thủ cạnh tranh.",
         requirements: "- ĐH/ThS Marketing, QTKD\n- 5+ năm FMCG marketing, 2+ năm quản lý thương hiệu\n- Kinh nghiệm quản lý P&L thương hiệu\n- Tiếng Anh thành thạo (C1+)",
         benefits: "- Lương net + bonus 2-4 tháng\n- Flexible working (3 ngày WFH/tuần)\n- Bảo hiểm sức khỏe AIA cao cấp\n- Sản phẩm Nestlé miễn phí hàng tháng",
-        salaryMin: 40, salaryMax: 60, salaryDisplay: "40 - 60 triệu", industry: "Marketing", position: "Manager", location: "TP. Hồ Chí Minh", workType: "Hybrid", quantity: 1, skills: "Brand Management, FMCG, P&L, Digital Marketing", status: "APPROVED", publishedAt: pub(3), expiresAt: exp(30), isFeatured: true, viewCount: 734, applyCount: 21
+        salaryMin: 40, salaryMax: 60, salaryDisplay: "40 - 60 triệu", industry: "Marketing", position: "Manager", location: "TP. Hồ Chí Minh", workType: "Hybrid", quantity: 1, skills: "Brand Management, FMCG, P&L, Digital Marketing", status: "APPROVED", publishedAt: pub(3), expiresAt: exp(30), isFeatured: true, viewCount: 734, applyCount: 21,
+        industrialZone: null, requiredLanguages: ["English"], languageProficiency: "Thành thạo (N1 / TOPIK 4+)", visaSupport: "NO", shiftType: "DAY"
       },
 
       {
         title: "Kỹ sư Quản lý chất lượng nhà máy", slug: "qc-factory-nestle", employerId: nestle.id,
         description: "Đảm bảo chất lượng sản phẩm thực phẩm theo tiêu chuẩn Nestlé Global và FSSC 22000. Kiểm soát nguyên liệu đầu vào, quy trình sản xuất, và thành phẩm.",
         requirements: "- ĐH Công nghệ Thực phẩm, Hóa học\n- 2+ năm QC trong nhà máy thực phẩm\n- Hiểu biết HACCP, GMP, FSSC 22000\n- Tiếng Anh giao tiếp (báo cáo bằng tiếng Anh)",
-        salaryMin: 15, salaryMax: 25, salaryDisplay: "15 - 25 triệu", industry: "Sản xuất", position: "Kỹ sư", location: "Đồng Nai", workType: "Full-time", quantity: 2, skills: "QC, HACCP, GMP, FSSC 22000, Thực phẩm", status: "APPROVED", publishedAt: pub(7), expiresAt: exp(23), viewCount: 112, applyCount: 6
+        salaryMin: 15, salaryMax: 25, salaryDisplay: "15 - 25 triệu", industry: "Sản xuất", position: "Kỹ sư", location: "Đồng Nai", workType: "Full-time", quantity: 2, skills: "QC, HACCP, GMP, FSSC 22000, Thực phẩm", status: "APPROVED", publishedAt: pub(7), expiresAt: exp(23), viewCount: 112, applyCount: 6,
+        industrialZone: "KCN Amata, Đồng Nai", requiredLanguages: ["English"], languageProficiency: "Cơ bản (N4 / TOPIK 1)", visaSupport: "NO", shiftType: "DAY"
       },
 
       // Intel (2 jobs)
@@ -284,14 +302,16 @@ async function main() {
         description: "Phát triển và tối ưu chương trình test cho chip bán dẫn Intel thế hệ mới. Phân tích dữ liệu yield, debug lỗi silicon, và cải tiến hiệu suất test.",
         requirements: "- ĐH/ThS Điện tử, Vi điện tử, Vật lý bán dẫn\n- 2+ năm kinh nghiệm semiconductor test\n- Thành thạo Python, MATLAB\n- Hiểu biết về ATE (Automated Test Equipment)\n- Tiếng Anh thành thạo",
         benefits: "- Lương thuộc top 5% thị trường IT\n- RSU (Restricted Stock Units) Intel\n- Flex time & WFH 2 ngày/tuần\n- Đào tạo tại Intel campuses (US, Malaysia)\n- Bảo hiểm quốc tế cho cả gia đình",
-        salaryMin: 30, salaryMax: 55, salaryDisplay: "30 - 55 triệu", industry: "Bán dẫn - Công nghệ cao", position: "Kỹ sư", location: "TP. Hồ Chí Minh", workType: "Hybrid", quantity: 4, skills: "Semiconductor, ATE, Python, MATLAB, Debug", status: "APPROVED", publishedAt: pub(2), expiresAt: exp(50), isFeatured: true, viewCount: 456, applyCount: 16
+        salaryMin: 30, salaryMax: 55, salaryDisplay: "30 - 55 triệu", industry: "Bán dẫn - Công nghệ cao", position: "Kỹ sư", location: "TP. Hồ Chí Minh", workType: "Hybrid", quantity: 4, skills: "Semiconductor, ATE, Python, MATLAB, Debug", status: "APPROVED", publishedAt: pub(2), expiresAt: exp(50), isFeatured: true, viewCount: 456, applyCount: 16,
+        industrialZone: null, requiredLanguages: ["English"], languageProficiency: "Thành thạo (N1 / TOPIK 4+)", visaSupport: "YES", shiftType: "DAY"
       },
 
       {
         title: "Kỹ sư DevOps / SRE", slug: "devops-sre-intel", employerId: intel.id,
         description: "Xây dựng và vận hành hạ tầng CI/CD cho hệ thống test tự động hóa. Quản lý Kubernetes clusters, monitoring, và tự động hóa quy trình phát triển phần mềm.",
         requirements: "- ĐH CNTT, Khoa học máy tính\n- 3+ năm kinh nghiệm DevOps/SRE\n- Thành thạo Kubernetes, Terraform, Ansible\n- Kinh nghiệm AWS hoặc Azure\n- Tiếng Anh thành thạo",
-        salaryMin: 35, salaryMax: 60, salaryDisplay: "35 - 60 triệu", industry: "IT - Phần mềm", position: "Kỹ sư", location: "TP. Hồ Chí Minh", workType: "Hybrid", quantity: 2, skills: "DevOps, Kubernetes, Terraform, AWS, CI/CD", status: "APPROVED", publishedAt: pub(3), expiresAt: exp(35), viewCount: 345, applyCount: 12
+        salaryMin: 35, salaryMax: 60, salaryDisplay: "35 - 60 triệu", industry: "IT - Phần mềm", position: "Kỹ sư", location: "TP. Hồ Chí Minh", workType: "Hybrid", quantity: 2, skills: "DevOps, Kubernetes, Terraform, AWS, CI/CD", status: "APPROVED", publishedAt: pub(3), expiresAt: exp(35), viewCount: 345, applyCount: 12,
+        industrialZone: null, requiredLanguages: ["English"], languageProficiency: "Thành thạo (N1 / TOPIK 4+)", visaSupport: "NO", shiftType: "DAY"
       },
 
       // Panasonic (2 jobs)
@@ -300,14 +320,16 @@ async function main() {
         description: "Nghiên cứu và phát triển sản phẩm điện tử gia dụng mới. Thiết kế mạch PCB, phát triển firmware, và kiểm thử sản phẩm theo tiêu chuẩn Panasonic.",
         requirements: "- ĐH/ThS Điện tử, Viễn thông\n- 2+ năm R&D trong ngành điện tử\n- Thành thạo Altium Designer, OrCAD\n- Lập trình C cho MCU (STM32, Arduino)\n- Tiếng Nhật N3 hoặc tiếng Anh TOEIC 600+",
         benefits: "- Thưởng sáng chế, bằng sáng kiến\n- Đào tạo tại Nhật Bản 3-6 tháng\n- Bảo hiểm sức khỏe + life insurance",
-        salaryMin: 18, salaryMax: 30, salaryDisplay: "18 - 30 triệu", industry: "Sản xuất", position: "Kỹ sư", location: "Hưng Yên", workType: "Full-time", quantity: 2, skills: "PCB Design, Firmware, C/C++, Altium", status: "APPROVED", publishedAt: pub(4), expiresAt: exp(28), viewCount: 156, applyCount: 8
+        salaryMin: 18, salaryMax: 30, salaryDisplay: "18 - 30 triệu", industry: "Sản xuất", position: "Kỹ sư", location: "Hưng Yên", workType: "Full-time", quantity: 2, skills: "PCB Design, Firmware, C/C++, Altium", status: "APPROVED", publishedAt: pub(4), expiresAt: exp(28), viewCount: 156, applyCount: 8,
+        industrialZone: "KCN Thăng Long, Hà Nội", requiredLanguages: ["Japanese"], languageProficiency: "Trung cấp (N3 / TOPIK 2)", visaSupport: "YES", shiftType: "DAY"
       },
 
       {
         title: "Nhân viên Xuất nhập khẩu", slug: "xnk-panasonic", employerId: panasonic.id,
         description: "Thực hiện thủ tục hải quan, xuất nhập khẩu linh kiện và thành phẩm. Quản lý chứng từ thương mại quốc tế, phối hợp với forwarder và hải quan.",
         requirements: "- ĐH Ngoại thương, Kinh tế quốc tế\n- 1+ năm kinh nghiệm XNK\n- Hiểu biết thủ tục hải quan điện tử\n- Tiếng Nhật hoặc tiếng Anh",
-        salaryMin: 10, salaryMax: 16, salaryDisplay: "10 - 16 triệu", industry: "Logistics", position: "Nhân viên", location: "Hưng Yên", workType: "Full-time", quantity: 1, skills: "XNK, Hải quan, Logistics, Tiếng Nhật", status: "APPROVED", publishedAt: pub(9), expiresAt: exp(21), viewCount: 78, applyCount: 3
+        salaryMin: 10, salaryMax: 16, salaryDisplay: "10 - 16 triệu", industry: "Logistics", position: "Nhân viên", location: "Hưng Yên", workType: "Full-time", quantity: 1, skills: "XNK, Hải quan, Logistics, Tiếng Nhật", status: "APPROVED", publishedAt: pub(9), expiresAt: exp(21), viewCount: 78, applyCount: 3,
+        industrialZone: "KCN Thăng Long, Hà Nội", requiredLanguages: ["Japanese"], languageProficiency: "Cơ bản (N4 / TOPIK 1)", visaSupport: "NO", shiftType: "DAY"
       },
     ].map((job) => ({
       ...job,

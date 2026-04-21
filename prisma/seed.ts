@@ -4,7 +4,8 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 import * as bcrypt from "bcrypt-ts";
 import * as dotenv from "dotenv";
-dotenv.config();
+// Keep seed aligned with Prisma CLI by reading DATABASE_URL from the same source.
+dotenv.config({ path: ".env.local" });
 
 const connectionString = process.env.DATABASE_URL;
 if (!connectionString) { console.error("DATABASE_URL must be set"); process.exit(1); }

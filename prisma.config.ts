@@ -1,7 +1,6 @@
-// Load .env.local first (takes priority over .env)
 import { config } from "dotenv";
-config({ path: ".env.local", override: true });
-config({ path: ".env" });
+// Prisma CLI should resolve DATABASE_URL from a single local source.
+config({ path: ".env.local" });
 import { defineConfig } from "prisma/config";
 
 export default defineConfig({

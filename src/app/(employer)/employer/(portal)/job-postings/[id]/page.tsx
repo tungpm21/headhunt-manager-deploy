@@ -4,7 +4,7 @@ import {
   getJobPostingDetail,
   getJobApplicants,
 } from "@/lib/employer-actions";
-import { ArrowLeft, Eye, Users, Clock, MapPin, Briefcase, DollarSign, Calendar, FileText } from "lucide-react";
+import { ArrowLeft, Eye, Users, Clock, MapPin, Briefcase, DollarSign, Calendar, FileText, Pencil } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 import { vi } from "date-fns/locale";
 import { JobActionButtons } from "./actions";
@@ -60,7 +60,16 @@ export default async function JobPostingDetailPage({
             </div>
           </div>
         </div>
-        <JobActionButtons jobId={job.id} status={job.status} />
+        <div className="flex items-center gap-3">
+          <Link
+            href={`/employer/job-postings/${job.id}/edit`}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-white text-gray-700 hover:bg-gray-50 border border-gray-200 transition-all"
+          >
+            <Pencil className="h-4 w-4" />
+            Chỉnh sửa
+          </Link>
+          <JobActionButtons jobId={job.id} status={job.status} />
+        </div>
       </div>
 
       {/* Rejected reason */}

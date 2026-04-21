@@ -3,6 +3,15 @@ import { MapPin, Clock } from "lucide-react";
 import type { HomepageJob } from "@/lib/public-actions";
 import { LogoImage } from "@/components/public/LogoImage";
 
+const LANGUAGE_LABELS: Record<string, string> = {
+  Japanese: "Tiếng Nhật",
+  Korean: "Tiếng Hàn",
+  English: "Tiếng Anh",
+  Chinese: "Tiếng Trung",
+  German: "Tiếng Đức",
+  French: "Tiếng Pháp",
+};
+
 function timeAgo(date: Date | null): string {
   if (!date) return "";
   const now = new Date();
@@ -75,6 +84,19 @@ export function JobCard({ job }: JobCardProps) {
             </div>
           </div>
         </div>
+
+        {job.requiredLanguages.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 mt-2.5 pl-20">
+            {job.requiredLanguages.map((lang) => (
+              <span
+                key={lang}
+                className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#0077B6]/10 text-[#0077B6]"
+              >
+                🌐 {LANGUAGE_LABELS[lang] ?? lang}
+              </span>
+            ))}
+          </div>
+        )}
 
         {/* Footer */}
         <div className="flex items-center text-xs text-gray-400 mt-3 pl-20">

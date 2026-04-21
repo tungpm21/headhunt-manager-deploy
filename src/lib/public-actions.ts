@@ -13,6 +13,7 @@ export type HomepageJob = {
   location: string | null;
   workType: string | null;
   industry: string | null;
+  requiredLanguages: string[];
   isFeatured: boolean;
   publishedAt: Date | null;
   employer: {
@@ -73,6 +74,7 @@ export const getHomepageData = unstable_cache(
             location: true,
             workType: true,
             industry: true,
+            requiredLanguages: true,
             isFeatured: true,
             publishedAt: true,
             employer: {
@@ -343,6 +345,7 @@ export async function getPublicJobs(filters: JobFilters = {}): Promise<JobListRe
           location: true,
           workType: true,
           industry: true,
+          requiredLanguages: true,
           isFeatured: true,
           publishedAt: true,
           employer: {
@@ -467,7 +470,7 @@ export async function getPublicJobBySlug(
 
   const jobSelect = {
     id: true, title: true, slug: true, salaryDisplay: true,
-    location: true, workType: true, industry: true, isFeatured: true,
+    location: true, workType: true, industry: true, requiredLanguages: true, isFeatured: true,
     publishedAt: true,
     employer: { select: { companyName: true, logo: true, slug: true } },
   } as const;
@@ -651,6 +654,7 @@ const getCachedCompanyBySlug = unstable_cache(
             location: true,
             workType: true,
             industry: true,
+            requiredLanguages: true,
             isFeatured: true,
             publishedAt: true,
             employer: {

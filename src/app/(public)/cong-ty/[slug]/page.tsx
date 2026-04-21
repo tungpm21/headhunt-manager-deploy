@@ -29,10 +29,40 @@ type PageProps = {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
   const company = await getCompanyBySlug(slug);
-  if (!company) return { title: "Công ty không tồn tại" };
+
+  if (!company) {
+    return { title: "Công ty không tồn tại" };
+  }
+
+  const title = `${company.companyName} | Tuyển dụng FDI`;
+  const description =
+    (company.description ?? "").replace(/\n/g, " ").slice(0, 200) ||
+    `${company.companyName} đang tuyển dụng tại FDIWork - Job board FDI hàng đầu Việt Nam.`;
+
   return {
-    title: company.companyName,
-    description: company.description?.slice(0, 160) || `Trang tuyển dụng của ${company.companyName}`,
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      type: "website",
+      images: company.logo
+        ? [
+            {
+              url: company.logo,
+              width: 400,
+              height: 400,
+              alt: company.companyName,
+            },
+          ]
+        : [],
+    },
+    twitter: {
+      card: "summary",
+      title,
+      description,
+      images: company.logo ? [company.logo] : [],
+    },
   };
 }
 
@@ -107,7 +137,12 @@ export default async function CompanyProfilePage({ params }: PageProps) {
       <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="-mt-14 pl-6 sm:pl-10">
           <div className="h-24 w-24 sm:h-28 sm:w-28 rounded-2xl bg-white ring-[5px] ring-white shadow-lg flex items-center justify-center overflow-hidden">
-            <LogoImage src={company.logo} alt={company.companyName} className="h-full w-full object-contain p-2.5" iconSize="h-10 w-10" />
+            <LogoImage
+              src={company.logo}
+              alt={company.companyName}
+              className="h-full w-full object-contain p-2.5"
+              iconSize="h-10 w-10"
+            />
           </div>
         </div>
 

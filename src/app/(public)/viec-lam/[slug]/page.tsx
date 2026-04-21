@@ -41,10 +41,39 @@ type PageProps = {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
   const result = await getPublicJobBySlug(slug);
-  if (!result) return { title: "Việc làm không tồn tại" };
+
+  if (!result) {
+    return { title: "Việc làm không tồn tại" };
+  }
+
+  const job = result.job;
+  const title = `${job.title} - ${job.employer.companyName}`;
+  const description = job.description.replace(/\n/g, " ").slice(0, 200);
+
   return {
-    title: `${result.job.title} - ${result.job.employer.companyName}`,
-    description: result.job.description.slice(0, 160),
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      type: "website",
+      images: job.employer.logo
+        ? [
+            {
+              url: job.employer.logo,
+              width: 400,
+              height: 400,
+              alt: job.employer.companyName,
+            },
+          ]
+        : [],
+    },
+    twitter: {
+      card: "summary",
+      title,
+      description,
+      images: job.employer.logo ? [job.employer.logo] : [],
+    },
   };
 }
 
@@ -308,10 +337,11 @@ export default async function JobDetailPage({ params }: PageProps) {
                     <Link
                       key={sj.id}
                       href={`/viec-lam/${sj.slug}`}
-                      className={`block p-3 rounded-lg border transition-colors hover:bg-gray-50 cursor-pointer ${sj.isFeatured
+                      className={`block p-3 rounded-lg border transition-colors hover:bg-gray-50 cursor-pointer ${
+                        sj.isFeatured
                           ? "border-amber-200 bg-amber-50/30"
                           : "border-gray-100"
-                        }`}
+                      }`}
                     >
                       <p className="text-sm font-medium text-[var(--color-fdi-text)] line-clamp-2 leading-snug">
                         {sj.title}

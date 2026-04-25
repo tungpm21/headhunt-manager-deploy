@@ -94,38 +94,48 @@ src/lib/
   ✅ QA 15 trang passed, deploy Vercel production
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-⏳ SPRINT 2 — CẦN LÀM NGAY (chặn seed strategy)
+✅ ĐÃ XONG (Sprint 2 + 3)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Plan đầy đủ: docs/tasks/sprint-2-fdi-completion.md
+[2026-04-21] commit d423712 — Sprint 2 (Codex):
+  ✅ src/lib/admin-job-posting-actions.ts — FDI fields parse/create/update/select
+  ✅ src/app/(dashboard)/moderation/new/new-job-posting-form.tsx — FDI section
+  ✅ src/app/(dashboard)/moderation/[id]/edit/job-posting-edit-form.tsx — FDI section + defaultValues
+  ✅ src/lib/public-actions.ts — JobDetail type + getPublicJobBySlug select
+  ✅ src/app/(public)/viec-lam/[slug]/page.tsx — FDI badge row
 
-TASK 1 (CRITICAL — admin cần post được FDI listings để seed):
-  ❌ src/lib/admin-job-posting-actions.ts
-       buildJobPostingInput: thêm parse 5 FDI fields
-       createAdminJobPosting: thêm FDI fields vào prisma.create data
-       updateAdminJobPosting: thêm FDI fields vào prisma.update data
-       getAdminJobPostingById select: thêm 5 FDI fields
-  ❌ src/app/(dashboard)/moderation/new/new-job-posting-form.tsx
-       Thêm section FDI (copy pattern từ employer form)
-  ❌ src/app/(dashboard)/moderation/[id]/edit/job-posting-edit-form.tsx
-       Thêm section FDI với defaultValues từ job object
+[2026-04-21] commit b48e6cf — Sprint 3 (Codex):
+  ✅ prisma/seed.ts — 5 FDI fields cho tất cả 22 job postings trong createMany
+     (Samsung→Korean, Canon/Toyota/Panasonic→Japanese, LG→Korean+English, Bosch/Intel/Nestlé→English)
 
-TASK 2 (job seekers thấy FDI badges):
-  ❌ src/lib/public-actions.ts
-       JobDetail type: thêm 5 FDI fields
-       getPublicJobBySlug select: thêm 5 FDI fields
-  ❌ src/app/(public)/viec-lam/[slug]/page.tsx
-       Thêm FDI badge row (KCN, language, visa, shift type badges)
+[2026-04-21] commit be4354a — Housekeeping:
+  ✅ prisma.config.ts + seed.ts — align dotenv to .env.local
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-📋 BACKLOG (sau Sprint 2)
+✅ SPRINT 4 — DONE (commit df70a6d)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ✅ src/lib/public-actions.ts — requiredLanguages vào HomepageJob + 5 select blocks
+  ✅ src/components/public/JobCard.tsx — language badge row
+  ✅ src/app/(employer)/employer/(portal)/job-postings/[id]/edit/page.tsx (NEW)
+  ✅ src/app/(employer)/employer/(portal)/job-postings/[id]/edit/EditJobPostingForm.tsx (NEW)
+  ✅ src/app/(employer)/employer/(portal)/job-postings/[id]/page.tsx — Pencil edit button
+
+⏳ SPRINT 5 — CẦN LÀM TIẾP
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-  - Seed 10 FDI listings thủ công qua admin portal
-  - Employer edit page (/employer/job-postings/[id]) chưa có FDI section
-  - Job card trong list view chưa có language badge
+Plan đầy đủ: docs/tasks/sprint-5-fdi-badges-management-lists.md
+
+  ❌ src/app/(dashboard)/moderation/page.tsx
+       FDI mini-badges (language, KCN, visa, shift) trên mỗi job row
+  ❌ src/app/(employer)/employer/(portal)/job-postings/page.tsx
+       FDI mini-badges tương tự trên employer job list
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 BACKLOG (sau Sprint 5)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
   - Mobile test search dropdown
-  - Thu thập feedback sau seed listings
+  - Thu thập feedback sau seed listings → outreach employer
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 🔧 PATTERNS QUAN TRỌNG
@@ -144,10 +154,13 @@ FDI field reference (employer form, đã ship):
 DB pattern cho requiredLanguages filter (Prisma array contains):
   where.requiredLanguages = { has: filters.language }
 
+Server action đã có đủ FDI:
+  updateJobPostingAction(id, formData) — employer-actions.ts line ~381
+  getJobPostingDetail(id) — employer-actions.ts line ~308 (trả về full job via include)
+
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 📍 ĐỂ TIẾP TỤC
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Codex prompt đầy đủ: docs/tasks/sprint-2-fdi-completion.md
-Đọc file đó để biết chính xác từng thay đổi cần làm ở từng file.
+Codex prompt đầy đủ: docs/tasks/sprint-4-employer-edit-and-job-card-badges.md
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

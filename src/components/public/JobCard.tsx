@@ -30,11 +30,11 @@ type JobCardProps = {
 
 export function JobCard({ job }: JobCardProps) {
   return (
-    <Link href={`/viec-lam/${job.slug}`} className="group block cursor-pointer">
+    <Link href={`/viec-lam/${job.slug}`} className="group block cursor-pointer" style={{ touchAction: "manipulation" }}>
       <article className="relative p-6 sm:p-7 h-full min-h-[170px] hover:bg-blue-50/30 transition-colors">
         {/* Hot badge */}
         {job.isFeatured && (
-          <div className="absolute top-3 right-3 flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-red-500 text-white text-[10px] font-bold shadow-sm z-10">
+          <div className="absolute top-3 right-3 flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-red-500 text-white text-[10px] font-bold shadow-sm z-10" aria-label="Việc làm nổi bật">
             Hot
           </div>
         )}
@@ -42,10 +42,10 @@ export function JobCard({ job }: JobCardProps) {
         {/* Main content: Logo + Info */}
         <div className="flex items-start gap-4">
           {/* Logo — VietnamWorks size */}
-          <div className="h-16 w-16 rounded-lg bg-white flex items-center justify-center shrink-0 overflow-hidden border border-gray-200">
+          <div className="h-16 w-16 rounded-lg bg-white flex items-center justify-center shrink-0 overflow-hidden border border-gray-200" aria-hidden="true">
             <LogoImage
               src={job.employer.logo}
-              alt={job.employer.companyName}
+              alt=""
               className="max-h-[52px] max-w-[52px] object-contain"
               iconSize="h-9 w-9"
             />
@@ -72,7 +72,7 @@ export function JobCard({ job }: JobCardProps) {
               )}
               {job.location && (
                 <span className="inline-flex items-center gap-1 text-gray-500">
-                  <MapPin className="h-3 w-3" />
+                  <MapPin className="h-3 w-3" aria-hidden="true" />
                   {job.location}
                 </span>
               )}
@@ -100,8 +100,10 @@ export function JobCard({ job }: JobCardProps) {
 
         {/* Footer */}
         <div className="flex items-center text-xs text-gray-400 mt-3 pl-20">
-          <Clock className="h-3 w-3 mr-1" />
-          {timeAgo(job.publishedAt)}
+          <Clock className="h-3 w-3 mr-1" aria-hidden="true" />
+          <time dateTime={job.publishedAt ? new Date(job.publishedAt).toISOString() : undefined}>
+            {timeAgo(job.publishedAt)}
+          </time>
         </div>
       </article>
     </Link>

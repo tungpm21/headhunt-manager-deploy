@@ -1,107 +1,129 @@
 {
-  "updated_at": "2026-04-06T14:40:00+07:00",
+  "updated_at": "2026-04-08T21:40:00+07:00",
   "working_on": {
     "feature": null,
     "task": null,
     "status": "idle",
     "files": [],
     "blockers": [],
-    "notes": "Submission feature with 7-stage pipeline is fully completed and deployed to Vercel."
+    "notes": "Dead code cleanup completed. Deleted SearchOverlay.tsx and SearchAutocompleteDropdown.tsx."
   },
   "pending_tasks": [
     {
       "priority": "HIGH",
-      "task": "Sprint 4 kickoff: onboard 1-2 recruiter noi bo and capture friction logs"
+      "task": "Sprint 4 kickoff: onboard 1-2 recruiter nội bộ and capture friction logs"
     },
     {
       "priority": "MEDIUM",
-      "task": "Manual browser QA for import page, pipeline board, and client detail after latest large batch"
+      "task": "Test search dropdown UX on mobile devices (responsive check)"
     },
     {
       "priority": "LOW",
-      "task": "Consider upgrading Postgres SSL connection strings to sslmode=verify-full"
+      "task": "Consider upgrading Postgres SSL connection strings to sslmode=verify-full (requires Neon CA cert)"
     }
   ],
   "recent_changes": [
     {
+      "timestamp": "2026-04-08T21:40:00+07:00",
+      "type": "refactor",
+      "description": "Deleted dead code: SearchOverlay.tsx (317 lines) and SearchAutocompleteDropdown.tsx (180 lines). Neither was imported anywhere — replaced by inline dropdown panels in HeroSection and PublicHeader. Total: ~497 lines removed.",
+      "files": [
+        "src/components/public/SearchOverlay.tsx (DELETED)",
+        "src/components/public/SearchAutocompleteDropdown.tsx (DELETED)"
+      ]
+    },
+    {
+      "timestamp": "2026-04-06T23:00:00+07:00",
+      "type": "feature",
+      "description": "Redesigned search UI to TopCV-style inline dropdown panels: 2-column layout (keywords+employers left, jobs right) that drops down below the search bar. Both HeroSection and PublicHeader use same pattern. Added accent-insensitive location filter (removeTones). Fixed location/button overlap.",
+      "files": [
+        "src/components/public/HeroSection.tsx",
+        "src/components/public/PublicHeader.tsx",
+        "src/hooks/useSearchSuggestions.ts"
+      ]
+    },
+    {
+      "timestamp": "2026-04-06T21:20:00+07:00",
+      "type": "ux",
+      "description": "Added NavigationProgress (top loading bar) + skeleton loading.tsx for 10 dashboard routes. Fixed empty space on Dashboard grid layout.",
+      "files": [
+        "src/components/navigation-progress.tsx",
+        "src/app/(dashboard)/layout.tsx",
+        "src/app/(dashboard)/dashboard/page.tsx",
+        "src/app/(dashboard)/*/loading.tsx"
+      ]
+    },
+    {
+      "timestamp": "2026-04-06T14:00:00+07:00",
+      "type": "qa",
+      "description": "Comprehensive QA of 8 Admin CRM pages + 7 public pages. All 15 pages passed. Created detailed walkthrough with screenshots.",
+      "files": []
+    },
+    {
       "timestamp": "2026-04-06T12:00:00+07:00",
       "type": "perf",
-      "description": "Completed performance hardening: GIN trigram indexes for 5 ILIKE columns, Suspense streaming dashboard, cached public homepage/filters, shared access-scope module, and ISR blog page",
+      "description": "Completed performance hardening: GIN trigram indexes, Suspense streaming dashboard, cached public homepage/filters, shared access-scope module, and ISR blog page",
       "files": [
         "src/app/(dashboard)/dashboard/page.tsx",
-        "src/app/(public)/chia-se/page.tsx",
         "src/lib/access-scope.ts",
         "src/lib/public-actions.ts",
-        "src/lib/candidates.ts",
-        "src/lib/revenue.ts",
-        "src/lib/prisma.ts",
         "prisma/migrations/20260406032300_add_search_trgm_indexes/migration.sql"
-      ]
-    },
-    {
-      "timestamp": "2026-04-06T16:00:00+07:00",
-      "type": "feature",
-      "description": "Implemented 7-stage submission pipeline, Submissions module, label renames, Import & Submit action, and phone duplicate check",
-      "files": [
-        "prisma/schema.prisma",
-        "src/lib/job-pipeline.ts",
-        "src/app/(dashboard)/submissions/page.tsx",
-        "src/components/sidebar.tsx",
-        "src/app/(dashboard)/moderation/applications/import-button.tsx",
-        "src/lib/moderation.ts",
-        "src/lib/moderation-actions.ts",
-        "prisma/migrations/20260406152933_align_submission_stages/migration.sql"
-      ]
-    },
-    {
-      "timestamp": "2026-04-04T16:47:00+07:00",
-      "type": "deploy",
-      "description": "Completed Sprint 3/5: team scope, CRM-FDIWork sync, import UX, and deployment hardening on Vercel + Neon",
-      "files": [
-        "src/lib/viewer-scope.ts",
-        "src/components/import/client-spreadsheet-importer.tsx",
-        "docs/PROJECT-TRACKER.md"
       ]
     }
   ],
   "errors_encountered": [
     {
-      "error": "Monolithic dashboard executed 17+ parallel DB queries causing extreme blocking",
-      "solution": "Refactored into 3 React Suspense sections with streaming skeletons, prioritizing Fast Stats first",
+      "error": "Search overlay covered entire screen (fullscreen takeover) instead of inline dropdown",
+      "solution": "Replaced SearchOverlay approach with inline dropdown panels that appear directly below the search bar, matching TopCV design pattern",
       "resolved": true
     },
     {
-      "error": "Duplicate row-level security logic scattered across 6 files",
-      "solution": "Extracted withCandidateAccess, withClientAccess, etc. into shared src/lib/access-scope.ts removing ~150 lines",
+      "error": "Location input ChevronDown arrow overlapped search button",
+      "solution": "Wrapped location + button in a shrink-0 flex group with proper gap spacing",
+      "resolved": true
+    },
+    {
+      "error": "Typing without diacritics (e.g., 'Hai Phong') did not match Vietnamese locations",
+      "solution": "Added removeTones() function using NFD normalization to strip Vietnamese diacritics for accent-insensitive filtering",
       "resolved": true
     }
   ],
   "decisions_made": [
     {
-      "decision": "Use GIN trigram indexes in PostgreSQL for all ILIKE text search columns",
-      "reason": "Massively speeds up standard text searching without needing a heavy full-text search engine config"
+      "decision": "Use inline dropdown panels instead of fullscreen search overlay",
+      "reason": "User wanted TopCV-style: dropdown sổ xuống ngay dưới search bar, not covering the whole page"
     },
     {
-      "decision": "Apply unstable_cache and ISR to public data (FDIWork)",
-      "reason": "Public pages are read-heavy and dynamic per-request rendering queries caused unnecessary DB load"
+      "decision": "Two separate dropdowns: one for keyword search (2-column), one for location",
+      "reason": "Follows TopCV pattern: each input has its own dropdown, only one open at a time"
     },
     {
-      "decision": "Extract access-scope.ts for row-based access control",
-      "reason": "Prevents future regressions where one entity's access scope gets updated but another's is forgotten"
+      "decision": "Use NFD normalization for Vietnamese accent-insensitive search",
+      "reason": "Users commonly type without diacritics (e.g., 'Hai Phong' should match 'Hải Phòng')"
+    },
+    {
+      "decision": "Hero section always expanded (removed collapsible expand-from-header mechanism)",
+      "reason": "Simplifies UX - hero search is always visible on homepage"
     }
   ],
   "verification": [
     {
-      "command": "npm run build",
+      "command": "npx tsc --noEmit",
       "result": "passed (exit 0)",
-      "timestamp": "2026-04-06T12:00:00+07:00",
-      "notes": "Compiled successfully in 92s. Generated 39/39 pages"
+      "timestamp": "2026-04-06T22:50:00+07:00",
+      "notes": "Zero TypeScript errors after search redesign"
     },
     {
-      "command": "npx prisma migrate deploy",
+      "command": "npm run build",
+      "result": "passed (exit 0)",
+      "timestamp": "2026-04-06T22:45:00+07:00",
+      "notes": "All pages compiled successfully"
+    },
+    {
+      "command": "Browser QA (fdiwork.vercel.app)",
       "result": "passed",
-      "timestamp": "2026-04-06T11:00:00+07:00",
-      "notes": "Applied GIN trigram indexes on Neon DB"
+      "timestamp": "2026-04-06T22:40:00+07:00",
+      "notes": "Hero dropdown, header dropdown, location dropdown all working. 2-column layout visible."
     }
   ]
 }

@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FDIWork – Feedback Form</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #0f1117;
+      --surface:  #1a1d27;
+      --border:   #2a2d3a;
+      --accent:   #4f8ef7;
+      --accent2:  #7c5cfc;
+      --success:  #22c55e;
+      --text:     #e4e6f0;
+      --muted:    #8b90a0;
+      --radius:   12px;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 40px 20px 80px;
+    }
+
+    .wrapper {
+      max-width: 720px;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: linear-gradient(135deg, #4f8ef722, #7c5cfc22);
+      border: 1px solid #4f8ef740;
+      border-radius: 20px;
+      padding: 5px 14px;
+      font-size: 12px;
+      color: var(--accent);
+      margin-bottom: 16px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+    .header h1 {
+      font-size: 28px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #fff 30%, var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 8px;
+    }
+    .header p { color: var(--muted); font-size: 14px; line-height: 1.6; }
+
+    /* Progress */
+    .progress-bar {
+      height: 3px;
+      background: var(--border);
+      border-radius: 99px;
+      margin-bottom: 36px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      border-radius: 99px;
+      transition: width 0.4s ease;
+      width: 0%;
+    }
+
+    /* Card */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      margin-bottom: 16px;
+    }
+    .section-title {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* Form fields */
+    .field { margin-bottom: 20px; }
+    .field:last-child { margin-bottom: 0; }
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+    label span { color: var(--muted); font-weight: 400; font-size: 12px; }
+
+    input[type="text"],
+    select,
+    textarea {
+      width: 100%;
+      background: #13151f;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      padding: 11px 14px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      appearance: none;
+    }
+    input[type="text"]:focus,
+    select:focus,
+    textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px #4f8ef720;
+    }
+    textarea { resize: vertical; min-height: 88px; line-height: 1.6; }
+    select { cursor: pointer; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238b90a0' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px; }
+
+    /* Row */
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 540px) { .row { grid-template-columns: 1fr; } }
+
+    /* Checkbox / Radio groups */
+    .check-group { display: flex; flex-direction: column; gap: 10px; }
+    .check-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      font-size: 14px;
+    }
+    .check-item:hover { border-color: var(--accent); background: #4f8ef710; }
+    .check-item input { accent-color: var(--accent); width: 16px; height: 16px; cursor: pointer; }
+    .check-item.checked { border-color: var(--accent); background: #4f8ef718; }
+
+    /* Star / Scale */
+    .scale-wrap { display: flex; align-items: center; gap: 12px; }
+    .scale-labels { display: flex; justify-content: space-between; margin-top: 6px; }
+    .scale-labels span { font-size: 11px; color: var(--muted); }
+    input[type="range"] {
+      flex: 1;
+      height: 4px;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+    .scale-val {
+      min-width: 36px;
+      text-align: center;
+      font-weight: 700;
+      font-size: 20px;
+      color: var(--accent);
+    }
+
+    /* Severity pills */
+    .pill-group { display: flex; gap: 8px; flex-wrap: wrap; }
+    .pill {
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .pill:hover { border-color: var(--accent); }
+    .pill.active-critical { background: #ef444420; border-color: #ef4444; color: #ef4444; }
+    .pill.active-high     { background: #f9731620; border-color: #f97316; color: #f97316; }
+    .pill.active-medium   { background: #eab30820; border-color: #eab308; color: #eab308; }
+    .pill.active-low      { background: #22c55e20; border-color: #22c55e; color: #22c55e; }
+
+    /* Submit */
+    .submit-btn {
+      width: 100%;
+      padding: 16px;
+      border: none;
+      border-radius: var(--radius);
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff;
+      font-family: 'Inter', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      letter-spacing: 0.02em;
+      transition: opacity 0.2s, transform 0.1s;
+      margin-top: 8px;
+    }
+    .submit-btn:hover  { opacity: 0.92; }
+    .submit-btn:active { transform: scale(0.99); }
+
+    /* Success toast */
+    .toast {
+      display: none;
+      position: fixed;
+      bottom: 32px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1a2e1e;
+      border: 1px solid var(--success);
+      color: var(--success);
+      padding: 14px 24px;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 500;
+      z-index: 999;
+      animation: fadeUp 0.3s ease;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+      to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+<div class="wrapper">
+  <!-- Header -->
+  <div class="header">
+    <div class="badge">🧪 User Testing</div>
+    <h1>FDIWork — Feedback Form</h1>
+    <p>Cảm ơn bạn đã dành thời gian test hệ thống!<br/>Sau khi điền xong, nhấn <strong>Tải Xuống Feedback</strong> và gửi file cho chúng tôi.</p>
+  </div>
+
+  <!-- Progress -->
+  <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+
+  <form id="feedbackForm" onchange="updateProgress()" oninput="updateProgress()">
+
+    <!-- Section 1: Basic Info -->
+    <div class="card">
+      <div class="section-title">01 · Thông Tin Cơ Bản</div>
+
+      <div class="row">
+        <div class="field">
+          <label>Tên bạn</label>
+          <input type="text" name="name" placeholder="Nguyễn Văn A" />
+        </div>
+        <div class="field">
+          <label>Vai trò</label>
+          <select name="role">
+            <option value="">-- Chọn --</option>
+            <option>Recruiter nội bộ</option>
+            <option>HR Manager</option>
+            <option>Ứng viên (Candidate)</option>
+            <option>Nhà tuyển dụng (Employer)</option>
+            <option>Khác</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label>Thiết bị sử dụng</label>
+          <select name="device">
+            <option value="">-- Chọn --</option>
+            <option>Máy tính (Desktop/Laptop)</option>
+            <option>Điện thoại Android</option>
+            <option>Điện thoại iPhone</option>
+            <option>Máy tính bảng</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Trình duyệt</label>
+          <select name="browser">
+            <option value="">-- Chọn --</option>
+            <option>Chrome</option>
+            <option>Firefox</option>
+            <option>Safari</option>
+            <option>Edge</option>
+            <option>Khác</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Trang đã test <span>(chọn tất cả áp dụng)</span></label>
+        <div class="check-group" id="pagesGroup">
+          <label class="check-item"><input type="checkbox" name="pages" value="Trang chủ / Tìm việc (Public)" /> Trang chủ / Tìm việc (Public)</label>
+          <label class="check-item"><input type="checkbox" name="pages" value="CRM Dashboard (Quản lý Candidate / Job)" /> CRM Dashboard (Quản lý Candidate / Job)</label>
+          <label class="check-item"><input type="checkbox" name="pages" value="Trang ứng tuyển (Apply)" /> Trang ứng tuyển (Apply)</label>
+          <label class="check-item"><input type="checkbox" name="pages" value="Trang công ty" /> Trang công ty</label>
+          <label class="check-item"><input type="checkbox" name="pages" value="Employer Portal" /> Employer Portal</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 2: Overall Ratings -->
+    <div class="card">
+      <div class="section-title">02 · Đánh Giá Tổng Quan</div>
+
+      <div class="field">
+        <label>Giao diện dễ nhìn & chuyên nghiệp</label>
+        <div class="scale-wrap">
+          <span style="font-size:12px;color:var(--muted)">Kém</span>
+          <input type="range" name="ui_score" min="1" max="5" value="3" oninput="document.getElementById('ui_val').textContent=this.value" />
+          <span style="font-size:12px;color:var(--muted)">Xuất sắc</span>
+          <span class="scale-val" id="ui_val">3</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Dễ tìm & điều hướng</label>
+        <div class="scale-wrap">
+          <span style="font-size:12px;color:var(--muted)">Khó</span>
+          <input type="range" name="nav_score" min="1" max="5" value="3" oninput="document.getElementById('nav_val').textContent=this.value" />
+          <span style="font-size:12px;color:var(--muted)">Rất dễ</span>
+          <span class="scale-val" id="nav_val">3</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Tốc độ tải trang</label>
+        <div class="scale-wrap">
+          <span style="font-size:12px;color:var(--muted)">Chậm</span>
+          <input type="range" name="speed_score" min="1" max="5" value="3" oninput="document.getElementById('speed_val').textContent=this.value" />
+          <span style="font-size:12px;color:var(--muted)">Nhanh</span>
+          <span class="scale-val" id="speed_val">3</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 3: Features -->
+    <div class="card">
+      <div class="section-title">03 · Chức Năng Cụ Thể</div>
+
+      <div class="field">
+        <label>Tìm kiếm việc làm / bộ lọc</label>
+        <select name="search_result">
+          <option value="">-- Chọn --</option>
+          <option>✅ Hoạt động tốt, kết quả chính xác</option>
+          <option>⚠️ Hoạt động nhưng kết quả chưa đúng</option>
+          <option>❌ Không hoạt động</option>
+          <option>— Chưa test</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Ứng tuyển / Upload CV</label>
+        <select name="apply_result">
+          <option value="">-- Chọn --</option>
+          <option>✅ Hoàn thành thành công</option>
+          <option>⚠️ Bắt đầu nhưng bị lỗi giữa chừng</option>
+          <option>❌ Không thể bắt đầu</option>
+          <option>— Chưa test</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>CRM: Tạo / sửa Candidate & Job Order</label>
+        <select name="crm_result">
+          <option value="">-- Chọn --</option>
+          <option>✅ Thao tác mượt mà, đúng dữ liệu</option>
+          <option>⚠️ Được nhưng có bước khó hiểu</option>
+          <option>❌ Bị lỗi hoặc không lưu được</option>
+          <option>— Chưa test</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Pipeline Kanban (kéo thả ứng viên)</label>
+        <select name="pipeline_result">
+          <option value="">-- Chọn --</option>
+          <option>✅ Mượt và chính xác</option>
+          <option>⚠️ Có lỗi nhỏ</option>
+          <option>❌ Không dùng được</option>
+          <option>— Chưa test</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Section 4: Issues -->
+    <div class="card">
+      <div class="section-title">04 · Vấn Đề Gặp Phải</div>
+
+      <div class="field">
+        <label>Mô tả lỗi bạn gặp <span>(nếu có — dạng: Đang làm gì → Xảy ra gì → Mong đợi gì)</span></label>
+        <textarea name="issues" placeholder="VD: Đang submit form ứng tuyển → Bị báo lỗi đỏ → Mong muốn ứng tuyển thành công&#10;&#10;VD: Tìm 'kế toán Hà Nội' → Không có kết quả → Mong hiện danh sách việc làm liên quan"></textarea>
+      </div>
+
+      <div class="field">
+        <label>Mức độ nghiêm trọng của lỗi</label>
+        <div class="pill-group" id="severityGroup">
+          <span class="pill" onclick="selectPill(this,'critical')" data-val="Critical">🔴 Critical – Không dùng được</span>
+          <span class="pill" onclick="selectPill(this,'high')"     data-val="High">🟠 High – Ảnh hưởng lớn</span>
+          <span class="pill" onclick="selectPill(this,'medium')"   data-val="Medium">🟡 Medium – Bất tiện</span>
+          <span class="pill" onclick="selectPill(this,'low')"      data-val="Low">🟢 Low – Nhỏ, có thể bỏ qua</span>
+        </div>
+        <input type="hidden" name="severity" id="severityVal" />
+      </div>
+
+      <div class="field">
+        <label>Tính năng còn thiếu hoặc cần cải thiện nhất</label>
+        <textarea name="missing" placeholder="VD: Thiếu bộ lọc theo mức lương&#10;VD: Nút lưu nháp khi điền form dài..."></textarea>
+      </div>
+    </div>
+
+    <!-- Section 5: Final -->
+    <div class="card">
+      <div class="section-title">05 · Tổng Kết</div>
+
+      <div class="field">
+        <label>Bạn có muốn dùng hệ thống này trong công việc thực tế không?</label>
+        <div class="check-group">
+          <label class="check-item"><input type="radio" name="would_use" value="Có, sẵn sàng dùng ngay" /> ✅ Có, sẵn sàng dùng ngay</label>
+          <label class="check-item"><input type="radio" name="would_use" value="Có, nhưng cần sửa thêm" /> 🔄 Có, nhưng cần sửa thêm một số điểm</label>
+          <label class="check-item"><input type="radio" name="would_use" value="Chưa, cần cải thiện nhiều" /> ❌ Chưa, cần cải thiện nhiều</label>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Điểm tổng thể bạn cho hệ thống</label>
+        <div class="scale-wrap">
+          <span style="font-size:12px;color:var(--muted)">1</span>
+          <input type="range" name="overall_score" min="1" max="10" value="5" oninput="document.getElementById('overall_val').textContent=this.value" />
+          <span style="font-size:12px;color:var(--muted)">10</span>
+          <span class="scale-val" id="overall_val">5</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Góp ý tự do <span>(không bắt buộc)</span></label>
+        <textarea name="freetext" placeholder="Bất kỳ điều gì bạn muốn chia sẻ thêm..."></textarea>
+      </div>
+    </div>
+
+    <button type="submit" class="submit-btn">⬇️ &nbsp;Tải Xuống Feedback</button>
+  </form>
+</div>
+
+<!-- Success Toast -->
+<div class="toast" id="toast">✅ Đã tải xuống! Gửi file feedback cho chúng tôi nhé.</div>
+
+<script>
+  // Highlight checkboxes/radios on click
+  document.querySelectorAll('.check-item input').forEach(inp => {
+    inp.addEventListener('change', () => {
+      const item = inp.closest('.check-item');
+      if (inp.type === 'radio') {
+        document.querySelectorAll(`input[name="${inp.name}"]`).forEach(r => r.closest('.check-item').classList.remove('checked'));
+      }
+      item.classList.toggle('checked', inp.checked);
+    });
+  });
+
+  // Severity pills
+  function selectPill(el, key) {
+    document.querySelectorAll('.pill').forEach(p => p.className = 'pill');
+    el.classList.add('active-' + key);
+    document.getElementById('severityVal').value = el.dataset.val;
+  }
+
+  // Progress bar
+  function updateProgress() {
+    const form = document.getElementById('feedbackForm');
+    const required = ['name','role','device'];
+    let filled = 0;
+    required.forEach(n => { if (form[n] && form[n].value.trim()) filled++; });
+    const pct = Math.min(100, 15 + (filled / required.length) * 85);
+    document.getElementById('progress').style.width = pct + '%';
+  }
+
+  // Submit → generate and download .txt
+  document.getElementById('feedbackForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const f = this;
+    const v = name => (f[name] && f[name].value) ? f[name].value : '(Không điền)';
+
+    const pages = [...f.querySelectorAll('input[name="pages"]:checked')].map(i => '  • ' + i.value).join('\n') || '  (Không chọn)';
+    const wouldUse = f.querySelector('input[name="would_use"]:checked');
+
+    const timestamp = new Date().toLocaleString('vi-VN', {timeZone:'Asia/Ho_Chi_Minh'});
+    const slug = (v('name').replace(/\s+/g,'-').toLowerCase() || 'user');
+
+    const content = `
+=== FDIWORK FEEDBACK ===
+Thời gian: ${timestamp}
+=======================
+
+[THÔNG TIN]
+Tên       : ${v('name')}
+Vai trò   : ${v('role')}
+Thiết bị  : ${v('device')}
+Trình duyệt: ${v('browser')}
+Trang test:
+${pages}
+
+[ĐÁNH GIÁ TỔNG QUAN]
+Giao diện (1-5)   : ${v('ui_score')}
+Điều hướng (1-5)  : ${v('nav_score')}
+Tốc độ (1-5)      : ${v('speed_score')}
+
+[CHỨC NĂNG]
+Tìm kiếm     : ${v('search_result')}
+Ứng tuyển    : ${v('apply_result')}
+CRM CRUD     : ${v('crm_result')}
+Pipeline     : ${v('pipeline_result')}
+
+[VẤN ĐỀ GẶP PHẢI]
+Mô tả lỗi:
+${v('issues')}
+
+Mức độ nghiêm trọng: ${v('severity')}
+
+Tính năng còn thiếu:
+${v('missing')}
+
+[TỔNG KẾT]
+Sẵn sàng dùng thực tế: ${wouldUse ? wouldUse.value : '(Không chọn)'}
+Điểm tổng thể (1-10) : ${v('overall_score')}
+
+Góp ý tự do:
+${v('freetext')}
+
+=======================
+`.trim();
+
+    const blob = new Blob([content], {type: 'text/plain;charset=utf-8'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `feedback-fdiwork-${slug}-${Date.now()}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+
+    const toast = document.getElementById('toast');
+    toast.style.display = 'block';
+    setTimeout(() => toast.style.display = 'none', 3500);
+  });
+</script>
+</body>
+</html>

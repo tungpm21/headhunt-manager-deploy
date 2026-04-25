@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, unstable_cache } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/authz";
 
@@ -141,10 +141,17 @@ export async function getPublishedBlogPosts() {
 }
 
 // ─── Public: Latest N posts for homepage ───
+const getCachedLatestBlogPosts = unstable_cache(
+    async (take: number) =>
+        prisma.blogPost.findMany({
+            where: { isPublished: true },
+            orderBy: { createdAt: "desc" },
+            take,
+        }),
+    ["latest-blog-posts"],
+    { revalidate: 300 }
+);
+
 export async function getLatestBlogPosts(take = 3) {
-    return prisma.blogPost.findMany({
-        where: { isPublished: true },
-        orderBy: { createdAt: "desc" },
-        take,
-    });
+    return getCachedLatestBlogPosts(take);
 }

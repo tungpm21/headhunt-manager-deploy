@@ -60,3 +60,4 @@ server.log
 .gitnexus
 .tmp/
 .claude/
+.gstack/

@@ -4,7 +4,14 @@ import { getLatestBlogPosts } from "@/lib/blog-actions";
 import type { BlogPost } from "@prisma/client";
 
 export async function BlogSection() {
-    const blogPosts = await getLatestBlogPosts(3);
+    let blogPosts: BlogPost[];
+
+    try {
+        blogPosts = await getLatestBlogPosts(3);
+    } catch (error) {
+        console.error("BlogSection load failed:", error);
+        return null;
+    }
 
     if (blogPosts.length === 0) return null;
 
@@ -47,7 +54,7 @@ export async function BlogSection() {
                                         {post.category}
                                     </span>
                                     <span className="text-xs text-[var(--color-fdi-text-secondary)]">
-                                        {post.createdAt.toLocaleDateString("vi-VN")}
+                                        {new Date(post.createdAt).toLocaleDateString("vi-VN")}
                                     </span>
                                 </div>
                                 <h3 className="text-base font-semibold text-[var(--color-fdi-text)] group-hover:text-[var(--color-fdi-primary)] transition-colors line-clamp-2 mb-2">

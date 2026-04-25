@@ -543,37 +543,72 @@ const getCachedPublicCompanies = unstable_cache(
     }
     if (industry) where.industry = industry;
 
-    const [companies, total] = await Promise.all([
-      prisma.employer.findMany({
-        where,
-        orderBy: [{ subscription: { tier: "asc" } }, { companyName: "asc" }],
-        skip: (page - 1) * COMPANIES_PER_PAGE,
-        take: COMPANIES_PER_PAGE,
-        select: {
-          id: true,
-          companyName: true,
-          logo: true,
-          coverImage: true,
-          slug: true,
-          industry: true,
-          companySize: true,
-          address: true,
-          description: true,
-          subscription: { select: { tier: true } },
-          _count: {
-            select: {
-              jobPostings: {
-                where: {
-                  status: "APPROVED",
-                  OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
+    const qFilter = q
+      ? Prisma.sql`AND e."companyName" ILIKE ${`%${q}%`}`
+      : Prisma.empty;
+    const industryFilter = industry
+      ? Prisma.sql`AND e."industry" = ${industry}`
+      : Prisma.empty;
+    const offset = (page - 1) * COMPANIES_PER_PAGE;
+
+    const [idRows, total] = await Promise.all([
+      prisma.$queryRaw<Array<{ id: number }>>(Prisma.sql`
+        SELECT e."id"
+        FROM "Employer" e
+        LEFT JOIN "Subscription" s ON s."employerId" = e."id"
+        WHERE e."status" = 'ACTIVE'
+          ${qFilter}
+          ${industryFilter}
+        ORDER BY
+          CASE s."tier"
+            WHEN 'VIP' THEN 0
+            WHEN 'PREMIUM' THEN 1
+            WHEN 'STANDARD' THEN 2
+            WHEN 'BASIC' THEN 3
+            ELSE 4
+          END,
+          e."companyName" ASC
+        LIMIT ${COMPANIES_PER_PAGE}
+        OFFSET ${offset}
+      `),
+      prisma.employer.count({ where }),
+    ]);
+
+    const ids = idRows.map((row) => row.id);
+    const unorderedCompanies = ids.length > 0
+      ? await prisma.employer.findMany({
+          where: { id: { in: ids } },
+          select: {
+            id: true,
+            companyName: true,
+            logo: true,
+            coverImage: true,
+            slug: true,
+            industry: true,
+            companySize: true,
+            address: true,
+            description: true,
+            subscription: { select: { tier: true } },
+            _count: {
+              select: {
+                jobPostings: {
+                  where: {
+                    status: "APPROVED",
+                    OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
+                  },
                 },
               },
             },
           },
-        },
-      }),
-      prisma.employer.count({ where }),
-    ]);
+        })
+      : [];
+
+    const companyById = new Map(unorderedCompanies.map((company) => [company.id, company]));
+    const companies = ids.reduce<(typeof unorderedCompanies)[number][]>((ordered, id) => {
+      const company = companyById.get(id);
+      if (company) ordered.push(company);
+      return ordered;
+    }, []);
 
     return {
       companies,

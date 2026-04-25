@@ -44,17 +44,15 @@
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 
   /* ===== FDIWork Public Website ===== */
-  --color-fdi-primary: #0077B6;
-  --color-fdi-primary-hover: #005F91;
-  --color-fdi-accent: #00B4D8;
-  --color-fdi-accent-orange: #FF6600;
-  /* VietnamWorks inspired */
-  --color-fdi-accent-red: #E11D48;
-  --color-fdi-dark: #023E8A;
-  --color-fdi-dark: #023E8A;
-  --color-fdi-surface: #F0F9FF;
-  --color-fdi-text: #0F172A;
-  --color-fdi-text-secondary: #64748B;
+  --color-fdi-primary: #0A6F9D;
+  --color-fdi-primary-hover: #07577E;
+  --color-fdi-accent: #1FB7C1;
+  --color-fdi-accent-orange: #F25C24;
+  --color-fdi-accent-red: #C9363E;
+  --color-fdi-dark: #062B50;
+  --color-fdi-surface: #EEF7FA;
+  --color-fdi-text: #111827;
+  --color-fdi-text-secondary: #627086;
 
   --font-heading: var(--font-poppins);
   --font-body: var(--font-opensans);

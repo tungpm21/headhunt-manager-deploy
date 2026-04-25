@@ -1,4 +1,8 @@
-import { getSubscriptions } from "@/lib/moderation-actions";
+import Link from "next/link";
+import {
+  getEmployersForSubscriptionSelect,
+  getSubscriptions,
+} from "@/lib/moderation-actions";
 import { Package } from "lucide-react";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
@@ -14,11 +18,17 @@ const TIER_COLORS: Record<string, string> = {
 export default async function PackagesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string }>;
+  searchParams: Promise<{ page?: string; employerId?: string }>;
 }) {
   const params = await searchParams;
   const page = parseInt(params.page || "1");
-  const data = await getSubscriptions(page);
+  const [data, employers] = await Promise.all([
+    getSubscriptions(page),
+    getEmployersForSubscriptionSelect(),
+  ]);
+  const initialEmployerId = params.employerId
+    ? parseInt(params.employerId)
+    : undefined;
 
   return (
     <div className="space-y-6">
@@ -33,7 +43,10 @@ export default async function PackagesPage({
       </div>
 
       {/* Assign Form */}
-      <AssignSubscriptionForm />
+      <AssignSubscriptionForm
+        employers={employers}
+        initialEmployerId={initialEmployerId}
+      />
 
       {/* Subscriptions Table */}
       <div className="bg-surface rounded-xl border border-border overflow-hidden">
@@ -44,6 +57,7 @@ export default async function PackagesPage({
                 <th className="text-left py-3 px-4 text-xs font-medium text-muted uppercase">Công ty</th>
                 <th className="text-left py-3 px-4 text-xs font-medium text-muted uppercase">Gói</th>
                 <th className="text-left py-3 px-4 text-xs font-medium text-muted uppercase">Quota</th>
+                <th className="text-left py-3 px-4 text-xs font-medium text-muted uppercase">Giá</th>
                 <th className="text-left py-3 px-4 text-xs font-medium text-muted uppercase">Thời hạn tin</th>
                 <th className="text-left py-3 px-4 text-xs font-medium text-muted uppercase">Hiệu lực</th>
                 <th className="text-left py-3 px-4 text-xs font-medium text-muted uppercase">Trạng thái</th>
@@ -60,19 +74,27 @@ export default async function PackagesPage({
                 jobDuration: number;
                 startDate: Date;
                 endDate: Date;
+                price: number;
                 showLogo: boolean;
                 showBanner: boolean;
                 employer: {
+                  id: number;
                   companyName: string;
                   email: string;
+                  slug: string;
                 };
               }) => {
                 const isExpired = sub.status === "EXPIRED" || new Date(sub.endDate) < new Date();
                 return (
                   <tr key={sub.id} className="border-b border-border/50 hover:bg-background/50">
                     <td className="py-3 px-4">
-                      <p className="font-medium text-foreground">{sub.employer.companyName}</p>
-                      <p className="text-xs text-muted">{sub.employer.email}</p>
+                      <Link
+                        href={`/employers/${sub.employer.id}`}
+                        className="font-medium text-foreground transition hover:text-primary"
+                      >
+                        {sub.employer.companyName}
+                      </Link>
+                      <p className="text-xs text-muted">#{sub.employer.id} · {sub.employer.email}</p>
                     </td>
                     <td className="py-3 px-4">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${TIER_COLORS[sub.tier] ?? TIER_COLORS.BASIC}`}>
@@ -81,6 +103,13 @@ export default async function PackagesPage({
                     </td>
                     <td className="py-3 px-4 font-medium text-foreground">
                       {sub.jobsUsed}/{sub.jobQuota}
+                    </td>
+                    <td className="py-3 px-4 text-muted">
+                      {new Intl.NumberFormat("vi-VN", {
+                        style: "currency",
+                        currency: "VND",
+                        maximumFractionDigits: 0,
+                      }).format(sub.price)}
                     </td>
                     <td className="py-3 px-4 text-muted">{sub.jobDuration} ngày</td>
                     <td className="py-3 px-4 text-xs text-muted">

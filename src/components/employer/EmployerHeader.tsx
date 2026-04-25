@@ -1,7 +1,12 @@
 import { getEmployerSession } from "@/lib/employer-auth";
+import { getEmployerNotificationData } from "@/lib/employer-actions";
+import { EmployerNotificationBell } from "@/components/employer/EmployerNotificationBell";
 
 export async function EmployerHeader() {
   const session = await getEmployerSession();
+  const notificationData = session
+    ? await getEmployerNotificationData()
+    : { total: 0, items: [] };
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-teal-100 bg-white/80 backdrop-blur-sm px-6">
@@ -16,6 +21,7 @@ export async function EmployerHeader() {
       </div>
 
       <div className="flex items-center gap-4">
+        <EmployerNotificationBell initialData={notificationData} />
         <div className="text-right">
           <p className="text-sm font-semibold text-gray-800">
             {session?.companyName ?? "Employer"}

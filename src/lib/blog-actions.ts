@@ -141,6 +141,12 @@ export async function getPublishedBlogPosts() {
 }
 
 // ─── Public: Latest N posts for homepage ───
+export async function getPublishedBlogPostBySlug(slug: string) {
+    return prisma.blogPost.findFirst({
+        where: { slug, isPublished: true },
+    });
+}
+
 const getCachedLatestBlogPosts = unstable_cache(
     async (take: number) =>
         prisma.blogPost.findMany({

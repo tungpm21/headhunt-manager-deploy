@@ -1,129 +1,141 @@
 {
-  "updated_at": "2026-04-08T21:40:00+07:00",
+  "updated_at": "2026-04-25T22:25:54+07:00",
   "working_on": {
-    "feature": null,
-    "task": null,
-    "status": "idle",
-    "files": [],
+    "feature": "Employer platform polish + FDIWork public UX refresh",
+    "task": "Commit current multi-area changes, save project memory, and push a Vercel preview deployment from a non-production branch",
+    "status": "handover",
+    "files": [
+      "src/app/(public)/page.tsx",
+      "src/components/public/PublicHeader.tsx",
+      "src/components/public/HeroSection.tsx",
+      "src/components/public/EmployerBannerCarousel.tsx",
+      "src/components/public/TopEmployers.tsx",
+      "src/components/public/FeaturedJobs.tsx",
+      "src/components/public/IndustryGrid.tsx",
+      "src/components/public/BlogSection.tsx",
+      "src/hooks/useSearchSuggestions.ts",
+      "src/app/(dashboard)/packages/assign-form.tsx",
+      "src/components/employer/EmployerNotificationBell.tsx"
+    ],
     "blockers": [],
-    "notes": "Dead code cleanup completed. Deleted SearchOverlay.tsx and SearchAutocompleteDropdown.tsx."
+    "notes": "Worktree currently includes broad employer/admin/public changes. GitNexus detect_changes reports CRITICAL because many files are already changed together, but impact checks run on edited public symbols remained LOW."
   },
   "pending_tasks": [
     {
       "priority": "HIGH",
-      "task": "Sprint 4 kickoff: onboard 1-2 recruiter nội bộ and capture friction logs"
+      "task": "Manual QA on preview for employer notification, package assignment, and conditional job deletion flows"
     },
     {
       "priority": "MEDIUM",
-      "task": "Test search dropdown UX on mobile devices (responsive check)"
+      "task": "Bring job listing, company detail, and remaining public pages onto the same premium visual system as homepage"
     },
     {
-      "priority": "LOW",
-      "task": "Consider upgrading Postgres SSL connection strings to sslmode=verify-full (requires Neon CA cert)"
+      "priority": "MEDIUM",
+      "task": "Document product/design tokens into PRODUCT.md or DESIGN.md so future passes can use impeccable with project-native context"
     }
   ],
   "recent_changes": [
     {
-      "timestamp": "2026-04-08T21:40:00+07:00",
-      "type": "refactor",
-      "description": "Deleted dead code: SearchOverlay.tsx (317 lines) and SearchAutocompleteDropdown.tsx (180 lines). Neither was imported anywhere — replaced by inline dropdown panels in HeroSection and PublicHeader. Total: ~497 lines removed.",
+      "timestamp": "2026-04-25T22:25:54+07:00",
+      "type": "deployment",
+      "description": "Prepared commit + preview deployment workflow for the current combined change set. Decision: use a non-main git branch for Vercel so deploy stays in preview rather than production.",
       "files": [
-        "src/components/public/SearchOverlay.tsx (DELETED)",
-        "src/components/public/SearchAutocompleteDropdown.tsx (DELETED)"
+        ".brain/session.json",
+        ".brain/brain.json",
+        ".brain/handover.md"
       ]
     },
     {
-      "timestamp": "2026-04-06T23:00:00+07:00",
-      "type": "feature",
-      "description": "Redesigned search UI to TopCV-style inline dropdown panels: 2-column layout (keywords+employers left, jobs right) that drops down below the search bar. Both HeroSection and PublicHeader use same pattern. Added accent-insensitive location filter (removeTones). Fixed location/button overlap.",
+      "timestamp": "2026-04-25T22:25:54+07:00",
+      "type": "ux",
+      "description": "Redesigned FDIWork homepage visual system toward a higher-end VietnamWorks-inspired direction: layered navy shell, warm neutral sections, refined CTA orange usage, tighter card rhythm, improved employer banner, top employers rail, featured jobs, industry cards, and editorial blog cards. Fixed search hook lifecycle warning and validated no overflow at 1440/768/390.",
       "files": [
-        "src/components/public/HeroSection.tsx",
+        "src/app/(public)/page.tsx",
+        "src/app/globals.css",
         "src/components/public/PublicHeader.tsx",
+        "src/components/public/HeroSection.tsx",
+        "src/components/public/EmployerBannerCarousel.tsx",
+        "src/components/public/TopEmployers.tsx",
+        "src/components/public/FeaturedJobs.tsx",
+        "src/components/public/JobCard.tsx",
+        "src/components/public/IndustryGrid.tsx",
+        "src/components/public/BlogSection.tsx",
         "src/hooks/useSearchSuggestions.ts"
       ]
     },
     {
-      "timestamp": "2026-04-06T21:20:00+07:00",
-      "type": "ux",
-      "description": "Added NavigationProgress (top loading bar) + skeleton loading.tsx for 10 dashboard routes. Fixed empty space on Dashboard grid layout.",
+      "timestamp": "2026-04-25T21:40:00+07:00",
+      "type": "feature",
+      "description": "Expanded employer/admin/public flows: safer employer job posting actions, employer notification bell, package assignment/search improvements, shared job taxonomy, import hardening, simplified public apply form, public company/blog route updates, and loading state additions.",
       "files": [
-        "src/components/navigation-progress.tsx",
-        "src/app/(dashboard)/layout.tsx",
-        "src/app/(dashboard)/dashboard/page.tsx",
-        "src/app/(dashboard)/*/loading.tsx"
-      ]
-    },
-    {
-      "timestamp": "2026-04-06T14:00:00+07:00",
-      "type": "qa",
-      "description": "Comprehensive QA of 8 Admin CRM pages + 7 public pages. All 15 pages passed. Created detailed walkthrough with screenshots.",
-      "files": []
-    },
-    {
-      "timestamp": "2026-04-06T12:00:00+07:00",
-      "type": "perf",
-      "description": "Completed performance hardening: GIN trigram indexes, Suspense streaming dashboard, cached public homepage/filters, shared access-scope module, and ISR blog page",
-      "files": [
-        "src/app/(dashboard)/dashboard/page.tsx",
-        "src/lib/access-scope.ts",
-        "src/lib/public-actions.ts",
-        "prisma/migrations/20260406032300_add_search_trgm_indexes/migration.sql"
+        "src/app/(dashboard)/packages/assign-form.tsx",
+        "src/app/(dashboard)/packages/page.tsx",
+        "src/app/(employer)/employer/(portal)/job-postings/[id]/actions.tsx",
+        "src/app/(public)/chia-se/page.tsx",
+        "src/app/(public)/cong-ty/[slug]/page.tsx",
+        "src/components/employer/EmployerNotificationBell.tsx",
+        "src/components/import/client-spreadsheet-importer.tsx",
+        "src/components/import/spreadsheet-importer.tsx",
+        "src/lib/job-taxonomy.ts",
+        "src/lib/public-actions.ts"
       ]
     }
   ],
   "errors_encountered": [
     {
-      "error": "Search overlay covered entire screen (fullscreen takeover) instead of inline dropdown",
-      "solution": "Replaced SearchOverlay approach with inline dropdown panels that appear directly below the search bar, matching TopCV design pattern",
+      "error": "React warning: state update on useSearchSuggestions before mount",
+      "solution": "Guarded async fetch/finally paths with mountedRef and moved mounted state setup into effect cleanup lifecycle",
       "resolved": true
     },
     {
-      "error": "Location input ChevronDown arrow overlapped search button",
-      "solution": "Wrapped location + button in a shrink-0 flex group with proper gap spacing",
+      "error": "Homepage redesign initially left low-contrast CTA and uneven section transition visibility",
+      "solution": "Changed section surfaces to warm-neutral cards on pale background and promoted top employers CTA to a visible white button",
       "resolved": true
     },
     {
-      "error": "Typing without diacritics (e.g., 'Hai Phong') did not match Vietnamese locations",
-      "solution": "Added removeTones() function using NFD normalization to strip Vietnamese diacritics for accent-insensitive filtering",
+      "error": "Previous public UI passes left search/header/banner spacing and card density inconsistent",
+      "solution": "Normalized rhythm across header, hero, employer banner, top employers, featured jobs, industries, and blog sections",
       "resolved": true
     }
   ],
   "decisions_made": [
     {
-      "decision": "Use inline dropdown panels instead of fullscreen search overlay",
-      "reason": "User wanted TopCV-style: dropdown sổ xuống ngay dưới search bar, not covering the whole page"
+      "decision": "Keep Vercel deployment on a non-main branch",
+      "reason": "The deploy skill defaults to preview, and pushing master would risk a production deployment for a linked repo"
     },
     {
-      "decision": "Two separate dropdowns: one for keyword search (2-column), one for location",
-      "reason": "Follows TopCV pattern: each input has its own dropdown, only one open at a time"
+      "decision": "Use a layered navy + warm-neutral palette instead of more saturated blue slabs",
+      "reason": "This keeps the platform premium and high-contrast without losing action clarity or search-first hierarchy"
     },
     {
-      "decision": "Use NFD normalization for Vietnamese accent-insensitive search",
-      "reason": "Users commonly type without diacritics (e.g., 'Hai Phong' should match 'Hải Phòng')"
-    },
-    {
-      "decision": "Hero section always expanded (removed collapsible expand-from-header mechanism)",
-      "reason": "Simplifies UX - hero search is always visible on homepage"
+      "decision": "Preserve functionality while redesigning instead of introducing new frontend dependencies",
+      "reason": "Current stack already supports the UI goals, and avoiding dependency churn keeps deploy/build risk low"
     }
   ],
   "verification": [
     {
       "command": "npx tsc --noEmit",
       "result": "passed (exit 0)",
-      "timestamp": "2026-04-06T22:50:00+07:00",
-      "notes": "Zero TypeScript errors after search redesign"
+      "timestamp": "2026-04-25T22:18:00+07:00",
+      "notes": "Passed after visual redesign and search hook lifecycle fix"
     },
     {
-      "command": "npm run build",
+      "command": "npx eslint targeted public UI files + useSearchSuggestions",
       "result": "passed (exit 0)",
-      "timestamp": "2026-04-06T22:45:00+07:00",
-      "notes": "All pages compiled successfully"
+      "timestamp": "2026-04-25T22:18:00+07:00",
+      "notes": "Validated homepage/public redesign files and hook patch"
     },
     {
-      "command": "Browser QA (fdiwork.vercel.app)",
+      "command": "Playwright QA on http://localhost:3000",
       "result": "passed",
-      "timestamp": "2026-04-06T22:40:00+07:00",
-      "notes": "Hero dropdown, header dropdown, location dropdown all working. 2-column layout visible."
+      "timestamp": "2026-04-25T22:20:00+07:00",
+      "notes": "Viewports 1440x900, 768x1024, 390x844: no horizontal overflow, no console warnings/errors after reload, visible buttons >= 36px"
+    },
+    {
+      "command": "gitnexus_detect_changes(scope=all)",
+      "result": "critical",
+      "timestamp": "2026-04-25T22:24:00+07:00",
+      "notes": "Critical is due to the already-broad dirty worktree spanning employer/admin/public areas, not because the homepage-only edits had high symbol impact"
     }
   ]
 }

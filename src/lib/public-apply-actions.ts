@@ -16,7 +16,6 @@ export type SubmitApplicationInput = {
   fullName: string;
   email: string;
   phone?: string;
-  coverLetter?: string;
   cvFileUrl?: string;
   cvFileName?: string;
 };
@@ -34,7 +33,6 @@ export async function submitApplication(
     fullName: input.fullName?.trim(),
     email: input.email?.trim().toLowerCase(),
     phone: input.phone?.trim() || undefined,
-    coverLetter: input.coverLetter?.trim() || undefined,
     cvFileUrl: input.cvFileUrl || undefined,
     cvFileName: input.cvFileName || undefined,
   });
@@ -108,7 +106,6 @@ export async function submitApplication(
           fullName: validatedInput.fullName,
           email: validatedInput.email,
           phone: validatedInput.phone || null,
-          coverLetter: validatedInput.coverLetter || null,
           cvFileUrl: validatedInput.cvFileUrl || null,
           cvFileName: validatedInput.cvFileName || null,
         },

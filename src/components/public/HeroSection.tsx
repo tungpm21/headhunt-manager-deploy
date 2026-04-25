@@ -105,46 +105,64 @@ export function HeroSection({ totalJobs, totalEmployers }: HeroSectionProps) {
   const showDropdown = search.isOpen && (search.isLoading || hasKeywords || hasResults || noResultsForQuery);
 
   return (
-    <section className="relative overflow-visible bg-gradient-to-br from-[var(--color-fdi-dark)] via-[#005A9E] to-[var(--color-fdi-primary)]">
-      {/* Decorative patterns */}
-      <div className="absolute inset-0 opacity-10 pointer-events-none" aria-hidden="true">
-        <div className="absolute top-10 right-10 w-72 h-72 rounded-full bg-[var(--color-fdi-accent)] blur-3xl motion-safe:animate-none" />
-        <div className="absolute bottom-10 left-10 w-96 h-96 rounded-full bg-[var(--color-fdi-primary)] blur-3xl motion-safe:animate-none" />
-      </div>
-
-      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16 sm:py-24 lg:py-28">
-        {/* Heading */}
-        <div className="text-center max-w-3xl mx-auto mb-10">
-          <h1
-            className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white leading-tight tracking-tight"
-            style={{ fontFamily: "var(--font-heading)" }}
-          >
-            Tìm việc làm
-            <span className="text-[var(--color-fdi-accent)]"> chất lượng cao</span>
-            <br className="hidden sm:block" />
-            tại doanh nghiệp FDI
-          </h1>
-          <p
-            className="mt-4 text-base sm:text-lg text-sky-100/80 max-w-xl mx-auto"
-            style={{ fontFamily: "var(--font-body)" }}
-          >
-            Kết nối hàng ngàn ứng viên với các doanh nghiệp đầu tư nước ngoài hàng đầu tại Việt Nam
-          </p>
+    <section className="relative overflow-visible">
+      <div className="relative mx-auto max-w-7xl px-4 pb-4 pt-3 sm:px-6 sm:pb-5 sm:pt-4 lg:px-8 lg:pb-5">
+        <div className="sr-only">
+          <div>
+            <p className="sr-only">
+              FDIWork Job Search
+            </p>
+            <h1
+              className="text-xl font-bold leading-tight tracking-tight text-white sm:text-2xl lg:text-3xl"
+              style={{ fontFamily: "var(--font-heading)" }}
+            >
+              Tìm việc FDI tại Việt Nam
+            </h1>
+            <p
+              className="mx-auto mt-2 max-w-2xl text-sm leading-6 text-sky-100/85"
+              style={{ fontFamily: "var(--font-body)" }}
+            >
+              {totalJobs.toLocaleString("vi-VN")} việc làm từ {totalEmployers.toLocaleString("vi-VN")} doanh nghiệp FDI, lọc nhanh theo vị trí, công ty và địa điểm.
+            </p>
+          </div>
+          <div className="hidden">
+            <div className="grid grid-cols-3 gap-3 text-center">
+              <div>
+                <p className="text-2xl font-bold tabular-nums text-[var(--color-fdi-text)]" style={{ fontFamily: "var(--font-heading)" }}>
+                  {totalJobs.toLocaleString("vi-VN")}+
+                </p>
+                <p className="mt-1 text-xs text-[var(--color-fdi-text-secondary)]">Việc mới</p>
+              </div>
+              <div className="border-x border-gray-100">
+                <p className="text-2xl font-bold tabular-nums text-[var(--color-fdi-text)]" style={{ fontFamily: "var(--font-heading)" }}>
+                  {totalEmployers.toLocaleString("vi-VN")}+
+                </p>
+                <p className="mt-1 text-xs text-[var(--color-fdi-text-secondary)]">Doanh nghiệp</p>
+              </div>
+              <div>
+                <p className="text-2xl font-bold tabular-nums text-[var(--color-fdi-text)]" style={{ fontFamily: "var(--font-heading)" }}>
+                  1 bước
+                </p>
+                <p className="mt-1 text-xs text-[var(--color-fdi-text-secondary)]">Ứng tuyển</p>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Search Bar — with inline dropdowns */}
-        <div className="mx-auto max-w-4xl relative z-20">
+        <div className="relative z-20 mx-auto max-w-[920px]">
           <form
             onSubmit={handleSearch}
-            className="bg-white rounded-xl shadow-2xl p-1.5 sm:p-2 flex flex-col sm:flex-row gap-0 items-center"
+            className="flex flex-col items-stretch gap-1 rounded-2xl border border-white/45 bg-[#FFFFFB] p-1.5 shadow-[0_24px_60px_-42px_rgba(0,0,0,0.9)] transition-[border-color,box-shadow] focus-within:border-[var(--color-fdi-accent-orange)]/75 focus-within:shadow-[0_28px_68px_-42px_rgba(0,0,0,0.95)] focus-within:ring-2 focus-within:ring-[var(--color-fdi-accent-orange)]/20 sm:flex-row sm:items-center"
           >
             {/* Keyword input */}
             <div ref={searchContainerRef} className="relative flex-1">
-              <div className="flex items-center gap-2 px-3 py-2.5 sm:py-3">
-                <Search className="h-5 w-5 text-gray-400 shrink-0" aria-hidden="true" />
+              <div className="flex items-center gap-2 px-3 py-1.5">
+                <Search className="h-5 w-5 text-[#8A98A8] shrink-0" aria-hidden="true" />
                 <input
                   ref={searchInputRef}
                   type="text"
+                  name="q"
                   role="combobox"
                   aria-label="Tìm kiếm vị trí tuyển dụng hoặc tên công ty"
                   aria-autocomplete="list"
@@ -159,7 +177,7 @@ export function HeroSection({ totalJobs, totalEmployers }: HeroSectionProps) {
                   }}
                   onKeyDown={search.handleKeyDown}
                   placeholder="Vị trí tuyển dụng, tên công ty…"
-                  className="flex-1 bg-transparent text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none"
+                  className="min-h-11 flex-1 bg-transparent text-sm text-[var(--color-fdi-text)] placeholder:text-[#8A98A8] focus:outline-none"
                   style={{ fontFamily: "var(--font-body)" }}
                   autoComplete="off"
                 />
@@ -302,15 +320,16 @@ export function HeroSection({ totalJobs, totalEmployers }: HeroSectionProps) {
             </div>
 
             {/* Divider */}
-            <div className="hidden sm:block w-px bg-gray-200 my-2 shrink-0" />
+            <div className="hidden sm:block w-px bg-[#E2E8EC] my-2 shrink-0" />
 
             {/* Location + Button group — shrink-0 to prevent overlap */}
             <div className="flex items-center gap-2 shrink-0">
               {/* Location input */}
-              <div ref={locationRef} className="relative flex items-center gap-1.5 px-3 py-2.5 sm:py-3 w-44">
-                <MapPin className="h-4 w-4 text-gray-400 shrink-0" aria-hidden="true" />
+              <div ref={locationRef} className="relative flex items-center gap-1.5 px-2 py-1.5 w-36">
+                <MapPin className="h-4 w-4 text-[#8A98A8] shrink-0" aria-hidden="true" />
                 <input
                   type="text"
+                  name="location"
                   role="combobox"
                   aria-label="Chọn địa điểm tìm việc"
                   aria-autocomplete="list"
@@ -324,14 +343,21 @@ export function HeroSection({ totalJobs, totalEmployers }: HeroSectionProps) {
                     search.setIsOpen(false);
                   }}
                   placeholder="Địa điểm"
-                  className="flex-1 min-w-0 bg-transparent text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none"
+                  className="min-h-11 flex-1 min-w-0 bg-transparent text-sm text-[var(--color-fdi-text)] placeholder:text-[#8A98A8] focus:outline-none"
                   style={{ fontFamily: "var(--font-body)" }}
+                  autoComplete="off"
                 />
-                <ChevronDown
-                  className={`h-3.5 w-3.5 text-gray-400 shrink-0 transition-transform cursor-pointer ${locationOpen ? "rotate-180" : ""}`}
+                <button
+                  type="button"
+                  aria-label={locationOpen ? "Đóng danh sách địa điểm" : "Mở danh sách địa điểm"}
                   onClick={() => { loadLocations(); setLocationOpen(!locationOpen); search.setIsOpen(false); }}
-                  aria-hidden="true"
-                />
+                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md text-[#8A98A8] hover:bg-[#F2F5F7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-accent-orange)]/35"
+                >
+                  <ChevronDown
+                    className={`h-3.5 w-3.5 transition-transform ${locationOpen ? "rotate-180" : ""}`}
+                    aria-hidden="true"
+                  />
+                </button>
 
                 {/* ═══════ LOCATION DROPDOWN ═══════ */}
                 {locationOpen && filteredLocations.length > 0 && (
@@ -356,7 +382,7 @@ export function HeroSection({ totalJobs, totalEmployers }: HeroSectionProps) {
                 type="submit"
                 aria-label="Tìm kiếm việc làm"
                 style={{ touchAction: "manipulation" }}
-                className="px-6 sm:px-8 py-3 rounded-xl bg-[var(--color-fdi-accent-orange)] text-white font-semibold text-sm hover:bg-[#E65C00] transition-transform duration-300 ease-out hover:-translate-y-0.5 hover:shadow-lg cursor-pointer shrink-0"
+                className="min-h-11 shrink-0 rounded-[14px] bg-[var(--color-fdi-accent-orange)] px-5 py-2 text-sm font-semibold text-white shadow-[0_14px_30px_-18px_rgba(242,92,36,0.9)] transition-[background-color,box-shadow,transform] duration-200 ease-out hover:-translate-y-0.5 hover:bg-[#D94F1D] hover:shadow-[0_18px_36px_-18px_rgba(242,92,36,0.95)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-accent-orange)]/45 cursor-pointer"
               >
                 <Search className="h-4 w-4 inline mr-1.5 -mt-0.5" aria-hidden="true" />
                 Tìm kiếm
@@ -366,15 +392,15 @@ export function HeroSection({ totalJobs, totalEmployers }: HeroSectionProps) {
         </div>
 
         {/* Trending Tags */}
-        <div className="mt-6 flex flex-wrap items-center justify-center gap-2" role="group" aria-label="Từ khóa xu hướng">
-          <TrendingUp className="h-4 w-4 text-sky-300/60" aria-hidden="true" />
-          <span className="text-xs text-sky-300/60 mr-1" aria-hidden="true">Xu hướng:</span>
+        <div className="mx-auto mt-4 flex max-w-[920px] flex-wrap items-center justify-center gap-1.5" role="group" aria-label="Từ khóa xu hướng">
+          <TrendingUp className="h-4 w-4 text-[var(--color-fdi-accent-orange)]" aria-hidden="true" />
+          <span className="mr-1 text-xs font-semibold text-sky-100/[0.82]" aria-hidden="true">Xu hướng:</span>
           {trendingTags.map((tag) => (
             <button
               key={tag}
               onClick={() => handleTagClick(tag)}
               style={{ touchAction: "manipulation" }}
-              className="px-3 py-1 rounded-full text-xs font-medium bg-white/10 text-sky-100 hover:bg-white/20 transition-colors cursor-pointer backdrop-blur-sm"
+              className="min-h-9 rounded-full border border-white/16 bg-white/[0.09] px-3 py-1 text-xs font-semibold text-white/88 shadow-sm transition-[background-color,border-color,color] hover:border-white/36 hover:bg-white/16 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-accent-orange)]/50 cursor-pointer"
             >
               {tag}
             </button>
@@ -382,26 +408,26 @@ export function HeroSection({ totalJobs, totalEmployers }: HeroSectionProps) {
         </div>
 
         {/* Stats */}
-        <div className="mt-10 flex items-center justify-center gap-8 sm:gap-16">
+        <div className="mx-auto mt-5 flex max-w-lg items-center justify-center gap-5 rounded-2xl border border-white/15 bg-white/10 p-4 shadow-sm sm:gap-8 lg:hidden">
           <div className="text-center">
-            <p className="text-2xl sm:text-3xl font-bold text-white" style={{ fontFamily: "var(--font-heading)" }}>
+            <p className="text-xl font-bold tabular-nums text-white" style={{ fontFamily: "var(--font-heading)" }}>
               {totalJobs.toLocaleString("vi-VN")}+
             </p>
-            <p className="text-xs sm:text-sm text-sky-200/60 mt-1">Việc làm mới</p>
+            <p className="mt-1 text-xs text-sky-100/80">Việc mới</p>
           </div>
-          <div className="w-px h-10 bg-blue-700/30" />
+          <div className="h-10 w-px bg-white/15" />
           <div className="text-center">
-            <p className="text-2xl sm:text-3xl font-bold text-white" style={{ fontFamily: "var(--font-heading)" }}>
+            <p className="text-xl font-bold tabular-nums text-white" style={{ fontFamily: "var(--font-heading)" }}>
               {totalEmployers.toLocaleString("vi-VN")}+
             </p>
-            <p className="text-xs sm:text-sm text-sky-200/60 mt-1">Doanh nghiệp</p>
+            <p className="mt-1 text-xs text-sky-100/80">Doanh nghiệp</p>
           </div>
-          <div className="w-px h-10 bg-blue-700/30" />
+          <div className="h-10 w-px bg-white/15" />
           <div className="text-center">
-            <p className="text-2xl sm:text-3xl font-bold text-white" style={{ fontFamily: "var(--font-heading)" }}>
-              100%
+            <p className="text-xl font-bold tabular-nums text-white" style={{ fontFamily: "var(--font-heading)" }}>
+              1 bước
             </p>
-            <p className="text-xs sm:text-sm text-sky-200/60 mt-1">Miễn phí</p>
+            <p className="mt-1 text-xs text-sky-100/80">Ứng tuyển</p>
           </div>
         </div>
       </div>

@@ -80,9 +80,9 @@ export function IndustryGrid({ industries }: IndustryGridProps) {
   if (industries.length === 0) return null;
 
   return (
-    <section className="bg-white py-16 lg:py-20">
+    <section className="bg-[linear-gradient(180deg,#F6F8FA_0%,#FFFFFF_100%)] py-8 lg:py-10">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-8 flex items-end justify-between gap-4">
+        <div className="mb-7 flex items-end justify-between gap-4">
           <div className="text-center sm:text-left">
             <h2
               className="text-2xl font-bold text-[var(--color-fdi-text)] sm:text-3xl"
@@ -94,7 +94,7 @@ export function IndustryGrid({ industries }: IndustryGridProps) {
               className="mt-2 text-sm text-[var(--color-fdi-text-secondary)]"
               style={{ fontFamily: "var(--font-body)" }}
             >
-              Khám phá cơ hội việc làm theo lĩnh vực
+              Khám phá cơ hội theo các nhóm ngành đang tuyển mạnh
             </p>
           </div>
 
@@ -104,7 +104,7 @@ export function IndustryGrid({ industries }: IndustryGridProps) {
                 onClick={() => scroll("left")}
                 disabled={!canScrollLeft}
                 aria-label="Cuộn ngành nghề sang trái"
-                className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-white text-[var(--color-fdi-text)] shadow-sm transition-colors hover:border-[var(--color-fdi-accent-orange)] hover:text-[var(--color-fdi-accent-orange)] disabled:cursor-not-allowed disabled:opacity-30"
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-[#D9E4EA] bg-[#FFFFFB] text-[var(--color-fdi-text)] shadow-sm transition-colors hover:border-[var(--color-fdi-accent-orange)] hover:text-[var(--color-fdi-accent-orange)] disabled:cursor-not-allowed disabled:opacity-30"
               >
                 <ChevronLeft className="h-4 w-4" />
               </button>
@@ -112,7 +112,7 @@ export function IndustryGrid({ industries }: IndustryGridProps) {
                 onClick={() => scroll("right")}
                 disabled={!canScrollRight}
                 aria-label="Cuộn ngành nghề sang phải"
-                className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-white text-[var(--color-fdi-text)] shadow-sm transition-colors hover:border-[var(--color-fdi-accent-orange)] hover:text-[var(--color-fdi-accent-orange)] disabled:cursor-not-allowed disabled:opacity-30"
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-[#D9E4EA] bg-[#FFFFFB] text-[var(--color-fdi-text)] shadow-sm transition-colors hover:border-[var(--color-fdi-accent-orange)] hover:text-[var(--color-fdi-accent-orange)] disabled:cursor-not-allowed disabled:opacity-30"
               >
                 <ChevronRight className="h-4 w-4" />
               </button>
@@ -122,7 +122,7 @@ export function IndustryGrid({ industries }: IndustryGridProps) {
 
         <div
           ref={scrollRef}
-          className="flex gap-5 overflow-x-auto rounded-2xl border border-gray-100 bg-white p-4 shadow-lg scrollbar-hide sm:p-6"
+          className="flex gap-4 overflow-x-auto rounded-[20px] border border-[#D9E4EA] bg-[#FDFBF5] p-4 shadow-[0_22px_56px_-48px_rgba(17,24,39,0.58)] scrollbar-hide sm:gap-5 sm:p-5"
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
           {industries.map((item) => {
@@ -134,15 +134,15 @@ export function IndustryGrid({ industries }: IndustryGridProps) {
                 href={`/viec-lam?industry=${encodeURIComponent(item.industry)}`}
                 className="group block shrink-0 cursor-pointer"
               >
-                <div className="flex h-full w-[220px] flex-col items-center justify-center gap-3 rounded-2xl border border-gray-100 bg-white p-5 transition-all duration-300 hover:border-[var(--color-fdi-primary)]/30 hover:shadow-lg sm:w-[240px] lg:w-[248px]">
-                  <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-[#F2F8FF] transition-all duration-300 group-hover:scale-110 group-hover:bg-[#E8F3FF]">
-                    <Icon className="h-10 w-10 text-[#005A9E]" />
+                <div className="flex h-full w-[220px] flex-col items-center justify-center gap-3 rounded-xl border border-[#DCE8EC] bg-[#F5FAFB] p-5 transition-[background-color,border-color,box-shadow,transform] duration-300 hover:-translate-y-0.5 hover:border-[#BFD6DF] hover:bg-white hover:shadow-[0_18px_40px_-32px_rgba(17,24,39,0.55)] sm:w-[220px] lg:w-[216px] xl:w-[224px]">
+                  <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full border border-[#DCE8EC] bg-white transition-[background-color,transform] duration-300 group-hover:scale-105 group-hover:bg-[#EFF9FA]">
+                    <Icon className="h-10 w-10 text-[var(--color-fdi-primary)]" />
                   </div>
                   <div className="text-center">
-                    <p className="flex min-h-[2.5rem] items-center justify-center text-base font-bold uppercase leading-snug text-[var(--color-fdi-text)] transition-colors group-hover:text-[var(--color-fdi-accent-orange)]">
+                    <p className="flex min-h-[2.5rem] items-center justify-center text-base font-bold uppercase leading-snug text-[var(--color-fdi-text)] transition-colors group-hover:text-[var(--color-fdi-primary)]">
                       {item.industry}
                     </p>
-                    <p className="mt-2 whitespace-nowrap text-sm font-medium text-gray-500">
+                    <p className="mt-2 whitespace-nowrap text-sm font-medium text-[var(--color-fdi-text-secondary)]">
                       {item.count} việc làm
                     </p>
                   </div>
@@ -152,10 +152,10 @@ export function IndustryGrid({ industries }: IndustryGridProps) {
           })}
         </div>
 
-        <div className="mt-8 text-center">
+        <div className="mt-7 text-center">
           <Link
             href="/viec-lam"
-            className="inline-flex cursor-pointer items-center gap-1 text-sm font-medium text-[var(--color-fdi-primary)] hover:underline"
+            className="inline-flex cursor-pointer items-center gap-1 rounded-full px-3 py-2 text-sm font-semibold text-[var(--color-fdi-primary)] transition-colors hover:text-[var(--color-fdi-primary-hover)]"
           >
             Khám phá thêm
             <ArrowRight className="h-4 w-4" />

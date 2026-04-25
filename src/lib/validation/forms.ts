@@ -29,7 +29,6 @@ export const publicApplicationSchema = z.object({
   fullName: z.string().trim().min(1, "Vui long nhap ho ten."),
   email: z.string().trim().email("Email khong hop le."),
   phone: optionalText,
-  coverLetter: optionalText,
   cvFileUrl: optionalText,
   cvFileName: optionalText,
 });
@@ -241,6 +240,7 @@ export const moderationSubscriptionSchema = z.object({
   jobQuota: z.number().int().positive("Job quota phai lon hon 0."),
   jobDuration: z.number().int().positive("Thoi han tin phai lon hon 0."),
   durationMonths: z.number().int().positive("So thang su dung phai lon hon 0."),
+  price: z.number().nonnegative("Gia goi khong hop le."),
   showLogo: z.boolean(),
   showBanner: z.boolean(),
 });

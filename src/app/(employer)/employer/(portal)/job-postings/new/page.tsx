@@ -1,87 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { createJobPostingAction } from "@/lib/employer-actions";
 import { ArrowLeft, Send, AlertCircle } from "lucide-react";
 import Link from "next/link";
-
-const INDUSTRIES = [
-  "Điện tử / Bán dẫn",
-  "Cơ khí / Gia công",
-  "Dệt may",
-  "Ô tô / Linh kiện",
-  "Thực phẩm / Đồ uống",
-  "Logistics / Kho vận",
-  "Hóa chất / Nhựa",
-  "CNTT / Phần mềm",
-  "Xây dựng",
-  "Khác",
-];
-
-const POSITIONS = [
-  "Nhân viên", "Chuyên viên", "Trưởng nhóm", "Trưởng phòng",
-  "Phó giám đốc", "Giám đốc", "Quản lý", "Thực tập sinh",
-];
-
-const LOCATIONS = [
-  "Hà Nội", "TP. Hồ Chí Minh", "Đà Nẵng", "Hải Phòng", "Bắc Ninh",
-  "Bắc Giang", "Bình Dương", "Đồng Nai", "Long An", "Hưng Yên",
-  "Vĩnh Phúc", "Thái Nguyên", "Khác",
-];
-
-const WORK_TYPES = ["Full-time", "Part-time", "Contract", "Remote", "Hybrid"];
-
-const INDUSTRIAL_ZONES = [
-  {
-    group: "Miền Bắc",
-    zones: [
-      "KCN Yên Phong, Bắc Ninh",
-      "KCN Quế Võ, Bắc Ninh",
-      "KCN VSIP Bắc Ninh",
-      "KCN Thăng Long, Hà Nội",
-      "KCN Quang Minh, Vĩnh Phúc",
-      "KCN Đình Vũ, Hải Phòng",
-      "KCN Tràng Duệ, Hải Phòng",
-      "KCN Samsung, Thái Nguyên",
-      "KCN Đại Đồng, Bắc Giang",
-    ],
-  },
-  {
-    group: "Miền Trung",
-    zones: [
-      "KCN Hòa Khánh, Đà Nẵng",
-      "KCN Điện Nam - Điện Ngọc, Quảng Nam",
-    ],
-  },
-  {
-    group: "Miền Nam",
-    zones: [
-      "KCN Amata, Đồng Nai",
-      "KCN Long Thành, Đồng Nai",
-      "KCN VSIP, Bình Dương",
-      "KCN Mỹ Phước, Bình Dương",
-      "KCN Long Hậu, Long An",
-      "Quận 7 / Tân Phú, TP.HCM",
-    ],
-  },
-];
-
-const LANGUAGES = [
-  { value: "none", label: "Không yêu cầu" },
-  { value: "Japanese", label: "Tiếng Nhật" },
-  { value: "Korean", label: "Tiếng Hàn" },
-  { value: "English", label: "Tiếng Anh" },
-  { value: "Chinese", label: "Tiếng Trung" },
-  { value: "German", label: "Tiếng Đức" },
-  { value: "French", label: "Tiếng Pháp" },
-];
-
-const PROFICIENCY_LEVELS = [
-  "Cơ bản (N4 / TOPIK 1)",
-  "Trung cấp (N3 / TOPIK 2)",
-  "Khá (N2 / TOPIK 3)",
-  "Thành thạo (N1 / TOPIK 4+)",
-];
+import {
+  INDUSTRIAL_ZONE_GROUPS,
+  JOB_INDUSTRIES,
+  JOB_LOCATIONS,
+  JOB_POSITIONS,
+  JOB_WORK_TYPES,
+  LANGUAGE_PROFICIENCY_LEVELS,
+  REQUIRED_LANGUAGE_OPTIONS,
+  SHIFT_TYPE_OPTIONS,
+} from "@/lib/job-taxonomy";
 
 const inputClass =
   "w-full px-4 py-2.5 rounded-xl border border-gray-200 text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all";
@@ -92,8 +24,11 @@ const selectClass =
 export default function NewJobPostingPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const submittingRef = useRef(false);
 
   async function handleSubmit(formData: FormData) {
+    if (submittingRef.current) return;
+    submittingRef.current = true;
     setError("");
     setLoading(true);
     try {
@@ -104,6 +39,7 @@ export default function NewJobPostingPage() {
     } catch {
       // redirect on success throws
     } finally {
+      submittingRef.current = false;
       setLoading(false);
     }
   }
@@ -219,28 +155,28 @@ export default function NewJobPostingPage() {
               <label htmlFor="industry" className="block text-sm font-medium text-gray-700 mb-1.5">Ngành nghề</label>
               <select id="industry" name="industry" className={selectClass}>
                 <option value="">Chọn ngành</option>
-                {INDUSTRIES.map((i) => <option key={i} value={i}>{i}</option>)}
+                {JOB_INDUSTRIES.map((i) => <option key={i} value={i}>{i}</option>)}
               </select>
             </div>
             <div>
               <label htmlFor="position" className="block text-sm font-medium text-gray-700 mb-1.5">Cấp bậc</label>
               <select id="position" name="position" className={selectClass}>
                 <option value="">Chọn cấp bậc</option>
-                {POSITIONS.map((p) => <option key={p} value={p}>{p}</option>)}
+                {JOB_POSITIONS.map((p) => <option key={p} value={p}>{p}</option>)}
               </select>
             </div>
             <div>
               <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-1.5">Tỉnh / Thành phố</label>
               <select id="location" name="location" className={selectClass}>
                 <option value="">Chọn khu vực</option>
-                {LOCATIONS.map((l) => <option key={l} value={l}>{l}</option>)}
+                {JOB_LOCATIONS.map((l) => <option key={l} value={l}>{l}</option>)}
               </select>
             </div>
             <div>
               <label htmlFor="workType" className="block text-sm font-medium text-gray-700 mb-1.5">Hình thức làm việc</label>
               <select id="workType" name="workType" className={selectClass}>
                 <option value="">Chọn hình thức</option>
-                {WORK_TYPES.map((w) => <option key={w} value={w}>{w}</option>)}
+                {JOB_WORK_TYPES.map((w) => <option key={w} value={w}>{w}</option>)}
               </select>
             </div>
           </div>
@@ -274,7 +210,7 @@ export default function NewJobPostingPage() {
               </label>
               <select id="industrialZone" name="industrialZone" className={selectClass}>
                 <option value="">Chọn khu công nghiệp</option>
-                {INDUSTRIAL_ZONES.map((group) => (
+                {INDUSTRIAL_ZONE_GROUPS.map((group) => (
                   <optgroup key={group.group} label={group.group}>
                     {group.zones.map((zone) => (
                       <option key={zone} value={zone}>{zone}</option>
@@ -289,10 +225,11 @@ export default function NewJobPostingPage() {
                 Ca làm việc
               </label>
               <select id="shiftType" name="shiftType" className={selectClass}>
-                <option value="">Không chỉ định</option>
-                <option value="DAY">Ca ngày</option>
-                <option value="NIGHT">Ca đêm</option>
-                <option value="ROTATING">Xoay ca</option>
+                {SHIFT_TYPE_OPTIONS.map((option) => (
+                  <option key={option.value || "none"} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
@@ -304,7 +241,7 @@ export default function NewJobPostingPage() {
                 Ngôn ngữ yêu cầu
               </label>
               <select id="requiredLanguage" name="requiredLanguage" className={selectClass}>
-                {LANGUAGES.map((l) => (
+                {REQUIRED_LANGUAGE_OPTIONS.map((l) => (
                   <option key={l.value} value={l.value}>{l.label}</option>
                 ))}
               </select>
@@ -316,7 +253,7 @@ export default function NewJobPostingPage() {
               </label>
               <select id="languageProficiency" name="languageProficiency" className={selectClass}>
                 <option value="">Không chỉ định</option>
-                {PROFICIENCY_LEVELS.map((l) => (
+                {LANGUAGE_PROFICIENCY_LEVELS.map((l) => (
                   <option key={l} value={l}>{l}</option>
                 ))}
               </select>

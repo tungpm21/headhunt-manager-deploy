@@ -19,7 +19,7 @@ export const authConfig = {
       const isAdmin = auth?.user?.role === "ADMIN";
       const pathname = nextUrl.pathname;
 
-      const publicPrefixes = ["/viec-lam", "/cong-ty", "/ung-tuyen", "/employer"];
+      const publicPrefixes = ["/viec-lam", "/cong-ty", "/ung-tuyen", "/chia-se", "/employer"];
       const isPublicRoute =
         pathname === "/" || publicPrefixes.some((prefix) => pathname.startsWith(prefix));
 

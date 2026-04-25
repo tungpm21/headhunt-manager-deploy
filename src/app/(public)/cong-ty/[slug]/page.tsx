@@ -6,7 +6,6 @@ import {
   Building2,
   MapPin,
   Globe,
-  Phone,
   Users,
   Briefcase,
   ChevronLeft,
@@ -77,7 +76,6 @@ export default async function CompanyProfilePage({ params }: PageProps) {
     { icon: Building2, label: "Ngành nghề", value: company.industry },
     { icon: Users, label: "Quy mô", value: company.companySize },
     { icon: MapPin, label: "Địa chỉ", value: company.address },
-    { icon: Phone, label: "Điện thoại", value: company.phone },
     {
       icon: Globe,
       label: "Website",
@@ -203,13 +201,10 @@ export default async function CompanyProfilePage({ params }: PageProps) {
                 >
                   Vị trí đang tuyển ({company.jobPostings.length})
                 </h2>
-                <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 divide-x divide-gray-100">
-                    {company.jobPostings.map((job: HomepageJob, i: number) => (
-                      <div
-                        key={job.id}
-                        className={`${i >= 2 ? "border-t border-gray-100" : ""}`}
-                      >
+                <div className="rounded-2xl bg-white/70 p-3 sm:p-4">
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:gap-5">
+                    {company.jobPostings.map((job: HomepageJob) => (
+                      <div key={job.id} className="min-w-0">
                         <JobCard job={job} />
                       </div>
                     ))}

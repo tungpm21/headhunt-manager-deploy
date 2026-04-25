@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   Menu,
   X,
@@ -51,8 +52,22 @@ export function PublicHeader() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const pathname = usePathname();
+  const isHome = pathname === "/";
 
-  const search = useSearchSuggestions();
+  const {
+    query,
+    setQuery,
+    suggestions,
+    isLoading,
+    isOpen,
+    activeIndex,
+    setActiveIndex,
+    handleFocus,
+    handleKeyDown,
+    navigateTo,
+    containerRef: searchContainerRef,
+  } = useSearchSuggestions();
 
   // Close nav dropdown on outside click
   useEffect(() => {
@@ -67,86 +82,101 @@ export function PublicHeader() {
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
-    if (search.query.trim()) {
-      search.navigateTo("keyword", search.query.trim());
+    if (query.trim()) {
+      navigateTo("keyword", query.trim());
     }
   }
 
   // Suggestion data
-  const suggestions = search.suggestions;
   const hasEmployers = (suggestions?.employers.length ?? 0) > 0;
   const hasJobs = (suggestions?.jobs.length ?? 0) > 0;
   const hasKeywords = (suggestions?.popularKeywords.length ?? 0) > 0;
   const hasResults = hasEmployers || hasJobs;
-  const noResultsForQuery = search.query.trim().length > 0 && !hasResults && !search.isLoading;
+  const noResultsForQuery = query.trim().length > 0 && !hasResults && !isLoading;
   const employerOffset = 0;
   const jobOffset = (suggestions?.employers.length ?? 0);
   const keywordOffset = jobOffset + (suggestions?.jobs.length ?? 0);
-  const showDropdown = search.isOpen && (search.isLoading || hasKeywords || hasResults || noResultsForQuery);
+  const showDropdown = isOpen && (isLoading || hasKeywords || hasResults || noResultsForQuery);
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-100 shadow-sm">
-      <div className="mx-auto max-w-7xl h-16 px-4 sm:px-6 lg:px-8 flex items-center gap-4">
+    <header className={`fixed top-0 left-0 right-0 z-50 transition-[background-color,border-color,box-shadow] ${isHome ? "border-b border-white/10 bg-[#052B52]/95 shadow-[0_12px_34px_-30px_rgba(0,0,0,0.9)] backdrop-blur-xl" : "border-b border-gray-100 bg-white shadow-sm"}`}>
+      <div className="mx-auto flex h-14 max-w-7xl items-center gap-2 px-4 sm:px-6 lg:gap-3 lg:px-8">
         {/* Logo */}
-        <Link href="/" aria-label="FDIWork - Trang chủ" className="flex items-center gap-2 shrink-0 cursor-pointer">
-          <div className="h-9 w-9 rounded-lg bg-[var(--color-fdi-primary)] flex items-center justify-center" aria-hidden="true">
-            <Briefcase className="h-5 w-5 text-white" />
+        <Link href="/" aria-label="FDIWork - Trang chủ" className="flex min-h-11 shrink-0 items-center gap-2 cursor-pointer">
+          <div className={`h-8 w-8 rounded-lg flex items-center justify-center ${isHome ? "bg-white/10 ring-1 ring-white/20" : "bg-[var(--color-fdi-primary)]"}`} aria-hidden="true">
+            <Briefcase className="h-4 w-4 text-white" />
           </div>
-          <span className="text-xl font-bold text-[var(--color-fdi-text)] hidden sm:inline" style={{ fontFamily: "var(--font-heading)" }}>
-            FDI<span className="text-[var(--color-fdi-primary)]">Work</span>
+          <span className={`inline text-lg font-bold ${isHome ? "text-white" : "text-[var(--color-fdi-text)]"}`} style={{ fontFamily: "var(--font-heading)" }}>
+            FDI<span className={isHome ? "text-[#A8DFF1]" : "text-[var(--color-fdi-primary)]"}>Work</span>
           </span>
         </Link>
 
         {/* Desktop Nav */}
         <nav className="hidden md:flex items-center gap-0.5" ref={dropdownRef} aria-label="Menu điều hướng chính">
-          {navLinks.map((link) => (
-            <div key={link.href} className="relative">
-              <button
-                onClick={() => setOpenDropdown(openDropdown === link.href ? null : link.href)}
-                aria-expanded={link.sub ? openDropdown === link.href : undefined}
-                aria-haspopup={link.sub ? "true" : undefined}
-                className="flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium text-[var(--color-fdi-text-secondary)] hover:text-[var(--color-fdi-primary)] hover:bg-[var(--color-fdi-surface)] transition-colors cursor-pointer"
-              >
-                <link.icon className="h-4 w-4" aria-hidden="true" />
-                {link.label}
-                {link.sub && (
-                  <ChevronDown className={`h-3 w-3 transition-transform ${openDropdown === link.href ? "rotate-180" : ""}`} aria-hidden="true" />
+          {navLinks.map((link) => {
+            const Icon = link.icon;
+            const navItemClass = `flex min-h-11 items-center gap-1 rounded-lg px-2.5 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-accent-orange)]/40 cursor-pointer ${isHome ? "text-sky-100/85 hover:bg-white/10 hover:text-white" : "text-[var(--color-fdi-text-secondary)] hover:bg-[var(--color-fdi-surface)] hover:text-[var(--color-fdi-primary)]"}`;
+
+            return (
+              <div key={link.href} className="relative">
+                {link.sub ? (
+                  <button
+                    type="button"
+                    onClick={() => setOpenDropdown(openDropdown === link.href ? null : link.href)}
+                    aria-expanded={openDropdown === link.href}
+                    aria-haspopup="true"
+                    className={navItemClass}
+                  >
+                    <Icon className="h-4 w-4" aria-hidden="true" />
+                    {link.label}
+                    <ChevronDown className={`h-3 w-3 transition-transform ${openDropdown === link.href ? "rotate-180" : ""}`} aria-hidden="true" />
+                  </button>
+                ) : (
+                  <Link
+                    href={link.href}
+                    className={navItemClass}
+                    onClick={() => setOpenDropdown(null)}
+                  >
+                    <Icon className="h-4 w-4" aria-hidden="true" />
+                    {link.label}
+                  </Link>
                 )}
-              </button>
-              {link.sub && openDropdown === link.href && (
-                <div className="absolute top-full left-0 mt-1 w-52 bg-white rounded-xl border border-gray-100 shadow-lg py-1 z-50" role="menu">
-                  {link.sub.map((subLink) => (
-                    <Link key={subLink.href} href={subLink.href} onClick={() => setOpenDropdown(null)}
-                      role="menuitem"
-                      className="block px-4 py-2.5 text-sm text-[var(--color-fdi-text-secondary)] hover:text-[var(--color-fdi-primary)] hover:bg-[var(--color-fdi-surface)] transition-colors cursor-pointer">
-                      {subLink.label}
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
+                {link.sub && openDropdown === link.href && (
+                  <div className="absolute top-full left-0 mt-1 w-52 bg-white rounded-xl border border-gray-100 shadow-lg py-1 z-50" role="menu">
+                    {link.sub.map((subLink) => (
+                      <Link key={subLink.href} href={subLink.href} onClick={() => setOpenDropdown(null)}
+                        role="menuitem"
+                        className="flex min-h-11 items-center px-4 py-2.5 text-sm text-[var(--color-fdi-text-secondary)] transition-colors hover:bg-[var(--color-fdi-surface)] hover:text-[var(--color-fdi-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-accent-orange)]/40 cursor-pointer">
+                        {subLink.label}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </nav>
 
         {/* Header search with inline dropdown */}
-        <div ref={search.containerRef} className="hidden lg:flex flex-1 max-w-md mx-auto relative">
+        <div ref={searchContainerRef} className="hidden lg:flex flex-1 min-w-[220px] max-w-xs xl:max-w-sm mx-auto relative">
           <form onSubmit={handleSearch} className="w-full" role="search" aria-label="Tìm kiếm việc làm">
             <div className="relative w-full">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" aria-hidden="true" />
               <input
                 type="text"
+                name="q"
                 role="combobox"
                 aria-label="Tìm kiếm việc làm hoặc công ty"
                 aria-autocomplete="list"
                 aria-expanded={showDropdown}
                 aria-controls="header-search-listbox"
-                aria-activedescendant={search.activeIndex >= 0 ? `header-option-${search.activeIndex}` : undefined}
-                value={search.query}
-                onChange={(e) => search.setQuery(e.target.value)}
-                onFocus={search.handleFocus}
-                onKeyDown={search.handleKeyDown}
+                aria-activedescendant={activeIndex >= 0 ? `header-option-${activeIndex}` : undefined}
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onFocus={handleFocus}
+                onKeyDown={handleKeyDown}
                 placeholder="Tìm việc làm, công ty…"
-                className="w-full pl-9 pr-3 py-2 rounded-full border border-gray-200 text-sm bg-gray-50 text-[var(--color-fdi-text)] placeholder-gray-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-accent-orange)]/50 focus-visible:border-[var(--color-fdi-accent-orange)] transition-all"
+                className={`min-h-11 w-full rounded-full border py-2 pl-9 pr-3 text-sm transition-[border-color,box-shadow,background-color] focus:outline-none focus-visible:border-[var(--color-fdi-accent-orange)] focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-accent-orange)]/50 ${isHome ? "border-white/18 bg-white/12 text-white placeholder:text-sky-100/60 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]" : "border-gray-200 bg-gray-50 text-[var(--color-fdi-text)] placeholder-gray-400"}`}
                 autoComplete="off"
               />
             </div>
@@ -161,7 +191,7 @@ export function PublicHeader() {
               className="absolute top-full left-0 mt-1.5 bg-white rounded-xl border border-gray-200 shadow-2xl z-50 overflow-hidden"
               style={{ width: "max(100%, 580px)", maxWidth: "calc(100vw - 2rem)" }}
             >
-              {search.isLoading && !suggestions && (
+              {isLoading && !suggestions && (
                 <div className="flex items-center gap-2 px-4 py-3 text-sm text-gray-400" aria-live="polite">
                   <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
                   Đang tìm kiếm…
@@ -177,10 +207,10 @@ export function PublicHeader() {
                       {suggestions!.employers.map((emp, i) => {
                         const idx = employerOffset + i;
                         return (
-                          <button key={emp.id} id={`header-option-${idx}`} role="option" aria-selected={search.activeIndex === idx} type="button"
-                            onClick={() => search.navigateTo("employer", emp.slug)}
-                            onMouseEnter={() => search.setActiveIndex(idx)}
-                            className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg cursor-pointer transition-colors text-left ${search.activeIndex === idx ? "bg-[var(--color-fdi-surface)]" : "hover:bg-gray-50"}`}>
+                          <button key={emp.id} id={`header-option-${idx}`} role="option" aria-selected={activeIndex === idx} type="button"
+                            onClick={() => navigateTo("employer", emp.slug)}
+                            onMouseEnter={() => setActiveIndex(idx)}
+                            className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg cursor-pointer transition-colors text-left ${activeIndex === idx ? "bg-[var(--color-fdi-surface)]" : "hover:bg-gray-50"}`}>
                             <div className="h-6 w-6 rounded bg-gray-50 border border-gray-100 flex items-center justify-center overflow-hidden shrink-0" aria-hidden="true">
                               <LogoImage src={emp.logo} alt="" className="h-full w-full object-contain p-0.5" iconSize="h-3 w-3" />
                             </div>
@@ -197,10 +227,10 @@ export function PublicHeader() {
                       {suggestions!.popularKeywords.map((kw, i) => {
                         const idx = keywordOffset + i;
                         return (
-                          <button key={kw} id={`header-option-${idx}`} role="option" aria-selected={search.activeIndex === idx} type="button"
-                            onClick={() => search.navigateTo("keyword", kw)}
-                            onMouseEnter={() => search.setActiveIndex(idx)}
-                            className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-sm cursor-pointer transition-colors text-left ${search.activeIndex === idx ? "bg-[var(--color-fdi-surface)] text-[var(--color-fdi-primary)]" : "text-gray-600 hover:bg-gray-50"}`}>
+                          <button key={kw} id={`header-option-${idx}`} role="option" aria-selected={activeIndex === idx} type="button"
+                            onClick={() => navigateTo("keyword", kw)}
+                            onMouseEnter={() => setActiveIndex(idx)}
+                            className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-sm cursor-pointer transition-colors text-left ${activeIndex === idx ? "bg-[var(--color-fdi-surface)] text-[var(--color-fdi-primary)]" : "text-gray-600 hover:bg-gray-50"}`}>
                             <Search className="h-3 w-3 shrink-0 opacity-40" aria-hidden="true" />
                             {kw}
                           </button>
@@ -212,15 +242,15 @@ export function PublicHeader() {
                 {/* Right — Jobs */}
                 <div className="sm:col-span-3 p-3 border-t sm:border-t-0 border-gray-100 overflow-y-auto max-h-[380px]">
                   <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1 px-1" aria-hidden="true">
-                    {search.query.trim() ? "Việc làm bạn sẽ thích" : "Việc làm có thể bạn quan tâm"}
+                    {query.trim() ? "Việc làm bạn sẽ thích" : "Việc làm có thể bạn quan tâm"}
                   </p>
                   {hasJobs ? suggestions!.jobs.map((job, i) => {
                     const idx = jobOffset + i;
                     return (
-                      <button key={job.id} id={`header-option-${idx}`} role="option" aria-selected={search.activeIndex === idx} type="button"
-                        onClick={() => search.navigateTo("job", job.slug)}
-                        onMouseEnter={() => search.setActiveIndex(idx)}
-                        className={`w-full flex items-center gap-2.5 px-2 py-1.5 rounded-lg cursor-pointer transition-colors text-left ${search.activeIndex === idx ? "bg-[var(--color-fdi-surface)]" : "hover:bg-gray-50"}`}>
+                      <button key={job.id} id={`header-option-${idx}`} role="option" aria-selected={activeIndex === idx} type="button"
+                        onClick={() => navigateTo("job", job.slug)}
+                        onMouseEnter={() => setActiveIndex(idx)}
+                        className={`w-full flex items-center gap-2.5 px-2 py-1.5 rounded-lg cursor-pointer transition-colors text-left ${activeIndex === idx ? "bg-[var(--color-fdi-surface)]" : "hover:bg-gray-50"}`}>
                         <div className="h-8 w-8 rounded bg-gray-50 border border-gray-100 flex items-center justify-center overflow-hidden shrink-0" aria-hidden="true">
                           <LogoImage src={job.employer.logo} alt="" className="h-full w-full object-contain p-0.5" iconSize="h-3.5 w-3.5" />
                         </div>
@@ -234,7 +264,7 @@ export function PublicHeader() {
                   }) : noResultsForQuery ? (
                     <div className="flex items-center gap-2 py-3 text-sm text-gray-400" aria-live="polite">
                       <Search className="h-4 w-4" aria-hidden="true" />
-                      Không tìm thấy kết quả cho &ldquo;{search.query}&rdquo;
+                      Không tìm thấy kết quả cho &ldquo;{query}&rdquo;
                     </div>
                   ) : null}
                 </div>
@@ -244,23 +274,32 @@ export function PublicHeader() {
         </div>
 
         {/* Desktop CTAs */}
-        <div className="hidden md:flex items-center gap-3 shrink-0">
-          <Link href="/employer/login" className="text-sm font-medium text-[var(--color-fdi-text-secondary)] hover:text-[var(--color-fdi-primary)] transition-colors cursor-pointer">
+        <div className="hidden md:flex items-center gap-2 shrink-0">
+          <Link href="/employer/login" className={`flex min-h-11 items-center text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-accent-orange)]/40 cursor-pointer ${isHome ? "text-sky-100/85 hover:text-white" : "text-[var(--color-fdi-text-secondary)] hover:text-[var(--color-fdi-primary)]"}`}>
             Đăng nhập NTD
           </Link>
           <Link href="/employer/register"
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[var(--color-fdi-accent-orange)] text-white text-sm font-semibold hover:bg-[#E65C00] transition-transform duration-300 ease-out hover:-translate-y-0.5 hover:shadow-md cursor-pointer">
+            className="inline-flex min-h-11 items-center gap-1.5 rounded-full bg-[var(--color-fdi-accent-orange)] px-3 py-2 text-sm font-semibold text-white shadow-[0_12px_28px_-18px_rgba(242,92,36,0.85)] transition-[background-color,box-shadow,transform] duration-200 ease-out hover:-translate-y-0.5 hover:bg-[#D94F1D] hover:shadow-[0_16px_34px_-18px_rgba(242,92,36,0.95)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-accent-orange)]/40 cursor-pointer whitespace-nowrap">
             <UserPlus className="h-4 w-4" aria-hidden="true" />
-            Đăng tin tuyển dụng
+            <span className="hidden xl:inline">Đăng tin tuyển dụng</span>
+            <span className="xl:hidden">Đăng tin</span>
           </Link>
         </div>
 
+        <Link
+          href="/viec-lam"
+          className={`ml-auto inline-flex min-h-11 items-center gap-1.5 rounded-full border px-3 text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-accent-orange)]/40 md:hidden ${isHome ? "border-white/18 text-white" : "border-gray-200 text-[var(--color-fdi-primary)]"}`}
+        >
+          <Search className="h-4 w-4" aria-hidden="true" />
+          Tìm việc
+        </Link>
+
         {/* Mobile Hamburger */}
         <button onClick={() => setMobileOpen(!mobileOpen)}
-          className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer ml-auto"
+          className={`flex h-11 w-11 items-center justify-center rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-accent-orange)]/40 cursor-pointer md:hidden ${isHome ? "hover:bg-white/10" : "hover:bg-gray-100"}`}
           aria-label={mobileOpen ? "Đóng menu" : "Mở menu điều hướng"}
           aria-expanded={mobileOpen}>
-          {mobileOpen ? <X className="h-5 w-5 text-[var(--color-fdi-text)]" aria-hidden="true" /> : <Menu className="h-5 w-5 text-[var(--color-fdi-text)]" aria-hidden="true" />}
+          {mobileOpen ? <X className={`h-5 w-5 ${isHome ? "text-white" : "text-[var(--color-fdi-text)]"}`} aria-hidden="true" /> : <Menu className={`h-5 w-5 ${isHome ? "text-white" : "text-[var(--color-fdi-text)]"}`} aria-hidden="true" />}
         </button>
       </div>
 
@@ -270,11 +309,12 @@ export function PublicHeader() {
           <form onSubmit={handleSearch} className="px-4 pt-3" role="search" aria-label="Tìm kiếm cơ bản">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" aria-hidden="true" />
-              <input type="text" value={search.query}
-                onChange={(e) => search.setQuery(e.target.value)}
+              <input type="text" value={query}
+                name="q"
+                onChange={(e) => setQuery(e.target.value)}
                 aria-label="Tìm kiếm việc làm hoặc công ty"
                 placeholder="Tìm việc làm, công ty…"
-                className="w-full pl-9 pr-3 py-2.5 rounded-lg border border-gray-200 text-sm bg-gray-50 text-[var(--color-fdi-text)] placeholder-gray-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-accent-orange)]/50"
+                className="min-h-11 w-full rounded-lg border border-gray-200 bg-gray-50 py-2.5 pl-9 pr-3 text-sm text-[var(--color-fdi-text)] placeholder-gray-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-accent-orange)]/50"
                 autoComplete="off"
               />
             </div>
@@ -283,7 +323,7 @@ export function PublicHeader() {
             {navLinks.map((link) => (
               <div key={link.href}>
                 <Link href={link.href} onClick={() => setMobileOpen(false)}
-                  className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium text-[var(--color-fdi-text)] hover:bg-[var(--color-fdi-surface)] transition-colors cursor-pointer">
+                  className="flex min-h-11 items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium text-[var(--color-fdi-text)] transition-colors hover:bg-[var(--color-fdi-surface)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-accent-orange)]/40 cursor-pointer">
                   <link.icon className="h-4 w-4 text-[var(--color-fdi-primary)]" aria-hidden="true" />
                   {link.label}
                 </Link>
@@ -291,7 +331,7 @@ export function PublicHeader() {
                   <div className="ml-9 space-y-0.5">
                     {link.sub.map((subLink) => (
                       <Link key={subLink.href} href={subLink.href} onClick={() => setMobileOpen(false)}
-                        className="block px-3 py-2 text-sm text-[var(--color-fdi-text-secondary)] hover:text-[var(--color-fdi-primary)] cursor-pointer">
+                        className="flex min-h-11 items-center rounded-lg px-3 py-2 text-sm text-[var(--color-fdi-text-secondary)] hover:text-[var(--color-fdi-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-accent-orange)]/40 cursor-pointer">
                         {subLink.label}
                       </Link>
                     ))}
@@ -301,11 +341,11 @@ export function PublicHeader() {
             ))}
             <div className="pt-2 border-t border-gray-100 space-y-1">
               <Link href="/employer/login" onClick={() => setMobileOpen(false)}
-                className="block px-3 py-2.5 text-sm font-medium text-[var(--color-fdi-text-secondary)] hover:text-[var(--color-fdi-primary)] cursor-pointer">
+                className="flex min-h-11 items-center rounded-lg px-3 py-2.5 text-sm font-medium text-[var(--color-fdi-text-secondary)] hover:text-[var(--color-fdi-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-accent-orange)]/40 cursor-pointer">
                 Đăng nhập NTD
               </Link>
               <Link href="/employer/register" onClick={() => setMobileOpen(false)}
-                className="block px-3 py-2.5 text-sm font-semibold text-[var(--color-fdi-accent-orange)] cursor-pointer">
+                className="flex min-h-11 items-center rounded-lg px-3 py-2.5 text-sm font-semibold text-[var(--color-fdi-accent-orange)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-accent-orange)]/40 cursor-pointer">
                 Đăng tin tuyển dụng
               </Link>
             </div>

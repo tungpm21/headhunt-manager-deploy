@@ -38,8 +38,11 @@ export function useSearchSuggestions() {
   const [activeIndex, setActiveIndex] = useState(-1);
   const containerRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const mountedRef = useRef(false);
 
   const fetchSuggestions = useCallback(async (q: string) => {
+    if (!mountedRef.current) return;
+
     abortRef.current?.abort();
     const controller = new AbortController();
     abortRef.current = controller;
@@ -52,18 +55,31 @@ export function useSearchSuggestions() {
       const res = await fetch(url, { signal: controller.signal });
       if (!res.ok) return;
       const data: SearchSuggestions = await res.json();
+      if (!mountedRef.current || controller.signal.aborted) return;
       setSuggestions(data);
       setActiveIndex(-1);
     } catch (e: unknown) {
       if (e instanceof DOMException && e.name === "AbortError") return;
     } finally {
-      setIsLoading(false);
+      if (mountedRef.current && abortRef.current === controller) {
+        setIsLoading(false);
+      }
     }
   }, []);
 
   const debouncedFetch = useDebouncedCallback((q: string) => {
     fetchSuggestions(q);
   }, 300);
+
+  useEffect(() => {
+    mountedRef.current = true;
+
+    return () => {
+      mountedRef.current = false;
+      abortRef.current?.abort();
+      debouncedFetch.cancel();
+    };
+  }, [debouncedFetch]);
 
   function handleQueryChange(value: string) {
     setQuery(value);

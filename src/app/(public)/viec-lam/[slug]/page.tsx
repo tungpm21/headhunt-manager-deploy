@@ -14,6 +14,8 @@ import {
   BadgeDollarSign,
   CalendarDays,
   Tag,
+  Factory,
+  CheckCircle2,
 } from "lucide-react";
 import { getPublicJobBySlug, type HomepageJob } from "@/lib/public-actions";
 import { JobCard } from "@/components/public/JobCard";
@@ -33,6 +35,23 @@ const SHIFT_LABELS: Record<string, string> = {
   NIGHT: "Ca đêm",
   ROTATING: "Xoay ca",
 };
+
+function toPlainJobContent(content: string): string {
+  return content
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/p>/gi, "\n\n")
+    .replace(/<li>/gi, "\n- ")
+    .replace(/<\/li>/gi, "")
+    .replace(/<\/?(p|ul|ol|strong|b|em|i|span|div)[^>]*>/gi, "")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -202,23 +221,27 @@ export default async function JobDetailPage({ params }: PageProps) {
                       key={lang}
                       className="inline-flex items-center gap-1.5 rounded-full bg-[#0077B6]/10 px-3 py-1.5 text-xs font-semibold text-[#0077B6]"
                     >
-                      🌐 {LANGUAGE_LABELS[lang] ?? lang}
+                      <Globe className="h-3.5 w-3.5" aria-hidden="true" />
+                      {LANGUAGE_LABELS[lang] ?? lang}
                       {job.languageProficiency && ` · ${job.languageProficiency}`}
                     </span>
                   ))}
                   {job.industrialZone && (
                     <span className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1.5 text-xs font-semibold text-gray-700">
-                      🏭 {job.industrialZone}
+                      <Factory className="h-3.5 w-3.5" aria-hidden="true" />
+                      {job.industrialZone}
                     </span>
                   )}
                   {job.visaSupport === "YES" && (
                     <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1.5 text-xs font-semibold text-emerald-700">
-                      ✅ Hỗ trợ visa
+                      <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
+                      Hỗ trợ visa
                     </span>
                   )}
                   {job.shiftType && (
                     <span className="inline-flex items-center gap-1.5 rounded-full bg-orange-100 px-3 py-1.5 text-xs font-semibold text-orange-700">
-                      🕐 {SHIFT_LABELS[job.shiftType] ?? job.shiftType}
+                      <Clock className="h-3.5 w-3.5" aria-hidden="true" />
+                      {SHIFT_LABELS[job.shiftType] ?? job.shiftType}
                     </span>
                   )}
                 </div>
@@ -241,7 +264,7 @@ export default async function JobDetailPage({ params }: PageProps) {
               {/* CTA */}
               <Link
                 href={`/ung-tuyen?job=${job.id}`}
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[var(--color-fdi-primary)] text-white font-semibold text-sm hover:bg-[var(--color-fdi-primary-hover)] transition-all hover:-translate-y-0.5 cursor-pointer"
+                className="inline-flex min-h-11 items-center gap-2 rounded-full bg-[var(--color-fdi-primary)] px-6 py-3 text-sm font-semibold text-white transition-[background-color,transform] duration-200 hover:-translate-y-0.5 hover:bg-[var(--color-fdi-primary-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-primary)]/35 cursor-pointer"
               >
                 Ứng tuyển ngay
                 <ArrowRight className="h-4 w-4" />
@@ -317,7 +340,7 @@ export default async function JobDetailPage({ params }: PageProps) {
 
               <Link
                 href={`/cong-ty/${job.employer.slug}`}
-                className="block w-full text-center px-4 py-2 rounded-lg border border-[var(--color-fdi-primary)] text-sm font-medium text-[var(--color-fdi-primary)] hover:bg-[var(--color-fdi-surface)] transition-colors cursor-pointer"
+                className="flex min-h-11 w-full items-center justify-center rounded-lg border border-[var(--color-fdi-primary)] px-4 py-2 text-center text-sm font-medium text-[var(--color-fdi-primary)] transition-colors hover:bg-[var(--color-fdi-surface)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-primary)]/30 cursor-pointer"
               >
                 Xem trang công ty
               </Link>
@@ -407,6 +430,10 @@ export default async function JobDetailPage({ params }: PageProps) {
 }
 
 function ContentSection({ title, content }: { title: string; content: string }) {
+  const body = toPlainJobContent(content);
+
+  if (!body) return null;
+
   return (
     <div className="bg-white rounded-xl border border-gray-100 p-6 sm:p-8">
       <h2
@@ -419,7 +446,7 @@ function ContentSection({ title, content }: { title: string; content: string }) 
         className="prose prose-sm max-w-none text-[var(--color-fdi-text-secondary)] leading-relaxed whitespace-pre-line"
         style={{ fontFamily: "var(--font-body)" }}
       >
-        {content}
+        {body}
       </div>
     </div>
   );

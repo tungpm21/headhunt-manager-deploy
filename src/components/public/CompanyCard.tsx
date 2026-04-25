@@ -23,7 +23,7 @@ export function CompanyCard({ company, imagePriority = false }: CompanyCardProps
   return (
     <Link href={`/cong-ty/${company.slug}`} className="group block cursor-pointer">
       <article
-        className={`bg-white rounded-2xl border overflow-hidden transition-all duration-200 hover:shadow-lg hover:-translate-y-1 hover:border-[var(--color-fdi-primary)]/20 h-full flex flex-col ${company.subscription && ["VIP", "PREMIUM"].includes(company.subscription.tier)
+        className={`bg-white rounded-2xl border overflow-hidden transition-[border-color,box-shadow,transform] duration-200 hover:shadow-lg hover:-translate-y-1 hover:border-[var(--color-fdi-primary)]/20 h-full flex flex-col ${company.subscription && ["VIP", "PREMIUM"].includes(company.subscription.tier)
             ? "border-amber-200 border-l-[3px] border-l-amber-400"
             : "border-gray-100"
           }`}

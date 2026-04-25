@@ -12,12 +12,15 @@ import {
 import {
   createEmployerAccount,
   createEmployerJobPostingAndIncrementQuota,
+  deleteEmployerJobPostingWithQuotaPolicy,
   findEmployerByEmail,
   findEmployerBySlug,
   findEmployerJobPostingBySlug,
+  findRecentEmployerJobPostingDuplicate,
   getEmployerDashboardSnapshot,
   getEmployerJobApplicants,
   getEmployerJobPostingsForPortal,
+  getEmployerNotificationSnapshot,
   getEmployerOwnedJobPosting,
   getEmployerProfileById,
   getEmployerSubscriptionSnapshot,
@@ -305,6 +308,11 @@ export async function getMyJobPostings(status?: string, page = 1) {
   return getEmployerJobPostingsForPortal(session.employerId, status, page);
 }
 
+export async function getEmployerNotificationData() {
+  const session = await requireEmployerSession({ allowExpiredSubscription: true });
+  return getEmployerNotificationSnapshot(session.employerId);
+}
+
 export async function getJobPostingDetail(id: number) {
   const session = await requireEmployerSession();
   return getEmployerOwnedJobPosting(id, session.employerId);
@@ -341,40 +349,81 @@ export async function createJobPostingAction(formData: FormData) {
     };
   }
 
+  const duplicate = await findRecentEmployerJobPostingDuplicate(
+    session.employerId,
+    parsedInput.data.title,
+    parsedInput.data.description
+  );
+
+  if (duplicate) {
+    return {
+      success: false,
+      message: "Tin này vừa được tạo. Vui lòng kiểm tra danh sách tin.",
+    };
+  }
+
   let slug = generateSlug(parsedInput.data.title);
   const slugExists = await findEmployerJobPostingBySlug(slug);
   if (slugExists) {
     slug = `${slug}-${Date.now().toString(36)}`;
   }
 
-  await createEmployerJobPostingAndIncrementQuota({
-    employerId: session.employerId,
-    subscriptionId: sub.id,
-    jobPosting: {
-      title: parsedInput.data.title,
-      slug,
-      description: parsedInput.data.description,
-      requirements: parsedInput.data.requirements || null,
-      benefits: parsedInput.data.benefits || null,
-      salaryMin: parsedInput.data.salaryMin ?? null,
-      salaryMax: parsedInput.data.salaryMax ?? null,
-      salaryDisplay: parsedInput.data.salaryDisplay || null,
-      industry: parsedInput.data.industry || null,
-      position: parsedInput.data.position || null,
-      location: parsedInput.data.location || null,
-      workType: parsedInput.data.workType || null,
-      quantity: parsedInput.data.quantity,
-      skills: parsedInput.data.skills,
-      industrialZone: parsedInput.data.industrialZone || null,
-      requiredLanguages: parsedInput.data.requiredLanguages,
-      languageProficiency: parsedInput.data.languageProficiency || null,
-      visaSupport: parsedInput.data.visaSupport || null,
-      shiftType: parsedInput.data.shiftType || null,
-      status: "PENDING",
-    },
-  });
+  try {
+    await createEmployerJobPostingAndIncrementQuota({
+      employerId: session.employerId,
+      subscriptionId: sub.id,
+      jobPosting: {
+        title: parsedInput.data.title,
+        slug,
+        description: parsedInput.data.description,
+        requirements: parsedInput.data.requirements || null,
+        benefits: parsedInput.data.benefits || null,
+        salaryMin: parsedInput.data.salaryMin ?? null,
+        salaryMax: parsedInput.data.salaryMax ?? null,
+        salaryDisplay: parsedInput.data.salaryDisplay || null,
+        industry: parsedInput.data.industry || null,
+        position: parsedInput.data.position || null,
+        location: parsedInput.data.location || null,
+        workType: parsedInput.data.workType || null,
+        quantity: parsedInput.data.quantity,
+        skills: parsedInput.data.skills,
+        industrialZone: parsedInput.data.industrialZone || null,
+        requiredLanguages: parsedInput.data.requiredLanguages,
+        languageProficiency: parsedInput.data.languageProficiency || null,
+        visaSupport: parsedInput.data.visaSupport || null,
+        shiftType: parsedInput.data.shiftType || null,
+        status: "PENDING",
+      },
+    });
+  } catch (error) {
+    if (error instanceof Error && error.message === "QUOTA_EXHAUSTED") {
+      return {
+        success: false,
+        message: "Bạn đã hết lượt đăng tin. Vui lòng gia hạn gói.",
+      };
+    }
+
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      error.code === "P2002"
+    ) {
+      return {
+        success: false,
+        message: "Tin này đang được xử lý. Vui lòng kiểm tra danh sách tin.",
+      };
+    }
+
+    console.error("createJobPostingAction error:", error);
+    return {
+      success: false,
+      message: "Không thể đăng tin lúc này. Vui lòng thử lại.",
+    };
+  }
 
   revalidatePath("/employer/job-postings");
+  revalidatePath("/employer/dashboard");
   redirect("/employer/job-postings");
 }
 
@@ -450,6 +499,37 @@ export async function toggleJobPostingStatus(id: number) {
   return {
     success: false,
     message: "Chi co the an hoac bat lai tin dang hien thi hoac tam an.",
+  };
+}
+
+export async function deleteJobPostingAction(id: number) {
+  const session = await requireEmployerSession();
+  const result = await deleteEmployerJobPostingWithQuotaPolicy(id, session.employerId);
+
+  if (!result) {
+    return { success: false, message: "Không tìm thấy tin." };
+  }
+
+  revalidatePath("/employer/job-postings");
+  revalidatePath("/employer/dashboard");
+  revalidatePath("/viec-lam");
+  revalidatePath("/cong-ty");
+  revalidatePath(`/viec-lam/${result.slug}`);
+
+  if (result.mode === "deleted") {
+    return {
+      success: true,
+      deleted: true,
+      message: result.refunded
+        ? "Đã xoá tin và hoàn 1 lượt đăng."
+        : "Đã xoá tin.",
+    };
+  }
+
+  return {
+    success: true,
+    deleted: false,
+    message: "Tin đã có ứng viên nên được tạm ẩn để giữ lịch sử. Không hoàn quota.",
   };
 }
 

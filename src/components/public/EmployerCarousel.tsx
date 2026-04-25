@@ -13,29 +13,27 @@ type EmployerCarouselProps = {
 export function EmployerCarousel({ employers }: EmployerCarouselProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [paused, setPaused] = useState(false);
-
-  // Guard: need at least 2 employers to carousel
-  if (employers.length < 2) return null;
-
   const total = employers.length;
   const safeIndex = total > 0 ? activeIndex % total : 0;
 
   const goNext = useCallback(() => {
+    if (total < 2) return;
     setActiveIndex((i) => (i + 1) % total);
   }, [total]);
 
   const goPrev = useCallback(() => {
+    if (total < 2) return;
     setActiveIndex((i) => (i - 1 + total) % total);
   }, [total]);
 
   // Auto-rotate timer — 4s, pauses on hover/focus
   useEffect(() => {
-    if (paused) return;
+    if (paused || total < 2) return;
     const id = setInterval(goNext, 4000);
     return () => clearInterval(id);
-  }, [paused, goNext]);
+  }, [paused, goNext, total]);
 
-  const employer = employers[safeIndex];
+  if (total < 2) return null;
 
   return (
     <section
@@ -84,9 +82,13 @@ export function EmployerCarousel({ employers }: EmployerCarouselProps) {
 
             {/* Carousel track — show 4 at a time */}
             <div className="flex-1 grid grid-cols-4 xl:grid-cols-5 gap-4 overflow-hidden">
-              {Array.from({ length: Math.min(4, total) }, (_, offset) => {
+              {Array.from({ length: Math.min(5, total) }, (_, offset) => {
                 const idx = (safeIndex + offset) % total;
-                return <EmployerCard key={employers[idx].id} employer={employers[idx]} />;
+                return (
+                  <div key={employers[idx].id} className={offset >= 4 ? "hidden xl:block" : ""}>
+                    <EmployerCard employer={employers[idx]} />
+                  </div>
+                );
               })}
             </div>
 
@@ -109,7 +111,7 @@ export function EmployerCarousel({ employers }: EmployerCarouselProps) {
                 aria-selected={idx === safeIndex}
                 aria-label={`Trang ${idx + 1}`}
                 onClick={() => setActiveIndex(idx)}
-                className={`h-2 rounded-full transition-all duration-200 cursor-pointer ${idx === safeIndex
+                className={`h-2 rounded-full transition-[background-color,width] duration-200 cursor-pointer ${idx === safeIndex
                   ? "w-6 bg-[var(--color-fdi-primary)]"
                   : "w-2 bg-gray-300 hover:bg-gray-400"
                   }`}
@@ -127,7 +129,7 @@ function EmployerCard({ employer }: { employer: HomepageEmployer }) {
 
   return (
     <Link href={`/cong-ty/${employer.slug}`} className="group block cursor-pointer">
-      <div className="bg-white rounded-xl p-5 text-center transition-all duration-200 hover:shadow-md hover:-translate-y-1 border border-gray-100">
+      <div className="bg-white rounded-xl p-5 text-center transition-[box-shadow,transform,border-color] duration-200 hover:shadow-md hover:-translate-y-1 border border-gray-100">
         {/* Logo */}
         <div className="mx-auto h-20 w-20 rounded-xl bg-[var(--color-fdi-surface)] flex items-center justify-center overflow-hidden mb-3 border border-gray-50">
           <LogoImage src={employer.logo} alt={employer.companyName} className="h-full w-full object-contain p-2" iconSize="h-8 w-8" />

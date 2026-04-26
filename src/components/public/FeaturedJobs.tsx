@@ -6,7 +6,7 @@ import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { JobCard } from "./JobCard";
 import type { HomepageJob } from "@/lib/public-actions";
 
-const JOBS_PER_PAGE = 9;
+const JOBS_PER_PAGE = 6;
 
 type FeaturedJobsProps = {
   jobs: HomepageJob[];
@@ -24,87 +24,84 @@ export function FeaturedJobs({ jobs }: FeaturedJobsProps) {
   );
 
   return (
-    <section className="py-16 lg:py-20 bg-gray-50 border-t border-gray-100">
+    <section className="relative bg-[linear-gradient(180deg,#FFFFFB_0%,#F5F8FA_100%)] py-10 lg:py-12">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        {/* Heading */}
-        <div className="flex items-end justify-between mb-8">
+        <div className="mb-0 flex items-end justify-between rounded-t-[24px] border border-b-0 border-[#D9E4EA] bg-white px-5 py-4 shadow-[0_16px_40px_-38px_rgba(17,24,39,0.46)] sm:px-6">
           <div className="flex items-center gap-3">
-            {/* VietnamWorks-style decorative icon */}
-            <div className="hidden sm:block">
-              <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-                <path d="M4 28L16 4L28 28H4Z" fill="#FF6600" opacity="0.2" />
-                <path d="M8 28L16 12L24 28H8Z" fill="#FF6600" opacity="0.4" />
-                <path d="M12 28L16 20L20 28H12Z" fill="#FF6600" />
+            <div className="hidden h-10 w-10 items-center justify-center rounded-xl border border-[#F4D9C9] bg-[#FFF1E8] sm:flex">
+              <svg width="22" height="22" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+                <path d="M5 27L16 5L27 27H5Z" fill="#F25C24" opacity="0.18" />
+                <path d="M10 27L16 14L22 27H10Z" fill="#F25C24" opacity="0.72" />
+                <path d="M16 14L22 27H16V14Z" fill="#0A6F9D" opacity="0.78" />
               </svg>
             </div>
             <div>
               <h2
-                className="text-2xl sm:text-3xl font-extrabold text-[var(--color-fdi-text)] italic"
+                className="text-xl font-extrabold italic text-[var(--color-fdi-text)] sm:text-2xl"
                 style={{ fontFamily: "var(--font-heading)" }}
               >
-                Việc Làm Tốt Nhất
+                Việc làm tốt nhất
               </h2>
               <p
-                className="mt-1 text-sm text-[var(--color-fdi-text-secondary)]"
+                className="mt-0.5 text-sm text-[var(--color-fdi-text-secondary)]"
                 style={{ fontFamily: "var(--font-body)" }}
               >
-                Các cơ hội việc làm hấp dẫn từ doanh nghiệp FDI
+                Cơ hội nổi bật từ các doanh nghiệp FDI uy tín
               </p>
             </div>
           </div>
           <Link
             href="/viec-lam"
-            className="hidden sm:inline-flex items-center gap-1 text-sm font-bold text-[var(--color-fdi-accent-orange)] hover:text-[#E65C00] transition-colors cursor-pointer uppercase"
+            className="hidden min-h-11 items-center gap-1 rounded-full px-2 text-sm font-bold uppercase text-[var(--color-fdi-primary)] transition-colors hover:text-[var(--color-fdi-primary-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-primary)]/25 sm:inline-flex cursor-pointer"
           >
-            XEM TẤT CẢ
+            Xem tất cả
             <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
 
-        {/* Card grid — uniform 3x3, bordered container like VietnamWorks */}
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 divide-x divide-gray-100">
-            {currentJobs.map((job, i) => (
-              <div
-                key={job.id}
-                className={`${i >= 3 ? "border-t border-gray-100" : ""}`}
-              >
+        <div className="rounded-b-[24px] border border-[#D9E4EA] bg-white p-4 shadow-[0_24px_60px_-48px_rgba(17,24,39,0.56)] sm:p-5">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {currentJobs.map((job) => (
+              <div key={job.id} className="min-w-0">
                 <JobCard job={job} />
               </div>
             ))}
           </div>
         </div>
 
-        {/* Pagination dots + arrows */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-center gap-3 mt-6">
+          <div className="mt-4 flex items-center justify-center gap-3">
             <button
               onClick={() => setPage((p) => Math.max(0, p - 1))}
               disabled={page === 0}
-              className="h-8 w-8 rounded-full border border-gray-200 bg-white flex items-center justify-center hover:border-[var(--color-fdi-accent-orange)] hover:text-[var(--color-fdi-accent-orange)] transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+              className="flex h-11 w-11 items-center justify-center rounded-full border border-[#D9E4EA] bg-[#FFFFFB] text-[var(--color-fdi-text)] transition-colors hover:border-[var(--color-fdi-primary)] hover:text-[var(--color-fdi-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-primary)]/25 cursor-pointer disabled:cursor-not-allowed disabled:opacity-30"
               aria-label="Trang trước"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
               {Array.from({ length: totalPages }).map((_, i) => (
                 <button
                   key={i}
                   onClick={() => setPage(i)}
-                  className={`h-2.5 rounded-full transition-all cursor-pointer ${i === page
-                      ? "w-6 bg-[var(--color-fdi-primary)]"
-                      : "w-2.5 bg-gray-300 hover:bg-gray-400"
-                    }`}
+                  className="flex h-11 w-11 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-primary)]/25 cursor-pointer"
                   aria-label={`Trang ${i + 1}`}
-                />
+                >
+                  <span
+                    className={`h-2.5 rounded-full transition-[background-color,width] ${i === page
+                      ? "w-6 bg-[var(--color-fdi-primary)]"
+                      : "w-2.5 bg-[#CBD5DC] hover:bg-[#AEBAC4]"
+                    }`}
+                  />
+                </button>
               ))}
             </div>
 
             <button
               onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
               disabled={page === totalPages - 1}
-              className="h-8 w-8 rounded-full border border-gray-200 bg-white flex items-center justify-center hover:border-[var(--color-fdi-accent-orange)] hover:text-[var(--color-fdi-accent-orange)] transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+              className="flex h-11 w-11 items-center justify-center rounded-full border border-[#D9E4EA] bg-[#FFFFFB] text-[var(--color-fdi-text)] transition-colors hover:border-[var(--color-fdi-primary)] hover:text-[var(--color-fdi-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-primary)]/25 cursor-pointer disabled:cursor-not-allowed disabled:opacity-30"
               aria-label="Trang sau"
             >
               <ChevronRight className="h-4 w-4" />
@@ -112,11 +109,10 @@ export function FeaturedJobs({ jobs }: FeaturedJobsProps) {
           </div>
         )}
 
-        {/* Mobile CTA */}
         <div className="mt-8 text-center sm:hidden">
           <Link
             href="/viec-lam"
-            className="inline-flex items-center gap-1 px-5 py-2.5 rounded-full bg-[var(--color-fdi-accent-orange)] text-white text-sm font-semibold hover:bg-[#E65C00] transition-colors cursor-pointer"
+            className="inline-flex min-h-11 items-center gap-1 rounded-full bg-[var(--color-fdi-primary)] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[var(--color-fdi-primary-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-primary)]/25 cursor-pointer"
           >
             Xem tất cả việc làm
             <ArrowRight className="h-4 w-4" />

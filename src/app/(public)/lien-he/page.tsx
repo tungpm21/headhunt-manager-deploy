@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { Metadata } from "next";
+import Link from "next/link";
 import { Mail, Phone, User, MessageSquare, Send, CheckCircle } from "lucide-react";
 
 // export const metadata: Metadata = {
@@ -38,12 +38,12 @@ export default function ContactPage() {
                     <p className="text-[var(--color-fdi-text-secondary)] mb-6">
                         Cảm ơn bạn đã liên hệ. Đội ngũ FDIWork sẽ phản hồi trong vòng 24 giờ.
                     </p>
-                    <a
+                    <Link
                         href="/"
                         className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-[var(--color-fdi-primary)] text-white text-sm font-semibold hover:bg-[var(--color-fdi-primary-hover)] transition-all cursor-pointer"
                     >
                         Về trang chủ
-                    </a>
+                    </Link>
                 </div>
             </div>
         );

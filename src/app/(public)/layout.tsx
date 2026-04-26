@@ -45,7 +45,7 @@ export default function PublicLayout({
       style={{ fontFamily: "var(--font-body)" }}
     >
       <PublicHeader />
-      <main className="flex-1 pt-16">{children}</main>
+      <main className="flex-1 pt-20">{children}</main>
       <PublicFooter />
     </div>
   );

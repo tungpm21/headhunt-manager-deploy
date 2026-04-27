@@ -62,12 +62,12 @@ export function JobCard({ job, compact = false }: JobCardProps) {
           </div>
 
           <div className="min-w-0 flex-1">
-            <h3
+            <h2
               className={`line-clamp-2 font-bold leading-snug text-[var(--color-fdi-text)] transition-colors group-hover:text-[var(--color-fdi-primary)] ${compact ? "text-sm" : "text-[15px]"}`}
               style={{ fontFamily: "var(--font-heading)" }}
             >
               {job.title}
-            </h3>
+            </h2>
             <p className={`mt-0.5 line-clamp-1 text-[var(--color-fdi-text-secondary)] ${compact ? "text-[13px]" : "text-sm"}`}>
               {job.employer.companyName}
             </p>

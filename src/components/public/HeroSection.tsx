@@ -153,7 +153,7 @@ export function HeroSection() {
               <div ref={locationRef} className="relative">
                 <button
                   type="button"
-                  aria-label={locationOpen ? "Đóng danh sách địa điểm" : "Mở danh sách địa điểm"}
+                  aria-label={`${locationOpen ? "Đóng" : "Mở"} danh sách địa điểm: ${location || "Tất cả địa điểm"}`}
                   aria-expanded={locationOpen}
                   aria-controls="hero-location-listbox"
                   onClick={() => {

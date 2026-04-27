@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, CalendarDays } from "lucide-react";
-import DOMPurify from "isomorphic-dompurify";
 import { getPublishedBlogPostBySlug } from "@/lib/blog-actions";
 
 export const revalidate = 300;
@@ -30,14 +29,10 @@ function formatBlogContent(content: string) {
   const trimmed = content.trim();
   if (!trimmed) return "";
 
-  if (!/<[a-z][\s\S]*>/i.test(trimmed)) {
-    return trimmed
-      .split(/\n{2,}/)
-      .map((paragraph) => `<p>${escapeHtml(paragraph).replace(/\n/g, "<br />")}</p>`)
-      .join("");
-  }
-
-  return DOMPurify.sanitize(trimmed);
+  return trimmed
+    .split(/\n{2,}/)
+    .map((paragraph) => `<p>${escapeHtml(paragraph).replace(/\n/g, "<br />")}</p>`)
+    .join("");
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {

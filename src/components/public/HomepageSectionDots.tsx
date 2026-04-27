@@ -17,34 +17,30 @@ export function HomepageSectionDots({ sections }: HomepageSectionDotsProps) {
   useEffect(() => {
     if (sections.length === 0) return;
 
-    let frame = 0;
+    const sectionElements = sections
+      .map((section) => document.getElementById(section.id))
+      .filter((element): element is HTMLElement => element !== null);
 
-    const updateActiveSection = () => {
-      cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(() => {
-        const anchorLine = window.innerHeight * 0.42;
-        let current = sections[0].id;
+    if (sectionElements.length === 0) return;
 
-        for (const section of sections) {
-          const element = document.getElementById(section.id);
-          if (!element) continue;
-          if (element.getBoundingClientRect().top <= anchorLine) {
-            current = section.id;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            setActiveId(entry.target.id);
           }
         }
+      },
+      {
+        rootMargin: "-42% 0px -58% 0px",
+        threshold: 0,
+      }
+    );
 
-        setActiveId(current);
-      });
-    };
-
-    updateActiveSection();
-    window.addEventListener("scroll", updateActiveSection, { passive: true });
-    window.addEventListener("resize", updateActiveSection);
+    sectionElements.forEach((element) => observer.observe(element));
 
     return () => {
-      cancelAnimationFrame(frame);
-      window.removeEventListener("scroll", updateActiveSection);
-      window.removeEventListener("resize", updateActiveSection);
+      observer.disconnect();
     };
   }, [sections]);
 

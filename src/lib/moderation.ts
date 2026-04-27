@@ -1,3 +1,4 @@
+import { EmployerStatus, Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 
 export async function getPendingJobPostingsData(status = "PENDING", page = 1) {
@@ -48,14 +49,32 @@ export async function updateJobPostingModeration(
   });
 }
 
-export async function getEmployersData(status = "ALL", page = 1) {
+export async function getEmployersData(status = "ALL", page = 1, query = "") {
   const take = 10;
   const skip = (page - 1) * take;
-  const where: Record<string, unknown> = {};
+  const filters: Prisma.EmployerWhereInput[] = [];
 
   if (status !== "ALL") {
-    where.status = status;
+    filters.push({ status: status as EmployerStatus });
   }
+
+  const normalizedQuery = query.trim();
+  if (normalizedQuery) {
+    const numericId = Number.parseInt(normalizedQuery.replace(/^#/, ""), 10);
+    const searchFilters: Prisma.EmployerWhereInput[] = [
+      { companyName: { contains: normalizedQuery, mode: "insensitive" } },
+      { email: { contains: normalizedQuery, mode: "insensitive" } },
+    ];
+
+    if (Number.isFinite(numericId)) {
+      searchFilters.push({ id: numericId });
+    }
+
+    filters.push({ OR: searchFilters });
+  }
+
+  const where: Prisma.EmployerWhereInput =
+    filters.length > 0 ? { AND: filters } : {};
 
   const [employers, total] = await Promise.all([
     prisma.employer.findMany({
@@ -239,13 +258,39 @@ export async function getSubscriptionsData(page = 1) {
       skip,
       take,
       include: {
-        employer: { select: { companyName: true, email: true } },
+        employer: { select: { id: true, companyName: true, email: true, slug: true } },
       },
     }),
     prisma.subscription.count(),
   ]);
 
   return { subs, total, page, totalPages: Math.ceil(total / take) };
+}
+
+export async function getEmployersForSubscriptionSelectData() {
+  return prisma.employer.findMany({
+    orderBy: { companyName: "asc" },
+    take: 200,
+    select: {
+      id: true,
+      companyName: true,
+      email: true,
+      status: true,
+      subscription: {
+        select: {
+          tier: true,
+          status: true,
+          jobQuota: true,
+          jobsUsed: true,
+          jobDuration: true,
+          endDate: true,
+          price: true,
+          showLogo: true,
+          showBanner: true,
+        },
+      },
+    },
+  });
 }
 
 export async function getEmployerSimpleById(employerId: number) {
@@ -262,6 +307,7 @@ export async function updateEmployerSubscription(
     tier: "BASIC" | "STANDARD" | "PREMIUM" | "VIP";
     jobQuota: number;
     jobDuration: number;
+    price: number;
     startDate: Date;
     endDate: Date;
     status: "ACTIVE";
@@ -317,7 +363,15 @@ export async function getApplicationsForImportData(status = "NEW", page = 1) {
       orderBy: { createdAt: "desc" },
       skip,
       take,
-      include: {
+      select: {
+        id: true,
+        fullName: true,
+        email: true,
+        phone: true,
+        cvFileUrl: true,
+        cvFileName: true,
+        status: true,
+        createdAt: true,
         jobPosting: {
           select: {
             title: true,

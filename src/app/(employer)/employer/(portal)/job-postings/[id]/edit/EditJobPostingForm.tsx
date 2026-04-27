@@ -1,104 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AlertCircle, AlertTriangle, Save } from "lucide-react";
 import { updateJobPostingAction } from "@/lib/employer-actions";
-
-const INDUSTRIES = [
-  "Điện tử / Bán dẫn",
-  "Cơ khí / Gia công",
-  "Dệt may",
-  "Ô tô / Linh kiện",
-  "Thực phẩm / Đồ uống",
-  "Logistics / Kho vận",
-  "Hóa chất / Nhựa",
-  "CNTT / Phần mềm",
-  "Xây dựng",
-  "Khác",
-];
-
-const POSITIONS = [
-  "Nhân viên",
-  "Chuyên viên",
-  "Trưởng nhóm",
-  "Trưởng phòng",
-  "Phó giám đốc",
-  "Giám đốc",
-  "Quản lý",
-  "Thực tập sinh",
-];
-
-const LOCATIONS = [
-  "Hà Nội",
-  "TP. Hồ Chí Minh",
-  "Đà Nẵng",
-  "Hải Phòng",
-  "Bắc Ninh",
-  "Bắc Giang",
-  "Bình Dương",
-  "Đồng Nai",
-  "Long An",
-  "Hưng Yên",
-  "Vĩnh Phúc",
-  "Thái Nguyên",
-  "Khác",
-];
-
-const WORK_TYPES = ["Full-time", "Part-time", "Contract", "Remote", "Hybrid"];
-
-const INDUSTRIAL_ZONES = [
-  {
-    group: "Miền Bắc",
-    zones: [
-      "KCN Yên Phong, Bắc Ninh",
-      "KCN Quế Võ, Bắc Ninh",
-      "KCN VSIP Bắc Ninh",
-      "KCN Thăng Long, Hà Nội",
-      "KCN Quang Minh, Vĩnh Phúc",
-      "KCN Đình Vũ, Hải Phòng",
-      "KCN Tràng Duệ, Hải Phòng",
-      "KCN Samsung, Thái Nguyên",
-      "KCN Đại Đồng, Bắc Giang",
-    ],
-  },
-  {
-    group: "Miền Trung",
-    zones: [
-      "KCN Hòa Khánh, Đà Nẵng",
-      "KCN Điện Nam - Điện Ngọc, Quảng Nam",
-    ],
-  },
-  {
-    group: "Miền Nam",
-    zones: [
-      "KCN Amata, Đồng Nai",
-      "KCN Long Thành, Đồng Nai",
-      "KCN VSIP, Bình Dương",
-      "KCN Mỹ Phước, Bình Dương",
-      "KCN Long Hậu, Long An",
-      "Quận 7 / Tân Phú, TP.HCM",
-    ],
-  },
-];
-
-const LANGUAGES = [
-  { value: "none", label: "Không yêu cầu" },
-  { value: "Japanese", label: "Tiếng Nhật" },
-  { value: "Korean", label: "Tiếng Hàn" },
-  { value: "English", label: "Tiếng Anh" },
-  { value: "Chinese", label: "Tiếng Trung" },
-  { value: "German", label: "Tiếng Đức" },
-  { value: "French", label: "Tiếng Pháp" },
-];
-
-const PROFICIENCY_LEVELS = [
-  "Cơ bản (N4 / TOPIK 1)",
-  "Trung cấp (N3 / TOPIK 2)",
-  "Khá (N2 / TOPIK 3)",
-  "Thành thạo (N1 / TOPIK 4+)",
-];
+import {
+  INDUSTRIAL_ZONE_GROUPS,
+  JOB_INDUSTRIES,
+  JOB_LOCATIONS,
+  JOB_POSITIONS,
+  JOB_WORK_TYPES,
+  LANGUAGE_PROFICIENCY_LEVELS,
+  REQUIRED_LANGUAGE_OPTIONS,
+  SHIFT_TYPE_OPTIONS,
+} from "@/lib/job-taxonomy";
 
 const inputClass =
   "w-full px-4 py-2.5 rounded-xl border border-gray-200 text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all";
@@ -133,8 +49,11 @@ export function EditJobPostingForm({ job }: { job: EditableJobPosting }) {
   const router = useRouter();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const submittingRef = useRef(false);
 
   async function handleSubmit(formData: FormData) {
+    if (submittingRef.current) return;
+    submittingRef.current = true;
     setError("");
     setLoading(true);
 
@@ -151,6 +70,7 @@ export function EditJobPostingForm({ job }: { job: EditableJobPosting }) {
     } catch {
       setError("Không thể cập nhật tin tuyển dụng. Vui lòng thử lại.");
     } finally {
+      submittingRef.current = false;
       setLoading(false);
     }
   }
@@ -302,7 +222,7 @@ export function EditJobPostingForm({ job }: { job: EditableJobPosting }) {
                 className={selectClass}
               >
                 <option value="">Chọn ngành</option>
-                {INDUSTRIES.map((industry) => (
+                {JOB_INDUSTRIES.map((industry) => (
                   <option key={industry} value={industry}>
                     {industry}
                   </option>
@@ -320,7 +240,7 @@ export function EditJobPostingForm({ job }: { job: EditableJobPosting }) {
                 className={selectClass}
               >
                 <option value="">Chọn cấp bậc</option>
-                {POSITIONS.map((position) => (
+                {JOB_POSITIONS.map((position) => (
                   <option key={position} value={position}>
                     {position}
                   </option>
@@ -338,7 +258,7 @@ export function EditJobPostingForm({ job }: { job: EditableJobPosting }) {
                 className={selectClass}
               >
                 <option value="">Chọn khu vực</option>
-                {LOCATIONS.map((location) => (
+                {JOB_LOCATIONS.map((location) => (
                   <option key={location} value={location}>
                     {location}
                   </option>
@@ -356,7 +276,7 @@ export function EditJobPostingForm({ job }: { job: EditableJobPosting }) {
                 className={selectClass}
               >
                 <option value="">Chọn hình thức</option>
-                {WORK_TYPES.map((workType) => (
+                {JOB_WORK_TYPES.map((workType) => (
                   <option key={workType} value={workType}>
                     {workType}
                   </option>
@@ -417,7 +337,7 @@ export function EditJobPostingForm({ job }: { job: EditableJobPosting }) {
                 className={selectClass}
               >
                 <option value="">Chọn khu công nghiệp</option>
-                {INDUSTRIAL_ZONES.map((group) => (
+                {INDUSTRIAL_ZONE_GROUPS.map((group) => (
                   <optgroup key={group.group} label={group.group}>
                     {group.zones.map((zone) => (
                       <option key={zone} value={zone}>
@@ -441,10 +361,11 @@ export function EditJobPostingForm({ job }: { job: EditableJobPosting }) {
                 defaultValue={job.shiftType ?? ""}
                 className={selectClass}
               >
-                <option value="">Không chỉ định</option>
-                <option value="DAY">Ca ngày</option>
-                <option value="NIGHT">Ca đêm</option>
-                <option value="ROTATING">Xoay ca</option>
+                {SHIFT_TYPE_OPTIONS.map((option) => (
+                  <option key={option.value || "none"} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
@@ -463,7 +384,7 @@ export function EditJobPostingForm({ job }: { job: EditableJobPosting }) {
                 defaultValue={job.requiredLanguages?.[0] ?? "none"}
                 className={selectClass}
               >
-                {LANGUAGES.map((language) => (
+                {REQUIRED_LANGUAGE_OPTIONS.map((language) => (
                   <option key={language.value} value={language.value}>
                     {language.label}
                   </option>
@@ -487,7 +408,7 @@ export function EditJobPostingForm({ job }: { job: EditableJobPosting }) {
                 className={selectClass}
               >
                 <option value="">Không chỉ định</option>
-                {PROFICIENCY_LEVELS.map((level) => (
+                {LANGUAGE_PROFICIENCY_LEVELS.map((level) => (
                   <option key={level} value={level}>
                     {level}
                   </option>

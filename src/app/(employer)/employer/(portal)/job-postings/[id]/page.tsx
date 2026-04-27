@@ -4,7 +4,7 @@ import {
   getJobPostingDetail,
   getJobApplicants,
 } from "@/lib/employer-actions";
-import { ArrowLeft, Eye, Users, Clock, MapPin, Briefcase, DollarSign, Calendar, FileText, Pencil } from "lucide-react";
+import { ArrowLeft, Eye, Users, Clock, MapPin, Briefcase, DollarSign, Calendar, FileText, Pencil, type LucideIcon } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 import { vi } from "date-fns/locale";
 import { JobActionButtons } from "./actions";
@@ -204,7 +204,7 @@ function Section({ title, content }: { title: string; content: string }) {
   );
 }
 
-function InfoRow({ icon: Icon, label, value }: { icon: any; label: string; value: string }) {
+function InfoRow({ icon: Icon, label, value }: { icon: LucideIcon; label: string; value: string }) {
   return (
     <div className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
       <span className="flex items-center gap-2 text-sm text-gray-500">

@@ -27,12 +27,6 @@ const SHIFT_LABELS: Record<string, string> = {
   ROTATING: "Xoay ca",
 };
 
-const VISA_LABELS: Record<string, string> = {
-  YES: "Có hỗ trợ",
-  NO: "Không hỗ trợ",
-  NEGOTIABLE: "Thương lượng",
-};
-
 export function JobFilters({ industries, locations, workTypes, languages, industrialZones }: JobFiltersProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -42,12 +36,11 @@ export function JobFilters({ industries, locations, workTypes, languages, indust
   const currentWorkType = searchParams.get("workType") || "";
   const currentLanguage = searchParams.get("language") || "";
   const currentIndustrialZone = searchParams.get("industrialZone") || "";
-  const currentVisaSupport = searchParams.get("visaSupport") || "";
   const currentShiftType = searchParams.get("shiftType") || "";
   const currentSort = searchParams.get("sort") || "newest";
 
   const hasFilters = currentIndustry || currentLocation || currentWorkType ||
-    currentLanguage || currentIndustrialZone || currentVisaSupport || currentShiftType;
+    currentLanguage || currentIndustrialZone || currentShiftType;
 
   const updateFilter = useCallback(
     (key: string, value: string) => {
@@ -75,15 +68,16 @@ export function JobFilters({ industries, locations, workTypes, languages, indust
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 text-sm font-semibold text-[var(--color-fdi-text)]" style={{ fontFamily: "var(--font-heading)" }}>
-          <Filter className="h-4 w-4 text-[var(--color-fdi-primary)]" />
+          <Filter className="h-4 w-4 text-[var(--color-fdi-primary)]" aria-hidden="true" />
           Bộ lọc
         </div>
         {hasFilters && (
           <button
+            type="button"
             onClick={clearAllFilters}
-            className="flex items-center gap-1 text-xs text-[var(--color-fdi-primary)] hover:underline cursor-pointer"
+            className="flex min-h-9 items-center gap-1 text-xs text-[var(--color-fdi-primary)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-primary)]/25 cursor-pointer"
           >
-            <X className="h-3 w-3" />
+            <X className="h-3 w-3" aria-hidden="true" />
             Xóa lọc
           </button>
         )}
@@ -92,6 +86,7 @@ export function JobFilters({ industries, locations, workTypes, languages, indust
       {/* FDI-specific filters — shown first as they're the differentiator */}
       {languages.length > 0 && (
         <FilterGroup
+          name="language"
           label="Ngôn ngữ yêu cầu"
           value={currentLanguage}
           options={languages.map((l) => ({ value: l, label: LANGUAGE_LABELS[l] ?? l }))}
@@ -101,6 +96,7 @@ export function JobFilters({ industries, locations, workTypes, languages, indust
 
       {industrialZones.length > 0 && (
         <FilterGroup
+          name="industrialZone"
           label="Khu công nghiệp"
           value={currentIndustrialZone}
           options={industrialZones.map((z) => ({ value: z, label: z }))}
@@ -109,13 +105,7 @@ export function JobFilters({ industries, locations, workTypes, languages, indust
       )}
 
       <FilterGroup
-        label="Hỗ trợ visa"
-        value={currentVisaSupport}
-        options={Object.entries(VISA_LABELS).map(([v, l]) => ({ value: v, label: l }))}
-        onChange={(v) => updateFilter("visaSupport", v)}
-      />
-
-      <FilterGroup
+        name="shiftType"
         label="Ca làm việc"
         value={currentShiftType}
         options={Object.entries(SHIFT_LABELS).map(([v, l]) => ({ value: v, label: l }))}
@@ -124,6 +114,7 @@ export function JobFilters({ industries, locations, workTypes, languages, indust
 
       {/* General filters */}
       <FilterGroup
+        name="industry"
         label="Ngành nghề"
         value={currentIndustry}
         options={industries.map((i) => ({ value: i, label: i }))}
@@ -131,6 +122,7 @@ export function JobFilters({ industries, locations, workTypes, languages, indust
       />
 
       <FilterGroup
+        name="location"
         label="Khu vực"
         value={currentLocation}
         options={locations.map((l) => ({ value: l, label: l }))}
@@ -138,6 +130,7 @@ export function JobFilters({ industries, locations, workTypes, languages, indust
       />
 
       <FilterGroup
+        name="workType"
         label="Hình thức"
         value={currentWorkType}
         options={workTypes.map((w) => ({ value: w, label: w }))}
@@ -146,13 +139,15 @@ export function JobFilters({ industries, locations, workTypes, languages, indust
 
       {/* Sort */}
       <div>
-        <label className="block text-xs font-medium text-[var(--color-fdi-text-secondary)] mb-1.5">
+        <label htmlFor="public-job-sort" className="block text-xs font-medium text-[var(--color-fdi-text-secondary)] mb-1.5">
           Sắp xếp
         </label>
         <select
+          id="public-job-sort"
+          name="sort"
           value={currentSort}
           onChange={(e) => updateFilter("sort", e.target.value)}
-          className="w-full px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-[var(--color-fdi-text)] focus:border-[var(--color-fdi-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--color-fdi-primary)]/20 cursor-pointer transition-colors"
+          className="min-h-11 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-[var(--color-fdi-text)] transition-colors focus:border-[var(--color-fdi-primary)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-primary)]/60 cursor-pointer"
         >
           <option value="newest">Mới nhất</option>
           <option value="oldest">Cũ nhất</option>
@@ -165,26 +160,32 @@ export function JobFilters({ industries, locations, workTypes, languages, indust
 }
 
 function FilterGroup({
+  name,
   label,
   value,
   options,
   onChange,
 }: {
+  name: string;
   label: string;
   value: string;
   options: { value: string; label: string }[];
   onChange: (v: string) => void;
 }) {
   if (options.length === 0) return null;
+  const id = `public-job-filter-${name}`;
+
   return (
     <div>
-      <label className="block text-xs font-medium text-[var(--color-fdi-text-secondary)] mb-1.5">
+      <label htmlFor={id} className="block text-xs font-medium text-[var(--color-fdi-text-secondary)] mb-1.5">
         {label}
       </label>
       <select
+        id={id}
+        name={name}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-[var(--color-fdi-text)] focus:border-[var(--color-fdi-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--color-fdi-primary)]/20 cursor-pointer transition-colors"
+        className="min-h-11 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-[var(--color-fdi-text)] transition-colors focus:border-[var(--color-fdi-primary)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-primary)]/20 cursor-pointer"
       >
         <option value="">Tất cả</option>
         {options.map((opt) => (

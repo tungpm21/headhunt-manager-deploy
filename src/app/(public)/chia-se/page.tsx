@@ -1,8 +1,22 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, BarChart3, BookOpen, Briefcase, TrendingUp } from "lucide-react";
 import { getPublishedBlogPosts } from "@/lib/blog-actions";
 import type { BlogPost } from "@prisma/client";
+
+const dateFormatter = new Intl.DateTimeFormat("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+});
+
+function getPostIcon(category: string) {
+    const normalized = category.toLowerCase();
+    if (normalized.includes("báo cáo") || normalized.includes("lương")) return BarChart3;
+    if (normalized.includes("xu hướng")) return TrendingUp;
+    if (normalized.includes("hướng dẫn")) return BookOpen;
+    return Briefcase;
+}
 
 // Revalidate every 60 seconds — blog posts change rarely,
 // no searchParams dependency so ISR is safe here.
@@ -18,17 +32,17 @@ export default async function ChiaSePage() {
     const blogPosts = await getPublishedBlogPosts();
 
     return (
-        <div className="min-h-screen bg-gray-50/50">
+    <div id="main-content" className="min-h-screen bg-[var(--color-fdi-mist)]">
             {/* Header banner */}
-            <div className="bg-[var(--color-fdi-primary)]">
+            <div className="border-b border-[var(--color-fdi-mist)] bg-white">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
                     <h1
-                        className="text-3xl font-bold text-white"
+                        className="text-3xl font-bold text-[var(--color-fdi-text)]"
                         style={{ fontFamily: "var(--font-heading)" }}
                     >
                         Thông tin chia sẻ
                     </h1>
-                    <p className="text-blue-100 mt-2">
+                    <p className="mt-2 max-w-2xl text-[var(--color-fdi-text-secondary)]">
                         Bài viết hữu ích về tuyển dụng, kỹ năng và xu hướng nghề nghiệp FDI
                     </p>
                 </div>
@@ -40,22 +54,29 @@ export default async function ChiaSePage() {
                         Chưa có bài viết nào. Hãy quay lại sau nhé!
                     </p>
                 ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {blogPosts.map((post: BlogPost) => (
-                            <div
+                    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                        {blogPosts.map((post: BlogPost) => {
+                            const PostIcon = getPostIcon(post.category);
+
+                            return (
+                            <Link
                                 key={post.id}
-                                className="bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-lg transition-shadow"
+                                href={`/chia-se/${post.slug}`}
+                                aria-label={post.title}
+                                className="overflow-hidden rounded-xl border border-[var(--color-fdi-mist)] bg-white shadow-[0_16px_36px_-30px_rgba(15,23,42,0.5)] transition-[border-color,box-shadow,transform] duration-200 ease-out hover:-translate-y-0.5 hover:border-[var(--color-fdi-primary)]/25 hover:shadow-[0_24px_46px_-34px_rgba(15,23,42,0.65)]"
                             >
-                                <div className="aspect-[16/9] bg-gradient-to-br from-[var(--color-fdi-surface)] to-blue-50 flex items-center justify-center">
-                                    <span className="text-5xl">{post.emoji}</span>
+                                <div className="relative flex aspect-[16/8.5] items-center justify-center overflow-hidden bg-[linear-gradient(135deg,#F8FBFF_0%,#EDF6FF_52%,#FFF7ED_100%)]">
+                                    <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-white/80 bg-white shadow-[0_18px_36px_-24px_rgba(15,23,42,0.7)]">
+                                        <PostIcon className="h-7 w-7 text-[var(--color-fdi-primary)]" aria-hidden="true" />
+                                    </div>
                                 </div>
                                 <div className="p-5">
                                     <div className="flex items-center gap-2 mb-3">
-                                        <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-[var(--color-fdi-surface)] text-[var(--color-fdi-primary)]">
+                                        <span className="text-xs uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-[var(--color-fdi-surface)] text-[var(--color-fdi-primary)]">
                                             {post.category}
                                         </span>
                                         <span className="text-xs text-[var(--color-fdi-text-secondary)]">
-                                            {post.createdAt.toLocaleDateString("vi-VN")}
+                                            {dateFormatter.format(post.createdAt)}
                                         </span>
                                     </div>
                                     <h2
@@ -67,12 +88,13 @@ export default async function ChiaSePage() {
                                     <p className="text-sm text-[var(--color-fdi-text-secondary)] line-clamp-3 leading-relaxed mb-4">
                                         {post.excerpt}
                                     </p>
-                                    <span className="inline-flex items-center gap-1 text-sm font-medium text-[var(--color-fdi-primary)]">
-                                        Đọc thêm <ArrowRight className="h-3.5 w-3.5" />
+                                    <span className="inline-flex min-h-11 items-center gap-1 text-sm font-medium text-[var(--color-fdi-primary)]">
+                                        Đọc thêm <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
                                     </span>
                                 </div>
-                            </div>
-                        ))}
+                            </Link>
+                        );
+                        })}
                     </div>
                 )}
 

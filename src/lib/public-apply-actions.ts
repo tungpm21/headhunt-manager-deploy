@@ -16,7 +16,6 @@ export type SubmitApplicationInput = {
   fullName: string;
   email: string;
   phone?: string;
-  coverLetter?: string;
   cvFileUrl?: string;
   cvFileName?: string;
 };
@@ -34,7 +33,6 @@ export async function submitApplication(
     fullName: input.fullName?.trim(),
     email: input.email?.trim().toLowerCase(),
     phone: input.phone?.trim() || undefined,
-    coverLetter: input.coverLetter?.trim() || undefined,
     cvFileUrl: input.cvFileUrl || undefined,
     cvFileName: input.cvFileName || undefined,
   });
@@ -59,7 +57,7 @@ export async function submitApplication(
     await cleanupUploadedCv();
     return {
       success: false,
-      error: `Vui long thu lai sau ${rateLimit.retryAfterSeconds} giay`,
+      error: `Vui lòng thử lại sau ${rateLimit.retryAfterSeconds} giây`,
     };
   }
 
@@ -80,12 +78,12 @@ export async function submitApplication(
 
   if (!job || job.status !== "APPROVED") {
     await cleanupUploadedCv();
-    return { success: false, error: "Tin tuyen dung khong ton tai hoac da het han" };
+    return { success: false, error: "Tin tuyển dụng không tồn tại hoặc đã hết hạn" };
   }
 
   if (job.expiresAt && job.expiresAt < new Date()) {
     await cleanupUploadedCv();
-    return { success: false, error: "Tin tuyen dung da het han" };
+    return { success: false, error: "Tin tuyển dụng đã hết hạn" };
   }
 
   const existing = await prisma.application.findFirst({
@@ -97,7 +95,7 @@ export async function submitApplication(
 
   if (existing) {
     await cleanupUploadedCv();
-    return { success: false, error: "Ban da ung tuyen vi tri nay roi" };
+    return { success: false, error: "Bạn đã ứng tuyển vị trí này rồi" };
   }
 
   try {
@@ -108,7 +106,6 @@ export async function submitApplication(
           fullName: validatedInput.fullName,
           email: validatedInput.email,
           phone: validatedInput.phone || null,
-          coverLetter: validatedInput.coverLetter || null,
           cvFileUrl: validatedInput.cvFileUrl || null,
           cvFileName: validatedInput.cvFileName || null,
         },
@@ -129,9 +126,9 @@ export async function submitApplication(
       "code" in error &&
       error.code === "P2002"
     ) {
-      return { success: false, error: "Ban da ung tuyen vi tri nay roi" };
+      return { success: false, error: "Bạn đã ứng tuyển vị trí này rồi" };
     }
 
-    return { success: false, error: "Khong the nop ho so luc nay" };
+    return { success: false, error: "Không thể nộp hồ sơ lúc này, vui lòng thử lại" };
   }
 }

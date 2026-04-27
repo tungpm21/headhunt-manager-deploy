@@ -6,9 +6,10 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 type PaginationProps = {
   currentPage: number;
   totalPages: number;
+  basePath?: string;
 };
 
-export function Pagination({ currentPage, totalPages }: PaginationProps) {
+export function Pagination({ currentPage, totalPages, basePath = "/viec-lam" }: PaginationProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -21,7 +22,8 @@ export function Pagination({ currentPage, totalPages }: PaginationProps) {
     } else {
       params.set("page", String(page));
     }
-    router.push(`/viec-lam?${params.toString()}`);
+    const queryString = params.toString();
+    router.push(queryString ? `${basePath}?${queryString}` : basePath);
   }
 
   // Generate page numbers to display
@@ -43,7 +45,7 @@ export function Pagination({ currentPage, totalPages }: PaginationProps) {
       <button
         onClick={() => goToPage(currentPage - 1)}
         disabled={currentPage <= 1}
-        className="p-2 rounded-lg text-[var(--color-fdi-text-secondary)] hover:bg-[var(--color-fdi-surface)] disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-colors"
+        className="flex h-11 w-11 items-center justify-center rounded-lg text-[var(--color-fdi-text-secondary)] transition-colors hover:bg-[var(--color-fdi-surface)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-primary)]/25 disabled:cursor-not-allowed disabled:opacity-30 cursor-pointer"
         aria-label="Trang trước"
       >
         <ChevronLeft className="h-5 w-5" />
@@ -58,7 +60,7 @@ export function Pagination({ currentPage, totalPages }: PaginationProps) {
           <button
             key={page}
             onClick={() => goToPage(page)}
-            className={`min-w-[36px] h-9 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
+            className={`h-11 min-w-11 rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-primary)]/25 cursor-pointer ${
               page === currentPage
                 ? "bg-[var(--color-fdi-primary)] text-white shadow-sm"
                 : "text-[var(--color-fdi-text-secondary)] hover:bg-[var(--color-fdi-surface)]"
@@ -72,7 +74,7 @@ export function Pagination({ currentPage, totalPages }: PaginationProps) {
       <button
         onClick={() => goToPage(currentPage + 1)}
         disabled={currentPage >= totalPages}
-        className="p-2 rounded-lg text-[var(--color-fdi-text-secondary)] hover:bg-[var(--color-fdi-surface)] disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-colors"
+        className="flex h-11 w-11 items-center justify-center rounded-lg text-[var(--color-fdi-text-secondary)] transition-colors hover:bg-[var(--color-fdi-surface)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-primary)]/25 disabled:cursor-not-allowed disabled:opacity-30 cursor-pointer"
         aria-label="Trang sau"
       >
         <ChevronRight className="h-5 w-5" />

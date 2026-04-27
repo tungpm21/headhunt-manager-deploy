@@ -19,6 +19,7 @@ import {
 import type { ClientImportRow, ImportResult } from "@/types/import";
 
 const PREVIEW_LIMIT = 10;
+const MAX_EXPANDED_PREVIEW_ROWS = 100;
 
 const HEADER_ALIASES: Record<keyof Omit<ClientImportRow, "rowNumber">, string[]> = {
   companyName: [
@@ -36,10 +37,19 @@ const HEADER_ALIASES: Record<keyof Omit<ClientImportRow, "rowNumber">, string[]>
   notes: ["ghi chu", "notes", "note"],
 };
 
+function normalizeWebsiteForValidation(value: string) {
+  const trimmed = value.trim().toLowerCase();
+  if (!trimmed) return "";
+  return /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+}
+
 function mapRowsToClients(rows: unknown[][]): ClientImportRow[] {
   if (rows.length < 2) return [];
 
   const headerIndexes = buildHeaderIndexes(rows[0], HEADER_ALIASES);
+  if (headerIndexes.companyName < 0) {
+    throw new Error("File client thiếu cột bắt buộc: Tên công ty / Company name.");
+  }
 
   return rows
     .slice(1)
@@ -81,7 +91,7 @@ function buildValidationMap(rows: ClientImportRow[]) {
   for (const row of rows) {
     const reasons: string[] = [];
     const companyName = row.companyName.trim().toLowerCase();
-    const website = row.website.trim().toLowerCase();
+    const website = normalizeWebsiteForValidation(row.website);
     const companySize = row.companySize.trim().toUpperCase();
 
     if (!companyName) {
@@ -133,7 +143,9 @@ export function ClientSpreadsheetImporter() {
   const [showAllRows, setShowAllRows] = useState(false);
 
   const validationMap = useMemo(() => buildValidationMap(data), [data]);
-  const previewRows = showAllRows ? data : data.slice(0, PREVIEW_LIMIT);
+  const previewRows = showAllRows
+    ? data.slice(0, MAX_EXPANDED_PREVIEW_ROWS)
+    : data.slice(0, PREVIEW_LIMIT);
   const invalidRowCount = validationMap.size;
   const validRowCount = data.length - invalidRowCount;
 
@@ -405,7 +417,7 @@ export function ClientSpreadsheetImporter() {
               <div className="flex flex-col gap-3 border-t bg-gray-50 px-6 py-3 sm:flex-row sm:items-center sm:justify-between">
                 <p className="text-sm text-gray-500">
                   {showAllRows
-                    ? `Đang hiển thị toàn bộ ${data.length} dòng preview.`
+                    ? `Đang hiển thị tối đa ${Math.min(data.length, MAX_EXPANDED_PREVIEW_ROWS)}/${data.length} dòng preview.`
                     : `Đang hiển thị ${PREVIEW_LIMIT}/${data.length} dòng đầu tiên.`}
                 </p>
                 <button
@@ -421,7 +433,7 @@ export function ClientSpreadsheetImporter() {
                   ) : (
                     <>
                       <ChevronDown className="h-4 w-4" />
-                      Xem toàn bộ {data.length} dòng
+                      Xem tối đa {Math.min(data.length, MAX_EXPANDED_PREVIEW_ROWS)} dòng
                     </>
                   )}
                 </button>

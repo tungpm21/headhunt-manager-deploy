@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Poppins, Open_Sans } from "next/font/google";
+import { Be_Vietnam_Pro, Inter, Open_Sans } from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({
@@ -8,9 +8,9 @@ const inter = Inter({
   display: "swap",
 });
 
-const poppins = Poppins({
+const poppins = Be_Vietnam_Pro({
   variable: "--font-poppins",
-  subsets: ["latin", "latin-ext"],
+  subsets: ["latin", "latin-ext", "vietnamese"],
   weight: ["400", "500", "600", "700"],
   display: "swap",
 });

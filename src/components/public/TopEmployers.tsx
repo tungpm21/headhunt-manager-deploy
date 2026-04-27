@@ -2,7 +2,7 @@
 
 import { useRef, useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import type { HomepageEmployer } from "@/lib/public-actions";
 import { LogoImage } from "@/components/public/LogoImage";
 
@@ -145,7 +145,8 @@ export function TopEmployers({ employers }: TopEmployersProps) {
             href="/cong-ty"
             className="inline-flex min-h-11 items-center gap-1 rounded-full border border-[var(--color-fdi-primary)] bg-[var(--color-fdi-primary)] px-5 text-sm font-bold text-white shadow-[0_18px_34px_-26px_rgba(10,111,157,0.72)] transition-[background-color,border-color,transform] duration-500 ease-[var(--ease-fdi)] hover:-translate-y-0.5 hover:border-[var(--color-fdi-primary-hover)] hover:bg-[var(--color-fdi-primary-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-primary)]/25 cursor-pointer"
           >
-            Khám phá thêm →
+            Khám phá thêm
+            <ArrowRight className="h-4 w-4" aria-hidden="true" />
           </Link>
         </div>
         </div>

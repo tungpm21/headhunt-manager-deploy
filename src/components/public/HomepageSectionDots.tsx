@@ -52,7 +52,7 @@ export function HomepageSectionDots({ sections }: HomepageSectionDotsProps) {
 
   return (
     <nav
-      aria-label="Homepage section navigation"
+      aria-label="Điều hướng các phần trang"
       className="fixed right-4 top-1/2 z-40 hidden -translate-y-1/2 flex-col gap-2 rounded-full border border-[#D8E7EA]/80 bg-white/78 p-2 shadow-[0_22px_54px_-38px_rgba(7,26,47,0.56)] backdrop-blur-xl lg:flex"
     >
       {sections.map((section) => {

@@ -72,7 +72,11 @@ export function EmployerBannerCarousel({ employers }: EmployerBannerCarouselProp
             </div>
             <div className="absolute bottom-6 left-5 hidden max-w-2xl sm:block lg:bottom-8 lg:left-8">
               <p className="text-xs font-bold uppercase text-sky-100/74">Paid employer spotlight</p>
-              <h2 className="mt-2 text-3xl font-black leading-tight text-white lg:text-5xl" style={{ fontFamily: "var(--font-heading)" }}>
+              <h2
+                aria-hidden="true"
+                className="mt-2 text-3xl font-black leading-tight text-white lg:text-5xl"
+                style={{ fontFamily: "var(--font-heading)" }}
+              >
                 {employer.companyName}
               </h2>
               <p className="mt-3 max-w-xl text-base font-medium text-sky-100/82">

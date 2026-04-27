@@ -39,7 +39,7 @@ export function PublicFooter() {
         <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 lg:gap-8">
           {/* About */}
           <div className="sm:col-span-2 md:col-span-1">
-            <Link href="/" className="flex items-center gap-2 mb-4 cursor-pointer">
+            <Link href="/" className="mb-4 flex min-h-[44px] items-center gap-2 cursor-pointer">
               <div className="h-8 w-8 rounded-full bg-[var(--color-fdi-primary)] flex items-center justify-center">
                 <Briefcase className="h-4 w-4 text-white" />
               </div>
@@ -74,7 +74,7 @@ export function PublicFooter() {
                 href="https://zalo.me/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-xs font-semibold text-white transition-[background-color,transform] duration-500 ease-[var(--ease-fdi)] hover:-translate-y-0.5 hover:bg-white/16 cursor-pointer"
+                className="inline-flex min-h-[44px] items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-xs font-semibold text-white transition-[background-color,transform] duration-500 ease-[var(--ease-fdi)] hover:-translate-y-0.5 hover:bg-white/16 cursor-pointer"
               >
                 <svg className="h-4 w-4" viewBox="0 0 48 48" fill="currentColor">
                   <path d="M24 2C11.8 2 2 11.8 2 24s9.8 22 22 22 22-9.8 22-22S36.2 2 24 2zm0 40c-9.9 0-18-8.1-18-18S14.1 6 24 6s18 8.1 18 18-8.1 18-18 18z" />
@@ -98,7 +98,7 @@ export function PublicFooter() {
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="text-sm text-sky-200/70 hover:text-white transition-colors cursor-pointer"
+                    className="flex min-h-[44px] items-center text-sm text-sky-200/70 transition-colors hover:text-white cursor-pointer"
                   >
                     {link.label}
                   </Link>
@@ -120,7 +120,7 @@ export function PublicFooter() {
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="text-sm text-sky-200/70 hover:text-white transition-colors cursor-pointer"
+                    className="flex min-h-[44px] items-center text-sm text-sky-200/70 transition-colors hover:text-white cursor-pointer"
                   >
                     {link.label}
                   </Link>
@@ -142,7 +142,7 @@ export function PublicFooter() {
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="text-sm text-sky-200/70 hover:text-white transition-colors cursor-pointer"
+                    className="flex min-h-[44px] items-center text-sm text-sky-200/70 transition-colors hover:text-white cursor-pointer"
                   >
                     {link.label}
                   </Link>
@@ -164,7 +164,7 @@ export function PublicFooter() {
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="text-sm text-sky-200/70 hover:text-white transition-colors cursor-pointer"
+                    className="flex min-h-[44px] items-center text-sm text-sky-200/70 transition-colors hover:text-white cursor-pointer"
                   >
                     {link.label}
                   </Link>
@@ -186,7 +186,7 @@ export function PublicFooter() {
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="text-sm text-sky-200/70 hover:text-white transition-colors cursor-pointer"
+                    className="flex min-h-[44px] items-center text-sm text-sky-200/70 transition-colors hover:text-white cursor-pointer"
                   >
                     {link.label}
                   </Link>

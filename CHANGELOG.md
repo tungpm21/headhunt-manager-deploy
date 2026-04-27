@@ -2,6 +2,28 @@
 
 Mọi thay đổi đáng chú ý của dự án Headhunt Manager sẽ được ghi chép tại đây.
 
+## [0.1.1] - 2026-04-27 — Accessibility Impeccable + Security Hardening
+
+### Bảo mật (Security)
+- **XSS fix**: Thay thế regex sanitizer thủ công trong trang blog bằng `isomorphic-dompurify` — loại bỏ các bypass vector như `onerror` không có khoảng trắng, URI `data:`, và các tag `<svg>`/`<form>`
+- **Auth bypass fix**: Employer notifications API route không còn nuốt `NEXT_REDIRECT` — unauthenticated requests giờ được redirect đúng thay vì nhận JSON fallback `{total:0, items:[]}`
+- **Focus ring scope fix**: Override `--color-primary` chuyển lên outer `<div>` trong public layout để `PublicHeader` focus rings cũng dùng FDI blue thay vì admin purple
+
+### Truy cập (Accessibility — WCAG A/AA)
+- **Skip link**: Thêm "Chuyển đến nội dung chính" link ẩn (sr-only) cho keyboard navigation
+- **Touch targets**: Tất cả link/button public pages đảm bảo `min-h-11` (44px)
+- **ARIA fixes**: `aria-label` trên search inputs, scroll buttons, carousel controls; xóa `role` không hợp lệ trên `<p>` và `<li>` elements
+- **Heading structure**: Chuẩn hóa heading hierarchy trên homepage + trang chi tiết công việc/công ty
+- **Pagination bug**: Số trang hiển thị đúng (không bị cộng dồn)
+- **Prefers-reduced-motion**: CSS animation tắt khi user bật reduced motion
+- **Focus ring tokens**: Dùng `var(--color-fdi-primary)` nhất quán thay vì màu Tailwind hardcoded
+- **Vietnamese UTF-8**: Sửa các chuỗi thiếu dấu trong components
+
+### Phụ thuộc (Dependencies)
+- Thêm `isomorphic-dompurify ^3.10.0`
+
+---
+
 ## [2026-04-04] - Diacritics Sweep + S3-10 Review
 
 ### Sửa lỗi (Fixed)

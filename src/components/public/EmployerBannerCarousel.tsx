@@ -68,10 +68,10 @@ export function EmployerBannerCarousel({ employers }: EmployerBannerCarouselProp
             )}
             <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(3,29,56,0.62)_0%,rgba(3,29,56,0.24)_48%,rgba(3,29,56,0.06)_100%),linear-gradient(180deg,rgba(3,29,56,0.04)_0%,rgba(3,29,56,0.68)_100%)]" />
             <div className="absolute left-4 top-4 rounded-full border border-white/16 bg-white/10 px-3 py-1.5 text-[10px] font-bold uppercase text-white/88 backdrop-blur-md sm:left-6 sm:top-6">
-              Featured employer
+              Nhà tuyển dụng nổi bật
             </div>
             <div className="absolute bottom-6 left-5 hidden max-w-2xl sm:block lg:bottom-8 lg:left-8">
-              <p className="text-xs font-bold uppercase text-sky-100/74">Paid employer spotlight</p>
+              <p className="text-xs font-bold uppercase text-sky-100/74">Vị trí quảng cáo</p>
               <h2
                 aria-hidden="true"
                 className="mt-2 text-3xl font-black leading-tight text-white lg:text-5xl"
@@ -128,7 +128,7 @@ export function EmployerBannerCarousel({ employers }: EmployerBannerCarouselProp
                     </p>
                   )}
                   <span className="rounded-full border border-white/12 bg-white/[0.07] px-2.5 py-1 text-[11px] font-bold uppercase text-sky-100/82">
-                    {(employer._count?.jobPostings ?? 0) > 0 ? `${employer._count?.jobPostings} open roles` : "Hiring signal"}
+                    {(employer._count?.jobPostings ?? 0) > 0 ? `${employer._count?.jobPostings} vị trí đang mở` : "Đang tuyển dụng"}
                   </span>
                 </div>
               </div>

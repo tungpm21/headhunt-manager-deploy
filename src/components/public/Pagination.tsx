@@ -1,6 +1,7 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 type PaginationProps = {
@@ -10,20 +11,19 @@ type PaginationProps = {
 };
 
 export function Pagination({ currentPage, totalPages, basePath = "/viec-lam" }: PaginationProps) {
-  const router = useRouter();
   const searchParams = useSearchParams();
 
   if (totalPages <= 1) return null;
 
-  function goToPage(page: number) {
+  function buildUrl(page: number) {
     const params = new URLSearchParams(searchParams.toString());
     if (page <= 1) {
       params.delete("page");
     } else {
       params.set("page", String(page));
     }
-    const queryString = params.toString();
-    router.push(queryString ? `${basePath}?${queryString}` : basePath);
+    const query = params.toString();
+    return query ? `${basePath}?${query}` : basePath;
   }
 
   // Generate page numbers to display
@@ -40,16 +40,25 @@ export function Pagination({ currentPage, totalPages, basePath = "/viec-lam" }: 
     pages.push(totalPages);
   }
 
+  const isPrevDisabled = currentPage <= 1;
+  const isNextDisabled = currentPage >= totalPages;
+  const prevPage = Math.max(1, currentPage - 1);
+  const nextPage = Math.min(totalPages, currentPage + 1);
+
   return (
     <nav className="flex items-center justify-center gap-1 mt-8" aria-label="Pagination">
-      <button
-        onClick={() => goToPage(currentPage - 1)}
-        disabled={currentPage <= 1}
-        className="flex h-11 w-11 items-center justify-center rounded-lg text-[var(--color-fdi-text-secondary)] transition-colors hover:bg-[var(--color-fdi-surface)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-primary)]/25 disabled:cursor-not-allowed disabled:opacity-30 cursor-pointer"
+      <Link
+        href={buildUrl(prevPage)}
+        aria-disabled={isPrevDisabled}
+        tabIndex={isPrevDisabled ? -1 : undefined}
+        onClick={isPrevDisabled ? (event) => event.preventDefault() : undefined}
         aria-label="Trang trước"
+        className={`flex h-11 w-11 items-center justify-center rounded-lg text-[var(--color-fdi-text-secondary)] transition-colors hover:bg-[var(--color-fdi-surface)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-primary)]/25 ${
+          isPrevDisabled ? "cursor-not-allowed opacity-30" : "cursor-pointer"
+        }`}
       >
         <ChevronLeft className="h-5 w-5" />
-      </button>
+      </Link>
 
       {pages.map((page, idx) =>
         page === "..." ? (
@@ -57,28 +66,32 @@ export function Pagination({ currentPage, totalPages, basePath = "/viec-lam" }: 
             …
           </span>
         ) : (
-          <button
+          <Link
             key={page}
-            onClick={() => goToPage(page)}
-            className={`h-11 min-w-11 rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-primary)]/25 cursor-pointer ${
+            href={buildUrl(page)}
+            className={`h-11 min-w-11 rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-primary)]/25 cursor-pointer flex items-center justify-center ${
               page === currentPage
                 ? "bg-[var(--color-fdi-primary)] text-white shadow-sm"
                 : "text-[var(--color-fdi-text-secondary)] hover:bg-[var(--color-fdi-surface)]"
             }`}
           >
             {page}
-          </button>
+          </Link>
         )
       )}
 
-      <button
-        onClick={() => goToPage(currentPage + 1)}
-        disabled={currentPage >= totalPages}
-        className="flex h-11 w-11 items-center justify-center rounded-lg text-[var(--color-fdi-text-secondary)] transition-colors hover:bg-[var(--color-fdi-surface)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-primary)]/25 disabled:cursor-not-allowed disabled:opacity-30 cursor-pointer"
+      <Link
+        href={buildUrl(nextPage)}
+        aria-disabled={isNextDisabled}
+        tabIndex={isNextDisabled ? -1 : undefined}
+        onClick={isNextDisabled ? (event) => event.preventDefault() : undefined}
         aria-label="Trang sau"
+        className={`flex h-11 w-11 items-center justify-center rounded-lg text-[var(--color-fdi-text-secondary)] transition-colors hover:bg-[var(--color-fdi-surface)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-primary)]/25 ${
+          isNextDisabled ? "cursor-not-allowed opacity-30" : "cursor-pointer"
+        }`}
       >
         <ChevronRight className="h-5 w-5" />
-      </button>
+      </Link>
     </nav>
   );
 }

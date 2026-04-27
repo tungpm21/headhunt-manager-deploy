@@ -138,6 +138,11 @@ enum ApplicationStatus {
   IMPORTED    // Đã import vào CRM Candidate
 }
 
+enum OptionValueType {
+  STRING
+  ENUM
+}
+
 // ==================== MODELS ====================
 
 model User {
@@ -484,7 +489,6 @@ model JobPosting {
   industrialZone      String?
   requiredLanguages   String[]         @default([])
   languageProficiency String?
-  visaSupport         String?
   shiftType           String?
   status        JobPostingStatus @default(DRAFT)
   rejectReason  String?          // Admin điền khi reject
@@ -540,6 +544,55 @@ model Application {
   @@index([status])
   @@index([email])
   @@unique([jobPostingId, email])
+}
+
+model OptionSet {
+  key               String          @id
+  label             String
+  description       String?
+  valueType         OptionValueType @default(STRING)
+  allowCustomValues Boolean         @default(true)
+  isSystem          Boolean         @default(false)
+  sortOrder         Int             @default(0)
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  items OptionItem[]
+}
+
+model OptionItem {
+  id           Int      @id @default(autoincrement())
+  setKey       String
+  value        String
+  label        String
+  description  String?
+  isActive     Boolean  @default(true)
+  showInPublic Boolean  @default(false)
+  isSystem     Boolean  @default(false)
+  sortOrder    Int      @default(0)
+  metadata     Json?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  set     OptionSet     @relation(fields: [setKey], references: [key], onDelete: Cascade)
+  aliases OptionAlias[]
+
+  @@unique([setKey, value])
+  @@index([setKey, isActive, sortOrder])
+}
+
+model OptionAlias {
+  id              Int      @id @default(autoincrement())
+  itemId          Int
+  setKey          String
+  alias           String
+  normalizedAlias String
+  createdAt       DateTime @default(now())
+
+  item OptionItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@unique([setKey, normalizedAlias])
+  @@index([itemId])
 }
 
 model BlogPost {

@@ -57,7 +57,6 @@ function buildJobPostingInput(formData: FormData) {
       return lang && lang !== "none" ? [lang] : [];
     })(),
     languageProficiency: formData.get("languageProficiency")?.toString().trim() || null,
-    visaSupport: formData.get("visaSupport")?.toString().trim() || null,
     shiftType: formData.get("shiftType")?.toString().trim() || null,
   };
 }
@@ -110,7 +109,6 @@ export async function getAdminJobPostingById(id: number) {
       industrialZone: true,
       requiredLanguages: true,
       languageProficiency: true,
-      visaSupport: true,
       shiftType: true,
       status: true,
       rejectReason: true,
@@ -186,7 +184,6 @@ export async function updateAdminJobPosting(id: number, formData: FormData) {
       industrialZone: parsedInput.data.industrialZone || null,
       requiredLanguages: parsedInput.data.requiredLanguages,
       languageProficiency: parsedInput.data.languageProficiency || null,
-      visaSupport: parsedInput.data.visaSupport || null,
       shiftType: parsedInput.data.shiftType || null,
     },
   });
@@ -453,7 +450,6 @@ export async function createAdminJobPosting(formData: FormData) {
         industrialZone: parsedInput.data.industrialZone || null,
         requiredLanguages: parsedInput.data.requiredLanguages,
         languageProficiency: parsedInput.data.languageProficiency || null,
-        visaSupport: parsedInput.data.visaSupport || null,
         shiftType: parsedInput.data.shiftType || null,
         status: "APPROVED",
         publishedAt: now,

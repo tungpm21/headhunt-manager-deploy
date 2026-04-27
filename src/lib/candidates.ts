@@ -1,6 +1,12 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { withCandidateAccess } from "@/lib/access-scope";
+import { OPTION_GROUPS } from "@/lib/config-option-definitions";
+import {
+  getOptionFilterValues,
+  getPublicOptionsWithUsage,
+  type OptionChoice,
+} from "@/lib/config-options";
 import { ViewerScope } from "@/lib/viewer-scope";
 import {
   CandidateFilters,
@@ -83,7 +89,7 @@ const CANDIDATE_DETAIL_INCLUDE = {
   },
 } satisfies Prisma.CandidateInclude;
 
-function buildWhere(filters: CandidateFilters): Prisma.CandidateWhereInput {
+async function buildWhere(filters: CandidateFilters): Promise<Prisma.CandidateWhereInput> {
   const where: Prisma.CandidateWhereInput = { isDeleted: false };
 
   if (filters.search) {
@@ -99,9 +105,13 @@ function buildWhere(filters: CandidateFilters): Prisma.CandidateWhereInput {
   if (filters.level) where.level = filters.level;
 
   if (filters.language) {
+    const languageValues = await getOptionFilterValues(
+      OPTION_GROUPS.requiredLanguage,
+      filters.language
+    );
     where.languages = {
       some: {
-        language: { equals: filters.language, mode: "insensitive" },
+        language: { in: languageValues, mode: "insensitive" },
       },
     };
   }
@@ -113,11 +123,15 @@ function buildWhere(filters: CandidateFilters): Prisma.CandidateWhereInput {
   }
 
   if (filters.industry) {
-    where.industry = { contains: filters.industry, mode: "insensitive" };
+    where.industry = {
+      in: await getOptionFilterValues(OPTION_GROUPS.industry, filters.industry),
+    };
   }
 
   if (filters.location) {
-    where.location = { contains: filters.location, mode: "insensitive" };
+    where.location = {
+      in: await getOptionFilterValues(OPTION_GROUPS.location, filters.location),
+    };
   }
 
   if (filters.minSalary !== undefined || filters.maxSalary !== undefined) {
@@ -165,7 +179,7 @@ export async function getCandidates(
   const page = filters.page ?? 1;
   const pageSize = filters.pageSize ?? 20;
   const skip = (page - 1) * pageSize;
-  const where = withCandidateAccess(buildWhere(filters), scope);
+  const where = withCandidateAccess(await buildWhere(filters), scope);
 
   const sortBy = filters.sortBy ?? "createdAt";
   const sortOrder = filters.sortOrder ?? "desc";
@@ -236,8 +250,8 @@ function normalizeDistinctValues(values: Array<string | null | undefined>) {
 }
 
 type FilterOptionsResult = {
-  locations: string[];
-  industries: string[];
+  locations: OptionChoice[];
+  industries: OptionChoice[];
   skills: string[];
 };
 
@@ -293,8 +307,14 @@ export async function getCandidateFilterOptions(
   ).sort((a, b) => a.localeCompare(b, "vi"));
 
   const data: FilterOptionsResult = {
-    locations: normalizeDistinctValues(locations.map((item) => item.location)),
-    industries: normalizeDistinctValues(industries.map((item) => item.industry)),
+    locations: await getPublicOptionsWithUsage(
+      OPTION_GROUPS.location,
+      normalizeDistinctValues(locations.map((item) => item.location))
+    ),
+    industries: await getPublicOptionsWithUsage(
+      OPTION_GROUPS.industry,
+      normalizeDistinctValues(industries.map((item) => item.industry))
+    ),
     skills,
   };
 

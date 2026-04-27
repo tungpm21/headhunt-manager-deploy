@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Save, Loader2, Briefcase, Banknote } from "lucide-react";
 import { ClientSelect } from "@/components/clients/client-select";
 import { createJobAction, updateJobAction } from "@/lib/job-actions";
+import type { OptionChoice } from "@/lib/config-options";
 import { ClientSelectOption } from "@/types/client";
 import {
   JobOrderWithRelations,
@@ -17,20 +18,12 @@ interface JobFormProps {
   initialData?: JobOrderWithRelations | SerializedJobOrderWithRelations | null;
   initialClients: ClientSelectOption[];
   users: { id: number; name: string }[];
+  industryOptions: OptionChoice[];
+  statusOptions: OptionChoice[];
+  feeTypeOptions: OptionChoice[];
   onCancel?: () => void;
   onSuccess?: () => void;
 }
-
-const INDUSTRIES = [
-  "IT / Phần mềm",
-  "Tài chính / Ngân hàng",
-  "Marketing / Truyền thông",
-  "Kỹ thuật / Sản xuất",
-  "Kinh doanh / Sales",
-  "Nhân sự",
-  "Hành chính",
-  "Khác",
-];
 
 function FieldLabel({
   htmlFor,
@@ -59,6 +52,9 @@ export function JobForm({
   initialData,
   initialClients,
   users,
+  industryOptions,
+  statusOptions,
+  feeTypeOptions,
   onCancel,
   onSuccess,
 }: JobFormProps) {
@@ -152,9 +148,9 @@ export function JobForm({
               className={inputCls}
             >
               <option value="">Chọn ngành nghề...</option>
-              {INDUSTRIES.map((industry) => (
-                <option key={industry} value={industry}>
-                  {industry}
+              {industryOptions.map((industry) => (
+                <option key={industry.value} value={industry.value}>
+                  {industry.label}
                 </option>
               ))}
             </select>
@@ -273,10 +269,11 @@ export function JobForm({
               defaultValue={initialData?.status || "OPEN"}
               className={inputCls}
             >
-              <option value="OPEN">Đang tuyển (OPEN)</option>
-              <option value="PAUSED">Tạm dừng (PAUSED)</option>
-              <option value="FILLED">Đã tuyển (FILLED)</option>
-              <option value="CANCELLED">Đã huỷ (CANCELLED)</option>
+              {statusOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label} ({option.value})
+                </option>
+              ))}
             </select>
           </div>
 
@@ -304,8 +301,11 @@ export function JobForm({
               className={inputCls}
             >
               <option value="">Chưa chọn...</option>
-              <option value="PERCENTAGE">% Lương gộp/năm</option>
-              <option value="FIXED">Giá cố định</option>
+              {feeTypeOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
             </select>
           </div>
 

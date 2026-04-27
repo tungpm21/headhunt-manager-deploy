@@ -3,34 +3,18 @@
 import { useCallback, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Search, SlidersHorizontal, X } from "lucide-react";
+import type { OptionChoice } from "@/lib/config-options";
 import type { Tag } from "@/types";
-import { STATUS_OPTIONS } from "@/components/candidates/status-badge";
 
 interface CandidateFiltersProps {
   allTags: Tag[];
-  locations: string[];
-  industries: string[];
+  locations: OptionChoice[];
+  industries: OptionChoice[];
+  statusOptions: OptionChoice[];
+  seniorityOptions: OptionChoice[];
+  languageOptions: OptionChoice[];
   skills: string[];
 }
-
-const SENIORITY_OPTIONS = [
-  { value: "INTERN", label: "Intern" },
-  { value: "JUNIOR", label: "Junior" },
-  { value: "MID_LEVEL", label: "Mid-level" },
-  { value: "SENIOR", label: "Senior" },
-  { value: "LEAD", label: "Lead" },
-  { value: "MANAGER", label: "Manager" },
-  { value: "DIRECTOR", label: "Director" },
-];
-
-const LANGUAGE_OPTIONS = [
-  "Tiếng Anh",
-  "Tiếng Nhật",
-  "Tiếng Hàn",
-  "Tiếng Trung",
-  "Tiếng Đức",
-  "Tiếng Pháp",
-];
 
 const FILTER_PARAM_KEYS = [
   "status",
@@ -50,6 +34,9 @@ export function CandidateFiltersPanel({
   allTags,
   locations,
   industries,
+  statusOptions,
+  seniorityOptions,
+  languageOptions,
   skills,
 }: CandidateFiltersProps) {
   const router = useRouter();
@@ -164,7 +151,7 @@ export function CandidateFiltersPanel({
               className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
             >
               <option value="">Tất cả</option>
-              {STATUS_OPTIONS.map((option) => (
+              {statusOptions.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
                 </option>
@@ -181,8 +168,8 @@ export function CandidateFiltersPanel({
             >
               <option value="">Tất cả</option>
               {locations.map((location) => (
-                <option key={location} value={location}>
-                  {location}
+                <option key={location.value} value={location.value}>
+                  {location.label}
                 </option>
               ))}
             </select>
@@ -196,7 +183,7 @@ export function CandidateFiltersPanel({
               className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
             >
               <option value="">Tất cả</option>
-              {SENIORITY_OPTIONS.map((option) => (
+              {seniorityOptions.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
                 </option>
@@ -212,9 +199,9 @@ export function CandidateFiltersPanel({
               className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
             >
               <option value="">Tất cả</option>
-              {LANGUAGE_OPTIONS.map((language) => (
-                <option key={language} value={language}>
-                  {language}
+              {languageOptions.map((language) => (
+                <option key={language.value} value={language.value}>
+                  {language.label}
                 </option>
               ))}
             </select>
@@ -229,8 +216,8 @@ export function CandidateFiltersPanel({
             >
               <option value="">Tất cả</option>
               {industries.map((industry) => (
-                <option key={industry} value={industry}>
-                  {industry}
+                <option key={industry.value} value={industry.value}>
+                  {industry.label}
                 </option>
               ))}
             </select>

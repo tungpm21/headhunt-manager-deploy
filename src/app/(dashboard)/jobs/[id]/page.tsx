@@ -4,6 +4,8 @@ import { ArrowLeft, Briefcase, Building2 } from "lucide-react";
 import { requireViewerScope } from "@/lib/authz";
 import { getAssignableUsers, getJobBridgeSummary, getJobById } from "@/lib/jobs";
 import { getAllClients } from "@/lib/clients";
+import { OPTION_GROUPS } from "@/lib/config-option-definitions";
+import { getOptionsForSelect } from "@/lib/config-options";
 import { JobBridgeCard } from "@/components/jobs/job-bridge-card";
 import { JobInfoCard } from "@/components/jobs/job-info-card";
 import { PipelineViewSwitcher } from "@/components/jobs/pipeline-view-switcher";
@@ -34,10 +36,12 @@ export default async function JobDetailPage({ params }: PageProps) {
 
   if (!job || !bridge) notFound();
 
-  const clientOptions = await getAllClients(
-    { pageSize: 10, includeIds: [job.clientId] },
-    scope
-  );
+  const [clientOptions, industryOptions, statusOptions, feeTypeOptions] = await Promise.all([
+    getAllClients({ pageSize: 10, includeIds: [job.clientId] }, scope),
+    getOptionsForSelect(OPTION_GROUPS.industry, { currentValue: job.industry }),
+    getOptionsForSelect(OPTION_GROUPS.jobStatus, { currentValue: job.status }),
+    getOptionsForSelect(OPTION_GROUPS.feeType, { currentValue: job.feeType }),
+  ]);
 
   const serializedJob = JSON.parse(
     JSON.stringify(job)
@@ -86,6 +90,9 @@ export default async function JobDetailPage({ params }: PageProps) {
           job={serializedJob}
           initialClients={clientOptions.clients}
           users={users}
+          industryOptions={industryOptions}
+          statusOptions={statusOptions}
+          feeTypeOptions={feeTypeOptions}
         />
 
         <JobBridgeCard bridge={serializedBridge} />

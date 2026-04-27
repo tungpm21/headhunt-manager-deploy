@@ -14,6 +14,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { JobForm } from "@/components/jobs/job-form";
+import type { OptionChoice } from "@/lib/config-options";
 import { ClientSelectOption } from "@/types/client";
 import { SerializedJobOrderWithRelations } from "@/types/job";
 
@@ -90,10 +91,16 @@ export function JobInfoCard({
   job,
   initialClients,
   users,
+  industryOptions,
+  statusOptions,
+  feeTypeOptions,
 }: {
   job: SerializedJobOrderWithRelations;
   initialClients: ClientSelectOption[];
   users: { id: number; name: string }[];
+  industryOptions: OptionChoice[];
+  statusOptions: OptionChoice[];
+  feeTypeOptions: OptionChoice[];
 }) {
   const [isEditing, setIsEditing] = useState(false);
 
@@ -129,6 +136,9 @@ export function JobInfoCard({
           initialData={job}
           initialClients={initialClients}
           users={users}
+          industryOptions={industryOptions}
+          statusOptions={statusOptions}
+          feeTypeOptions={feeTypeOptions}
           onCancel={() => setIsEditing(false)}
           onSuccess={() => setIsEditing(false)}
         />

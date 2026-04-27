@@ -3,6 +3,8 @@ import { Suspense } from "react";
 import { Archive, UserPlus } from "lucide-react";
 import { requireViewerScope } from "@/lib/authz";
 import { getCandidateFilterOptions, getCandidates } from "@/lib/candidates";
+import { OPTION_GROUPS } from "@/lib/config-option-definitions";
+import { getOptionsForSelect } from "@/lib/config-options";
 import { getAllTags } from "@/lib/tags";
 import { CandidateTableWrapper } from "@/components/candidates/candidate-table-wrapper";
 import { CandidateFiltersPanel } from "@/components/candidates/candidate-filters";
@@ -36,7 +38,14 @@ export default async function CandidatesPage({ searchParams }: PageProps) {
   const sp = await searchParams;
   const page = Number(sp.page ?? 1);
 
-  const [result, allTags, filterOptions] = await Promise.all([
+  const [
+    result,
+    allTags,
+    filterOptions,
+    statusOptions,
+    seniorityOptions,
+    languageOptions,
+  ] = await Promise.all([
     getCandidates({
       search: sp.search,
       status: sp.status as CandidateStatus | undefined,
@@ -55,6 +64,9 @@ export default async function CandidatesPage({ searchParams }: PageProps) {
     }, scope),
     getAllTags(),
     getCandidateFilterOptions(scope),
+    getOptionsForSelect(OPTION_GROUPS.candidateStatus, { currentValue: sp.status }),
+    getOptionsForSelect(OPTION_GROUPS.candidateSeniority, { currentValue: sp.level }),
+    getOptionsForSelect(OPTION_GROUPS.requiredLanguage, { currentValue: sp.language }),
   ]);
 
   return (
@@ -93,6 +105,9 @@ export default async function CandidatesPage({ searchParams }: PageProps) {
           allTags={allTags}
           locations={filterOptions.locations}
           industries={filterOptions.industries}
+          statusOptions={statusOptions}
+          seniorityOptions={seniorityOptions}
+          languageOptions={languageOptions}
           skills={filterOptions.skills}
         />
       </Suspense>

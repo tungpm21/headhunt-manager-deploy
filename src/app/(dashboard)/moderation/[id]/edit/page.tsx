@@ -41,7 +41,6 @@ export default async function JobPostingEditPage({
         industrialZone: job.industrialZone,
         requiredLanguages: job.requiredLanguages,
         languageProficiency: job.languageProficiency,
-        visaSupport: job.visaSupport,
         shiftType: job.shiftType,
         status: job.status,
         rejectReason: job.rejectReason,

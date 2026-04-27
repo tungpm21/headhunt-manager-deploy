@@ -4,6 +4,8 @@ import { ClientStatus, CompanySize } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireViewerScope } from "@/lib/authz";
+import { OPTION_GROUPS } from "@/lib/config-option-definitions";
+import { resolveConfigOptionValue } from "@/lib/config-options";
 import {
   addClientContact,
   createClient,
@@ -22,10 +24,15 @@ import {
   UpdateClientInput,
 } from "@/types/client";
 
-function parseClientInput(formData: FormData) {
+async function parseClientInput(formData: FormData) {
+  const industry = await resolveConfigOptionValue(
+    OPTION_GROUPS.industry,
+    strVal(formData.get("industry"))
+  );
+
   return clientFormSchema.safeParse({
     companyName: String(formData.get("companyName") ?? "").trim(),
-    industry: strVal(formData.get("industry")),
+    industry,
     companySize: enumVal(
       formData.get("companySize"),
       Object.values(CompanySize)
@@ -44,7 +51,7 @@ export async function createClientAction(
   try {
     const scope = await requireViewerScope();
     const userId = scope.userId;
-    const parsedInput = parseClientInput(formData);
+    const parsedInput = await parseClientInput(formData);
 
     if (!parsedInput.success) {
       return { error: getFirstZodErrorMessage(parsedInput.error) };
@@ -68,7 +75,7 @@ export async function updateClientAction(
 ): Promise<{ error?: string; success?: boolean }> {
   try {
     const scope = await requireViewerScope();
-    const parsedInput = parseClientInput(formData);
+    const parsedInput = await parseClientInput(formData);
 
     if (!parsedInput.success) {
       return { error: getFirstZodErrorMessage(parsedInput.error) };

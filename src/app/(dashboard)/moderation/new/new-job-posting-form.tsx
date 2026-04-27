@@ -479,27 +479,6 @@ export function NewJobPostingForm({ employers }: { employers: EmployerOption[] }
               </div>
             </div>
 
-            <div>
-              <label
-                htmlFor="visaSupport"
-                className="mb-1.5 block text-sm font-medium text-foreground"
-              >
-                Hỗ trợ visa / giấy phép lao động
-              </label>
-              <select
-                id="visaSupport"
-                name="visaSupport"
-                className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition sm:w-72"
-              >
-                <option value="">Không chỉ định</option>
-                <option value="YES">Có hỗ trợ</option>
-                <option value="NO">Không hỗ trợ</option>
-                <option value="NEGOTIABLE">Thương lượng</option>
-              </select>
-              <p className="mt-1 text-xs text-muted">
-                Ứng viên nước ngoài sẽ lọc theo tiêu chí này.
-              </p>
-            </div>
           </div>
 
           <div className="flex flex-col gap-3 border-t border-border pt-5 sm:flex-row sm:items-center sm:justify-between">

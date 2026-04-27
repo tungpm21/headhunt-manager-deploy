@@ -1,20 +1,14 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AlertCircle, AlertTriangle, Save } from "lucide-react";
-import { updateJobPostingAction } from "@/lib/employer-actions";
 import {
-  INDUSTRIAL_ZONE_GROUPS,
-  JOB_INDUSTRIES,
-  JOB_LOCATIONS,
-  JOB_POSITIONS,
-  JOB_WORK_TYPES,
-  LANGUAGE_PROFICIENCY_LEVELS,
-  REQUIRED_LANGUAGE_OPTIONS,
-  SHIFT_TYPE_OPTIONS,
-} from "@/lib/job-taxonomy";
+  getJobPostingFormOptions,
+  updateJobPostingAction,
+} from "@/lib/employer-actions";
+import { JOB_POSITIONS } from "@/lib/job-taxonomy";
 
 const inputClass =
   "w-full px-4 py-2.5 rounded-xl border border-gray-200 text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all";
@@ -41,15 +35,30 @@ type EditableJobPosting = {
   industrialZone: string | null;
   requiredLanguages: string[];
   languageProficiency: string | null;
-  visaSupport: string | null;
   shiftType: string | null;
 };
+
+type OptionChoice = { value: string; label: string };
+type JobPostingFormOptions = Awaited<ReturnType<typeof getJobPostingFormOptions>>;
 
 export function EditJobPostingForm({ job }: { job: EditableJobPosting }) {
   const router = useRouter();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [formOptions, setFormOptions] = useState<JobPostingFormOptions | null>(null);
   const submittingRef = useRef(false);
+
+  useEffect(() => {
+    getJobPostingFormOptions({
+      industry: job.industry,
+      location: job.location,
+      workType: job.workType,
+      industrialZone: job.industrialZone,
+      requiredLanguage: job.requiredLanguages?.[0] ?? null,
+      languageProficiency: job.languageProficiency,
+      shiftType: job.shiftType,
+    }).then(setFormOptions);
+  }, [job]);
 
   async function handleSubmit(formData: FormData) {
     if (submittingRef.current) return;
@@ -73,6 +82,14 @@ export function EditJobPostingForm({ job }: { job: EditableJobPosting }) {
       submittingRef.current = false;
       setLoading(false);
     }
+  }
+
+  if (!formOptions) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-3 border-teal-200 border-t-teal-600" />
+      </div>
+    );
   }
 
   return (
@@ -222,9 +239,9 @@ export function EditJobPostingForm({ job }: { job: EditableJobPosting }) {
                 className={selectClass}
               >
                 <option value="">Chọn ngành</option>
-                {JOB_INDUSTRIES.map((industry) => (
-                  <option key={industry} value={industry}>
-                    {industry}
+                {formOptions.industryOptions.map((industry: OptionChoice) => (
+                  <option key={industry.value} value={industry.value}>
+                    {industry.label}
                   </option>
                 ))}
               </select>
@@ -258,9 +275,9 @@ export function EditJobPostingForm({ job }: { job: EditableJobPosting }) {
                 className={selectClass}
               >
                 <option value="">Chọn khu vực</option>
-                {JOB_LOCATIONS.map((location) => (
-                  <option key={location} value={location}>
-                    {location}
+                {formOptions.locationOptions.map((location: OptionChoice) => (
+                  <option key={location.value} value={location.value}>
+                    {location.label}
                   </option>
                 ))}
               </select>
@@ -276,9 +293,9 @@ export function EditJobPostingForm({ job }: { job: EditableJobPosting }) {
                 className={selectClass}
               >
                 <option value="">Chọn hình thức</option>
-                {JOB_WORK_TYPES.map((workType) => (
-                  <option key={workType} value={workType}>
-                    {workType}
+                {formOptions.workTypeOptions.map((workType: OptionChoice) => (
+                  <option key={workType.value} value={workType.value}>
+                    {workType.label}
                   </option>
                 ))}
               </select>
@@ -337,11 +354,11 @@ export function EditJobPostingForm({ job }: { job: EditableJobPosting }) {
                 className={selectClass}
               >
                 <option value="">Chọn khu công nghiệp</option>
-                {INDUSTRIAL_ZONE_GROUPS.map((group) => (
+                {formOptions.industrialZoneGroups.map((group) => (
                   <optgroup key={group.group} label={group.group}>
                     {group.zones.map((zone) => (
-                      <option key={zone} value={zone}>
-                        {zone}
+                      <option key={zone.value} value={zone.value}>
+                        {zone.label}
                       </option>
                     ))}
                   </optgroup>
@@ -361,10 +378,9 @@ export function EditJobPostingForm({ job }: { job: EditableJobPosting }) {
                 defaultValue={job.shiftType ?? ""}
                 className={selectClass}
               >
-                {SHIFT_TYPE_OPTIONS.map((option) => (
-                  <option key={option.value || "none"} value={option.value}>
-                    {option.label}
-                  </option>
+                <option value="">Không chỉ định</option>
+                {formOptions.shiftTypeOptions.map((option: OptionChoice) => (
+                  <option key={option.value} value={option.value}>{option.label}</option>
                 ))}
               </select>
             </div>
@@ -384,7 +400,7 @@ export function EditJobPostingForm({ job }: { job: EditableJobPosting }) {
                 defaultValue={job.requiredLanguages?.[0] ?? "none"}
                 className={selectClass}
               >
-                {REQUIRED_LANGUAGE_OPTIONS.map((language) => (
+                {formOptions.requiredLanguageOptions.map((language: OptionChoice) => (
                   <option key={language.value} value={language.value}>
                     {language.label}
                   </option>
@@ -408,34 +424,15 @@ export function EditJobPostingForm({ job }: { job: EditableJobPosting }) {
                 className={selectClass}
               >
                 <option value="">Không chỉ định</option>
-                {LANGUAGE_PROFICIENCY_LEVELS.map((level) => (
-                  <option key={level} value={level}>
-                    {level}
+                {formOptions.languageProficiencyOptions.map((level: OptionChoice) => (
+                  <option key={level.value} value={level.value}>
+                    {level.label}
                   </option>
                 ))}
               </select>
             </div>
           </div>
 
-          <div>
-            <label htmlFor="visaSupport" className="block text-sm font-medium text-gray-700 mb-1.5">
-              Hỗ trợ visa / giấy phép lao động
-            </label>
-            <select
-              id="visaSupport"
-              name="visaSupport"
-              defaultValue={job.visaSupport ?? ""}
-              className="w-full sm:w-64 px-4 py-2.5 rounded-xl border border-gray-200 text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
-            >
-              <option value="">Không chỉ định</option>
-              <option value="YES">Có hỗ trợ</option>
-              <option value="NO">Không hỗ trợ</option>
-              <option value="NEGOTIABLE">Thương lượng</option>
-            </select>
-            <p className="text-xs text-gray-400 mt-1">
-              Ứng viên nước ngoài sẽ lọc theo tiêu chí này.
-            </p>
-          </div>
         </div>
 
         <div className="flex items-center justify-between py-2">

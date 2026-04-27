@@ -15,7 +15,6 @@ import {
   CalendarDays,
   Tag,
   Factory,
-  CheckCircle2,
 } from "lucide-react";
 import { getPublicJobBySlug, type HomepageJob } from "@/lib/public-actions";
 import { JobCard } from "@/components/public/JobCard";
@@ -217,7 +216,6 @@ export default async function JobDetailPage({ params }: PageProps) {
 
               {(job.requiredLanguages.length > 0 ||
                 job.industrialZone ||
-                job.visaSupport === "YES" ||
                 job.shiftType) && (
                 <div className="mb-6 flex flex-wrap gap-2">
                   {job.requiredLanguages.map((lang) => (
@@ -234,12 +232,6 @@ export default async function JobDetailPage({ params }: PageProps) {
                     <span className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1.5 text-xs font-semibold text-gray-700">
                       <Factory className="h-3.5 w-3.5" aria-hidden="true" />
                       {job.industrialZone}
-                    </span>
-                  )}
-                  {job.visaSupport === "YES" && (
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1.5 text-xs font-semibold text-emerald-700">
-                      <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
-                      Hỗ trợ visa
                     </span>
                   )}
                   {job.shiftType && (

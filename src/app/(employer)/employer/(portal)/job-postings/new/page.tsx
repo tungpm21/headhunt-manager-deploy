@@ -1,19 +1,13 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { createJobPostingAction } from "@/lib/employer-actions";
+import { useEffect, useRef, useState } from "react";
+import {
+  createJobPostingAction,
+  getJobPostingFormOptions,
+} from "@/lib/employer-actions";
 import { ArrowLeft, Send, AlertCircle } from "lucide-react";
 import Link from "next/link";
-import {
-  INDUSTRIAL_ZONE_GROUPS,
-  JOB_INDUSTRIES,
-  JOB_LOCATIONS,
-  JOB_POSITIONS,
-  JOB_WORK_TYPES,
-  LANGUAGE_PROFICIENCY_LEVELS,
-  REQUIRED_LANGUAGE_OPTIONS,
-  SHIFT_TYPE_OPTIONS,
-} from "@/lib/job-taxonomy";
+import { JOB_POSITIONS } from "@/lib/job-taxonomy";
 
 const inputClass =
   "w-full px-4 py-2.5 rounded-xl border border-gray-200 text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all";
@@ -21,10 +15,18 @@ const inputClass =
 const selectClass =
   "w-full px-4 py-2.5 rounded-xl border border-gray-200 text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all";
 
+type OptionChoice = { value: string; label: string };
+type JobPostingFormOptions = Awaited<ReturnType<typeof getJobPostingFormOptions>>;
+
 export default function NewJobPostingPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [formOptions, setFormOptions] = useState<JobPostingFormOptions | null>(null);
   const submittingRef = useRef(false);
+
+  useEffect(() => {
+    getJobPostingFormOptions().then(setFormOptions);
+  }, []);
 
   async function handleSubmit(formData: FormData) {
     if (submittingRef.current) return;
@@ -42,6 +44,14 @@ export default function NewJobPostingPage() {
       submittingRef.current = false;
       setLoading(false);
     }
+  }
+
+  if (!formOptions) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-3 border-teal-200 border-t-teal-600" />
+      </div>
+    );
   }
 
   return (
@@ -155,7 +165,7 @@ export default function NewJobPostingPage() {
               <label htmlFor="industry" className="block text-sm font-medium text-gray-700 mb-1.5">Ngành nghề</label>
               <select id="industry" name="industry" className={selectClass}>
                 <option value="">Chọn ngành</option>
-                {JOB_INDUSTRIES.map((i) => <option key={i} value={i}>{i}</option>)}
+                {formOptions.industryOptions.map((i: OptionChoice) => <option key={i.value} value={i.value}>{i.label}</option>)}
               </select>
             </div>
             <div>
@@ -169,14 +179,14 @@ export default function NewJobPostingPage() {
               <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-1.5">Tỉnh / Thành phố</label>
               <select id="location" name="location" className={selectClass}>
                 <option value="">Chọn khu vực</option>
-                {JOB_LOCATIONS.map((l) => <option key={l} value={l}>{l}</option>)}
+                {formOptions.locationOptions.map((l: OptionChoice) => <option key={l.value} value={l.value}>{l.label}</option>)}
               </select>
             </div>
             <div>
               <label htmlFor="workType" className="block text-sm font-medium text-gray-700 mb-1.5">Hình thức làm việc</label>
               <select id="workType" name="workType" className={selectClass}>
                 <option value="">Chọn hình thức</option>
-                {JOB_WORK_TYPES.map((w) => <option key={w} value={w}>{w}</option>)}
+                {formOptions.workTypeOptions.map((w: OptionChoice) => <option key={w.value} value={w.value}>{w.label}</option>)}
               </select>
             </div>
           </div>
@@ -210,10 +220,10 @@ export default function NewJobPostingPage() {
               </label>
               <select id="industrialZone" name="industrialZone" className={selectClass}>
                 <option value="">Chọn khu công nghiệp</option>
-                {INDUSTRIAL_ZONE_GROUPS.map((group) => (
+                {formOptions.industrialZoneGroups.map((group) => (
                   <optgroup key={group.group} label={group.group}>
                     {group.zones.map((zone) => (
-                      <option key={zone} value={zone}>{zone}</option>
+                      <option key={zone.value} value={zone.value}>{zone.label}</option>
                     ))}
                   </optgroup>
                 ))}
@@ -225,10 +235,9 @@ export default function NewJobPostingPage() {
                 Ca làm việc
               </label>
               <select id="shiftType" name="shiftType" className={selectClass}>
-                {SHIFT_TYPE_OPTIONS.map((option) => (
-                  <option key={option.value || "none"} value={option.value}>
-                    {option.label}
-                  </option>
+                <option value="">Không chỉ định</option>
+                {formOptions.shiftTypeOptions.map((option: OptionChoice) => (
+                  <option key={option.value} value={option.value}>{option.label}</option>
                 ))}
               </select>
             </div>
@@ -241,7 +250,7 @@ export default function NewJobPostingPage() {
                 Ngôn ngữ yêu cầu
               </label>
               <select id="requiredLanguage" name="requiredLanguage" className={selectClass}>
-                {REQUIRED_LANGUAGE_OPTIONS.map((l) => (
+                {formOptions.requiredLanguageOptions.map((l: OptionChoice) => (
                   <option key={l.value} value={l.value}>{l.label}</option>
                 ))}
               </select>
@@ -253,26 +262,13 @@ export default function NewJobPostingPage() {
               </label>
               <select id="languageProficiency" name="languageProficiency" className={selectClass}>
                 <option value="">Không chỉ định</option>
-                {LANGUAGE_PROFICIENCY_LEVELS.map((l) => (
-                  <option key={l} value={l}>{l}</option>
+                {formOptions.languageProficiencyOptions.map((l: OptionChoice) => (
+                  <option key={l.value} value={l.value}>{l.label}</option>
                 ))}
               </select>
             </div>
           </div>
 
-          {/* Visa support */}
-          <div>
-            <label htmlFor="visaSupport" className="block text-sm font-medium text-gray-700 mb-1.5">
-              Hỗ trợ visa / giấy phép lao động
-            </label>
-            <select id="visaSupport" name="visaSupport" className="w-full sm:w-64 px-4 py-2.5 rounded-xl border border-gray-200 text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all">
-              <option value="">Không chỉ định</option>
-              <option value="YES">Có hỗ trợ</option>
-              <option value="NO">Không hỗ trợ</option>
-              <option value="NEGOTIABLE">Thương lượng</option>
-            </select>
-            <p className="text-xs text-gray-400 mt-1">Ứng viên nước ngoài sẽ lọc theo tiêu chí này.</p>
-          </div>
         </div>
 
         {/* Submit */}

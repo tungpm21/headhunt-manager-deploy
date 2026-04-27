@@ -7,6 +7,7 @@ import { createCandidateAction, updateCandidateAction } from "@/lib/actions";
 import { checkDuplicateAction } from "@/lib/candidate-actions";
 import { TagSelector } from "@/components/candidates/tag-selector";
 import { AvatarUpload } from "@/components/candidates/avatar-upload";
+import type { OptionChoice } from "@/lib/config-options";
 import type { Tag } from "@/types";
 import { AlertTriangle, Save, Loader2, Upload, FileText, X, Download } from "lucide-react";
 
@@ -39,6 +40,11 @@ interface CandidateFormProps {
     cvFileName: string | null;
     tags?: { tagId: number }[];
   } | null;
+  locationOptions: OptionChoice[];
+  industryOptions: OptionChoice[];
+  statusOptions: OptionChoice[];
+  sourceOptions: OptionChoice[];
+  seniorityOptions: OptionChoice[];
 }
 
 type DuplicateWarning = {
@@ -47,21 +53,6 @@ type DuplicateWarning = {
   email: string | null;
   phone: string | null;
 };
-
-const LOCATIONS = ["TP.HCM", "Hà Nội", "Đà Nẵng", "Cần Thơ", "Khác"];
-const INDUSTRIES = [
-  "IT / Phần mềm", "Tài chính / Ngân hàng", "Marketing / Truyền thông",
-  "Kỹ thuật / Sản xuất", "Kinh doanh / Sales", "Nhân sự", "Hành chính", "Khác",
-];
-const SENIORITY_OPTIONS = [
-  { value: "INTERN",    label: "Intern" },
-  { value: "JUNIOR",   label: "Junior" },
-  { value: "MID_LEVEL",label: "Mid-level" },
-  { value: "SENIOR",   label: "Senior" },
-  { value: "LEAD",     label: "Lead" },
-  { value: "MANAGER",  label: "Manager" },
-  { value: "DIRECTOR", label: "Director" },
-];
 
 function FieldLabel({ htmlFor, required, children }: { htmlFor: string; required?: boolean; children: React.ReactNode }) {
   return (
@@ -73,7 +64,15 @@ function FieldLabel({ htmlFor, required, children }: { htmlFor: string; required
 
 const inputCls = "w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-muted/50 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition";
 
-export function CandidateForm({ allTags, initialData }: CandidateFormProps) {
+export function CandidateForm({
+  allTags,
+  initialData,
+  locationOptions,
+  industryOptions,
+  statusOptions,
+  sourceOptions,
+  seniorityOptions,
+}: CandidateFormProps) {
   const router = useRouter();
   const [selectedTagIds, setSelectedTagIds] = useState<number[]>(
     initialData?.tags?.map((tag) => tag.tagId) ?? []
@@ -207,7 +206,7 @@ export function CandidateForm({ allTags, initialData }: CandidateFormProps) {
             <FieldLabel htmlFor="location" required>Khu vực</FieldLabel>
             <select id="location" name="location" required defaultValue={initialData?.location || ""} className={inputCls}>
               <option value="">Chọn...</option>
-              {LOCATIONS.map((l) => <option key={l} value={l}>{l}</option>)}
+              {locationOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
             </select>
           </div>
           <div className="sm:col-span-2 lg:col-span-3">
@@ -235,7 +234,7 @@ export function CandidateForm({ allTags, initialData }: CandidateFormProps) {
             <FieldLabel htmlFor="industry" required>Ngành nghề</FieldLabel>
             <select id="industry" name="industry" required defaultValue={initialData?.industry || ""} className={inputCls}>
               <option value="">Chọn...</option>
-              {INDUSTRIES.map((i) => <option key={i} value={i}>{i}</option>)}
+              {industryOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
             </select>
           </div>
           <div>
@@ -263,7 +262,7 @@ export function CandidateForm({ allTags, initialData }: CandidateFormProps) {
             <FieldLabel htmlFor="level">Cấp bậc (Seniority)</FieldLabel>
             <select id="level" name="level" defaultValue={initialData?.level || ""} className={inputCls}>
               <option value="">Chọn cấp bậc...</option>
-              {SENIORITY_OPTIONS.map((o) => (
+              {seniorityOptions.map((o) => (
                 <option key={o.value} value={o.value}>{o.label}</option>
               ))}
             </select>
@@ -292,22 +291,18 @@ export function CandidateForm({ allTags, initialData }: CandidateFormProps) {
           <div>
             <FieldLabel htmlFor="status" required>Trạng thái</FieldLabel>
             <select id="status" name="status" required defaultValue={initialData?.status || "AVAILABLE"} className={inputCls}>
-              <option value="AVAILABLE">Sẵn sàng</option>
-              <option value="EMPLOYED">Đã có việc</option>
-              <option value="INTERVIEWING">Đang phỏng vấn</option>
-              <option value="BLACKLIST">Blacklist</option>
+              {statusOptions.map((option) => (
+                <option key={option.value} value={option.value}>{option.label}</option>
+              ))}
             </select>
           </div>
           <div>
             <FieldLabel htmlFor="source">Nguồn</FieldLabel>
             <select id="source" name="source" defaultValue={initialData?.source || ""} className={inputCls}>
               <option value="">Chọn...</option>
-              <option value="LINKEDIN">LinkedIn</option>
-              <option value="TOPCV">TopCV</option>
-              <option value="REFERRAL">Giới thiệu</option>
-              <option value="FACEBOOK">Facebook</option>
-              <option value="VIETNAMWORKS">VietnamWorks</option>
-              <option value="OTHER">Khác</option>
+              {sourceOptions.map((option) => (
+                <option key={option.value} value={option.value}>{option.label}</option>
+              ))}
             </select>
           </div>
           <div>

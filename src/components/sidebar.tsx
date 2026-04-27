@@ -12,6 +12,7 @@ import {
   LogOut,
   Package,
   SendHorizonal,
+  Settings,
   ShieldCheck,
   UploadCloud,
   UserCog,
@@ -59,6 +60,7 @@ const fdiworkNav: SidebarNavItem[] = [
     badgeKey: "pendingEmployers",
   },
   { name: "Gói dịch vụ", href: "/packages", icon: Package },
+  { name: "Cấu hình", href: "/settings/options", icon: Settings },
   { name: "Bài viết", href: "/blog", icon: FileText },
 ];
 

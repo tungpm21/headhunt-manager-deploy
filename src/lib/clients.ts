@@ -11,6 +11,8 @@ import {
 } from "@/types/client";
 import { Prisma } from "@prisma/client";
 import { withClientAccess } from "@/lib/access-scope";
+import { OPTION_GROUPS } from "@/lib/config-option-definitions";
+import { getOptionFilterValues } from "@/lib/config-options";
 import { ViewerScope } from "@/lib/viewer-scope";
 
 const CLIENT_LIST_INCLUDE = {
@@ -91,7 +93,7 @@ async function autoLinkEmployerForClientByName(
 // ============================================================
 // Build WHERE clause from filters
 // ============================================================
-function buildWhere(filters: ClientFilters): Prisma.ClientWhereInput {
+async function buildWhere(filters: ClientFilters): Promise<Prisma.ClientWhereInput> {
   const where: Prisma.ClientWhereInput = { isDeleted: false };
 
   if (filters.search) {
@@ -103,8 +105,13 @@ function buildWhere(filters: ClientFilters): Prisma.ClientWhereInput {
     ];
   }
 
-  if (filters.industry)
-    where.industry = { contains: filters.industry, mode: "insensitive" };
+  if (filters.industry) {
+    const industryValues = await getOptionFilterValues(
+      OPTION_GROUPS.industry,
+      filters.industry
+    );
+    where.industry = { in: industryValues };
+  }
 
   if (filters.companySize)
     where.companySize = filters.companySize;
@@ -122,7 +129,7 @@ export async function getClients(
   const page = filters.page ?? 1;
   const pageSize = filters.pageSize ?? 20;
   const skip = (page - 1) * pageSize;
-  const where = withClientAccess(buildWhere(filters), scope);
+  const where = withClientAccess(await buildWhere(filters), scope);
 
   const [clients, total] = await Promise.all([
     prisma.client.findMany({

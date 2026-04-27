@@ -106,7 +106,6 @@ export default async function JobPostingsPage({
             rejectReason: string | null;
             industrialZone: string | null;
             requiredLanguages: string[];
-            visaSupport: string | null;
             shiftType: string | null;
             _count: {
               applications: number;
@@ -126,7 +125,6 @@ export default async function JobPostingsPage({
                     </h3>
                     {(job.requiredLanguages.length > 0 ||
                       job.industrialZone ||
-                      job.visaSupport === "YES" ||
                       (job.shiftType && job.shiftType !== "DAY")) && (
                       <div className="mt-1 flex flex-wrap gap-1.5">
                         {job.requiredLanguages.map((lang: string) => (
@@ -140,11 +138,6 @@ export default async function JobPostingsPage({
                         {job.industrialZone && (
                           <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-semibold text-gray-600">
                             🏭 {job.industrialZone}
-                          </span>
-                        )}
-                        {job.visaSupport === "YES" && (
-                          <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
-                            ✅ Visa
                           </span>
                         )}
                         {job.shiftType && job.shiftType !== "DAY" && (

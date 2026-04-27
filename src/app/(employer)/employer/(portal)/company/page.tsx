@@ -2,39 +2,28 @@
 
 import { useState, useEffect } from "react";
 import { CoverPositionEditor } from "@/components/CoverPositionEditor";
-import { updateCompanyProfileAction, getCompanyProfile } from "@/lib/employer-actions";
+import {
+  updateCompanyProfileAction,
+  getCompanyProfile,
+  getCompanyProfileOptions,
+} from "@/lib/employer-actions";
 import { Building2, Save, AlertCircle, CheckCircle2 } from "lucide-react";
 
-const INDUSTRIES = [
-  "Sản xuất",
-  "Điện tử",
-  "Cơ khí",
-  "CNTT / Phần mềm",
-  "Logistics",
-  "Dệt may",
-  "Thực phẩm",
-  "Ô tô",
-  "Xây dựng",
-  "Khác",
-];
-
-const COMPANY_SIZES = [
-  { value: "SMALL", label: "Nhỏ (< 50 nhân viên)" },
-  { value: "MEDIUM", label: "Vừa (50 - 200 nhân viên)" },
-  { value: "LARGE", label: "Lớn (200 - 1000 nhân viên)" },
-  { value: "ENTERPRISE", label: "Tập đoàn (> 1000 nhân viên)" },
-];
+type OptionChoice = { value: string; label: string };
+type EmployerProfile = Awaited<ReturnType<typeof getCompanyProfile>>;
 
 export default function CompanyProfilePage() {
-  const [employer, setEmployer] = useState<any>(null);
+  const [employer, setEmployer] = useState<EmployerProfile>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [coverPos, setCoverPos] = useState({ positionX: 50, positionY: 50, zoom: 100 });
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
+  const [industryOptions, setIndustryOptions] = useState<OptionChoice[]>([]);
+  const [companySizeOptions, setCompanySizeOptions] = useState<OptionChoice[]>([]);
 
   useEffect(() => {
-    getCompanyProfile().then((data) => {
+    Promise.all([getCompanyProfile(), getCompanyProfileOptions()]).then(([data, options]) => {
       setEmployer(data);
       setCoverPos({
         positionX: data?.coverPositionX ?? 50,
@@ -42,6 +31,8 @@ export default function CompanyProfilePage() {
         zoom: data?.coverZoom ?? 100,
       });
       setCoverPreview(data?.coverImage ?? null);
+      setIndustryOptions(options.industryOptions);
+      setCompanySizeOptions(options.companySizeOptions);
       setLoading(false);
     });
   }, []);
@@ -189,8 +180,8 @@ export default function CompanyProfilePage() {
               className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
             >
               <option value="">Chọn ngành nghề</option>
-              {INDUSTRIES.map((ind) => (
-                <option key={ind} value={ind}>{ind}</option>
+              {industryOptions.map((ind) => (
+                <option key={ind.value} value={ind.value}>{ind.label}</option>
               ))}
             </select>
           </div>
@@ -207,7 +198,7 @@ export default function CompanyProfilePage() {
               className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
             >
               <option value="">Chọn quy mô</option>
-              {COMPANY_SIZES.map((size) => (
+              {companySizeOptions.map((size) => (
                 <option key={size.value} value={size.value}>{size.label}</option>
               ))}
             </select>

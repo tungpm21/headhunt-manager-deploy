@@ -213,7 +213,6 @@ export async function createEmployerJobPostingAndIncrementQuota(data: {
     industrialZone: string | null;
     requiredLanguages: string[];
     languageProficiency: string | null;
-    visaSupport: string | null;
     shiftType: string | null;
     status: "PENDING";
   };
@@ -261,7 +260,6 @@ export async function updateEmployerJobPosting(
     industrialZone: string | null;
     requiredLanguages: string[];
     languageProficiency: string | null;
-    visaSupport: string | null;
     shiftType: string | null;
     status: JobPostingStatus;
   }

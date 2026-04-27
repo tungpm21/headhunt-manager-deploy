@@ -5,29 +5,22 @@ import { useCallback } from "react";
 import { Filter, X } from "lucide-react";
 
 type JobFiltersProps = {
-  industries: string[];
-  locations: string[];
-  workTypes: string[];
-  languages: string[];
-  industrialZones: string[];
+  industries: { value: string; label: string }[];
+  locations: { value: string; label: string }[];
+  workTypes: { value: string; label: string }[];
+  languages: { value: string; label: string }[];
+  industrialZones: { value: string; label: string }[];
+  shiftTypes: { value: string; label: string }[];
 };
 
-const LANGUAGE_LABELS: Record<string, string> = {
-  Japanese: "Tiếng Nhật",
-  Korean: "Tiếng Hàn",
-  English: "Tiếng Anh",
-  Chinese: "Tiếng Trung",
-  German: "Tiếng Đức",
-  French: "Tiếng Pháp",
-};
-
-const SHIFT_LABELS: Record<string, string> = {
-  DAY: "Ca ngày",
-  NIGHT: "Ca đêm",
-  ROTATING: "Xoay ca",
-};
-
-export function JobFilters({ industries, locations, workTypes, languages, industrialZones }: JobFiltersProps) {
+export function JobFilters({
+  industries,
+  locations,
+  workTypes,
+  languages,
+  industrialZones,
+  shiftTypes,
+}: JobFiltersProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -89,7 +82,7 @@ export function JobFilters({ industries, locations, workTypes, languages, indust
           name="language"
           label="Ngôn ngữ yêu cầu"
           value={currentLanguage}
-          options={languages.map((l) => ({ value: l, label: LANGUAGE_LABELS[l] ?? l }))}
+          options={languages}
           onChange={(v) => updateFilter("language", v)}
         />
       )}
@@ -99,25 +92,27 @@ export function JobFilters({ industries, locations, workTypes, languages, indust
           name="industrialZone"
           label="Khu công nghiệp"
           value={currentIndustrialZone}
-          options={industrialZones.map((z) => ({ value: z, label: z }))}
+          options={industrialZones}
           onChange={(v) => updateFilter("industrialZone", v)}
         />
       )}
 
-      <FilterGroup
-        name="shiftType"
-        label="Ca làm việc"
-        value={currentShiftType}
-        options={Object.entries(SHIFT_LABELS).map(([v, l]) => ({ value: v, label: l }))}
-        onChange={(v) => updateFilter("shiftType", v)}
-      />
+      {shiftTypes.length > 0 && (
+        <FilterGroup
+          name="shiftType"
+          label="Ca làm việc"
+          value={currentShiftType}
+          options={shiftTypes}
+          onChange={(v) => updateFilter("shiftType", v)}
+        />
+      )}
 
       {/* General filters */}
       <FilterGroup
         name="industry"
         label="Ngành nghề"
         value={currentIndustry}
-        options={industries.map((i) => ({ value: i, label: i }))}
+        options={industries}
         onChange={(v) => updateFilter("industry", v)}
       />
 
@@ -125,7 +120,7 @@ export function JobFilters({ industries, locations, workTypes, languages, indust
         name="location"
         label="Khu vực"
         value={currentLocation}
-        options={locations.map((l) => ({ value: l, label: l }))}
+        options={locations}
         onChange={(v) => updateFilter("location", v)}
       />
 
@@ -133,7 +128,7 @@ export function JobFilters({ industries, locations, workTypes, languages, indust
         name="workType"
         label="Hình thức"
         value={currentWorkType}
-        options={workTypes.map((w) => ({ value: w, label: w }))}
+        options={workTypes}
         onChange={(v) => updateFilter("workType", v)}
       />
 

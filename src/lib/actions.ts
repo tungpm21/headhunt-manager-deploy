@@ -12,6 +12,8 @@ import { redirect } from "next/navigation";
 import { signIn } from "@/auth";
 import { logActivity } from "@/lib/activity-log";
 import { requireAdmin, requireViewerScope } from "@/lib/authz";
+import { OPTION_GROUPS } from "@/lib/config-option-definitions";
+import { resolveConfigOptionValue } from "@/lib/config-options";
 import {
   addCandidateNote,
   addTagToCandidate,
@@ -63,7 +65,7 @@ function parseCandidateSkills(value: FormDataEntryValue | null): string[] {
   ];
 }
 
-function buildCandidateInput(formData: FormData): CreateCandidateInput {
+async function buildCandidateInput(formData: FormData): Promise<CreateCandidateInput> {
   const tagIds = formData
     .getAll("tagIds")
     .map((value) => Number(value))
@@ -73,6 +75,10 @@ function buildCandidateInput(formData: FormData): CreateCandidateInput {
   const currentSalaryRaw = formData.get("currentSalary")?.toString().trim();
   const expectedSalaryRaw = formData.get("expectedSalary")?.toString().trim();
   const dateOfBirthRaw = formData.get("dateOfBirth")?.toString().trim();
+  const [industry, location] = await Promise.all([
+    resolveConfigOptionValue(OPTION_GROUPS.industry, strVal(formData.get("industry"))),
+    resolveConfigOptionValue(OPTION_GROUPS.location, strVal(formData.get("location"))),
+  ]);
 
   return {
     fullName: String(formData.get("fullName") ?? "").trim(),
@@ -83,11 +89,11 @@ function buildCandidateInput(formData: FormData): CreateCandidateInput {
     address: strVal(formData.get("address")),
     currentPosition: strVal(formData.get("currentPosition")),
     currentCompany: strVal(formData.get("currentCompany")),
-    industry: strVal(formData.get("industry")),
+    industry: industry ?? undefined,
     yearsOfExp: yearsOfExpRaw ? Number(yearsOfExpRaw) : undefined,
     currentSalary: currentSalaryRaw ? Number(currentSalaryRaw) : undefined,
     expectedSalary: expectedSalaryRaw ? Number(expectedSalaryRaw) : undefined,
-    location: strVal(formData.get("location")),
+    location: location ?? undefined,
     status: enumVal(formData.get("status"), Object.values(CandidateStatus)),
     level: enumVal(formData.get("level"), Object.values(CandidateSeniority)),
     skills: parseCandidateSkills(formData.get("skills")),
@@ -146,7 +152,7 @@ export async function createCandidateAction(
   try {
     const scope = await requireViewerScope();
     const userId = scope.userId;
-    const parsedInput = candidateFormSchema.safeParse(buildCandidateInput(formData));
+    const parsedInput = candidateFormSchema.safeParse(await buildCandidateInput(formData));
 
     if (!parsedInput.success) {
       return { error: getFirstZodErrorMessage(parsedInput.error) };
@@ -178,7 +184,7 @@ export async function updateCandidateAction(
 ): Promise<{ error?: string; success?: boolean }> {
   try {
     const scope = await requireViewerScope();
-    const parsedInput = candidateFormSchema.safeParse(buildCandidateInput(formData));
+    const parsedInput = candidateFormSchema.safeParse(await buildCandidateInput(formData));
 
     if (!parsedInput.success) {
       return { error: getFirstZodErrorMessage(parsedInput.error) };

@@ -183,6 +183,7 @@ export function ApplyForm({ jobId, jobTitle, companyName }: ApplyFormProps) {
         ) : (
           <button
             type="button"
+            aria-label="Tải lên CV (PDF, DOC, DOCX, tối đa 5MB)"
             onClick={() => fileInputRef.current?.click()}
             className="flex min-h-24 w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-gray-200 px-4 py-6 transition-colors hover:border-[var(--color-fdi-primary)]/40 hover:bg-[var(--color-fdi-surface)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-primary)]/25 cursor-pointer"
           >
@@ -207,7 +208,7 @@ export function ApplyForm({ jobId, jobTitle, companyName }: ApplyFormProps) {
       <button
         type="submit"
         disabled={loading}
-        className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-[var(--color-fdi-primary)] px-6 py-3 text-sm font-semibold text-white transition-[background-color,opacity,transform] duration-200 hover:-translate-y-0.5 hover:bg-[var(--color-fdi-primary-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-primary)]/40 disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
+        className="flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-[var(--color-fdi-primary)] px-6 py-3 text-sm font-semibold text-white transition-[background-color,opacity,transform] duration-200 hover:-translate-y-0.5 hover:bg-[var(--color-fdi-primary-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-primary)]/40 disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
       >
         {loading ? (
           <>

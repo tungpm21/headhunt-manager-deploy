@@ -68,7 +68,7 @@ export function JobFilters({ industries, locations, workTypes, languages, indust
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 text-sm font-semibold text-[var(--color-fdi-text)]" style={{ fontFamily: "var(--font-heading)" }}>
-          <Filter className="h-4 w-4 text-[var(--color-fdi-primary)]" />
+          <Filter className="h-4 w-4 text-[var(--color-fdi-primary)]" aria-hidden="true" />
           Bộ lọc
         </div>
         {hasFilters && (
@@ -147,7 +147,7 @@ export function JobFilters({ industries, locations, workTypes, languages, indust
           name="sort"
           value={currentSort}
           onChange={(e) => updateFilter("sort", e.target.value)}
-          className="min-h-11 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-[var(--color-fdi-text)] transition-colors focus:border-[var(--color-fdi-primary)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-primary)]/20 cursor-pointer"
+          className="min-h-11 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-[var(--color-fdi-text)] transition-colors focus:border-[var(--color-fdi-primary)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-primary)]/60 cursor-pointer"
         >
           <option value="newest">Mới nhất</option>
           <option value="oldest">Cũ nhất</option>

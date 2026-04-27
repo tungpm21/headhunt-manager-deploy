@@ -36,12 +36,15 @@ export async function BlogSection() {
   if (blogPosts.length === 0) return null;
 
   return (
-    <section className="bg-[#FAF6EF] py-14 sm:py-16">
+    <section className="bg-[linear-gradient(180deg,#FFFFFB_0%,#F5F8FA_100%)] py-12 sm:py-14">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-8 flex items-end justify-between">
           <div>
+            <p className="mb-2 inline-flex rounded-full border border-[#BFDCE4] bg-[#EAF7FA] px-3 py-1 text-[10px] font-bold uppercase text-[var(--color-fdi-primary)] shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
+              Insights
+            </p>
             <h2
-              className="text-2xl font-bold text-[var(--color-fdi-text)] sm:text-3xl"
+              className="text-2xl font-black tracking-normal text-[var(--color-fdi-ink)] sm:text-3xl"
               style={{ fontFamily: "var(--font-heading)" }}
             >
               Thông tin chia sẻ
@@ -52,7 +55,7 @@ export async function BlogSection() {
           </div>
           <Link
             href="/chia-se"
-            className="hidden min-h-11 items-center gap-1 rounded-full px-2 text-sm font-semibold text-[var(--color-fdi-primary)] transition-colors hover:text-[var(--color-fdi-primary-hover)] sm:flex cursor-pointer"
+            className="hidden min-h-11 items-center gap-1 rounded-full px-2 text-sm font-bold uppercase text-[var(--color-fdi-primary)] transition-colors hover:text-[var(--color-fdi-primary-hover)] sm:flex cursor-pointer"
           >
             Xem tất cả <ArrowRight className="h-4 w-4" />
           </Link>
@@ -66,26 +69,26 @@ export async function BlogSection() {
               <Link
                 key={post.id}
                 href={`/chia-se/${post.slug}`}
-                className="group overflow-hidden rounded-2xl border border-[#E4DCD0] bg-[#FFFEFA] shadow-[0_18px_42px_-34px_rgba(17,24,39,0.45)] transition-[background-color,border-color,box-shadow,transform] duration-200 ease-out hover:-translate-y-0.5 hover:border-[#D3C7B7] hover:bg-white hover:shadow-[0_26px_54px_-36px_rgba(17,24,39,0.55)] cursor-pointer"
+                className="group overflow-hidden rounded-2xl border border-[#D8E7EA] bg-white shadow-[0_20px_46px_-38px_rgba(7,26,47,0.46)] transition-[background-color,border-color,box-shadow,transform] duration-500 ease-[var(--ease-fdi)] hover:-translate-y-1 hover:border-[#A9CED8] hover:bg-white hover:shadow-[0_30px_58px_-40px_rgba(7,26,47,0.56)] cursor-pointer"
               >
-                <div className="relative flex aspect-[16/8.5] items-center justify-center overflow-hidden bg-[linear-gradient(135deg,#F5FAFB_0%,#EEF7FA_54%,#FFF1E7_100%)]">
+                <div className="relative flex aspect-[16/8.5] items-center justify-center overflow-hidden bg-[linear-gradient(135deg,#F7FCFD_0%,#EAF7FA_58%,#FFFFFF_100%)]">
                   <div className="absolute left-5 top-5 rounded-full border border-white/70 bg-white/[0.82] px-3 py-1 text-[11px] font-semibold uppercase text-[var(--color-fdi-primary)] shadow-sm">
                     {post.category}
                   </div>
-                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-white/80 bg-white shadow-[0_18px_36px_-24px_rgba(17,24,39,0.65)]">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-white/90 bg-white shadow-[0_18px_36px_-24px_rgba(7,26,47,0.5)]">
                     <PostIcon className="h-7 w-7 text-[var(--color-fdi-primary)]" aria-hidden="true" />
                   </div>
                 </div>
                 <div className="p-5">
                   <div className="mb-2 flex items-center gap-2">
-                    <span className="rounded-full bg-[#E8F5F7] px-2 py-0.5 text-[10px] font-semibold uppercase text-[var(--color-fdi-primary)]">
+                    <span className="rounded-full bg-[#EAF7FA] px-2 py-0.5 text-[10px] font-bold uppercase text-[var(--color-fdi-primary)]">
                       {post.category}
                     </span>
                     <span className="text-xs text-[var(--color-fdi-text-secondary)]">
                       {dateFormatter.format(new Date(post.createdAt))}
                     </span>
                   </div>
-                  <h3 className="mb-2 line-clamp-2 text-base font-semibold text-[var(--color-fdi-text)] transition-colors group-hover:text-[var(--color-fdi-primary)]">
+                  <h3 className="mb-2 line-clamp-2 text-base font-bold text-[var(--color-fdi-ink)] transition-colors group-hover:text-[var(--color-fdi-primary)]">
                     {post.title}
                   </h3>
                   <p className="line-clamp-3 text-sm leading-relaxed text-[var(--color-fdi-text-secondary)]">

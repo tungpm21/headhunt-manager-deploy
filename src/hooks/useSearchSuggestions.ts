@@ -39,6 +39,7 @@ export function useSearchSuggestions() {
   const containerRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
   const mountedRef = useRef(false);
+  const debouncedFetchRef = useRef<ReturnType<typeof useDebouncedCallback> | null>(null);
 
   const fetchSuggestions = useCallback(async (q: string) => {
     if (!mountedRef.current) return;
@@ -72,14 +73,18 @@ export function useSearchSuggestions() {
   }, 300);
 
   useEffect(() => {
+    debouncedFetchRef.current = debouncedFetch;
+  }, [debouncedFetch]);
+
+  useEffect(() => {
     mountedRef.current = true;
 
     return () => {
       mountedRef.current = false;
       abortRef.current?.abort();
-      debouncedFetch.cancel();
+      debouncedFetchRef.current?.cancel();
     };
-  }, [debouncedFetch]);
+  }, []);
 
   function handleQueryChange(value: string) {
     setQuery(value);
@@ -100,12 +105,12 @@ export function useSearchSuggestions() {
 
   function handleFocus() {
     const trimmed = query.trim();
+    setIsOpen(true);
     if (trimmed.length >= MIN_SUGGESTION_QUERY_LENGTH) {
-      setIsOpen(true);
-      if (!suggestions) {
-        fetchSuggestions(trimmed);
-      }
+      if (!suggestions) fetchSuggestions(trimmed);
+      return;
     }
+    if (!suggestions) fetchSuggestions("");
   }
 
   // Click-outside to close

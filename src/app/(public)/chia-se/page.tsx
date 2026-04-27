@@ -32,9 +32,9 @@ export default async function ChiaSePage() {
     const blogPosts = await getPublishedBlogPosts();
 
     return (
-        <div className="min-h-screen bg-gray-50/50">
+    <div id="main-content" className="min-h-screen bg-[var(--color-fdi-mist)]">
             {/* Header banner */}
-            <div className="border-b border-gray-200 bg-white">
+            <div className="border-b border-[var(--color-fdi-mist)] bg-white">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
                     <h1
                         className="text-3xl font-bold text-[var(--color-fdi-text)]"
@@ -62,19 +62,17 @@ export default async function ChiaSePage() {
                             <Link
                                 key={post.id}
                                 href={`/chia-se/${post.slug}`}
-                                className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-[0_16px_36px_-30px_rgba(15,23,42,0.5)] transition-[border-color,box-shadow,transform] duration-200 ease-out hover:-translate-y-0.5 hover:border-[var(--color-fdi-primary)]/25 hover:shadow-[0_24px_46px_-34px_rgba(15,23,42,0.65)]"
+                                aria-label={post.title}
+                                className="overflow-hidden rounded-xl border border-[var(--color-fdi-mist)] bg-white shadow-[0_16px_36px_-30px_rgba(15,23,42,0.5)] transition-[border-color,box-shadow,transform] duration-200 ease-out hover:-translate-y-0.5 hover:border-[var(--color-fdi-primary)]/25 hover:shadow-[0_24px_46px_-34px_rgba(15,23,42,0.65)]"
                             >
                                 <div className="relative flex aspect-[16/8.5] items-center justify-center overflow-hidden bg-[linear-gradient(135deg,#F8FBFF_0%,#EDF6FF_52%,#FFF7ED_100%)]">
-                                    <div className="absolute left-5 top-5 rounded-full bg-white/80 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-[var(--color-fdi-primary)] shadow-sm">
-                                        {post.category}
-                                    </div>
                                     <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-white/80 bg-white shadow-[0_18px_36px_-24px_rgba(15,23,42,0.7)]">
                                         <PostIcon className="h-7 w-7 text-[var(--color-fdi-primary)]" aria-hidden="true" />
                                     </div>
                                 </div>
                                 <div className="p-5">
                                     <div className="flex items-center gap-2 mb-3">
-                                        <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-[var(--color-fdi-surface)] text-[var(--color-fdi-primary)]">
+                                        <span className="text-xs uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-[var(--color-fdi-surface)] text-[var(--color-fdi-primary)]">
                                             {post.category}
                                         </span>
                                         <span className="text-xs text-[var(--color-fdi-text-secondary)]">

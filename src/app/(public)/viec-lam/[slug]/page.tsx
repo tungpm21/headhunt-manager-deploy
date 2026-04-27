@@ -124,37 +124,41 @@ export default async function JobDetailPage({ params }: PageProps) {
   const skills = job.skills;
 
   return (
-    <div className="min-h-screen bg-gray-50/50">
+    <div id="main-content" className="min-h-screen bg-[var(--color-fdi-mist)]">
       {/* Breadcrumb */}
-      <div className="bg-white border-b border-gray-100">
+      <nav aria-label="Breadcrumb" className="bg-white border-b border-[var(--color-fdi-mist)]">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-3">
-          <div className="flex items-center gap-2 text-sm text-[var(--color-fdi-text-secondary)]">
-            <Link
-              href="/viec-lam"
-              className="flex items-center gap-1 hover:text-[var(--color-fdi-primary)] transition-colors cursor-pointer"
-            >
-              <ChevronLeft className="h-4 w-4" />
-              Việc làm
-            </Link>
-            <span>/</span>
-            <span className="text-[var(--color-fdi-text)] font-medium truncate max-w-xs">
+          <ol className="flex items-center gap-2 text-sm text-[var(--color-fdi-text-secondary)]">
+            <li>
+              <Link
+                href="/viec-lam"
+                className="flex items-center gap-1 hover:text-[var(--color-fdi-primary)] transition-colors cursor-pointer"
+              >
+                <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+                Việc làm
+              </Link>
+            </li>
+            <li aria-hidden="true">/</li>
+            <li aria-current="page" className="text-[var(--color-fdi-text)] font-medium truncate max-w-xs">
               {job.title}
-            </span>
-          </div>
+            </li>
+          </ol>
         </div>
-      </div>
+      </nav>
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Main Content */}
           <div className="flex-1 space-y-6">
             {/* Job Header Card */}
-            <div className="bg-white rounded-xl border border-gray-100 p-6 sm:p-8">
+            <div className="bg-white rounded-xl border border-[var(--color-fdi-mist)] p-6 sm:p-8">
               <div className="flex items-start gap-4 mb-6">
                 <div className="h-14 w-14 rounded-xl bg-[var(--color-fdi-surface)] flex items-center justify-center shrink-0 overflow-hidden">
                   <LogoImage
                     src={job.employer.logo}
                     alt={job.employer.companyName}
+                    size={56}
+                    sizes="56px"
                     className="h-full w-full object-contain p-1"
                     iconSize="h-7 w-7"
                   />
@@ -195,11 +199,11 @@ export default async function JobDetailPage({ params }: PageProps) {
                     item.value && (
                       <div
                         key={item.label}
-                        className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-gray-50"
+                        className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-[var(--color-fdi-mist)]"
                       >
                         <item.icon className="h-4 w-4 text-[var(--color-fdi-primary)] shrink-0" />
                         <div className="min-w-0">
-                          <p className="text-[10px] text-[var(--color-fdi-text-secondary)] uppercase tracking-wider">
+                          <p className="text-xs text-[var(--color-fdi-text-secondary)] uppercase tracking-wider">
                             {item.label}
                           </p>
                           <p className="text-sm font-medium text-[var(--color-fdi-text)] truncate">
@@ -219,7 +223,7 @@ export default async function JobDetailPage({ params }: PageProps) {
                   {job.requiredLanguages.map((lang) => (
                     <span
                       key={lang}
-                      className="inline-flex items-center gap-1.5 rounded-full bg-[#0077B6]/10 px-3 py-1.5 text-xs font-semibold text-[#0077B6]"
+                      className="inline-flex items-center gap-1.5 rounded-full bg-[var(--color-fdi-primary)]/10 px-3 py-1.5 text-xs font-semibold text-[var(--color-fdi-primary)]"
                     >
                       <Globe className="h-3.5 w-3.5" aria-hidden="true" />
                       {LANGUAGE_LABELS[lang] ?? lang}
@@ -279,13 +283,13 @@ export default async function JobDetailPage({ params }: PageProps) {
 
           {/* Sidebar — Company Info */}
           <div className="lg:w-80 shrink-0">
-            <div className="lg:sticky lg:top-24 bg-white rounded-xl border border-gray-100 p-6 space-y-4">
-              <h3
+              <div className="lg:sticky lg:top-24 bg-white rounded-xl border border-[var(--color-fdi-mist)] p-6 space-y-4">
+              <h2
                 className="text-sm font-semibold text-[var(--color-fdi-text)] uppercase tracking-wider"
                 style={{ fontFamily: "var(--font-heading)" }}
               >
                 Thông tin công ty
-              </h3>
+              </h2>
               <div className="flex items-center gap-3">
                 <div className="h-12 w-12 rounded-xl bg-[var(--color-fdi-surface)] flex items-center justify-center overflow-hidden shrink-0">
                   <LogoImage
@@ -348,13 +352,13 @@ export default async function JobDetailPage({ params }: PageProps) {
 
             {/* Suggested Jobs sidebar */}
             {suggestedJobs.length > 0 && (
-              <div className="bg-white rounded-xl border border-gray-100 p-5 space-y-3">
-                <h3
+              <div className="bg-white rounded-xl border border-[var(--color-fdi-mist)] p-5 space-y-3">
+                <h2
                   className="text-sm font-semibold text-[var(--color-fdi-text)] uppercase tracking-wider"
                   style={{ fontFamily: "var(--font-heading)" }}
                 >
                   Việc làm gợi ý
-                </h3>
+                </h2>
                 <div className="space-y-2.5">
                   {suggestedJobs.map((sj: HomepageJob) => (
                     <Link
@@ -363,7 +367,7 @@ export default async function JobDetailPage({ params }: PageProps) {
                       className={`block p-3 rounded-lg border transition-colors hover:bg-gray-50 cursor-pointer ${
                         sj.isFeatured
                           ? "border-amber-200 bg-amber-50/30"
-                          : "border-gray-100"
+                          : "border-[var(--color-fdi-mist)]"
                       }`}
                     >
                       <p className="text-sm font-medium text-[var(--color-fdi-text)] line-clamp-2 leading-snug">
@@ -435,7 +439,7 @@ function ContentSection({ title, content }: { title: string; content: string }) 
   if (!body) return null;
 
   return (
-    <div className="bg-white rounded-xl border border-gray-100 p-6 sm:p-8">
+    <div className="bg-white rounded-xl border border-[var(--color-fdi-mist)] p-6 sm:p-8">
       <h2
         className="text-lg font-bold text-[var(--color-fdi-text)] mb-4"
         style={{ fontFamily: "var(--font-heading)" }}
@@ -443,7 +447,7 @@ function ContentSection({ title, content }: { title: string; content: string }) 
         {title}
       </h2>
       <div
-        className="prose prose-sm max-w-none text-[var(--color-fdi-text-secondary)] leading-relaxed whitespace-pre-line"
+        className="max-w-none text-[var(--color-fdi-text-secondary)] leading-relaxed whitespace-pre-line"
         style={{ fontFamily: "var(--font-body)" }}
       >
         {body}

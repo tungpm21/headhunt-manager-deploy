@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type { CSSProperties } from "react";
 import { PublicHeader } from "@/components/public/PublicHeader";
 import { PublicFooter } from "@/components/public/PublicFooter";
 
@@ -44,8 +45,19 @@ export default function PublicLayout({
       className="min-h-screen flex flex-col bg-white text-[var(--color-fdi-text)]"
       style={{ fontFamily: "var(--font-body)" }}
     >
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[9999] focus:rounded-lg focus:bg-[var(--color-fdi-primary)] focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2"
+      >
+        Chuyển đến nội dung chính
+      </a>
       <PublicHeader />
-      <main className="flex-1 pt-16">{children}</main>
+      <main
+        className="flex-1 pt-20"
+        style={{ "--color-primary": "var(--color-fdi-primary)" } as CSSProperties}
+      >
+        {children}
+      </main>
       <PublicFooter />
     </div>
   );

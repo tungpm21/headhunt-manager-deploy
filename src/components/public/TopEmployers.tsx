@@ -2,7 +2,7 @@
 
 import { useRef, useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import type { HomepageEmployer } from "@/lib/public-actions";
 import { LogoImage } from "@/components/public/LogoImage";
 
@@ -45,19 +45,23 @@ export function TopEmployers({ employers }: TopEmployersProps) {
   if (!hasEmployers) return null;
 
   return (
-    <section className="py-8 sm:py-9 lg:py-10">
+    <section className="relative z-10 -mt-8 bg-[linear-gradient(180deg,rgba(243,247,248,0)_0%,#F8FBFA_22%,#FFFFFB_100%)] pb-12 pt-0 sm:pb-14 lg:pb-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="rounded-[2rem] border border-[#D8E7EA] bg-[linear-gradient(180deg,#FFFFFF_0%,#F8FCFC_100%)] p-4 shadow-[0_28px_72px_-56px_rgba(7,26,47,0.42)] sm:p-5 lg:p-6">
         {/* Heading + nav arrows */}
-        <div className="mb-5 flex items-end justify-between sm:mb-6">
+        <div className="mb-5 flex items-end justify-between gap-4 sm:mb-6">
           <div>
+            <p className="mb-2 inline-flex rounded-full border border-[#BFDCE4] bg-[#EAF7FA] px-3 py-1 text-[10px] font-bold uppercase text-[var(--color-fdi-primary)] shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
+              Hiring partners
+            </p>
             <h2
-              className="text-xl font-bold text-white sm:text-2xl"
+              className="text-2xl font-black tracking-normal text-[var(--color-fdi-ink)] sm:text-3xl"
               style={{ fontFamily: "var(--font-heading)" }}
             >
               Nhà tuyển dụng hàng đầu
             </h2>
             <p
-              className="mt-1.5 text-sm text-sky-100/[0.78]"
+              className="mt-1.5 text-sm font-medium text-[var(--color-fdi-text-secondary)]"
               style={{ fontFamily: "var(--font-body)" }}
             >
               Các doanh nghiệp FDI uy tín đang tuyển dụng
@@ -70,7 +74,7 @@ export function TopEmployers({ employers }: TopEmployersProps) {
               onClick={() => scroll("left")}
               disabled={!canScrollLeft}
               aria-label="Cuộn trái"
-              className="flex h-11 w-11 items-center justify-center rounded-full border border-white/18 bg-white/[0.08] text-white shadow-sm transition-[background-color,border-color] hover:border-white/45 hover:bg-white/[0.14] cursor-pointer disabled:cursor-not-allowed disabled:opacity-30"
+              className="flex h-11 w-11 items-center justify-center rounded-full border border-[#BFDCE4] bg-[#EAF7FA] text-[var(--color-fdi-primary)] shadow-[0_12px_24px_-20px_rgba(7,26,47,0.5)] transition-[background-color,border-color,transform] duration-500 ease-[var(--ease-fdi)] hover:-translate-y-0.5 hover:border-[#91BFCD] hover:bg-white cursor-pointer disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:translate-y-0"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
@@ -78,7 +82,7 @@ export function TopEmployers({ employers }: TopEmployersProps) {
               onClick={() => scroll("right")}
               disabled={!canScrollRight}
               aria-label="Cuộn phải"
-              className="flex h-11 w-11 items-center justify-center rounded-full border border-white/18 bg-white/[0.08] text-white shadow-sm transition-[background-color,border-color] hover:border-white/45 hover:bg-white/[0.14] cursor-pointer disabled:cursor-not-allowed disabled:opacity-30"
+              className="flex h-11 w-11 items-center justify-center rounded-full border border-[#BFDCE4] bg-[#EAF7FA] text-[var(--color-fdi-primary)] shadow-[0_12px_24px_-20px_rgba(7,26,47,0.5)] transition-[background-color,border-color,transform] duration-500 ease-[var(--ease-fdi)] hover:-translate-y-0.5 hover:border-[#91BFCD] hover:bg-white cursor-pointer disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:translate-y-0"
             >
               <ChevronRight className="h-4 w-4" />
             </button>
@@ -88,7 +92,7 @@ export function TopEmployers({ employers }: TopEmployersProps) {
         {/* Horizontal scroll track — single row */}
         <div
           ref={scrollRef}
-          className="grid auto-cols-[168px] grid-flow-col gap-3 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory sm:auto-cols-[190px] sm:gap-4 lg:auto-cols-[calc((100%_-_64px)/5)]"
+          className="grid auto-cols-[190px] grid-flow-col gap-3 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory sm:auto-cols-[220px] sm:gap-4 lg:auto-cols-[calc((100%_-_64px)/5)]"
           style={{
             scrollbarWidth: "none",
             msOverflowStyle: "none",
@@ -103,26 +107,29 @@ export function TopEmployers({ employers }: TopEmployersProps) {
                 href={`/cong-ty/${employer.slug}`}
                 className="group block cursor-pointer snap-start"
               >
-                <div className="overflow-hidden rounded-xl border border-white/30 bg-[#FFFFFB] shadow-[0_18px_42px_-34px_rgba(0,0,0,0.8)] transition-[border-color,box-shadow,transform] duration-300 ease-out hover:-translate-y-1 hover:border-white/60 hover:shadow-[0_26px_54px_-34px_rgba(0,0,0,0.82)]">
+                <div className="min-h-[224px] overflow-hidden rounded-2xl border border-[#D6E5E9] bg-white shadow-[0_20px_44px_-36px_rgba(7,26,47,0.48)] transition-[border-color,box-shadow,transform] duration-500 ease-[var(--ease-fdi)] hover:-translate-y-1 hover:border-[#A9CED8] hover:shadow-[0_30px_58px_-38px_rgba(7,26,47,0.58)]">
+                  <div className="h-1 bg-[linear-gradient(90deg,#0A6F9D_0%,#5CC3D9_100%)]" />
                   {/* Logo zone — full bleed */}
-                  <div className="flex h-[118px] items-center justify-center border-b border-[#E6EBEF] bg-[#FFFFFB] sm:h-[132px] lg:h-[128px]">
-                    <LogoImage
-                      src={employer.logo}
-                      alt={employer.companyName}
-                      className="h-full w-full object-contain p-3"
-                      iconSize="h-16 w-16"
-                    />
+                  <div className="flex h-[112px] items-center justify-center border-b border-[#E3ECEF] bg-[linear-gradient(180deg,#F7FCFD_0%,#FFFFFF_100%)] p-4 sm:h-[120px] lg:h-[118px]">
+                    <div className="flex h-20 w-full items-center justify-center rounded-2xl bg-white shadow-[inset_0_0_0_1px_rgba(216,231,234,0.72)] sm:h-24">
+                      <LogoImage
+                        src={employer.logo}
+                        alt={employer.companyName}
+                        className="h-auto w-auto max-h-20 max-w-[86%] object-contain"
+                        iconSize="h-14 w-14"
+                      />
+                    </div>
                   </div>
 
                   {/* Text zone — white background */}
-                  <div className="bg-[#FFFFFB] p-3 text-center sm:p-4 lg:p-3.5">
-                    <p className="flex min-h-[2.5rem] items-center justify-center text-xs font-bold uppercase leading-tight text-[var(--color-fdi-text)] transition-colors group-hover:text-[var(--color-fdi-primary)] sm:text-sm">
+                  <div className="bg-white p-3.5 text-center sm:p-4 lg:p-3.5">
+                    <p className="flex min-h-[2.55rem] items-center justify-center text-xs font-black uppercase leading-tight text-[var(--color-fdi-ink)] transition-colors group-hover:text-[var(--color-fdi-primary)] sm:text-sm">
                       {employer.companyName}
                     </p>
 
                     {/* VIỆC MỚI badge */}
                     <div className="mt-2">
-                      <span className="inline-block rounded-md bg-[#E8F5F7] px-3 py-1.5 text-[11px] font-bold uppercase text-[var(--color-fdi-primary)] transition-colors group-hover:bg-[var(--color-fdi-accent-orange)] group-hover:text-white">
+                      <span className="inline-block rounded-full bg-[var(--color-fdi-primary)] px-3 py-1.5 text-[11px] font-bold uppercase text-white shadow-[0_10px_22px_-18px_rgba(10,111,157,0.88)] transition-colors group-hover:bg-[var(--color-fdi-primary-hover)]">
                         {jobCount > 0 ? `${jobCount} VIỆC MỚI` : "VIỆC MỚI"}
                       </span>
                     </div>
@@ -136,10 +143,12 @@ export function TopEmployers({ employers }: TopEmployersProps) {
         <div className="mt-6 text-center">
           <Link
             href="/cong-ty"
-            className="inline-flex min-h-11 items-center gap-1 rounded-full border border-[#C7DCE4] bg-white px-4 text-sm font-semibold text-[var(--color-fdi-primary)] shadow-[0_18px_34px_-28px_rgba(17,24,39,0.45)] transition-[background-color,border-color,color] hover:border-[#9CC4D1] hover:bg-[#F6FBFC] hover:text-[var(--color-fdi-primary-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 cursor-pointer"
+            className="inline-flex min-h-11 items-center gap-1 rounded-full border border-[var(--color-fdi-primary)] bg-[var(--color-fdi-primary)] px-5 text-sm font-bold text-white shadow-[0_18px_34px_-26px_rgba(10,111,157,0.72)] transition-[background-color,border-color,transform] duration-500 ease-[var(--ease-fdi)] hover:-translate-y-0.5 hover:border-[var(--color-fdi-primary-hover)] hover:bg-[var(--color-fdi-primary-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-primary)]/25 cursor-pointer"
           >
-            Khám phá thêm →
+            Khám phá thêm
+            <ArrowRight className="h-4 w-4" aria-hidden="true" />
           </Link>
+        </div>
         </div>
       </div>
     </section>

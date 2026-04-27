@@ -6,7 +6,7 @@ import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { JobCard } from "./JobCard";
 import type { HomepageJob } from "@/lib/public-actions";
 
-const JOBS_PER_PAGE = 9;
+const JOBS_PER_PAGE = 6;
 
 type FeaturedJobsProps = {
   jobs: HomepageJob[];
@@ -24,9 +24,9 @@ export function FeaturedJobs({ jobs }: FeaturedJobsProps) {
   );
 
   return (
-    <section className="relative bg-[#F6F8FA] py-8 lg:py-10">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-0 flex items-end justify-between rounded-t-[20px] border border-b-0 border-[#D9E4EA] bg-[#FDFBF5] px-5 py-4 shadow-[0_16px_40px_-38px_rgba(17,24,39,0.55)]">
+    <section className="relative bg-[linear-gradient(180deg,#FFFFFB_0%,#F5F8FA_100%)] py-10 lg:py-12">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="mb-0 flex items-end justify-between rounded-t-[24px] border border-b-0 border-[#D9E4EA] bg-white px-5 py-4 shadow-[0_16px_40px_-38px_rgba(17,24,39,0.46)] sm:px-6">
           <div className="flex items-center gap-3">
             <div className="hidden h-10 w-10 items-center justify-center rounded-xl border border-[#F4D9C9] bg-[#FFF1E8] sm:flex">
               <svg width="22" height="22" viewBox="0 0 32 32" fill="none" aria-hidden="true">
@@ -52,18 +52,18 @@ export function FeaturedJobs({ jobs }: FeaturedJobsProps) {
           </div>
           <Link
             href="/viec-lam"
-            className="hidden min-h-11 items-center gap-1 rounded-full px-2 text-sm font-bold uppercase text-[var(--color-fdi-accent-orange)] transition-colors hover:text-[#D94F1D] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-accent-orange)]/40 sm:inline-flex cursor-pointer"
+            className="hidden min-h-11 items-center gap-1 rounded-full px-2 text-sm font-bold uppercase text-[var(--color-fdi-primary)] transition-colors hover:text-[var(--color-fdi-primary-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-primary)]/25 sm:inline-flex cursor-pointer"
           >
             Xem tất cả
             <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
 
-        <div className="rounded-b-[20px] border border-[#D9E4EA] bg-[#FDFBF5] p-4 shadow-[0_24px_60px_-48px_rgba(17,24,39,0.65)]">
+        <div className="rounded-b-[24px] border border-[#D9E4EA] bg-white p-4 shadow-[0_24px_60px_-48px_rgba(17,24,39,0.56)] sm:p-5">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {currentJobs.map((job) => (
               <div key={job.id} className="min-w-0">
-                <JobCard job={job} compact />
+                <JobCard job={job} />
               </div>
             ))}
           </div>
@@ -74,7 +74,7 @@ export function FeaturedJobs({ jobs }: FeaturedJobsProps) {
             <button
               onClick={() => setPage((p) => Math.max(0, p - 1))}
               disabled={page === 0}
-              className="flex h-11 w-11 items-center justify-center rounded-full border border-[#D9E4EA] bg-[#FFFFFB] text-[var(--color-fdi-text)] transition-colors hover:border-[var(--color-fdi-accent-orange)] hover:text-[var(--color-fdi-accent-orange)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-accent-orange)]/40 cursor-pointer disabled:cursor-not-allowed disabled:opacity-30"
+              className="flex h-11 w-11 items-center justify-center rounded-full border border-[#D9E4EA] bg-[#FFFFFB] text-[var(--color-fdi-text)] transition-colors hover:border-[var(--color-fdi-primary)] hover:text-[var(--color-fdi-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-primary)]/25 cursor-pointer disabled:cursor-not-allowed disabled:opacity-30"
               aria-label="Trang trước"
             >
               <ChevronLeft className="h-4 w-4" />
@@ -85,7 +85,7 @@ export function FeaturedJobs({ jobs }: FeaturedJobsProps) {
                 <button
                   key={i}
                   onClick={() => setPage(i)}
-                  className="flex h-11 w-11 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-accent-orange)]/40 cursor-pointer"
+                  className="flex h-11 w-11 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-primary)]/25 cursor-pointer"
                   aria-label={`Trang ${i + 1}`}
                 >
                   <span
@@ -101,7 +101,7 @@ export function FeaturedJobs({ jobs }: FeaturedJobsProps) {
             <button
               onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
               disabled={page === totalPages - 1}
-              className="flex h-11 w-11 items-center justify-center rounded-full border border-[#D9E4EA] bg-[#FFFFFB] text-[var(--color-fdi-text)] transition-colors hover:border-[var(--color-fdi-accent-orange)] hover:text-[var(--color-fdi-accent-orange)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-accent-orange)]/40 cursor-pointer disabled:cursor-not-allowed disabled:opacity-30"
+              className="flex h-11 w-11 items-center justify-center rounded-full border border-[#D9E4EA] bg-[#FFFFFB] text-[var(--color-fdi-text)] transition-colors hover:border-[var(--color-fdi-primary)] hover:text-[var(--color-fdi-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-primary)]/25 cursor-pointer disabled:cursor-not-allowed disabled:opacity-30"
               aria-label="Trang sau"
             >
               <ChevronRight className="h-4 w-4" />
@@ -112,7 +112,7 @@ export function FeaturedJobs({ jobs }: FeaturedJobsProps) {
         <div className="mt-8 text-center sm:hidden">
           <Link
             href="/viec-lam"
-            className="inline-flex min-h-11 items-center gap-1 rounded-full bg-[var(--color-fdi-accent-orange)] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#D94F1D] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-accent-orange)]/40 cursor-pointer"
+            className="inline-flex min-h-11 items-center gap-1 rounded-full bg-[var(--color-fdi-primary)] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[var(--color-fdi-primary-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-primary)]/25 cursor-pointer"
           >
             Xem tất cả việc làm
             <ArrowRight className="h-4 w-4" />

@@ -6,9 +6,10 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 type PaginationProps = {
   currentPage: number;
   totalPages: number;
+  basePath?: string;
 };
 
-export function Pagination({ currentPage, totalPages }: PaginationProps) {
+export function Pagination({ currentPage, totalPages, basePath = "/viec-lam" }: PaginationProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -21,7 +22,8 @@ export function Pagination({ currentPage, totalPages }: PaginationProps) {
     } else {
       params.set("page", String(page));
     }
-    router.push(`/viec-lam?${params.toString()}`);
+    const queryString = params.toString();
+    router.push(queryString ? `${basePath}?${queryString}` : basePath);
   }
 
   // Generate page numbers to display

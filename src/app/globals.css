@@ -50,12 +50,22 @@
   --color-fdi-accent-orange: #F25C24;
   --color-fdi-accent-red: #C9363E;
   --color-fdi-dark: #062B50;
+  --color-fdi-ink: #071A2F;
+  --color-fdi-navy: #052A4D;
+  --color-fdi-navy-mid: #005A9E;
+  --color-fdi-cream: #FBF7EF;
+  --color-fdi-paper: #FFFFFB;
+  --color-fdi-mist: #F3F7F8;
   --color-fdi-surface: #EEF7FA;
+  --color-fdi-border: #DCE4EA;
   --color-fdi-text: #111827;
   --color-fdi-text-secondary: #627086;
+  --shadow-fdi-soft: 0 34px 90px -56px rgba(7, 26, 47, 0.55);
+  --shadow-fdi-plate: 0 24px 70px -52px rgba(7, 26, 47, 0.62);
+  --ease-fdi: cubic-bezier(0.32, 0.72, 0, 1);
 
   --font-heading: var(--font-poppins);
-  --font-body: var(--font-opensans);
+  --font-body: var(--font-poppins);
 }
 
 /* Dark mode colors */
@@ -94,9 +104,18 @@ body {
 *,
 *::before,
 *::after {
-  transition: background-color 200ms ease-in-out,
-    border-color 200ms ease-in-out,
-    color 200ms ease-in-out;
+  transition: background-color 240ms cubic-bezier(0.32, 0.72, 0, 1),
+    border-color 240ms cubic-bezier(0.32, 0.72, 0, 1),
+    color 240ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+  }
 }
 
 /* Scrollbar styling */

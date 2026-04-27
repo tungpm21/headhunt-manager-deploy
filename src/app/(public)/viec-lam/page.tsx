@@ -36,9 +36,9 @@ export default async function JobListingPage({ searchParams }: PageProps) {
   const result = await getPublicJobs(filters);
 
   return (
-    <div className="min-h-screen bg-gray-50/50">
+    <div id="main-content" className="min-h-screen bg-[var(--color-fdi-mist)]">
       {/* Page Header */}
-      <div className="border-b border-gray-100 bg-white">
+      <div className="border-b border-[var(--color-fdi-mist)] bg-white">
         <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div className="flex items-center gap-3">
@@ -58,7 +58,7 @@ export default async function JobListingPage({ searchParams }: PageProps) {
               </p>
             </div>
           </div>
-            <form action="/viec-lam" className="flex w-full max-w-2xl items-center gap-2 rounded-2xl border border-gray-200 bg-gray-50 p-1.5 lg:bg-white" role="search" aria-label="Tìm việc làm">
+            <form action="/viec-lam" className="flex w-full max-w-2xl items-center gap-2 rounded-2xl border border-[var(--color-fdi-mist)] bg-[var(--color-fdi-mist)] p-1.5 lg:bg-white" role="search" aria-label="Tìm việc làm">
               <Search className="ml-3 h-4 w-4 shrink-0 text-gray-400" aria-hidden="true" />
               <input
                 type="text"
@@ -89,7 +89,7 @@ export default async function JobListingPage({ searchParams }: PageProps) {
       {/* Content */}
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-5 lg:hidden">
-          <details className="rounded-2xl border border-gray-200 bg-white shadow-sm">
+          <details className="rounded-2xl border border-[var(--color-fdi-mist)] bg-white shadow-sm">
             <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between px-4 py-3 text-sm font-semibold text-[var(--color-fdi-text)]">
               <span className="inline-flex items-center gap-2">
                 <SlidersHorizontal className="h-4 w-4 text-[var(--color-fdi-primary)]" aria-hidden="true" />
@@ -97,7 +97,7 @@ export default async function JobListingPage({ searchParams }: PageProps) {
               </span>
               <span className="text-xs text-[var(--color-fdi-primary)]">Mở</span>
             </summary>
-            <div className="border-t border-gray-100 p-4">
+            <div className="border-t border-[var(--color-fdi-mist)] p-4">
               <Suspense>
                 <JobFilters
                   industries={result.filters.industries}
@@ -114,7 +114,7 @@ export default async function JobListingPage({ searchParams }: PageProps) {
         <div className="flex flex-col gap-8 lg:flex-row">
           {/* Sidebar Filters */}
           <div className="hidden shrink-0 lg:block lg:w-64">
-            <div className="lg:sticky lg:top-24 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+            <div className="lg:sticky lg:top-24 rounded-2xl border border-[var(--color-fdi-mist)] bg-white p-5 shadow-sm">
               <Suspense>
                 <JobFilters
                   industries={result.filters.industries}
@@ -131,7 +131,7 @@ export default async function JobListingPage({ searchParams }: PageProps) {
           <div className="flex-1">
             {result.jobs.length === 0 ? (
               <div className="text-center py-20">
-                <SearchX className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+            <SearchX className="h-12 w-12 text-gray-300 mx-auto mb-4" aria-hidden="true" />
                 <p
                   className="text-lg font-semibold text-[var(--color-fdi-text)]"
                   style={{ fontFamily: "var(--font-heading)" }}

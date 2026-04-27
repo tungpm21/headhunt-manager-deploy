@@ -22,9 +22,9 @@ export default async function CompanyListingPage({ searchParams }: PageProps) {
   const result = await getPublicCompanies({ q, industry, page });
 
   return (
-    <div className="min-h-screen bg-gray-50/50">
+    <div id="main-content" className="min-h-screen bg-[var(--color-fdi-mist)]">
       {/* Page Header */}
-      <div className="bg-white border-b border-gray-100">
+      <div className="bg-white border-b border-[var(--color-fdi-mist)]">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-xl bg-[var(--color-fdi-surface)] flex items-center justify-center">
@@ -62,13 +62,14 @@ export default async function CompanyListingPage({ searchParams }: PageProps) {
           </div>
         ) : (
           <>
+            <h2 className="sr-only">Danh sách công ty</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {result.companies.map((company: PublicCompany, index: number) => (
                 <CompanyCard key={company.id} company={company} imagePriority={index < 3} />
               ))}
             </div>
             <Suspense>
-              <Pagination currentPage={result.page} totalPages={result.totalPages} />
+              <Pagination currentPage={result.page} totalPages={result.totalPages} basePath="/cong-ty" />
             </Suspense>
           </>
         )}

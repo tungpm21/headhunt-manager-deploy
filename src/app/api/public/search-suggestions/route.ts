@@ -34,6 +34,33 @@ const getCachedTopEmployerSuggestions = unstable_cache(
   { revalidate: 60 }
 );
 
+const getCachedRecommendedJobSuggestions = unstable_cache(
+  async () =>
+    prisma.jobPosting.findMany({
+      where: {
+        status: "APPROVED",
+        OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+      },
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        salaryDisplay: true,
+        location: true,
+        employer: {
+          select: {
+            companyName: true,
+            logo: true,
+          },
+        },
+      },
+      take: 6,
+      orderBy: [{ isFeatured: "desc" }, { publishedAt: "desc" }],
+    }),
+  ["public-search-suggestions-recommended-jobs"],
+  { revalidate: 60 }
+);
+
 function responseHeaders(start: number, cacheControl: string) {
   return {
     "Cache-Control": cacheControl,
@@ -47,10 +74,13 @@ export async function GET(req: NextRequest) {
   const now = new Date();
 
   if (!q) {
-    const topEmployers = await getCachedTopEmployerSuggestions();
+    const [topEmployers, jobs] = await Promise.all([
+      getCachedTopEmployerSuggestions(),
+      getCachedRecommendedJobSuggestions(),
+    ]);
 
     return NextResponse.json(
-      { employers: topEmployers, jobs: [], popularKeywords: POPULAR_KEYWORDS },
+      { employers: topEmployers, jobs, popularKeywords: POPULAR_KEYWORDS },
       {
         headers: responseHeaders(
           start,

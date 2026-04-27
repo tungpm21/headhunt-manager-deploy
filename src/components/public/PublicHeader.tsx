@@ -99,11 +99,11 @@ export function PublicHeader() {
   const showDropdown = isOpen && (isLoading || hasKeywords || hasResults || noResultsForQuery);
 
   return (
-    <header className={`fixed top-0 left-0 right-0 z-50 transition-[background-color,border-color,box-shadow] ${isHome ? "border-b border-white/10 bg-[#052B52]/95 shadow-[0_12px_34px_-30px_rgba(0,0,0,0.9)] backdrop-blur-xl" : "border-b border-gray-100 bg-white shadow-sm"}`}>
-      <div className="mx-auto flex h-14 max-w-7xl items-center gap-2 px-4 sm:px-6 lg:gap-3 lg:px-8">
+    <header className="pointer-events-none fixed left-0 right-0 top-3 z-50 px-3">
+      <div className={`pointer-events-auto mx-auto flex h-14 max-w-7xl items-center gap-2 rounded-full px-3 shadow-[0_18px_50px_-42px_rgba(7,26,47,0.62)] ring-1 transition-[background-color,border-color,box-shadow] duration-500 ease-[var(--ease-fdi)] sm:px-4 lg:gap-3 ${isHome ? "border border-white/10 bg-[#062B4F]/58 text-white ring-white/10 backdrop-blur-xl" : "border border-white/80 bg-white/92 text-[var(--color-fdi-text)] ring-[#D9E4EA]/70 backdrop-blur-xl"}`}>
         {/* Logo */}
         <Link href="/" aria-label="FDIWork - Trang chủ" className="flex min-h-11 shrink-0 items-center gap-2 cursor-pointer">
-          <div className={`h-8 w-8 rounded-lg flex items-center justify-center ${isHome ? "bg-white/10 ring-1 ring-white/20" : "bg-[var(--color-fdi-primary)]"}`} aria-hidden="true">
+          <div className={`h-8 w-8 rounded-full flex items-center justify-center ${isHome ? "bg-white/10 ring-1 ring-white/20" : "bg-[var(--color-fdi-primary)]"}`} aria-hidden="true">
             <Briefcase className="h-4 w-4 text-white" />
           </div>
           <span className={`inline text-lg font-bold ${isHome ? "text-white" : "text-[var(--color-fdi-text)]"}`} style={{ fontFamily: "var(--font-heading)" }}>
@@ -115,7 +115,7 @@ export function PublicHeader() {
         <nav className="hidden md:flex items-center gap-0.5" ref={dropdownRef} aria-label="Menu điều hướng chính">
           {navLinks.map((link) => {
             const Icon = link.icon;
-            const navItemClass = `flex min-h-11 items-center gap-1 rounded-lg px-2.5 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-accent-orange)]/40 cursor-pointer ${isHome ? "text-sky-100/85 hover:bg-white/10 hover:text-white" : "text-[var(--color-fdi-text-secondary)] hover:bg-[var(--color-fdi-surface)] hover:text-[var(--color-fdi-primary)]"}`;
+            const navItemClass = `flex min-h-11 items-center gap-1 rounded-full px-3 py-2 text-sm font-semibold transition-[background-color,color,transform] duration-500 ease-[var(--ease-fdi)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-accent-orange)]/40 cursor-pointer ${isHome ? "text-sky-100/85 hover:-translate-y-0.5 hover:bg-white/10 hover:text-white" : "text-[var(--color-fdi-text-secondary)] hover:-translate-y-0.5 hover:bg-[var(--color-fdi-surface)] hover:text-[var(--color-fdi-primary)]"}`;
 
             return (
               <div key={link.href} className="relative">
@@ -142,11 +142,11 @@ export function PublicHeader() {
                   </Link>
                 )}
                 {link.sub && openDropdown === link.href && (
-                  <div className="absolute top-full left-0 mt-1 w-52 bg-white rounded-xl border border-gray-100 shadow-lg py-1 z-50" role="menu">
+                  <div className="absolute top-full left-0 mt-2 w-56 rounded-2xl border border-[#DDE8EE] bg-white p-1.5 shadow-[0_26px_66px_-46px_rgba(7,26,47,0.65)] z-50" role="menu">
                     {link.sub.map((subLink) => (
                       <Link key={subLink.href} href={subLink.href} onClick={() => setOpenDropdown(null)}
                         role="menuitem"
-                        className="flex min-h-11 items-center px-4 py-2.5 text-sm text-[var(--color-fdi-text-secondary)] transition-colors hover:bg-[var(--color-fdi-surface)] hover:text-[var(--color-fdi-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-accent-orange)]/40 cursor-pointer">
+                        className="flex min-h-11 items-center rounded-xl px-4 py-2.5 text-sm font-medium text-[var(--color-fdi-text-secondary)] transition-colors hover:bg-[var(--color-fdi-surface)] hover:text-[var(--color-fdi-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-accent-orange)]/40 cursor-pointer">
                         {subLink.label}
                       </Link>
                     ))}
@@ -158,7 +158,7 @@ export function PublicHeader() {
         </nav>
 
         {/* Header search with inline dropdown */}
-        <div ref={searchContainerRef} className="hidden lg:flex flex-1 min-w-[220px] max-w-xs xl:max-w-sm mx-auto relative">
+        <div ref={searchContainerRef} className={`${isHome ? "hidden" : "hidden lg:flex"} flex-1 min-w-[220px] max-w-xs xl:max-w-sm mx-auto relative`}>
           <form onSubmit={handleSearch} className="w-full" role="search" aria-label="Tìm kiếm việc làm">
             <div className="relative w-full">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" aria-hidden="true" />
@@ -176,7 +176,7 @@ export function PublicHeader() {
                 onFocus={handleFocus}
                 onKeyDown={handleKeyDown}
                 placeholder="Tìm việc làm, công ty…"
-                className={`min-h-11 w-full rounded-full border py-2 pl-9 pr-3 text-sm transition-[border-color,box-shadow,background-color] focus:outline-none focus-visible:border-[var(--color-fdi-accent-orange)] focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-accent-orange)]/50 ${isHome ? "border-white/18 bg-white/12 text-white placeholder:text-sky-100/60 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]" : "border-gray-200 bg-gray-50 text-[var(--color-fdi-text)] placeholder-gray-400"}`}
+                className={`min-h-11 w-full rounded-full border py-2 pl-9 pr-3 text-sm transition-[border-color,box-shadow,background-color] duration-500 ease-[var(--ease-fdi)] focus:outline-none focus-visible:border-[var(--color-fdi-accent-orange)] focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-accent-orange)]/50 ${isHome ? "border-white/18 bg-white/12 text-white placeholder:text-sky-100/60 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]" : "border-[#D9E4EA] bg-[#F6FAFB] text-[var(--color-fdi-text)] placeholder-gray-400"}`}
                 autoComplete="off"
               />
             </div>
@@ -188,7 +188,7 @@ export function PublicHeader() {
               id="header-search-listbox"
               role="listbox"
               aria-label="Gợi ý tìm kiếm"
-              className="absolute top-full left-0 mt-1.5 bg-white rounded-xl border border-gray-200 shadow-2xl z-50 overflow-hidden"
+              className="absolute top-full left-0 mt-2 overflow-hidden rounded-2xl border border-[#DDE8EE] bg-white shadow-[0_28px_72px_-48px_rgba(7,26,47,0.7)] z-50"
               style={{ width: "max(100%, 580px)", maxWidth: "calc(100vw - 2rem)" }}
             >
               {isLoading && !suggestions && (
@@ -274,15 +274,16 @@ export function PublicHeader() {
         </div>
 
         {/* Desktop CTAs */}
-        <div className="hidden md:flex items-center gap-2 shrink-0">
+        <div className="ml-auto hidden md:flex items-center gap-2 shrink-0">
           <Link href="/employer/login" className={`flex min-h-11 items-center text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-accent-orange)]/40 cursor-pointer ${isHome ? "text-sky-100/85 hover:text-white" : "text-[var(--color-fdi-text-secondary)] hover:text-[var(--color-fdi-primary)]"}`}>
             Đăng nhập NTD
           </Link>
           <Link href="/employer/register"
-            className="inline-flex min-h-11 items-center gap-1.5 rounded-full bg-[var(--color-fdi-accent-orange)] px-3 py-2 text-sm font-semibold text-white shadow-[0_12px_28px_-18px_rgba(242,92,36,0.85)] transition-[background-color,box-shadow,transform] duration-200 ease-out hover:-translate-y-0.5 hover:bg-[#D94F1D] hover:shadow-[0_16px_34px_-18px_rgba(242,92,36,0.95)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-accent-orange)]/40 cursor-pointer whitespace-nowrap">
+            className={`group inline-flex min-h-11 items-center gap-2 rounded-full py-1.5 pl-3.5 pr-1.5 text-sm font-bold transition-[background-color,border-color,box-shadow,transform] duration-500 ease-[var(--ease-fdi)] hover:-translate-y-0.5 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-accent-orange)]/40 cursor-pointer whitespace-nowrap ${isHome ? "border border-white/16 bg-white/[0.08] text-white shadow-none hover:border-white/28 hover:bg-white/[0.13]" : "bg-[var(--color-fdi-accent-orange)] text-white shadow-[0_16px_34px_-20px_rgba(242,92,36,0.92)] hover:bg-[#D94F1D] hover:shadow-[0_20px_40px_-20px_rgba(242,92,36,0.98)]"}`}>
             <UserPlus className="h-4 w-4" aria-hidden="true" />
             <span className="hidden xl:inline">Đăng tin tuyển dụng</span>
             <span className="xl:hidden">Đăng tin</span>
+            <span className="hidden h-8 w-8 rounded-full bg-white/18 transition-transform duration-500 ease-[var(--ease-fdi)] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 xl:block" aria-hidden="true" />
           </Link>
         </div>
 
@@ -305,7 +306,7 @@ export function PublicHeader() {
 
       {/* Mobile Menu */}
       {mobileOpen && (
-        <div className="md:hidden bg-white border-t border-gray-100 shadow-lg">
+        <div className="pointer-events-auto mx-auto mt-2 max-w-7xl rounded-3xl border border-white/80 bg-white/95 shadow-[0_28px_72px_-48px_rgba(7,26,47,0.72)] backdrop-blur-xl md:hidden">
           <form onSubmit={handleSearch} className="px-4 pt-3" role="search" aria-label="Tìm kiếm cơ bản">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" aria-hidden="true" />

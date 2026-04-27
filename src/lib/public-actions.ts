@@ -13,6 +13,16 @@ import {
   type OptionChoice,
 } from "@/lib/config-options";
 import { prisma } from "@/lib/prisma";
+import type {
+  CompanyProfileCapabilities,
+  CompanyProfileTheme,
+  ContentBlock,
+} from "@/lib/content-blocks";
+import {
+  normalizeCompanyCapabilities,
+  normalizeCompanyTheme,
+  normalizeContentBlocks,
+} from "@/lib/content-blocks";
 
 export type HomepageJob = {
   id: number;
@@ -442,6 +452,8 @@ export type JobDetail = {
   id: number;
   title: string;
   slug: string;
+  coverImage: string | null;
+  coverAlt: string | null;
   description: string;
   requirements: string | null;
   benefits: string | null;
@@ -485,6 +497,8 @@ export async function getPublicJobBySlug(
       id: true,
       title: true,
       slug: true,
+      coverImage: true,
+      coverAlt: true,
       description: true,
       requirements: true,
       benefits: true,
@@ -845,6 +859,12 @@ export type CompanyProfile = {
   website: string | null;
   phone: string | null;
   subscription: { tier: string } | null;
+  profileConfig: {
+    theme: CompanyProfileTheme | null;
+    capabilities: CompanyProfileCapabilities | null;
+    sections: ContentBlock[] | null;
+    primaryVideoUrl: string | null;
+  } | null;
   jobPostings: HomepageJob[];
 };
 
@@ -871,6 +891,14 @@ const getCachedCompanyBySlug = unstable_cache(
         phone: true,
         status: true,
         subscription: { select: { tier: true } },
+        profileConfig: {
+          select: {
+            theme: true,
+            capabilities: true,
+            sections: true,
+            primaryVideoUrl: true,
+          },
+        },
         jobPostings: {
           where: {
             status: "APPROVED",
@@ -897,7 +925,24 @@ const getCachedCompanyBySlug = unstable_cache(
     });
 
     if (!employer || employer.status !== "ACTIVE") return null;
-    return employer;
+    const [industryLabel, companySizeLabel] = await Promise.all([
+      formatConfigOptionLabel(OPTION_GROUPS.industry, employer.industry),
+      formatConfigOptionLabel(OPTION_GROUPS.companySize, employer.companySize),
+    ]);
+
+    return {
+      ...employer,
+      industry: industryLabel || employer.industry,
+      companySize: companySizeLabel || employer.companySize,
+      profileConfig: employer.profileConfig
+        ? {
+            theme: normalizeCompanyTheme(employer.profileConfig.theme),
+            capabilities: normalizeCompanyCapabilities(employer.profileConfig.capabilities),
+            sections: normalizeContentBlocks(employer.profileConfig.sections),
+            primaryVideoUrl: employer.profileConfig.primaryVideoUrl,
+          }
+        : null,
+    };
   },
   ["company-profile"],
   { revalidate: 60 }

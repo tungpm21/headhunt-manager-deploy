@@ -14,6 +14,17 @@ import {
 } from "lucide-react";
 import { updateEmployerInfo } from "@/lib/moderation-actions";
 import { CoverPositionEditor } from "@/components/CoverPositionEditor";
+import { BlockBuilder } from "@/components/content/BlockBuilder";
+import {
+  DEFAULT_COMPANY_CAPABILITIES,
+  DEFAULT_COMPANY_THEME,
+  normalizeCompanyCapabilities,
+  normalizeCompanyTheme,
+  type CompanyProfileCapabilities,
+  type CompanyProfileTheme,
+  type ContentBlock,
+} from "@/lib/content-blocks";
+import type { OptionChoice } from "@/lib/config-options";
 
 type EmployerEditData = {
   id: number;
@@ -33,6 +44,12 @@ type EmployerEditData = {
   coverPositionX: number;
   coverPositionY: number;
   coverZoom: number;
+  profileConfig: {
+    theme: CompanyProfileTheme;
+    capabilities: CompanyProfileCapabilities;
+    sections: ContentBlock[];
+    primaryVideoUrl: string | null;
+  } | null;
 };
 
 type MessageState =
@@ -56,6 +73,7 @@ const inputClassName =
 
 interface EmployerEditFormProps {
   employer: EmployerEditData;
+  industryOptions: OptionChoice[];
 }
 
 function useImageUpload(initialUrl: string | null, maxBytes: number) {
@@ -120,12 +138,19 @@ function useImageUpload(initialUrl: string | null, maxBytes: number) {
   return { previewUrl, selectedName, error, fileInputRef, handleFileChange, handleReset };
 }
 
-export function EmployerEditForm({ employer }: EmployerEditFormProps) {
+export function EmployerEditForm({ employer, industryOptions }: EmployerEditFormProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<MessageState>(null);
 
   const logo = useImageUpload(employer.logo, MAX_LOGO_BYTES);
   const cover = useImageUpload(employer.coverImage, MAX_COVER_BYTES);
+  const initialTheme = normalizeCompanyTheme(employer.profileConfig?.theme ?? DEFAULT_COMPANY_THEME);
+  const initialCapabilities = normalizeCompanyCapabilities(
+    employer.profileConfig?.capabilities ?? DEFAULT_COMPANY_CAPABILITIES
+  );
+  const [theme, setTheme] = useState(initialTheme);
+  const [capabilities, setCapabilities] = useState(initialCapabilities);
+  const [primaryVideoUrl, setPrimaryVideoUrl] = useState(employer.profileConfig?.primaryVideoUrl ?? "");
   const [coverPos, setCoverPos] = useState({
     positionX: employer.coverPositionX ?? 50,
     positionY: employer.coverPositionY ?? 50,
@@ -143,6 +168,9 @@ export function EmployerEditForm({ employer }: EmployerEditFormProps) {
 
     setIsSaving(true);
     setMessage(null);
+    formData.set("profileTheme", JSON.stringify(theme));
+    formData.set("profileCapabilities", JSON.stringify(capabilities));
+    formData.set("primaryVideoUrl", primaryVideoUrl);
 
     try {
       const result = await updateEmployerInfo(employer.id, undefined, formData);
@@ -385,14 +413,23 @@ export function EmployerEditForm({ employer }: EmployerEditFormProps) {
               <label htmlFor="industry" className="block text-sm font-medium text-foreground mb-1.5">
                 Ngành nghề
               </label>
-              <input
+              <select
                 id="industry"
                 name="industry"
-                type="text"
                 defaultValue={employer.industry ?? ""}
-                placeholder="Ví dụ: Sản xuất, IT, Logistics..."
+                data-placeholder="industry-example"
                 className={inputClassName}
-              />
+              >
+                <option value="">Chọn ngành nghề</option>
+                {industryOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-1 text-xs text-muted">
+                Danh sách này lấy từ Cấu hình dữ liệu. Muốn thêm ngành mới, thêm tại Settings trước.
+              </p>
             </div>
 
             <div>
@@ -457,6 +494,123 @@ export function EmployerEditForm({ employer }: EmployerEditFormProps) {
                 className={inputClassName}
               />
             </div>
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-border bg-background p-5">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+            <div>
+              <h3 className="text-base font-bold text-foreground">Builder trang giới thiệu công ty</h3>
+              <p className="mt-1 text-sm text-muted">
+                Admin quyết định theme, quyền hiển thị và các section nổi bật cho từng công ty.
+              </p>
+            </div>
+            {canPreviewPublicPage ? (
+              <Link
+                href={`/cong-ty/${employer.slug}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-primary/20 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary transition hover:bg-primary/15"
+              >
+                <ExternalLink className="h-4 w-4" />
+                Preview public
+              </Link>
+            ) : null}
+          </div>
+
+          <div className="mt-5 space-y-5">
+            <div className="grid gap-5 xl:grid-cols-[1fr_1fr_1fr]">
+              <div className="rounded-2xl border border-border bg-white p-4">
+                <p className="text-sm font-semibold text-foreground">Theme</p>
+                <div className="mt-3 grid gap-3">
+                  {([
+                    ["primaryColor", "Màu chính"],
+                    ["accentColor", "Màu nhấn"],
+                    ["backgroundColor", "Màu nền"],
+                  ] as const).map(([key, label]) => (
+                    <label key={key} className="grid grid-cols-[96px_1fr] items-center gap-3 text-sm">
+                      <span className="font-medium text-muted">{label}</span>
+                      <span className="flex items-center gap-2">
+                        <input
+                          type="color"
+                          value={theme[key]}
+                          disabled={!capabilities.theme}
+                          onChange={(event) => setTheme((current) => ({ ...current, [key]: event.target.value }))}
+                          className="h-10 w-12 rounded-lg border border-border bg-white disabled:opacity-50"
+                        />
+                        <input
+                          value={theme[key]}
+                          disabled={!capabilities.theme}
+                          onChange={(event) => setTheme((current) => ({ ...current, [key]: event.target.value }))}
+                          className={`${inputClassName} disabled:opacity-50`}
+                        />
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-border bg-white p-4">
+                <p className="text-sm font-semibold text-foreground">Quyền tùy biến</p>
+                <div className="mt-3 space-y-3">
+                  {([
+                    ["theme", "Cho đổi theme"],
+                    ["gallery", "Cho gallery"],
+                    ["video", "Cho video"],
+                    ["html", "Cho HTML an toàn"],
+                  ] as const).map(([key, label]) => (
+                    <label key={key} className="flex items-center justify-between gap-3 rounded-xl bg-surface px-3 py-2 text-sm">
+                      <span className="font-medium text-foreground">{label}</span>
+                      <input
+                        type="checkbox"
+                        checked={Boolean(capabilities[key])}
+                        onChange={(event) =>
+                          setCapabilities((current) => ({ ...current, [key]: event.target.checked }))
+                        }
+                        className="h-4 w-4 rounded border-border text-primary focus:ring-primary/30"
+                      />
+                    </label>
+                  ))}
+                  <label className="block space-y-1 text-sm">
+                    <span className="font-medium text-foreground">Số ảnh tối đa</span>
+                    <input
+                      type="number"
+                      min={0}
+                      max={12}
+                      value={capabilities.maxImages}
+                      onChange={(event) =>
+                        setCapabilities((current) => ({
+                          ...current,
+                          maxImages: Number.parseInt(event.target.value, 10) || 0,
+                        }))
+                      }
+                      className={inputClassName}
+                    />
+                  </label>
+                </div>
+              </div>
+
+              <label className="block space-y-1 rounded-2xl border border-border bg-white p-4 text-sm">
+                <span className="font-semibold text-foreground">Video giới thiệu chính</span>
+                <input
+                  value={primaryVideoUrl}
+                  disabled={!capabilities.video}
+                  onChange={(event) => setPrimaryVideoUrl(event.target.value)}
+                  placeholder="YouTube hoặc Vimeo URL"
+                  className={`${inputClassName} disabled:opacity-50`}
+                />
+              </label>
+            </div>
+
+            <BlockBuilder
+              name="profileSections"
+              context="company"
+              title="Section template công ty"
+              description="Dùng rich text, chỉ số, phúc lợi, gallery, video, quote, CTA và HTML an toàn."
+              initialBlocks={employer.profileConfig?.sections ?? []}
+              maxImages={capabilities.maxImages}
+              allowHtml={capabilities.html}
+            />
           </div>
         </div>
 

@@ -10,6 +10,8 @@ import {
   Loader2,
   Plus,
 } from "lucide-react";
+import { MarkdownEditor } from "@/components/content/MarkdownEditor";
+import { MediaUploadButton } from "@/components/content/MediaUploadButton";
 import { createAdminJobPosting } from "@/lib/admin-job-posting-actions";
 
 type EmployerOption = {
@@ -84,6 +86,8 @@ const inputClassName =
 export function NewJobPostingForm({ employers }: { employers: EmployerOption[] }) {
   const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
+  const [coverImage, setCoverImage] = useState("");
+  const [coverAlt, setCoverAlt] = useState("");
   const [message, setMessage] = useState<{
     type: "success" | "error";
     text: string;
@@ -92,6 +96,8 @@ export function NewJobPostingForm({ employers }: { employers: EmployerOption[] }
   async function handleSubmit(formData: FormData) {
     setIsSaving(true);
     setMessage(null);
+    formData.set("coverImage", coverImage);
+    formData.set("coverAlt", coverAlt);
 
     try {
       const result = await createAdminJobPosting(formData);
@@ -173,6 +179,51 @@ export function NewJobPostingForm({ employers }: { employers: EmployerOption[] }
           action={handleSubmit}
           className="space-y-6 rounded-2xl border border-border bg-surface p-6 sm:p-8"
         >
+          <div className="rounded-2xl border border-border bg-background p-5">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+              <div>
+                <p className="text-sm font-semibold text-foreground">Ảnh cover tin tuyển dụng</p>
+                <p className="mt-1 text-xs text-muted">Tùy chọn. Nếu để trống sẽ dùng nhận diện của công ty.</p>
+              </div>
+              <MediaUploadButton
+                context="job"
+                kind="cover"
+                alt={coverAlt}
+                onUploaded={(image) => {
+                  setCoverImage(image.url);
+                  setCoverAlt(image.alt);
+                }}
+                label="Upload cover"
+              />
+            </div>
+            <div className="mt-4 grid gap-4 lg:grid-cols-[1fr_220px]">
+              <div className="space-y-3">
+                <input
+                  value={coverAlt}
+                  onChange={(event) => setCoverAlt(event.target.value)}
+                  placeholder="Alt text mô tả ảnh cover"
+                  className={inputClassName}
+                />
+                <input
+                  value={coverImage}
+                  onChange={(event) => setCoverImage(event.target.value)}
+                  placeholder="URL ảnh cover hoặc upload từ nút bên trên"
+                  className={inputClassName}
+                />
+              </div>
+              <div className="overflow-hidden rounded-xl border border-border bg-white">
+                {coverImage ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={coverImage} alt={coverAlt || "Job cover"} className="aspect-[16/10] w-full object-cover" />
+                ) : (
+                  <div className="flex aspect-[16/10] items-center justify-center text-xs text-muted">
+                    Dùng logo/cover công ty
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
           <div className="grid gap-6 lg:grid-cols-[1.35fr,0.65fr]">
             <div className="space-y-6">
               <div>
@@ -220,12 +271,13 @@ export function NewJobPostingForm({ employers }: { employers: EmployerOption[] }
                 >
                   Mô tả công việc <span className="text-red-500">*</span>
                 </label>
-                <textarea
-                  id="description"
+                <MarkdownEditor
                   name="description"
-                  rows={8}
+                  label=""
                   required
-                  className={`${inputClassName} min-h-[220px] resize-y`}
+                  rows={10}
+                  uploadContext="job"
+                  maxImages={3}
                 />
               </div>
 
@@ -236,11 +288,12 @@ export function NewJobPostingForm({ employers }: { employers: EmployerOption[] }
                 >
                   Yêu cầu ứng viên
                 </label>
-                <textarea
-                  id="requirements"
+                <MarkdownEditor
                   name="requirements"
-                  rows={5}
-                  className={`${inputClassName} resize-y`}
+                  label=""
+                  rows={7}
+                  uploadContext="job"
+                  maxImages={3}
                 />
               </div>
 
@@ -251,11 +304,12 @@ export function NewJobPostingForm({ employers }: { employers: EmployerOption[] }
                 >
                   Phúc lợi
                 </label>
-                <textarea
-                  id="benefits"
+                <MarkdownEditor
                   name="benefits"
-                  rows={4}
-                  className={`${inputClassName} resize-y`}
+                  label=""
+                  rows={6}
+                  uploadContext="job"
+                  maxImages={3}
                 />
               </div>
             </div>

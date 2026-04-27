@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import {
   MapPin,
@@ -17,6 +18,7 @@ import {
   Factory,
 } from "lucide-react";
 import { getPublicJobBySlug, type HomepageJob } from "@/lib/public-actions";
+import { SafeRichContent } from "@/components/content/SafeRichContent";
 import { JobCard } from "@/components/public/JobCard";
 import { LogoImage } from "@/components/public/LogoImage";
 
@@ -34,23 +36,6 @@ const SHIFT_LABELS: Record<string, string> = {
   NIGHT: "Ca đêm",
   ROTATING: "Xoay ca",
 };
-
-function toPlainJobContent(content: string): string {
-  return content
-    .replace(/<br\s*\/?>/gi, "\n")
-    .replace(/<\/p>/gi, "\n\n")
-    .replace(/<li>/gi, "\n- ")
-    .replace(/<\/li>/gi, "")
-    .replace(/<\/?(p|ul|ol|strong|b|em|i|span|div)[^>]*>/gi, "")
-    .replace(/&nbsp;/g, " ")
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/\n{3,}/g, "\n\n")
-    .trim();
-}
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -75,7 +60,16 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       title,
       description,
       type: "website",
-      images: job.employer.logo
+      images: job.coverImage
+        ? [
+            {
+              url: job.coverImage,
+              width: 1200,
+              height: 630,
+              alt: job.coverAlt ?? title,
+            },
+          ]
+        : job.employer.logo
         ? [
             {
               url: job.employer.logo,
@@ -87,10 +81,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         : [],
     },
     twitter: {
-      card: "summary",
+      card: job.coverImage ? "summary_large_image" : "summary",
       title,
       description,
-      images: job.employer.logo ? [job.employer.logo] : [],
+      images: job.coverImage ? [job.coverImage] : job.employer.logo ? [job.employer.logo] : [],
     },
   };
 }
@@ -149,6 +143,19 @@ export default async function JobDetailPage({ params }: PageProps) {
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Main Content */}
           <div className="flex-1 space-y-6">
+            {job.coverImage && (
+              <div className="overflow-hidden rounded-2xl border border-[var(--color-fdi-mist)] bg-white shadow-sm">
+                <Image
+                  src={job.coverImage}
+                  alt={job.coverAlt ?? job.title}
+                  width={1200}
+                  height={520}
+                  priority
+                  className="aspect-[16/7] w-full object-cover"
+                />
+              </div>
+            )}
+
             {/* Job Header Card */}
             <div className="bg-white rounded-xl border border-[var(--color-fdi-mist)] p-6 sm:p-8">
               <div className="flex items-start gap-4 mb-6">
@@ -426,9 +433,7 @@ export default async function JobDetailPage({ params }: PageProps) {
 }
 
 function ContentSection({ title, content }: { title: string; content: string }) {
-  const body = toPlainJobContent(content);
-
-  if (!body) return null;
+  if (!content.trim()) return null;
 
   return (
     <div className="bg-white rounded-xl border border-[var(--color-fdi-mist)] p-6 sm:p-8">
@@ -438,12 +443,7 @@ function ContentSection({ title, content }: { title: string; content: string }) 
       >
         {title}
       </h2>
-      <div
-        className="max-w-none text-[var(--color-fdi-text-secondary)] leading-relaxed whitespace-pre-line"
-        style={{ fontFamily: "var(--font-body)" }}
-      >
-        {body}
-      </div>
+      <SafeRichContent content={content} allowHtml className="text-[var(--color-fdi-text-secondary)]" />
     </div>
   );
 }

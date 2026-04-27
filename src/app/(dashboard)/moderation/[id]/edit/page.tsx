@@ -26,6 +26,8 @@ export default async function JobPostingEditPage({
         id: job.id,
         title: job.title,
         slug: job.slug,
+        coverImage: job.coverImage,
+        coverAlt: job.coverAlt,
         description: job.description,
         requirements: job.requirements,
         benefits: job.benefits,

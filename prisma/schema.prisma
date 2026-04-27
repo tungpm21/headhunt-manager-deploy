@@ -435,8 +435,9 @@ model Employer {
   updatedAt   DateTime       @updatedAt
 
   // Relations
-  subscription Subscription?
-  jobPostings  JobPosting[]
+  subscription  Subscription?
+  profileConfig EmployerProfileConfig?
+  jobPostings   JobPosting[]
 
   // Link to CRM Client (admin link thủ công)
   clientId Int?    @unique
@@ -469,10 +470,25 @@ model Subscription {
   @@index([endDate])
 }
 
+model EmployerProfileConfig {
+  id              Int      @id @default(autoincrement())
+  employerId      Int      @unique
+  theme           Json?
+  capabilities    Json?
+  sections        Json?
+  primaryVideoUrl String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  employer Employer @relation(fields: [employerId], references: [id], onDelete: Cascade)
+}
+
 model JobPosting {
   id            Int              @id @default(autoincrement())
   title         String
   slug          String           @unique
+  coverImage    String?
+  coverAlt      String?
   description   String
   requirements  String?
   benefits      String?
@@ -600,7 +616,10 @@ model BlogPost {
   title       String
   slug        String   @unique
   excerpt     String
+  coverImage  String?
+  coverAlt    String?
   content     String
+  contentBlocks Json?
   category    String
   emoji       String   @default("📝")
   isPublished Boolean  @default(false)

@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { getBlogPostById } from "@/lib/blog-actions";
 import { BlogPostForm } from "@/components/blog/BlogPostForm";
+import { normalizeContentBlocks } from "@/lib/content-blocks";
 
 type PageProps = {
     params: Promise<{ id: string }>;
@@ -21,7 +22,10 @@ export default async function EditBlogPostPage({ params }: PageProps) {
                 title: post.title,
                 slug: post.slug,
                 excerpt: post.excerpt,
+                coverImage: post.coverImage,
+                coverAlt: post.coverAlt,
                 content: post.content,
+                contentBlocks: normalizeContentBlocks(post.contentBlocks),
                 category: post.category,
                 emoji: post.emoji,
                 isPublished: post.isPublished,

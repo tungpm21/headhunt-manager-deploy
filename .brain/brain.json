@@ -2,7 +2,7 @@
   "project": {
     "name": "Headhunt Manager (FDIWork)",
     "type": "Next.js 16 App Router, Prisma ORM, PostgreSQL, TailwindCSS",
-    "status": "Production app running on Vercel + Neon; CRM, employer portal, and public job board are active. Current state includes employer/admin polish, import hardening, public UX redesign, and preview-first deployment workflow."
+    "status": "Production app is live on Vercel. PR #1, PR #2, and PR #3 are merged into master; original checkout D:\\MH\\Headhunt_pj is updated to merge commit b863d34."
   },
   "docs_index": {
     "codebase_map": "CODEBASE.md",
@@ -10,7 +10,9 @@
     "project_tracker": "docs/PROJECT-TRACKER.md",
     "audit_readme": "docs/audit/README.md",
     "product_strategy": "docs/audit/04-product-strategy.md",
-    "import_guide": "docs/templates/IMPORT-GUIDE.md"
+    "import_guide": "docs/templates/IMPORT-GUIDE.md",
+    "homepage_audit_report": "docs/reports/audit_2026-04-25_impeccable-public-core.md",
+    "homepage_fix_task": "docs/tasks/public-core-impeccable-fixes-2026-04-25.md"
   },
   "features": [
     "Authentication via NextAuth for CRM and custom JWT for employer portal",
@@ -24,7 +26,8 @@
     "Production hardening with Redis rate limit, Sentry, Neon pooled Postgres, and GIN trigram text search optimization",
     "7-stage recruitment pipeline with dedicated Submissions module and dual 'Import & Submit' action for seamless candidate shortlisting",
     "Employer notification bell, safer employer job posting actions, and improved admin package assignment/search flows",
-    "Shared public job taxonomy, blog detail routes, simplified public apply UX, and high-end homepage visual system refresh"
+    "Shared public job taxonomy, blog detail routes, simplified public apply UX, and a shipped homepage redesign with compact VietnamWorks-inspired search behavior and section dot navigation",
+    "Shipped public UX fixes: crawlable Link-based pagination, IntersectionObserver homepage section dots, Vietnamese employer carousel labels, and Lighthouse accessibility follow-ups"
   ],
   "database_schema": {
     "summary": "ATS CRM + employer portal + public job board + ops/audit tracking",
@@ -64,7 +67,10 @@
     "Expensive public data endpoints (homepage, filters) heavily leverage unstable_cache",
     "ILIKE string search queries rely on GIN trigram indexes for performance speedups",
     "Public visual direction uses layered navy backgrounds, warm-neutral section surfaces, and reserves orange for primary CTAs or value signals",
-    "Preview Vercel deployments should go through non-main branches unless the user explicitly requests production"
+    "When releasing from a dirty design branch, isolate intended files in a clean worktree instead of pushing the whole branch",
+    "Preview or production deploy choice must be explicit; linked Vercel git pushes from master become production",
+    "Public pagination should use next/link hrefs instead of router.push button handlers so prefetch, middle-click, and crawlers work",
+    "Homepage section active-state tracking should use IntersectionObserver with rootMargin -42% 0px -58% 0px instead of scroll-frame layout reads"
   ],
   "security_notes": [
     "Employer JWT TTL is 1 day and employer must remain ACTIVE",
@@ -72,7 +78,8 @@
     "Avatar upload enforces ownership checks to prevent IDOR"
   ],
   "infra_notes": [
-    "Production app is deployed at https://headhunt-manager-deploy.vercel.app",
+    "Primary live aliases now include https://fdiwork.vercel.app and https://fdiwork-git-master-tungpm21s-projects.vercel.app",
+    "Latest released homepage deployment is https://fdiwork-hmjemspf6-tungpm21s-projects.vercel.app",
     "Linked Vercel project config exists locally in .vercel/project.json for project headhunt-manager-deploy",
     "Prisma client uses @prisma/adapter-pg with pg Pool (min 15) and pooled connection preference",
     "postinstall runs prisma generate to keep Vercel production builds in sync with schema"
@@ -82,8 +89,11 @@
     "Scattered access-control logic centralized into access-scope.ts",
     "ILIKE full table scans eliminated via idx_*_trgm indexes for JobOrder, Client, Candidate, Employer, and JobPosting",
     "Public page dynamic-render performance fixed via unstable_cache and ISR",
-    "Parser header normalization now handles Vietnamese Đ/đ so import maps phone/address columns correctly",
+    "Parser header normalization now handles Vietnamese D/d so import maps phone/address columns correctly",
     "Search suggestion hook no longer triggers setState-after-unmount warnings",
-    "Homepage overflow, weak CTA contrast, and undersized carousel dots were fixed across desktop/tablet/mobile"
+    "Homepage overflow, weak CTA contrast, and undersized carousel dots were fixed across desktop/tablet/mobile",
+    "Restored contact page now passes lint after replacing raw anchor navigation with next/link",
+    "Merged public UX PR fixes Pagination navigation, HomepageSectionDots performance, and EmployerBannerCarousel English labels",
+    "Merged Lighthouse follow-up fixes FDI orange contrast, hero location dropdown accessible naming, and public JobCard heading order"
   ]
 }

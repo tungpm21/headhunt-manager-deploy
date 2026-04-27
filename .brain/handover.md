@@ -1,46 +1,55 @@
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-📋 HANDOVER DOCUMENT
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+----------------------------------------------------
+HANDOVER DOCUMENT
+----------------------------------------------------
 
-📍 Đang làm: Employer/admin polish + public FDIWork UX refresh
-🔢 Đến bước: Commit / save-brain / preview deploy
+Dang lam: FDIWork production cleanup after public UX and a11y fixes
+Den buoc: PR #3 merged, original checkout updated, local artifacts cleaned
 
-✅ ĐÃ XONG:
-- Employer/admin/public worktree đã được gom lại và rà lại
-- Homepage visual redesign theo hướng high-end đã hoàn tất
-- Search hook lifecycle warning đã fix
-- `npx tsc --noEmit` pass
-- Targeted eslint cho các file public/hook đã sửa pass
-- Playwright QA 1440 / 768 / 390 pass, không overflow, không console warning sau reload
-- `.brain/brain.json` và `.brain/session.json` đã cập nhật
+DA XONG:
+- PR #1 merged to master:
+  - WCAG A/AA fixes
+  - DOMPurify XSS hardening
+  - auth bypass fix
+- PR #2 merged to master:
+  - Pagination uses Next.js Link
+  - HomepageSectionDots uses IntersectionObserver
+  - EmployerBannerCarousel labels localized to Vietnamese
+- PR #3 merged to master:
+  - FDI orange token changed to `#C2410C` for WCAG AA contrast
+  - Hero location dropdown accessible name includes visible selected text
+  - JobCard title heading changed from h3 to h2 to fix heading order
+- Original folder `D:\MH\Headhunt_pj` fast-forwarded to `origin/master` at merge commit `b863d34`
+- Tracked context files updated:
+  - `AGENTS.md`
+  - `CLAUDE.md`
+  - `.brain/brain.json`
+  - `.brain/session.json`
+  - `.brain/handover.md`
+- Local untracked QA artifacts were cleaned from the original checkout
 
-⏳ CÒN LẠI:
-- Commit toàn bộ worktree hiện tại
-- Push branch preview lên origin để Vercel build
-- QA thêm trên preview cho employer notification + package flows
+CON LAI:
+- Wait for Vercel production deployment from `b863d34`, then run production smoke check
+- Optional: remove temporary worktree `D:\MH\Headhunt_pj_master_deploy` if no longer needed
 
-🔧 QUYẾT ĐỊNH QUAN TRỌNG:
-- Dùng branch preview thay vì push thẳng `master` để tránh deploy production ngoài ý muốn
-- Giữ palette navy + warm-neutral, orange chỉ cho CTA và salary/value accents
-- Không thêm dependency frontend mới
+QUYET DINH QUAN TRONG:
+- Kept source changes flowing through GitHub PRs, then pulled master into the original folder
+- Committed tracked project context updates rather than leaving local dirty tracked files
+- Removed untracked screenshots/logs/workflow dumps locally; they were generated artifacts, not product source
 
-⚠️ LƯU Ý CHO SESSION SAU:
-- `gitnexus_detect_changes(scope=all)` đang báo CRITICAL vì worktree rộng, không phải vì homepage patch có blast radius cao
-- `.brain/` đang bị ignore trong git, nên save-brain chỉ lưu local
-- Nếu cần chuẩn hóa visual dài hạn, nên bổ sung PRODUCT.md / DESIGN.md để impeccable có nguồn context chính thức
+LUU Y CHO SESSION SAU:
+- Primary working folder is now `D:\MH\Headhunt_pj` on `master`
+- Latest master commit after PR #3 merge is `b863d34`
+- `.brain` is ignored by `.gitignore` but some `.brain` files are already tracked, so local edits still show in git status until committed or reverted
+- GitNexus MCP registry points at `D:\MH\Headhunt_pj`
 
-📁 FILES QUAN TRỌNG:
-- `src/app/(public)/page.tsx`
-- `src/components/public/PublicHeader.tsx`
-- `src/components/public/HeroSection.tsx`
-- `src/components/public/EmployerBannerCarousel.tsx`
-- `src/components/public/TopEmployers.tsx`
-- `src/components/public/FeaturedJobs.tsx`
-- `src/components/public/IndustryGrid.tsx`
-- `src/components/public/BlogSection.tsx`
-- `src/hooks/useSearchSuggestions.ts`
-- `.brain/session.json`
+FILES QUAN TRONG:
+- `D:\MH\Headhunt_pj\src\app\globals.css`
+- `D:\MH\Headhunt_pj\src\components\public\HeroSection.tsx`
+- `D:\MH\Headhunt_pj\src\components\public\JobCard.tsx`
+- `D:\MH\Headhunt_pj\src\components\public\Pagination.tsx`
+- `D:\MH\Headhunt_pj\src\components\public\HomepageSectionDots.tsx`
+- `D:\MH\Headhunt_pj\src\components\public\EmployerBannerCarousel.tsx`
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-📍 Đã lưu! Để tiếp tục: Gõ /recap
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+----------------------------------------------------
+Da luu! De tiep tuc: go /recap
+----------------------------------------------------

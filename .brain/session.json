@@ -1,141 +1,119 @@
 {
-  "updated_at": "2026-04-25T22:25:54+07:00",
+  "updated_at": "2026-04-27T20:40:17+07:00",
   "working_on": {
-    "feature": "Employer platform polish + FDIWork public UX refresh",
-    "task": "Commit current multi-area changes, save project memory, and push a Vercel preview deployment from a non-production branch",
-    "status": "handover",
+    "feature": "FDIWork production cleanup after public UX and a11y fixes",
+    "task": "Merged PR #3, fast-forwarded D:\\MH\\Headhunt_pj to origin/master, and cleaned local QA artifacts from the original checkout.",
+    "status": "cleanup_complete",
     "files": [
-      "src/app/(public)/page.tsx",
-      "src/components/public/PublicHeader.tsx",
+      "src/app/globals.css",
       "src/components/public/HeroSection.tsx",
+      "src/components/public/JobCard.tsx",
+      "src/components/public/Pagination.tsx",
+      "src/components/public/HomepageSectionDots.tsx",
       "src/components/public/EmployerBannerCarousel.tsx",
-      "src/components/public/TopEmployers.tsx",
-      "src/components/public/FeaturedJobs.tsx",
-      "src/components/public/IndustryGrid.tsx",
-      "src/components/public/BlogSection.tsx",
-      "src/hooks/useSearchSuggestions.ts",
-      "src/app/(dashboard)/packages/assign-form.tsx",
-      "src/components/employer/EmployerNotificationBell.tsx"
+      "AGENTS.md",
+      "CLAUDE.md",
+      ".brain/brain.json",
+      ".brain/session.json",
+      ".brain/handover.md"
     ],
     "blockers": [],
-    "notes": "Worktree currently includes broad employer/admin/public changes. GitNexus detect_changes reports CRITICAL because many files are already changed together, but impact checks run on edited public symbols remained LOW."
+    "notes": "Original checkout is on master at the PR #3 squash merge commit. The follow-up a11y code was first developed in D:\\MH\\Headhunt_pj_master_deploy, merged via PR #3, then pulled into D:\\MH\\Headhunt_pj."
   },
   "pending_tasks": [
     {
-      "priority": "HIGH",
-      "task": "Manual QA on preview for employer notification, package assignment, and conditional job deletion flows"
+      "priority": "MEDIUM",
+      "task": "Wait for Vercel production deployment from merge commit b863d34, then run a short production smoke check."
     },
     {
-      "priority": "MEDIUM",
-      "task": "Bring job listing, company detail, and remaining public pages onto the same premium visual system as homepage"
-    },
-    {
-      "priority": "MEDIUM",
-      "task": "Document product/design tokens into PRODUCT.md or DESIGN.md so future passes can use impeccable with project-native context"
+      "priority": "LOW",
+      "task": "Remove temporary worktree D:\\MH\\Headhunt_pj_master_deploy later if no longer needed."
     }
   ],
   "recent_changes": [
     {
-      "timestamp": "2026-04-25T22:25:54+07:00",
-      "type": "deployment",
-      "description": "Prepared commit + preview deployment workflow for the current combined change set. Decision: use a non-main git branch for Vercel so deploy stays in preview rather than production.",
+      "timestamp": "2026-04-27T20:38:13+07:00",
+      "type": "merge",
+      "description": "Merged PR #3 into master with squash commit b863d34: resolved remaining Lighthouse accessibility issues by darkening the FDI orange token, fixing the hero location dropdown accessible name, and correcting job card heading order.",
       "files": [
-        ".brain/session.json",
-        ".brain/brain.json",
-        ".brain/handover.md"
-      ]
-    },
-    {
-      "timestamp": "2026-04-25T22:25:54+07:00",
-      "type": "ux",
-      "description": "Redesigned FDIWork homepage visual system toward a higher-end VietnamWorks-inspired direction: layered navy shell, warm neutral sections, refined CTA orange usage, tighter card rhythm, improved employer banner, top employers rail, featured jobs, industry cards, and editorial blog cards. Fixed search hook lifecycle warning and validated no overflow at 1440/768/390.",
-      "files": [
-        "src/app/(public)/page.tsx",
         "src/app/globals.css",
-        "src/components/public/PublicHeader.tsx",
         "src/components/public/HeroSection.tsx",
-        "src/components/public/EmployerBannerCarousel.tsx",
-        "src/components/public/TopEmployers.tsx",
-        "src/components/public/FeaturedJobs.tsx",
-        "src/components/public/JobCard.tsx",
-        "src/components/public/IndustryGrid.tsx",
-        "src/components/public/BlogSection.tsx",
-        "src/hooks/useSearchSuggestions.ts"
+        "src/components/public/JobCard.tsx"
       ]
     },
     {
-      "timestamp": "2026-04-25T21:40:00+07:00",
-      "type": "feature",
-      "description": "Expanded employer/admin/public flows: safer employer job posting actions, employer notification bell, package assignment/search improvements, shared job taxonomy, import hardening, simplified public apply form, public company/blog route updates, and loading state additions.",
+      "timestamp": "2026-04-27T20:39:00+07:00",
+      "type": "sync",
+      "description": "Fast-forwarded original folder D:\\MH\\Headhunt_pj from 75077d1 to b863d34 so it now contains the merged PR #3 code on master.",
       "files": [
-        "src/app/(dashboard)/packages/assign-form.tsx",
-        "src/app/(dashboard)/packages/page.tsx",
-        "src/app/(employer)/employer/(portal)/job-postings/[id]/actions.tsx",
-        "src/app/(public)/chia-se/page.tsx",
-        "src/app/(public)/cong-ty/[slug]/page.tsx",
-        "src/components/employer/EmployerNotificationBell.tsx",
-        "src/components/import/client-spreadsheet-importer.tsx",
-        "src/components/import/spreadsheet-importer.tsx",
-        "src/lib/job-taxonomy.ts",
-        "src/lib/public-actions.ts"
+        "src/app/globals.css",
+        "src/components/public/HeroSection.tsx",
+        "src/components/public/JobCard.tsx"
       ]
+    },
+    {
+      "timestamp": "2026-04-27T17:20:35+07:00",
+      "type": "merge",
+      "description": "Merged PR #2 into master: Pagination uses Next.js Link, HomepageSectionDots uses IntersectionObserver, and EmployerBannerCarousel strings are localized to Vietnamese.",
+      "files": [
+        "src/components/public/Pagination.tsx",
+        "src/components/public/HomepageSectionDots.tsx",
+        "src/components/public/EmployerBannerCarousel.tsx"
+      ]
+    },
+    {
+      "timestamp": "2026-04-27T17:15:47+07:00",
+      "type": "merge",
+      "description": "Merged PR #1 into master: WCAG A/AA fixes, DOMPurify XSS hardening, and auth bypass fix.",
+      "files": []
     }
   ],
   "errors_encountered": [
     {
-      "error": "React warning: state update on useSearchSuggestions before mount",
-      "solution": "Guarded async fetch/finally paths with mountedRef and moved mounted state setup into effect cleanup lifecycle",
+      "error": "GitNexus MCP detect_changes still reads the indexed checkout path and can report unrelated local files when work is done from a separate worktree.",
+      "solution": "Verified branch scope with git in the active worktree, and used GitNexus impact before symbol edits.",
       "resolved": true
     },
     {
-      "error": "Homepage redesign initially left low-contrast CTA and uneven section transition visibility",
-      "solution": "Changed section surfaces to warm-neutral cards on pale background and promoted top employers CTA to a visible white button",
-      "resolved": true
-    },
-    {
-      "error": "Previous public UI passes left search/header/banner spacing and card density inconsistent",
-      "solution": "Normalized rhythm across header, hero, employer banner, top employers, featured jobs, industries, and blog sections",
+      "error": "Next.js dev with Turbopack failed in the clean worktree because node_modules is a junction outside the worktree root.",
+      "solution": "Ran local verification with next dev --webpack and inherited env vars from the original checkout.",
       "resolved": true
     }
   ],
   "decisions_made": [
     {
-      "decision": "Keep Vercel deployment on a non-main branch",
-      "reason": "The deploy skill defaults to preview, and pushing master would risk a production deployment for a linked repo"
+      "decision": "Commit tracked memory/context updates, but delete untracked QA artifacts locally.",
+      "reason": "The tracked files are project context; screenshots/logs/.playwright-mcp/.windsurf were local generated artifacts and should not enter git."
     },
     {
-      "decision": "Use a layered navy + warm-neutral palette instead of more saturated blue slabs",
-      "reason": "This keeps the platform premium and high-contrast without losing action clarity or search-first hierarchy"
-    },
-    {
-      "decision": "Preserve functionality while redesigning instead of introducing new frontend dependencies",
-      "reason": "Current stack already supports the UI goals, and avoiding dependency churn keeps deploy/build risk low"
+      "decision": "Use squash merge for PR #3.",
+      "reason": "Matches the recent PR merge pattern and keeps master history concise."
     }
   ],
   "verification": [
     {
-      "command": "npx tsc --noEmit",
-      "result": "passed (exit 0)",
-      "timestamp": "2026-04-25T22:18:00+07:00",
-      "notes": "Passed after visual redesign and search hook lifecycle fix"
-    },
-    {
-      "command": "npx eslint targeted public UI files + useSearchSuggestions",
-      "result": "passed (exit 0)",
-      "timestamp": "2026-04-25T22:18:00+07:00",
-      "notes": "Validated homepage/public redesign files and hook patch"
-    },
-    {
-      "command": "Playwright QA on http://localhost:3000",
+      "command": "gh pr checks 3 --watch",
       "result": "passed",
-      "timestamp": "2026-04-25T22:20:00+07:00",
-      "notes": "Viewports 1440x900, 768x1024, 390x844: no horizontal overflow, no console warnings/errors after reload, visible buttons >= 36px"
+      "timestamp": "2026-04-27T20:05:00+07:00",
+      "notes": "Vercel preview and preview comment checks passed before merge."
     },
     {
-      "command": "gitnexus_detect_changes(scope=all)",
-      "result": "critical",
-      "timestamp": "2026-04-25T22:24:00+07:00",
-      "notes": "Critical is due to the already-broad dirty worktree spanning employer/admin/public areas, not because the homepage-only edits had high symbol impact"
+      "command": "npx tsc --noEmit",
+      "result": "passed",
+      "timestamp": "2026-04-27T19:48:00+07:00",
+      "notes": "Ran before opening PR #3."
+    },
+    {
+      "command": "npx eslint src/components/public/HeroSection.tsx src/components/public/JobCard.tsx",
+      "result": "passed",
+      "timestamp": "2026-04-27T19:49:00+07:00",
+      "notes": "Targeted lint for PR #3 component changes."
+    },
+    {
+      "command": "Lighthouse accessibility on local branch",
+      "result": "passed",
+      "timestamp": "2026-04-27T19:58:00+07:00",
+      "notes": "Homepage 100 and /viec-lam 100 on local branch after PR #3 changes."
     }
   ]
 }

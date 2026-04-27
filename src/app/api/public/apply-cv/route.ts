@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
   if (!rateLimit.allowed) {
     return NextResponse.json(
       {
-        error: `Vui long thu lai sau ${rateLimit.retryAfterSeconds} giay`,
+        error: `Vui lòng thử lại sau ${rateLimit.retryAfterSeconds} giây`,
       },
       { status: 429 }
     );
@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
 
     if (!ALLOWED_TYPES.includes(file.type)) {
       return NextResponse.json(
-        { error: "Chi chap nhan file PDF hoac Word (.doc, .docx)" },
+        { error: "Chỉ chấp nhận file PDF hoặc Word (.doc, .docx)" },
         { status: 400 }
       );
     }
@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
     const hasValidSignature = await validateFileSignature(file, ALLOWED_TYPES);
     if (!hasValidSignature) {
       return NextResponse.json(
-        { error: "Noi dung file khong khop voi dinh dang PDF hoac Word." },
+        { error: "Nội dung file không khớp với định dạng PDF hoặc Word" },
         { status: 400 }
       );
     }

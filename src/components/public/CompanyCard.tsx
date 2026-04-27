@@ -23,8 +23,8 @@ export function CompanyCard({ company, imagePriority = false }: CompanyCardProps
   return (
     <Link href={`/cong-ty/${company.slug}`} className="group block cursor-pointer">
       <article
-        className={`bg-white rounded-2xl border overflow-hidden transition-all duration-200 hover:shadow-lg hover:-translate-y-1 hover:border-[var(--color-fdi-primary)]/20 h-full flex flex-col ${company.subscription && ["VIP", "PREMIUM"].includes(company.subscription.tier)
-            ? "border-amber-200 border-l-[3px] border-l-amber-400"
+        className={`bg-white rounded-2xl border overflow-hidden transition-[border-color,box-shadow,transform] duration-200 hover:shadow-lg hover:-translate-y-1 hover:border-[var(--color-fdi-primary)]/20 h-full flex flex-col ${company.subscription && ["VIP", "PREMIUM"].includes(company.subscription.tier)
+            ? "border-amber-200 border-t-2 border-t-amber-400/70"
             : "border-gray-100"
           }`}
       >
@@ -41,7 +41,7 @@ export function CompanyCard({ company, imagePriority = false }: CompanyCardProps
               className="object-cover group-hover:scale-105 transition-transform duration-300"
             />
           ) : (
-            <div className="w-full h-full bg-gradient-to-br from-[var(--color-fdi-dark)] via-[#005A9E] to-[var(--color-fdi-primary)]" />
+            <div className="w-full h-full bg-gradient-to-br from-[var(--color-fdi-dark)] via-[var(--color-fdi-navy-mid)] to-[var(--color-fdi-primary)]" />
           )}
         </div>
 
@@ -53,6 +53,7 @@ export function CompanyCard({ company, imagePriority = false }: CompanyCardProps
               <LogoImage
                 src={company.logo}
                 alt={company.companyName}
+                size={64}
                 className="h-full w-full object-contain p-1.5"
                 iconSize="h-7 w-7"
               />
@@ -92,7 +93,7 @@ export function CompanyCard({ company, imagePriority = false }: CompanyCardProps
               </span>
             )}
             {badge && (
-              <span className={`inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-medium ${badge.className}`}>
+              <span className={`inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-xs font-medium ${badge.className}`}>
                 {company.subscription?.tier === "VIP" && <Crown className="h-2.5 w-2.5" />}
                 {badge.label}
               </span>

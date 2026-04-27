@@ -34,7 +34,6 @@ interface ApplicationItem {
     fullName: string;
     email: string;
     phone: string | null;
-    coverLetter: string | null;
     cvFileUrl: string | null;
     cvFileName: string | null;
     status: string;
@@ -171,7 +170,7 @@ export function ApplicationTable({ applications }: { applications: ApplicationIt
                                                         <ExternalLink className="h-3.5 w-3.5" />
                                                         Xem trên FDIWork
                                                     </Link>
-                                                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                                                         {/* Left: Applicant Info */}
                                                         <div className="space-y-4">
                                                             <h4 className="text-xs font-semibold uppercase tracking-wider text-muted">
@@ -257,20 +256,6 @@ export function ApplicationTable({ applications }: { applications: ApplicationIt
                                                                 )}
 
                                                             </div>
-                                                        </div>
-
-                                                        {/* Right: Cover letter */}
-                                                        <div className="space-y-4">
-                                                            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted">
-                                                                Thư giới thiệu
-                                                            </h4>
-                                                            {app.coverLetter ? (
-                                                                <div className="rounded-lg bg-background border border-border p-4 text-sm text-foreground leading-relaxed max-h-48 overflow-y-auto whitespace-pre-wrap">
-                                                                    {app.coverLetter}
-                                                                </div>
-                                                            ) : (
-                                                                <p className="text-sm text-muted italic">Ứng viên không gửi thư giới thiệu.</p>
-                                                            )}
                                                         </div>
                                                     </div>
                                                 </div>

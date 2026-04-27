@@ -22,7 +22,6 @@ export function ApplyForm({ jobId, jobTitle, companyName }: ApplyFormProps) {
     fullName: "",
     email: "",
     phone: "",
-    coverLetter: "",
   });
   const [cvFile, setCvFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
@@ -79,7 +78,6 @@ export function ApplyForm({ jobId, jobTitle, companyName }: ApplyFormProps) {
         fullName: form.fullName,
         email: form.email,
         phone: form.phone || undefined,
-        coverLetter: form.coverLetter || undefined,
         cvFileUrl,
         cvFileName,
       };
@@ -103,8 +101,8 @@ export function ApplyForm({ jobId, jobTitle, companyName }: ApplyFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       {error && (
-        <div className="flex items-center gap-2 px-4 py-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
-          <AlertCircle className="h-4 w-4 shrink-0" />
+        <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" aria-live="polite">
+          <AlertCircle className="h-4 w-4 shrink-0" aria-hidden="true" />
           {error}
         </div>
       )}
@@ -116,12 +114,14 @@ export function ApplyForm({ jobId, jobTitle, companyName }: ApplyFormProps) {
         </label>
         <input
           id="fullName"
+          name="fullName"
           type="text"
           required
+          autoComplete="name"
           value={form.fullName}
           onChange={(e) => setForm((f) => ({ ...f, fullName: e.target.value }))}
           placeholder="Nguyễn Văn A"
-          className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm text-[var(--color-fdi-text)] placeholder:text-gray-400 focus:border-[var(--color-fdi-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--color-fdi-primary)]/20 transition-colors"
+          className="min-h-11 w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm text-[var(--color-fdi-text)] placeholder:text-gray-400 transition-colors focus:border-[var(--color-fdi-primary)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-primary)]/20"
         />
       </div>
 
@@ -132,12 +132,15 @@ export function ApplyForm({ jobId, jobTitle, companyName }: ApplyFormProps) {
         </label>
         <input
           id="email"
+          name="email"
           type="email"
           required
+          autoComplete="email"
+          spellCheck={false}
           value={form.email}
           onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
           placeholder="email@example.com"
-          className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm text-[var(--color-fdi-text)] placeholder:text-gray-400 focus:border-[var(--color-fdi-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--color-fdi-primary)]/20 transition-colors"
+          className="min-h-11 w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm text-[var(--color-fdi-text)] placeholder:text-gray-400 transition-colors focus:border-[var(--color-fdi-primary)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-primary)]/20"
         />
       </div>
 
@@ -148,38 +151,43 @@ export function ApplyForm({ jobId, jobTitle, companyName }: ApplyFormProps) {
         </label>
         <input
           id="phone"
+          name="phone"
           type="tel"
+          autoComplete="tel"
+          inputMode="tel"
           value={form.phone}
           onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
           placeholder="0912 345 678"
-          className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm text-[var(--color-fdi-text)] placeholder:text-gray-400 focus:border-[var(--color-fdi-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--color-fdi-primary)]/20 transition-colors"
+          className="min-h-11 w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm text-[var(--color-fdi-text)] placeholder:text-gray-400 transition-colors focus:border-[var(--color-fdi-primary)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-primary)]/20"
         />
       </div>
 
       {/* CV Upload */}
       <div>
-        <label className="block text-sm font-medium text-[var(--color-fdi-text)] mb-1.5">
+        <label htmlFor="cvFile" className="block text-sm font-medium text-[var(--color-fdi-text)] mb-1.5">
           CV / Hồ sơ
         </label>
         {cvFile ? (
           <div className="flex items-center gap-2 px-4 py-2.5 bg-[var(--color-fdi-surface)] rounded-lg border border-dashed border-[var(--color-fdi-primary)]/30">
-            <Upload className="h-4 w-4 text-[var(--color-fdi-primary)] shrink-0" />
+            <Upload className="h-4 w-4 text-[var(--color-fdi-primary)] shrink-0" aria-hidden="true" />
             <span className="text-sm text-[var(--color-fdi-text)] truncate flex-1">{cvFile.name}</span>
             <button
               type="button"
               onClick={() => { setCvFile(null); if (fileInputRef.current) fileInputRef.current.value = ""; }}
-              className="p-1 hover:bg-gray-200 rounded cursor-pointer"
+              aria-label="Xóa file CV đã chọn"
+              className="flex h-9 w-9 items-center justify-center rounded hover:bg-gray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-primary)]/30 cursor-pointer"
             >
-              <X className="h-3.5 w-3.5 text-gray-500" />
+              <X className="h-3.5 w-3.5 text-gray-500" aria-hidden="true" />
             </button>
           </div>
         ) : (
           <button
             type="button"
+            aria-label="Tải lên CV (PDF, DOC, DOCX, tối đa 5MB)"
             onClick={() => fileInputRef.current?.click()}
-            className="w-full flex items-center justify-center gap-2 px-4 py-6 rounded-lg border-2 border-dashed border-gray-200 hover:border-[var(--color-fdi-primary)]/40 hover:bg-[var(--color-fdi-surface)] transition-colors cursor-pointer"
+            className="flex min-h-24 w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-gray-200 px-4 py-6 transition-colors hover:border-[var(--color-fdi-primary)]/40 hover:bg-[var(--color-fdi-surface)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-primary)]/25 cursor-pointer"
           >
-            <Upload className="h-5 w-5 text-gray-400" />
+            <Upload className="h-5 w-5 text-gray-400" aria-hidden="true" />
             <span className="text-sm text-gray-500">
               Tải lên CV (PDF, DOC, DOCX — tối đa 5MB)
             </span>
@@ -187,6 +195,8 @@ export function ApplyForm({ jobId, jobTitle, companyName }: ApplyFormProps) {
         )}
         <input
           ref={fileInputRef}
+          id="cvFile"
+          name="cvFile"
           type="file"
           accept=".pdf,.doc,.docx"
           onChange={handleFileChange}
@@ -194,31 +204,16 @@ export function ApplyForm({ jobId, jobTitle, companyName }: ApplyFormProps) {
         />
       </div>
 
-      {/* Cover Letter */}
-      <div>
-        <label htmlFor="coverLetter" className="block text-sm font-medium text-[var(--color-fdi-text)] mb-1.5">
-          Thư xin việc
-        </label>
-        <textarea
-          id="coverLetter"
-          rows={4}
-          value={form.coverLetter}
-          onChange={(e) => setForm((f) => ({ ...f, coverLetter: e.target.value }))}
-          placeholder="Giới thiệu ngắn gọn về bản thân và lý do ứng tuyển..."
-          className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm text-[var(--color-fdi-text)] placeholder:text-gray-400 focus:border-[var(--color-fdi-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--color-fdi-primary)]/20 transition-colors resize-none"
-        />
-      </div>
-
       {/* Submit */}
       <button
         type="submit"
         disabled={loading}
-        className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[var(--color-fdi-primary)] text-white font-semibold text-sm hover:bg-[var(--color-fdi-primary-hover)] transition-all hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
+        className="flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-[var(--color-fdi-primary)] px-6 py-3 text-sm font-semibold text-white transition-[background-color,opacity,transform] duration-200 hover:-translate-y-0.5 hover:bg-[var(--color-fdi-primary-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-primary)]/40 disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
       >
         {loading ? (
           <>
-            <Loader2 className="h-4 w-4 animate-spin" />
-            Đang gửi...
+            <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+            Đang gửi…
           </>
         ) : (
           "Nộp hồ sơ ứng tuyển"

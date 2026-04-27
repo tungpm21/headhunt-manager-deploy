@@ -93,6 +93,9 @@ export function HeroSection() {
 
   return (
     <section className="relative overflow-visible">
+      <h1 className="sr-only">
+        Tìm việc làm FDI tại Việt Nam - Kết nối ứng viên với doanh nghiệp nước ngoài
+      </h1>
       <div className="relative mx-auto max-w-7xl px-4 pb-2 pt-24 sm:px-6 lg:px-8 lg:pt-28">
         <div
           ref={searchContainerRef}
@@ -160,7 +163,7 @@ export function HeroSection() {
                     setSearchPanelOpen(false);
                     search.setIsOpen(false);
                   }}
-                  className="inline-flex min-h-10 max-w-[156px] items-center gap-2 rounded-full bg-[#F2F4F6] px-3 text-sm font-semibold text-[var(--color-fdi-text)] transition-colors hover:bg-[#E9EEF1] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-accent-orange)]/35 sm:max-w-[190px]"
+                  className="inline-flex min-h-11 max-w-[156px] items-center gap-2 rounded-full bg-[#F2F4F6] px-3 text-sm font-semibold text-[var(--color-fdi-text)] transition-colors hover:bg-[#E9EEF1] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-accent-orange)]/35 sm:max-w-[190px]"
                 >
                   <MapPin className="h-4 w-4 shrink-0 text-[#7A8794]" aria-hidden="true" />
                   <span className="truncate">{location || "Tất cả địa điểm"}</span>
@@ -178,8 +181,9 @@ export function HeroSection() {
                       <input
                         value={locationQuery}
                         onChange={(e) => setLocationQuery(e.target.value)}
+                        aria-label="Tìm kiếm tỉnh/thành phố"
                         placeholder="Tìm kiếm"
-                        className="min-h-10 flex-1 bg-transparent text-sm outline-none placeholder:text-[#9AA6B2]"
+                        className="min-h-11 flex-1 bg-transparent text-sm outline-none placeholder:text-[#9AA6B2]"
                       />
                     </div>
                     <div className="mt-3 max-h-72 overflow-y-auto pr-1">
@@ -227,7 +231,7 @@ export function HeroSection() {
                 type="submit"
                 aria-label="Tìm kiếm việc làm"
                 style={{ touchAction: "manipulation" }}
-                className="group inline-flex min-h-10 shrink-0 items-center gap-2 rounded-full bg-[var(--color-fdi-accent-orange)] py-1 pl-4 pr-1 text-sm font-bold text-white shadow-[0_14px_30px_-20px_rgba(242,92,36,0.95)] transition-[background-color,box-shadow,transform] duration-500 ease-[var(--ease-fdi)] hover:-translate-y-0.5 hover:bg-[#D94F1D] hover:shadow-[0_18px_34px_-20px_rgba(242,92,36,0.98)] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-accent-orange)]/45 cursor-pointer sm:mr-1"
+                className="group inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full bg-[var(--color-fdi-accent-orange)] py-1 pl-4 pr-1 text-sm font-bold text-white shadow-[0_14px_30px_-20px_rgba(242,92,36,0.95)] transition-[background-color,box-shadow,transform] duration-500 ease-[var(--ease-fdi)] hover:-translate-y-0.5 hover:bg-[#D94F1D] hover:shadow-[0_18px_34px_-20px_rgba(242,92,36,0.98)] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-accent-orange)]/45 cursor-pointer sm:mr-1"
               >
                 Tìm kiếm
                 <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/18 transition-transform duration-500 ease-[var(--ease-fdi)] group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
@@ -253,13 +257,13 @@ export function HeroSection() {
                 <div className="grid max-h-[min(560px,calc(100vh-190px))] grid-cols-1 overflow-y-auto lg:grid-cols-[0.9fr_1.2fr]">
                   <div className="border-b border-[#E9EEF1] p-5 lg:border-b-0 lg:border-r lg:p-6">
                     <div>
-                      <h2 className="text-base font-black text-[var(--color-fdi-ink)]">Không có tìm kiếm gần đây</h2>
+                      <p className="text-base font-black text-[var(--color-fdi-ink)]">Không có tìm kiếm gần đây</p>
                       <p className="mt-2 text-sm text-[#7A8794]">Lịch sử từ khoá tìm kiếm của bạn sẽ được hiển thị ở đây.</p>
                     </div>
 
                     {hasKeywords && (
                       <div className="mt-8">
-                        <h3 className="text-base font-black text-[var(--color-fdi-ink)]">Từ khoá phổ biến</h3>
+                        <p className="text-base font-black text-[var(--color-fdi-ink)]">Từ khoá phổ biến</p>
                         <div className="mt-3 flex flex-wrap gap-2">
                           {suggestions!.popularKeywords.slice(0, 8).map((kw, i) => {
                             const idx = keywordOffset + i;
@@ -272,7 +276,7 @@ export function HeroSection() {
                                 type="button"
                                 onClick={() => search.navigateTo("keyword", kw)}
                                 onMouseEnter={() => search.setActiveIndex(idx)}
-                                className={`min-h-10 rounded-lg border px-3 text-sm font-medium transition-colors ${search.activeIndex === idx
+                                className={`min-h-11 rounded-lg border px-3 text-sm font-medium transition-colors ${search.activeIndex === idx
                                   ? "border-[var(--color-fdi-primary)] bg-[#EEF8FA] text-[var(--color-fdi-primary)]"
                                   : "border-[#DDE6EA] bg-white text-[var(--color-fdi-text)] hover:border-[#B9D4DC] hover:bg-[#F6FAFB]"
                                   }`}
@@ -287,7 +291,7 @@ export function HeroSection() {
 
                     {hasEmployers && (
                       <div className="mt-8">
-                        <h3 className="text-base font-black text-[var(--color-fdi-ink)]">Công ty nổi bật</h3>
+                        <p className="text-base font-black text-[var(--color-fdi-ink)]">Công ty nổi bật</p>
                         <div className="mt-3 space-y-2">
                           {suggestions!.employers.slice(0, 4).map((emp, i) => {
                             const idx = employerOffset + i;
@@ -318,9 +322,9 @@ export function HeroSection() {
                   </div>
 
                   <div className="p-5 lg:p-6">
-                    <h2 className="text-base font-black text-[var(--color-fdi-ink)]">
+                    <p className="text-base font-black text-[var(--color-fdi-ink)]">
                       {search.query.trim() ? "Việc làm phù hợp" : "Việc làm bạn sẽ thích"}
-                    </h2>
+                    </p>
 
                     {hasJobs ? (
                       <div className="mt-3 space-y-2">

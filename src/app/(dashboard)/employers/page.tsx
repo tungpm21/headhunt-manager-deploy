@@ -1,6 +1,6 @@
 import { getEmployers } from "@/lib/moderation-actions";
 import Link from "next/link";
-import { UserCog, MapPin, Globe, Info } from "lucide-react";
+import { UserCog, MapPin, Globe, Info, Search } from "lucide-react";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import { EmployerStatusActions } from "./employer-status-actions";
@@ -14,12 +14,13 @@ const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
 export default async function EmployersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string; page?: string }>;
+  searchParams: Promise<{ status?: string; page?: string; q?: string }>;
 }) {
   const params = await searchParams;
   const status = params.status || "ALL";
+  const query = params.q?.trim() || "";
   const page = parseInt(params.page || "1");
-  const data = await getEmployers(status, page);
+  const data = await getEmployers(status, page, query);
 
   const filters = [
     { value: "ALL", label: "Tất cả" },
@@ -39,19 +40,33 @@ export default async function EmployersPage({
       </div>
 
       {/* Filters */}
-      <div className="flex gap-2 flex-wrap">
-        {filters.map((f) => (
-          <Link
-            key={f.value}
-            href={`/employers?status=${f.value}`}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${status === f.value
-                ? "bg-primary text-white shadow-sm"
-                : "bg-surface text-muted border border-border hover:border-primary/30 hover:text-foreground"
-              }`}
-          >
-            {f.label}
-          </Link>
-        ))}
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex gap-2 flex-wrap">
+          {filters.map((f) => (
+            <Link
+              key={f.value}
+              href={`/employers?status=${f.value}${query ? `&q=${encodeURIComponent(query)}` : ""}`}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${status === f.value
+                  ? "bg-primary text-white shadow-sm"
+                  : "bg-surface text-muted border border-border hover:border-primary/30 hover:text-foreground"
+                }`}
+            >
+              {f.label}
+            </Link>
+          ))}
+        </div>
+
+        <form action="/employers" className="relative w-full lg:w-96">
+          <input type="hidden" name="status" value={status} />
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
+          <input
+            name="q"
+            type="search"
+            defaultValue={query}
+            placeholder="Tìm tên, email hoặc #ID employer"
+            className="w-full rounded-lg border border-border bg-surface py-2 pl-9 pr-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+          />
+        </form>
       </div>
 
       {/* Table */}
@@ -107,6 +122,9 @@ export default async function EmployersPage({
                     <td className="py-3 px-4">
                       <div>
                         <div className="flex items-center gap-2">
+                          <span className="rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary">
+                            #{emp.id}
+                          </span>
                           <Link
                             href={`/employers/${emp.id}`}
                             className="font-medium text-foreground transition hover:text-primary"
@@ -185,7 +203,7 @@ export default async function EmployersPage({
           {Array.from({ length: data.totalPages }, (_, i) => i + 1).map((p) => (
             <Link
               key={p}
-              href={`/employers?status=${status}&page=${p}`}
+              href={`/employers?status=${status}&page=${p}${query ? `&q=${encodeURIComponent(query)}` : ""}`}
               className={`h-9 w-9 rounded-lg flex items-center justify-center text-sm font-medium transition-all ${p === page ? "bg-primary text-white" : "bg-surface border border-border text-muted hover:border-primary/30"
                 }`}
             >

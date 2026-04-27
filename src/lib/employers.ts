@@ -1,4 +1,4 @@
-import { ApplicationStatus, JobPostingStatus } from "@prisma/client";
+import { ApplicationStatus, JobPostingStatus, Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 
 export async function findEmployerByEmail(email: string) {
@@ -150,6 +150,25 @@ export async function getEmployerJobPostingsForPortal(
   return { jobs, total, page, totalPages: Math.ceil(total / take) };
 }
 
+export async function findRecentEmployerJobPostingDuplicate(
+  employerId: number,
+  title: string,
+  description: string
+) {
+  const recentWindowStart = new Date(Date.now() - 60 * 1000);
+
+  return prisma.jobPosting.findFirst({
+    where: {
+      employerId,
+      title,
+      description,
+      createdAt: { gte: recentWindowStart },
+    },
+    orderBy: { createdAt: "desc" },
+    select: { id: true, title: true, slug: true },
+  });
+}
+
 export async function getEmployerOwnedJobPosting(id: number, employerId: number) {
   const job = await prisma.jobPosting.findUnique({
     where: { id },
@@ -199,18 +218,28 @@ export async function createEmployerJobPostingAndIncrementQuota(data: {
     status: "PENDING";
   };
 }) {
-  return prisma.$transaction([
-    prisma.jobPosting.create({
+  return prisma.$transaction(async (tx) => {
+    const quotaRows = await tx.$queryRaw<Array<{ id: number }>>(Prisma.sql`
+      UPDATE "Subscription"
+      SET "jobsUsed" = "jobsUsed" + 1
+      WHERE "id" = ${data.subscriptionId}
+        AND "employerId" = ${data.employerId}
+        AND "status" = 'ACTIVE'
+        AND "jobsUsed" < "jobQuota"
+      RETURNING "id"
+    `);
+
+    if (quotaRows.length === 0) {
+      throw new Error("QUOTA_EXHAUSTED");
+    }
+
+    return tx.jobPosting.create({
       data: {
         ...data.jobPosting,
         employerId: data.employerId,
       },
-    }),
-    prisma.subscription.update({
-      where: { id: data.subscriptionId },
-      data: { jobsUsed: { increment: 1 } },
-    }),
-  ]);
+    });
+  });
 }
 
 export async function updateEmployerJobPosting(
@@ -251,6 +280,169 @@ export async function updateEmployerJobPostingStatus(
     where: { id },
     data: { status },
   });
+}
+
+export async function deleteEmployerJobPostingWithQuotaPolicy(
+  id: number,
+  employerId: number
+) {
+  return prisma.$transaction(async (tx) => {
+    const job = await tx.jobPosting.findUnique({
+      where: { id },
+      include: { _count: { select: { applications: true } } },
+    });
+
+    if (!job || job.employerId !== employerId) {
+      return null;
+    }
+
+    const refundableStatuses = new Set<JobPostingStatus>([
+      JobPostingStatus.DRAFT,
+      JobPostingStatus.PENDING,
+      JobPostingStatus.REJECTED,
+    ]);
+    const canDeleteAndRefund =
+      refundableStatuses.has(job.status) || job._count.applications === 0;
+
+    if (canDeleteAndRefund) {
+      await tx.jobPosting.delete({ where: { id } });
+      const refund = await tx.subscription.updateMany({
+        where: {
+          employerId,
+          jobsUsed: { gt: 0 },
+        },
+        data: { jobsUsed: { decrement: 1 } },
+      });
+
+      return {
+        mode: "deleted" as const,
+        refunded: refund.count > 0,
+        slug: job.slug,
+        status: job.status,
+      };
+    }
+
+    await tx.jobPosting.update({
+      where: { id },
+      data: { status: JobPostingStatus.PAUSED },
+    });
+
+    return {
+      mode: "paused" as const,
+      refunded: false,
+      slug: job.slug,
+      status: job.status,
+    };
+  });
+}
+
+export type EmployerNotificationItem = {
+  key: string;
+  label: string;
+  count: number;
+  href: string;
+  tone: "blue" | "amber" | "red" | "emerald";
+};
+
+export type EmployerNotificationData = {
+  total: number;
+  items: EmployerNotificationItem[];
+};
+
+export async function getEmployerNotificationSnapshot(
+  employerId: number
+): Promise<EmployerNotificationData> {
+  const now = new Date();
+  const [newApplications, rejectedJobs, pendingJobs, subscription] =
+    await Promise.all([
+      prisma.application.count({
+        where: {
+          status: ApplicationStatus.NEW,
+          jobPosting: { employerId },
+        },
+      }),
+      prisma.jobPosting.count({
+        where: { employerId, status: JobPostingStatus.REJECTED },
+      }),
+      prisma.jobPosting.count({
+        where: { employerId, status: JobPostingStatus.PENDING },
+      }),
+      prisma.subscription.findUnique({
+        where: { employerId },
+        select: {
+          status: true,
+          jobQuota: true,
+          jobsUsed: true,
+          endDate: true,
+        },
+      }),
+    ]);
+
+  const items: EmployerNotificationItem[] = [];
+
+  if (newApplications > 0) {
+    items.push({
+      key: "new-applications",
+      label: `${newApplications} hồ sơ mới cần xem`,
+      count: newApplications,
+      href: "/employer/job-postings",
+      tone: "blue",
+    });
+  }
+
+  if (rejectedJobs > 0) {
+    items.push({
+      key: "rejected-jobs",
+      label: `${rejectedJobs} tin bị từ chối`,
+      count: rejectedJobs,
+      href: "/employer/job-postings?status=REJECTED",
+      tone: "red",
+    });
+  }
+
+  if (pendingJobs > 0) {
+    items.push({
+      key: "pending-jobs",
+      label: `${pendingJobs} tin đang chờ duyệt`,
+      count: pendingJobs,
+      href: "/employer/job-postings?status=PENDING",
+      tone: "amber",
+    });
+  }
+
+  if (!subscription || subscription.status !== "ACTIVE" || subscription.endDate < now) {
+    items.push({
+      key: "subscription-expired",
+      label: "Gói dịch vụ đã hết hạn",
+      count: 1,
+      href: "/employer/subscription",
+      tone: "red",
+    });
+  } else {
+    const remainingQuota = Math.max(subscription.jobQuota - subscription.jobsUsed, 0);
+    if (remainingQuota === 0) {
+      items.push({
+        key: "quota-empty",
+        label: "Đã hết lượt đăng tin",
+        count: 1,
+        href: "/employer/subscription",
+        tone: "red",
+      });
+    } else if (remainingQuota <= 1) {
+      items.push({
+        key: "quota-low",
+        label: `Chỉ còn ${remainingQuota} lượt đăng tin`,
+        count: remainingQuota,
+        href: "/employer/subscription",
+        tone: "amber",
+      });
+    }
+  }
+
+  return {
+    total: items.reduce((sum, item) => sum + item.count, 0),
+    items,
+  };
 }
 
 export async function getEmployerJobApplicants(jobPostingId: number, employerId: number) {

@@ -1,5 +1,6 @@
 "use server";
 
+import { cache } from "react";
 import { revalidatePath, unstable_cache } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/authz";
@@ -140,7 +141,17 @@ export async function getPublishedBlogPosts() {
     });
 }
 
-// ─── Public: Latest N posts for homepage ───
+// ─── Public: Single published post ───
+const getCachedPublishedBlogPostBySlug = cache(async (slug: string) => {
+    return prisma.blogPost.findFirst({
+        where: { slug, isPublished: true },
+    });
+});
+
+export async function getPublishedBlogPostBySlug(slug: string) {
+    return getCachedPublishedBlogPostBySlug(slug);
+}
+
 const getCachedLatestBlogPosts = unstable_cache(
     async (take: number) =>
         prisma.blogPost.findMany({

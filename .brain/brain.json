@@ -2,7 +2,7 @@
   "project": {
     "name": "Headhunt Manager (FDIWork)",
     "type": "Next.js 16 App Router, Prisma ORM, PostgreSQL, TailwindCSS",
-    "status": "Sprint 1-3 complete, Sprint 5 complete, Performance Hardening Complete, production deployed on Vercel + Neon, Sprint 4 pending real-user onboarding"
+    "status": "Production app running on Vercel + Neon; CRM, employer portal, and public job board are active. Current state includes employer/admin polish, import hardening, public UX redesign, and preview-first deployment workflow."
   },
   "docs_index": {
     "codebase_map": "CODEBASE.md",
@@ -22,7 +22,9 @@
     "Admin moderation with application import to CRM, employer linking, packages, and employer management",
     "Excel/CSV import for candidates and clients with preview, validation, dedup, and error reporting",
     "Production hardening with Redis rate limit, Sentry, Neon pooled Postgres, and GIN trigram text search optimization",
-    "7-stage recruitment pipeline with dedicated Submissions module and dual 'Import & Submit' action for seamless candidate shortlisting"
+    "7-stage recruitment pipeline with dedicated Submissions module and dual 'Import & Submit' action for seamless candidate shortlisting",
+    "Employer notification bell, safer employer job posting actions, and improved admin package assignment/search flows",
+    "Shared public job taxonomy, blog detail routes, simplified public apply UX, and high-end homepage visual system refresh"
   ],
   "database_schema": {
     "summary": "ATS CRM + employer portal + public job board + ops/audit tracking",
@@ -56,11 +58,13 @@
   },
   "conventions": [
     "Server Actions return success/error objects and user-facing errors stay in Vietnamese",
-    "All ViewerScope data access logic must use Shared Helpers from access-scope.ts instead of inline duplicated scopes",
+    "All ViewerScope data access logic must use shared helpers from access-scope.ts instead of inline duplicated scopes",
     "Dashboard logic uses React Suspense to stream multiple isolated widgets instead of blocking layout",
     "Neon is the canonical Postgres provider; prefer pooled URL in production",
     "Expensive public data endpoints (homepage, filters) heavily leverage unstable_cache",
-    "ILIKE string search queries rely on GIN trigram indexes for performance speedups"
+    "ILIKE string search queries rely on GIN trigram indexes for performance speedups",
+    "Public visual direction uses layered navy backgrounds, warm-neutral section surfaces, and reserves orange for primary CTAs or value signals",
+    "Preview Vercel deployments should go through non-main branches unless the user explicitly requests production"
   ],
   "security_notes": [
     "Employer JWT TTL is 1 day and employer must remain ACTIVE",
@@ -69,6 +73,7 @@
   ],
   "infra_notes": [
     "Production app is deployed at https://headhunt-manager-deploy.vercel.app",
+    "Linked Vercel project config exists locally in .vercel/project.json for project headhunt-manager-deploy",
     "Prisma client uses @prisma/adapter-pg with pg Pool (min 15) and pooled connection preference",
     "postinstall runs prisma generate to keep Vercel production builds in sync with schema"
   ],
@@ -77,6 +82,8 @@
     "Scattered access-control logic centralized into access-scope.ts",
     "ILIKE full table scans eliminated via idx_*_trgm indexes for JobOrder, Client, Candidate, Employer, and JobPosting",
     "Public page dynamic-render performance fixed via unstable_cache and ISR",
-    "Parser header normalization now handles Vietnamese Đ/đ so import maps phone/address columns correctly"
+    "Parser header normalization now handles Vietnamese Đ/đ so import maps phone/address columns correctly",
+    "Search suggestion hook no longer triggers setState-after-unmount warnings",
+    "Homepage overflow, weak CTA contrast, and undersized carousel dots were fixed across desktop/tablet/mobile"
   ]
 }

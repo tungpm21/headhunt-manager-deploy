@@ -19,6 +19,7 @@ import {
 import type { CandidateImportRow, ImportResult } from "@/types/import";
 
 const PREVIEW_LIMIT = 10;
+const MAX_EXPANDED_PREVIEW_ROWS = 100;
 
 const HEADER_ALIASES: Record<keyof Omit<CandidateImportRow, "rowNumber">, string[]> = {
   fullName: ["ho ten", "ten", "name", "ho va ten", "full name"],
@@ -34,6 +35,19 @@ function mapRowsToCandidates(rows: unknown[][]): CandidateImportRow[] {
   if (rows.length < 2) return [];
 
   const headerIndexes = buildHeaderIndexes(rows[0], HEADER_ALIASES);
+  const missingHeaders: string[] = [];
+
+  if (headerIndexes.fullName < 0) {
+    missingHeaders.push("Họ tên / Full name");
+  }
+
+  if (headerIndexes.email < 0 && headerIndexes.phone < 0) {
+    missingHeaders.push("Email hoặc SĐT");
+  }
+
+  if (missingHeaders.length > 0) {
+    throw new Error(`File candidate thiếu cột bắt buộc: ${missingHeaders.join(", ")}.`);
+  }
 
   return rows
     .slice(1)
@@ -120,7 +134,9 @@ export function SpreadsheetImporter() {
   const [showAllRows, setShowAllRows] = useState(false);
 
   const validationMap = useMemo(() => buildValidationMap(data), [data]);
-  const previewRows = showAllRows ? data : data.slice(0, PREVIEW_LIMIT);
+  const previewRows = showAllRows
+    ? data.slice(0, MAX_EXPANDED_PREVIEW_ROWS)
+    : data.slice(0, PREVIEW_LIMIT);
   const invalidRowCount = validationMap.size;
   const validRowCount = data.length - invalidRowCount;
 
@@ -397,7 +413,7 @@ export function SpreadsheetImporter() {
               <div className="flex flex-col gap-3 border-t bg-gray-50 px-6 py-3 sm:flex-row sm:items-center sm:justify-between">
                 <p className="text-sm text-gray-500">
                   {showAllRows
-                    ? `Đang hiển thị toàn bộ ${data.length} dòng preview.`
+                    ? `Đang hiển thị tối đa ${Math.min(data.length, MAX_EXPANDED_PREVIEW_ROWS)}/${data.length} dòng preview.`
                     : `Đang hiển thị ${PREVIEW_LIMIT}/${data.length} dòng đầu tiên.`}
                 </p>
                 <button
@@ -413,7 +429,7 @@ export function SpreadsheetImporter() {
                   ) : (
                     <>
                       <ChevronDown className="h-4 w-4" />
-                      Xem toàn bộ {data.length} dòng
+                      Xem tối đa {Math.min(data.length, MAX_EXPANDED_PREVIEW_ROWS)} dòng
                     </>
                   )}
                 </button>

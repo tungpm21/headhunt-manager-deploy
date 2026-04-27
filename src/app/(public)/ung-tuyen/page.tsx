@@ -38,9 +38,9 @@ export default async function ApplyPage({ searchParams }: PageProps) {
   if (!job || job.status !== "APPROVED") notFound();
 
   return (
-    <div className="min-h-screen bg-gray-50/50">
+    <div id="main-content" className="min-h-screen bg-[var(--color-fdi-mist)]">
       {/* Breadcrumb */}
-      <div className="bg-white border-b border-gray-100">
+      <div className="bg-white border-b border-[var(--color-fdi-mist)]">
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-3">
           <div className="flex items-center gap-2 text-sm text-[var(--color-fdi-text-secondary)]">
             <Link
@@ -55,9 +55,9 @@ export default async function ApplyPage({ searchParams }: PageProps) {
       </div>
 
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+        <div className="bg-white rounded-xl border border-[var(--color-fdi-mist)] overflow-hidden">
           {/* Header */}
-          <div className="bg-gradient-to-r from-[var(--color-fdi-primary)] to-[var(--color-fdi-accent)] px-6 sm:px-8 py-6">
+          <div className="bg-[var(--color-fdi-primary)] px-6 sm:px-8 py-6">
             <div className="flex items-center gap-3 mb-3">
               <div className="h-11 w-11 rounded-lg bg-white/20 flex items-center justify-center">
                 <LogoImage
@@ -81,7 +81,15 @@ export default async function ApplyPage({ searchParams }: PageProps) {
 
           {/* Form */}
           <div className="px-6 sm:px-8 py-6">
-            <Suspense>
+            <Suspense fallback={
+              <div className="space-y-5 animate-pulse">
+                <div className="h-11 rounded-lg bg-[var(--color-fdi-mist)]" />
+                <div className="h-11 rounded-lg bg-[var(--color-fdi-mist)]" />
+                <div className="h-11 rounded-lg bg-[var(--color-fdi-mist)]" />
+                <div className="h-11 rounded-lg bg-[var(--color-fdi-mist)]" />
+                <div className="h-11 w-full rounded-full bg-[var(--color-fdi-primary)]/20" />
+              </div>
+            }>
               <ApplyForm
                 jobId={job.id}
                 jobTitle={job.title}

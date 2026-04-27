@@ -11,6 +11,13 @@ import {
   Save,
 } from "lucide-react";
 import { updateAdminJobPosting } from "@/lib/admin-job-posting-actions";
+import {
+  INDUSTRIAL_ZONE_GROUPS,
+  JOB_WORK_TYPES,
+  LANGUAGE_PROFICIENCY_LEVELS,
+  REQUIRED_LANGUAGE_OPTIONS,
+  SHIFT_TYPE_OPTIONS,
+} from "@/lib/job-taxonomy";
 
 type EditableJobPosting = {
   id: number;
@@ -46,58 +53,6 @@ type EditableJobPosting = {
     email: string;
   };
 };
-
-const INDUSTRIAL_ZONES = [
-  {
-    group: "Miền Bắc",
-    zones: [
-      "KCN Yên Phong, Bắc Ninh",
-      "KCN Quế Võ, Bắc Ninh",
-      "KCN VSIP Bắc Ninh",
-      "KCN Thăng Long, Hà Nội",
-      "KCN Quang Minh, Vĩnh Phúc",
-      "KCN Đình Vũ, Hải Phòng",
-      "KCN Tràng Duệ, Hải Phòng",
-      "KCN Samsung, Thái Nguyên",
-      "KCN Đại Đồng, Bắc Giang",
-    ],
-  },
-  {
-    group: "Miền Trung",
-    zones: [
-      "KCN Hòa Khánh, Đà Nẵng",
-      "KCN Điện Nam - Điện Ngọc, Quảng Nam",
-    ],
-  },
-  {
-    group: "Miền Nam",
-    zones: [
-      "KCN Amata, Đồng Nai",
-      "KCN Long Thành, Đồng Nai",
-      "KCN VSIP, Bình Dương",
-      "KCN Mỹ Phước, Bình Dương",
-      "KCN Long Hậu, Long An",
-      "Quận 7 / Tân Phú, TP.HCM",
-    ],
-  },
-];
-
-const LANGUAGES = [
-  { value: "none", label: "Không yêu cầu" },
-  { value: "Japanese", label: "Tiếng Nhật" },
-  { value: "Korean", label: "Tiếng Hàn" },
-  { value: "English", label: "Tiếng Anh" },
-  { value: "Chinese", label: "Tiếng Trung" },
-  { value: "German", label: "Tiếng Đức" },
-  { value: "French", label: "Tiếng Pháp" },
-];
-
-const PROFICIENCY_LEVELS = [
-  "Cơ bản (N4 / TOPIK 1)",
-  "Trung cấp (N3 / TOPIK 2)",
-  "Khá (N2 / TOPIK 3)",
-  "Thành thạo (N1 / TOPIK 4+)",
-];
 
 const inputClassName =
   "w-full rounded-xl border border-border bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition";
@@ -425,13 +380,19 @@ export function JobPostingEditForm({ job }: { job: EditableJobPosting }) {
               >
                 Hình thức làm việc
               </label>
-              <input
+              <select
                 id="workType"
                 name="workType"
-                type="text"
                 defaultValue={job.workType ?? ""}
                 className={inputClassName}
-              />
+              >
+                <option value="">Chọn hình thức</option>
+                {JOB_WORK_TYPES.map((workType) => (
+                  <option key={workType} value={workType}>
+                    {workType}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div>
@@ -493,7 +454,7 @@ export function JobPostingEditForm({ job }: { job: EditableJobPosting }) {
                 className={inputClassName}
               >
                 <option value="">Chọn khu công nghiệp</option>
-                {INDUSTRIAL_ZONES.map((group) => (
+                {INDUSTRIAL_ZONE_GROUPS.map((group) => (
                   <optgroup key={group.group} label={group.group}>
                     {group.zones.map((zone) => (
                       <option key={zone} value={zone}>
@@ -521,10 +482,11 @@ export function JobPostingEditForm({ job }: { job: EditableJobPosting }) {
                 defaultValue={job.shiftType ?? ""}
                 className={inputClassName}
               >
-                <option value="">Không chỉ định</option>
-                <option value="DAY">Ca ngày</option>
-                <option value="NIGHT">Ca đêm</option>
-                <option value="ROTATING">Xoay ca</option>
+                {SHIFT_TYPE_OPTIONS.map((option) => (
+                  <option key={option.value || "none"} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
@@ -543,7 +505,7 @@ export function JobPostingEditForm({ job }: { job: EditableJobPosting }) {
                 defaultValue={job.requiredLanguages?.[0] ?? "none"}
                 className={inputClassName}
               >
-                {LANGUAGES.map((language) => (
+                {REQUIRED_LANGUAGE_OPTIONS.map((language) => (
                   <option key={language.value} value={language.value}>
                     {language.label}
                   </option>
@@ -568,7 +530,7 @@ export function JobPostingEditForm({ job }: { job: EditableJobPosting }) {
                 className={inputClassName}
               >
                 <option value="">Không chỉ định</option>
-                {PROFICIENCY_LEVELS.map((level) => (
+                {LANGUAGE_PROFICIENCY_LEVELS.map((level) => (
                   <option key={level} value={level}>
                     {level}
                   </option>

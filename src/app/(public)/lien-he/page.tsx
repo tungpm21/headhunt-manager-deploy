@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Mail, Phone, User, MessageSquare, Send, CheckCircle } from "lucide-react";
 
@@ -12,6 +12,13 @@ import { Mail, Phone, User, MessageSquare, Send, CheckCircle } from "lucide-reac
 export default function ContactPage() {
     const [submitted, setSubmitted] = useState(false);
     const [loading, setLoading] = useState(false);
+    const successRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (submitted) {
+            successRef.current?.focus();
+        }
+    }, [submitted]);
 
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
@@ -24,10 +31,10 @@ export default function ContactPage() {
 
     if (submitted) {
         return (
-            <div className="min-h-screen bg-gray-50/50 flex items-center justify-center px-4">
-                <div className="text-center max-w-md">
+            <div id="main-content" className="min-h-screen bg-[var(--color-fdi-mist)] flex items-center justify-center px-4">
+                <div ref={successRef} tabIndex={-1} className="text-center max-w-md outline-none">
                     <div className="inline-flex items-center justify-center h-16 w-16 rounded-full bg-green-100 mb-4">
-                        <CheckCircle className="h-8 w-8 text-green-600" />
+                        <CheckCircle className="h-8 w-8 text-green-600" aria-hidden="true" />
                     </div>
                     <h2
                         className="text-2xl font-bold text-[var(--color-fdi-text)] mb-2"
@@ -50,7 +57,7 @@ export default function ContactPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50/50">
+        <div id="main-content" className="min-h-screen bg-[var(--color-fdi-mist)]">
             {/* Header */}
             <div className="bg-[var(--color-fdi-primary)]">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
@@ -60,22 +67,23 @@ export default function ContactPage() {
                     >
                         Liên hệ với chúng tôi
                     </h1>
-                    <p className="text-blue-100 mt-2">
+                    <p className="text-white/80 mt-2">
                         Để lại thông tin, đội ngũ FDIWork sẽ tư vấn ngay cho bạn
                     </p>
                 </div>
             </div>
 
             <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-10">
-                <div className="bg-white rounded-xl border border-gray-100 p-6 sm:p-10">
+                <div className="bg-white rounded-xl border border-[var(--color-fdi-mist)] p-6 sm:p-10">
                     <form onSubmit={handleSubmit} className="space-y-5">
                         {/* Name */}
                         <div>
-                            <label className="flex items-center gap-1.5 text-sm font-medium text-[var(--color-fdi-text)] mb-1.5">
-                                <User className="h-4 w-4 text-[var(--color-fdi-primary)]" />
+                            <label htmlFor="contact-name" className="flex items-center gap-1.5 text-sm font-medium text-[var(--color-fdi-text)] mb-1.5">
+                                <User className="h-4 w-4 text-[var(--color-fdi-primary)]" aria-hidden="true" />
                                 Họ và tên <span className="text-red-500">*</span>
                             </label>
                             <input
+                                id="contact-name"
                                 type="text"
                                 name="name"
                                 required
@@ -86,11 +94,12 @@ export default function ContactPage() {
 
                         {/* Phone */}
                         <div>
-                            <label className="flex items-center gap-1.5 text-sm font-medium text-[var(--color-fdi-text)] mb-1.5">
-                                <Phone className="h-4 w-4 text-[var(--color-fdi-primary)]" />
+                            <label htmlFor="contact-phone" className="flex items-center gap-1.5 text-sm font-medium text-[var(--color-fdi-text)] mb-1.5">
+                                <Phone className="h-4 w-4 text-[var(--color-fdi-primary)]" aria-hidden="true" />
                                 Số điện thoại <span className="text-red-500">*</span>
                             </label>
                             <input
+                                id="contact-phone"
                                 type="tel"
                                 name="phone"
                                 required
@@ -101,11 +110,12 @@ export default function ContactPage() {
 
                         {/* Email */}
                         <div>
-                            <label className="flex items-center gap-1.5 text-sm font-medium text-[var(--color-fdi-text)] mb-1.5">
-                                <Mail className="h-4 w-4 text-[var(--color-fdi-primary)]" />
+                            <label htmlFor="contact-email" className="flex items-center gap-1.5 text-sm font-medium text-[var(--color-fdi-text)] mb-1.5">
+                                <Mail className="h-4 w-4 text-[var(--color-fdi-primary)]" aria-hidden="true" />
                                 Email <span className="text-red-500">*</span>
                             </label>
                             <input
+                                id="contact-email"
                                 type="email"
                                 name="email"
                                 required
@@ -116,11 +126,12 @@ export default function ContactPage() {
 
                         {/* Message */}
                         <div>
-                            <label className="flex items-center gap-1.5 text-sm font-medium text-[var(--color-fdi-text)] mb-1.5">
-                                <MessageSquare className="h-4 w-4 text-[var(--color-fdi-primary)]" />
-                                Nội dung
+                            <label htmlFor="contact-message" className="flex items-center gap-1.5 text-sm font-medium text-[var(--color-fdi-text)] mb-1.5">
+                                <MessageSquare className="h-4 w-4 text-[var(--color-fdi-primary)]" aria-hidden="true" />
+                                Nội dung <span className="text-xs text-[var(--color-fdi-text-secondary)] font-normal">(không bắt buộc)</span>
                             </label>
                             <textarea
+                                id="contact-message"
                                 name="message"
                                 rows={4}
                                 placeholder="Mô tả nhu cầu của bạn..."
@@ -131,6 +142,7 @@ export default function ContactPage() {
                         <button
                             type="submit"
                             disabled={loading}
+                            aria-busy={loading}
                             className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-[var(--color-fdi-primary)] text-white text-sm font-semibold hover:bg-[var(--color-fdi-primary-hover)] transition-all disabled:opacity-60 cursor-pointer"
                         >
                             {loading ? (
@@ -142,9 +154,12 @@ export default function ContactPage() {
                                 </>
                             )}
                         </button>
+                        <p role="status" aria-live="polite" className="sr-only">
+                            {loading ? "Đang gửi thông tin liên hệ..." : ""}
+                        </p>
                     </form>
 
-                    <div className="mt-8 pt-6 border-t border-gray-100 grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
+                    <div className="mt-8 pt-6 border-t border-[var(--color-fdi-mist)] grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
                         <div>
                             <Mail className="h-5 w-5 text-[var(--color-fdi-primary)] mx-auto mb-1" />
                             <p className="text-xs text-[var(--color-fdi-text-secondary)]">Email</p>

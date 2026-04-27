@@ -17,6 +17,7 @@ import {
   getEmployerForInfoUpdate,
   getEmployerJobPostingsForModeration,
   getEmployerModerationById,
+  getEmployersForSubscriptionSelectData,
   getEmployerSimpleById,
   getEmployerSubscriptionByEmployerId,
   getEmployersData,
@@ -76,6 +77,17 @@ function parsePositiveInt(value: FormDataEntryValue | null, fallback?: number) {
   return Number.parseInt(normalized, 10);
 }
 
+function parseNonNegativeNumber(value: FormDataEntryValue | null, fallback = 0) {
+  const normalized = value?.toString().trim();
+
+  if (!normalized) {
+    return fallback;
+  }
+
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) ? parsed : Number.NaN;
+}
+
 export async function getPendingJobPostings(status = "PENDING", page = 1) {
   await requireAdmin();
   return getPendingJobPostingsData(status, page);
@@ -125,10 +137,10 @@ export async function rejectJobPosting(id: number, reason: string) {
   return { success: true, message: "Da tu choi tin." };
 }
 
-export async function getEmployers(status = "ALL", page = 1) {
+export async function getEmployers(status = "ALL", page = 1, query = "") {
   await requireAdmin();
   await expireSubscriptionsIfNeeded();
-  return getEmployersData(status, page);
+  return getEmployersData(status, page, query);
 }
 
 export async function updateEmployerStatus(id: number, newStatus: string) {
@@ -317,6 +329,12 @@ export async function getSubscriptions(page = 1) {
   return getSubscriptionsData(page);
 }
 
+export async function getEmployersForSubscriptionSelect() {
+  await requireAdmin();
+  await expireSubscriptionsIfNeeded();
+  return getEmployersForSubscriptionSelectData();
+}
+
 export async function assignSubscription(formData: FormData) {
   await requireAdmin();
   const parsedInput = moderationSubscriptionSchema.safeParse({
@@ -325,6 +343,7 @@ export async function assignSubscription(formData: FormData) {
     jobQuota: parsePositiveInt(formData.get("jobQuota")),
     jobDuration: parsePositiveInt(formData.get("jobDuration"), 30),
     durationMonths: parsePositiveInt(formData.get("durationMonths"), 12),
+    price: parseNonNegativeNumber(formData.get("price"), 0),
     showLogo: formData.get("showLogo") === "true",
     showBanner: formData.get("showBanner") === "true",
   });
@@ -342,17 +361,32 @@ export async function assignSubscription(formData: FormData) {
   }
 
   const now = new Date();
-  const endDate = new Date(
-    now.getTime() + parsedInput.data.durationMonths * 30 * 24 * 60 * 60 * 1000
-  );
   const existingSub = await getEmployerSubscriptionByEmployerId(parsedInput.data.employerId);
+  if (existingSub && parsedInput.data.jobQuota < existingSub.jobsUsed) {
+    return {
+      success: false,
+      message: `Quota moi khong duoc thap hon so tin da dung (${existingSub.jobsUsed}).`,
+    };
+  }
+
+  const baseDate =
+    existingSub?.status === "ACTIVE" && existingSub.endDate > now
+      ? existingSub.endDate
+      : now;
+  const endDate = new Date(
+    baseDate.getTime() + parsedInput.data.durationMonths * 30 * 24 * 60 * 60 * 1000
+  );
 
   if (existingSub) {
     await updateEmployerSubscription(existingSub.id, {
       tier: parsedInput.data.tier,
       jobQuota: parsedInput.data.jobQuota,
       jobDuration: parsedInput.data.jobDuration,
-      startDate: now,
+      price: parsedInput.data.price,
+      startDate:
+        existingSub.status === "ACTIVE" && existingSub.endDate > now
+          ? existingSub.startDate
+          : now,
       endDate,
       status: "ACTIVE",
       showLogo: parsedInput.data.showLogo,
@@ -365,7 +399,7 @@ export async function assignSubscription(formData: FormData) {
       jobQuota: parsedInput.data.jobQuota,
       jobsUsed: 0,
       jobDuration: parsedInput.data.jobDuration,
-      price: 0,
+      price: parsedInput.data.price,
       startDate: now,
       endDate,
       status: "ACTIVE",
@@ -378,6 +412,7 @@ export async function assignSubscription(formData: FormData) {
 
   revalidatePath("/packages");
   revalidatePath("/employers");
+  revalidatePath(`/employers/${parsedInput.data.employerId}`);
   return {
     success: true,
     message: `Da cap goi ${parsedInput.data.tier} cho ${employer.companyName}.`,

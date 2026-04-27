@@ -183,7 +183,10 @@ export function EmployerDetailTabs({
       <div className="p-5 sm:p-6">
         {activeTab === "jobs" && <JobPostingsTab jobPostings={jobPostings} />}
         {activeTab === "subscription" && (
-          <SubscriptionTab subscription={employer.subscription} />
+          <SubscriptionTab
+            employerId={employer.id}
+            subscription={employer.subscription}
+          />
         )}
         {activeTab === "info" && (
           <InfoTab employer={employer} clientOptions={clientOptions} />
@@ -319,17 +322,28 @@ function JobPostingsTab({ jobPostings }: { jobPostings: EmployerJobPosting[] }) 
 }
 
 function SubscriptionTab({
+  employerId,
   subscription,
 }: {
+  employerId: number;
   subscription: EmployerDetailSubscription;
 }) {
   if (!subscription) {
     return (
-      <EmptyState
-        icon={CreditCard}
-        title="Chưa có gói dịch vụ"
-        description="Employer này chưa được cấp subscription trên FDIWork."
-      />
+      <div className="space-y-4">
+        <EmptyState
+          icon={CreditCard}
+          title="Chưa có gói dịch vụ"
+          description="Employer này chưa được cấp subscription trên FDIWork."
+        />
+        <Link
+          href={`/packages?employerId=${employerId}`}
+          className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition hover:bg-primary/90"
+        >
+          <CreditCard className="h-4 w-4" />
+          Cấp gói ngay
+        </Link>
+      </div>
     );
   }
 
@@ -343,10 +357,21 @@ function SubscriptionTab({
   return (
     <div className="space-y-5">
       <div>
-        <h3 className="text-lg font-semibold text-foreground">Gói dịch vụ hiện tại</h3>
-        <p className="text-sm text-muted">
-          Theo dõi quota, thời hạn và quyền lợi của employer này.
-        </p>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <h3 className="text-lg font-semibold text-foreground">Gói dịch vụ hiện tại</h3>
+            <p className="text-sm text-muted">
+              Theo dõi quota, thời hạn và quyền lợi của employer này.
+            </p>
+          </div>
+          <Link
+            href={`/packages?employerId=${employerId}`}
+            className="inline-flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/10 px-4 py-2 text-sm font-medium text-primary transition hover:bg-primary/15"
+          >
+            <CreditCard className="h-4 w-4" />
+            Gia hạn gói
+          </Link>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">

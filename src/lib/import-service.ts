@@ -65,7 +65,19 @@ function normalizeWebsite(value: unknown): string | null {
   }
 
   const normalized = value.trim().toLowerCase();
-  return normalized || null;
+  if (!normalized) {
+    return null;
+  }
+
+  const withProtocol = /^https?:\/\//i.test(normalized)
+    ? normalized
+    : `https://${normalized}`;
+
+  try {
+    return new URL(withProtocol).toString();
+  } catch {
+    return normalized;
+  }
 }
 
 function normalizeCandidateRecord(

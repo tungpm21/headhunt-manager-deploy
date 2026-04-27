@@ -43,7 +43,7 @@ export default function PublicLayout({
   return (
     <div
       className="min-h-screen flex flex-col bg-white text-[var(--color-fdi-text)]"
-      style={{ fontFamily: "var(--font-body)" }}
+      style={{ fontFamily: "var(--font-body)", "--color-primary": "var(--color-fdi-primary)" } as CSSProperties}
     >
       <a
         href="#main-content"
@@ -52,10 +52,7 @@ export default function PublicLayout({
         Chuyển đến nội dung chính
       </a>
       <PublicHeader />
-      <main
-        className="flex-1 pt-20"
-        style={{ "--color-primary": "var(--color-fdi-primary)" } as CSSProperties}
-      >
+      <main className="flex-1 pt-20">
         {children}
       </main>
       <PublicFooter />

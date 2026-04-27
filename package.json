@@ -23,6 +23,7 @@
     "bcrypt-ts": "^8.0.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
+    "isomorphic-dompurify": "^3.10.0",
     "jose": "^6.2.2",
     "lucide-react": "^0.577.0",
     "next": "16.2.2",

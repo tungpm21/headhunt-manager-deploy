@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, CalendarDays } from "lucide-react";
+import DOMPurify from "isomorphic-dompurify";
 import { getPublishedBlogPostBySlug } from "@/lib/blog-actions";
 
 export const revalidate = 300;
@@ -25,17 +26,6 @@ function escapeHtml(value: string) {
     .replace(/'/g, "&#39;");
 }
 
-function sanitizeBlogHtml(value: string) {
-  return value
-    .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, "")
-    .replace(/<style[\s\S]*?>[\s\S]*?<\/style>/gi, "")
-    .replace(/<iframe[\s\S]*?>[\s\S]*?<\/iframe>/gi, "")
-    .replace(/<(object|embed|link|meta)[\s\S]*?>/gi, "")
-    .replace(/\s+on[a-z]+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, "")
-    .replace(/\s+(href|src)\s*=\s*(['"])\s*javascript:[\s\S]*?\2/gi, ' $1="#"')
-    .replace(/\s+(href|src)\s*=\s*javascript:[^\s>]*/gi, ' $1="#"');
-}
-
 function formatBlogContent(content: string) {
   const trimmed = content.trim();
   if (!trimmed) return "";
@@ -47,7 +37,7 @@ function formatBlogContent(content: string) {
       .join("");
   }
 
-  return sanitizeBlogHtml(trimmed);
+  return DOMPurify.sanitize(trimmed);
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {

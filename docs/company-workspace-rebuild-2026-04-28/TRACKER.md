@@ -104,8 +104,8 @@ After every implementation slice:
 | P7-02 | Add per-card pending state | [x] | Status updates track pending by application id instead of locking the whole board |
 | P7-03 | Add stage dropdown/buttons to selected card | [x] | Cards and preview panel both support explicit status updates without drag-and-drop |
 | P7-04 | Improve mobile fallback | [x] | Mobile uses stacked cards with select/buttons; drag-and-drop board is desktop-only |
-| P7-05 | Remove old inline Link Client UI | [ ] | After Account Mapping stable |
-| P7-06 | Redirect legacy employer pages | [ ] | After portal stable |
+| P7-05 | Remove old inline Link Client UI | [x] | Employer detail now links to Company Workspace mapping instead of mutating legacy Employer.clientId inline |
+| P7-06 | Redirect legacy employer pages | [!] | Blocked until Company Portal job-postings/profile pages are feature-complete; redirecting now would send users to stubs |
 
 ## Verification Log
 
@@ -119,6 +119,16 @@ Result:
 Changed files:
 Remaining risk:
 Next task:
+```
+
+```text
+Date: 2026-04-29
+Task: Phase 7 P7-05 remove legacy inline Link Client UI
+Commands: GitNexus impact EmployerDetailPage/EmployerDetailTabs/InfoTab/EmployersPage -> LOW; npx tsc --noEmit -> pass; targeted eslint for employer admin pages -> pass with existing no-img-element warning; npm run build -> pass; Playwright smoke /employers/44 info tab -> /companies/3?tab=mapping -> pass
+Result: Employer detail no longer exposes the old inline Client dropdown. Admins see the current CRM Client mapping and use "Mở Company Workspace" to manage links from the workspace mapping source of truth. Employers list column label changed from "Link Client" to "CRM Client".
+Changed files: src/app/(dashboard)/employers/page.tsx, src/app/(dashboard)/employers/[id]/page.tsx, src/app/(dashboard)/employers/[id]/employer-detail-tabs.tsx
+Remaining risk: P7-06 should wait because Company Portal job-postings/profile routes are still stubs, while legacy employer portal still owns those workflows.
+Next task: Commit Phase 7 P7-05 if diff review is clean.
 ```
 
 ```text

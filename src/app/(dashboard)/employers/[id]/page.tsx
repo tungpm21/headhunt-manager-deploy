@@ -11,9 +11,9 @@ import {
   Package,
 } from "lucide-react";
 import {
-  getClientsForEmployerLinking,
   getEmployerById,
 } from "@/lib/moderation-actions";
+import { getWorkspaceForEmployer } from "@/lib/workspace";
 import { EmployerStatusActions } from "../employer-status-actions";
 import { EmployerDetailTabs } from "./employer-detail-tabs";
 
@@ -35,9 +35,9 @@ export default async function EmployerDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  const [employer, clientOptions] = await Promise.all([
+  const [employer, workspace] = await Promise.all([
     getEmployerById(employerId),
-    getClientsForEmployerLinking(employerId),
+    getWorkspaceForEmployer(employerId),
   ]);
 
   if (!employer) {
@@ -230,7 +230,9 @@ export default async function EmployerDetailPage({ params }: PageProps) {
       <EmployerDetailTabs
         employer={serializedEmployer}
         jobPostings={serializedJobPostings}
-        clientOptions={clientOptions}
+        workspaceMappingHref={
+          workspace ? `/companies/${workspace.id}?tab=mapping` : "/companies"
+        }
       />
     </div>
   );

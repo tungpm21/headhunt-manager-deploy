@@ -82,9 +82,9 @@ export default async function EmployersPage({
                 <th className="text-left py-3 px-4 text-xs font-medium text-muted uppercase">
                   <span
                     className="inline-flex items-center gap-1"
-                    title="Liên kết với Khách hàng trong CRM để track hợp đồng headhunt"
+                    title="Mapping Employer/Client được quản lý trong Company Workspace"
                   >
-                    Link Client
+                    CRM Client
                     <Info className="h-3.5 w-3.5 normal-case" />
                   </span>
                 </th>

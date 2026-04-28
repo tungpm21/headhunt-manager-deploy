@@ -17,7 +17,6 @@ import {
   Clock3,
   PencilLine,
 } from "lucide-react";
-import { LinkEmployerForm } from "../link-employer-form";
 
 type TabKey = "jobs" | "subscription" | "info";
 
@@ -79,15 +78,10 @@ type EmployerJobPosting = {
   workType: string | null;
 };
 
-type EmployerLinkClientOption = {
-  id: number;
-  companyName: string;
-};
-
 interface EmployerDetailTabsProps {
   employer: EmployerDetailInfo;
   jobPostings: EmployerJobPosting[];
-  clientOptions: EmployerLinkClientOption[];
+  workspaceMappingHref: string;
 }
 
 const TABS: { key: TabKey; label: string; icon: typeof Briefcase }[] = [
@@ -149,7 +143,7 @@ function normalizeWebsite(value: string) {
 export function EmployerDetailTabs({
   employer,
   jobPostings,
-  clientOptions,
+  workspaceMappingHref,
 }: EmployerDetailTabsProps) {
   const [activeTab, setActiveTab] = useState<TabKey>("jobs");
 
@@ -189,7 +183,7 @@ export function EmployerDetailTabs({
           />
         )}
         {activeTab === "info" && (
-          <InfoTab employer={employer} clientOptions={clientOptions} />
+          <InfoTab employer={employer} workspaceMappingHref={workspaceMappingHref} />
         )}
       </div>
     </div>
@@ -431,10 +425,10 @@ function SubscriptionTab({
 
 function InfoTab({
   employer,
-  clientOptions,
+  workspaceMappingHref,
 }: {
   employer: EmployerDetailInfo;
-  clientOptions: EmployerLinkClientOption[];
+  workspaceMappingHref: string;
 }) {
   return (
     <div className="space-y-5">
@@ -506,10 +500,10 @@ function InfoTab({
           <div className="space-y-3">
             <div>
               <p className="text-xs font-semibold uppercase tracking-wider text-muted mb-2">
-                Link Client CRM
+                CRM Client mapping
               </p>
               <p className="text-sm text-muted">
-                Liên kết với Khách hàng trong CRM để track hợp đồng headhunt.
+                Mapping Employer/Client hiện được quản lý tập trung trong Company Workspace để tránh lệch dữ liệu legacy.
               </p>
             </div>
 
@@ -537,11 +531,13 @@ function InfoTab({
           </div>
 
           <div className="shrink-0">
-            <LinkEmployerForm
-              employerId={employer.id}
-              currentClientId={employer.client?.id ?? null}
-              clients={clientOptions}
-            />
+            <Link
+              href={workspaceMappingHref}
+              className="inline-flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/10 px-4 py-2 text-sm font-medium text-primary transition hover:bg-primary/15"
+            >
+              <Link2 className="h-4 w-4" />
+              Mở Company Workspace
+            </Link>
           </div>
         </div>
       </div>

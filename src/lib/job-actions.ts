@@ -9,7 +9,9 @@ import {
 } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { logActivity } from "@/lib/activity-log";
-import { requireAdmin, requireViewerScope } from "@/lib/authz";
+import { requireViewerScope } from "@/lib/authz";
+import { OPTION_GROUPS } from "@/lib/config-option-definitions";
+import { resolveConfigOptionValue } from "@/lib/config-options";
 import { getClientById } from "@/lib/clients";
 import {
   createJob,
@@ -37,18 +39,22 @@ function parseRequiredSkills(value: FormDataEntryValue | null): string[] {
   return [...new Set(raw.split(",").map((skill) => skill.trim()).filter(Boolean))];
 }
 
-function parseJobInput(formData: FormData, clientId: number) {
+async function parseJobInput(formData: FormData, clientId: number) {
   const salaryMinStr = formData.get("salaryMin")?.toString();
   const salaryMaxStr = formData.get("salaryMax")?.toString();
   const quantityStr = formData.get("quantity")?.toString();
   const feeStr = formData.get("fee")?.toString();
+  const [industry, location] = await Promise.all([
+    resolveConfigOptionValue(OPTION_GROUPS.industry, strVal(formData.get("industry"))),
+    resolveConfigOptionValue(OPTION_GROUPS.location, strVal(formData.get("location"))),
+  ]);
 
   return jobFormSchema.safeParse({
     title: String(formData.get("title") ?? "").trim(),
     clientId,
     description: strVal(formData.get("description")),
-    industry: strVal(formData.get("industry")),
-    location: strVal(formData.get("location")),
+    industry,
+    location,
     requiredSkills: parseRequiredSkills(formData.get("requiredSkills")),
     salaryMin: salaryMinStr ? parseFloat(salaryMinStr) : undefined,
     salaryMax: salaryMaxStr ? parseFloat(salaryMaxStr) : undefined,
@@ -92,7 +98,7 @@ export async function createJobAction(
       return { error: "Không tìm thấy doanh nghiệp hoặc bạn không có quyền." };
     }
 
-    const parsedInput = parseJobInput(formData, clientId);
+    const parsedInput = await parseJobInput(formData, clientId);
 
     if (!parsedInput.success) {
       return { error: getFirstZodErrorMessage(parsedInput.error) };
@@ -152,7 +158,7 @@ export async function updateJobAction(
       };
     }
 
-    const parsedInput = parseJobInput(formData, clientId);
+    const parsedInput = await parseJobInput(formData, clientId);
 
     if (!parsedInput.success) {
       return { error: getFirstZodErrorMessage(parsedInput.error) };

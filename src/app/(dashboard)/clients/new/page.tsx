@@ -1,12 +1,20 @@
 import { Building2, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { ClientForm } from "@/components/clients/client-form";
+import { OPTION_GROUPS } from "@/lib/config-option-definitions";
+import { getOptionsForSelect } from "@/lib/config-options";
 
 export const metadata = {
   title: "Thêm Doanh Nghiệp Mới — Headhunt Manager",
 };
 
-export default function NewClientPage() {
+export default async function NewClientPage() {
+  const [industryOptions, companySizeOptions, statusOptions] = await Promise.all([
+    getOptionsForSelect(OPTION_GROUPS.industry),
+    getOptionsForSelect(OPTION_GROUPS.companySize),
+    getOptionsForSelect(OPTION_GROUPS.clientStatus),
+  ]);
+
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Header */}
@@ -33,7 +41,11 @@ export default function NewClientPage() {
 
       {/* Form Card */}
       <div className="rounded-xl border border-border bg-surface shadow-sm p-6 sm:p-8">
-        <ClientForm />
+        <ClientForm
+          industryOptions={industryOptions}
+          companySizeOptions={companySizeOptions}
+          statusOptions={statusOptions}
+        />
       </div>
     </div>
   );

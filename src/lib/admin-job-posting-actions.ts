@@ -57,9 +57,14 @@ function buildJobPostingInput(formData: FormData) {
       return lang && lang !== "none" ? [lang] : [];
     })(),
     languageProficiency: formData.get("languageProficiency")?.toString().trim() || null,
-    visaSupport: formData.get("visaSupport")?.toString().trim() || null,
     shiftType: formData.get("shiftType")?.toString().trim() || null,
   };
+}
+
+function buildJobCoverInput(formData: FormData) {
+  const coverImage = formData.get("coverImage")?.toString().trim() || null;
+  const coverAlt = coverImage ? formData.get("coverAlt")?.toString().trim() || null : null;
+  return { coverImage, coverAlt };
 }
 
 function revalidateJobPostingSurfaces(job: {
@@ -95,6 +100,8 @@ export async function getAdminJobPostingById(id: number) {
       id: true,
       title: true,
       slug: true,
+      coverImage: true,
+      coverAlt: true,
       description: true,
       requirements: true,
       benefits: true,
@@ -110,7 +117,6 @@ export async function getAdminJobPostingById(id: number) {
       industrialZone: true,
       requiredLanguages: true,
       languageProficiency: true,
-      visaSupport: true,
       shiftType: true,
       status: true,
       rejectReason: true,
@@ -159,6 +165,7 @@ export async function updateAdminJobPosting(id: number, formData: FormData) {
   const parsedInput = employerJobPostingSchema.safeParse(
     buildJobPostingInput(formData)
   );
+  const coverInput = buildJobCoverInput(formData);
 
   if (!parsedInput.success) {
     return {
@@ -166,11 +173,16 @@ export async function updateAdminJobPosting(id: number, formData: FormData) {
       message: getFirstZodErrorMessage(parsedInput.error),
     };
   }
+  if (coverInput.coverImage && !coverInput.coverAlt) {
+    return { success: false, message: "Vui long nhap alt text cho anh cover." };
+  }
 
   await prisma.jobPosting.update({
     where: { id },
     data: {
       title: parsedInput.data.title,
+      coverImage: coverInput.coverImage,
+      coverAlt: coverInput.coverAlt,
       description: parsedInput.data.description,
       requirements: parsedInput.data.requirements || null,
       benefits: parsedInput.data.benefits || null,
@@ -186,7 +198,6 @@ export async function updateAdminJobPosting(id: number, formData: FormData) {
       industrialZone: parsedInput.data.industrialZone || null,
       requiredLanguages: parsedInput.data.requiredLanguages,
       languageProficiency: parsedInput.data.languageProficiency || null,
-      visaSupport: parsedInput.data.visaSupport || null,
       shiftType: parsedInput.data.shiftType || null,
     },
   });
@@ -418,12 +429,16 @@ export async function createAdminJobPosting(formData: FormData) {
   const parsedInput = employerJobPostingSchema.safeParse(
     buildJobPostingInput(formData)
   );
+  const coverInput = buildJobCoverInput(formData);
 
   if (!parsedInput.success) {
     return {
       success: false,
       message: getFirstZodErrorMessage(parsedInput.error),
     };
+  }
+  if (coverInput.coverImage && !coverInput.coverAlt) {
+    return { success: false, message: "Vui long nhap alt text cho anh cover." };
   }
 
   const slug = await createUniqueJobPostingSlug(parsedInput.data.title);
@@ -438,6 +453,8 @@ export async function createAdminJobPosting(formData: FormData) {
         employerId,
         title: parsedInput.data.title,
         slug,
+        coverImage: coverInput.coverImage,
+        coverAlt: coverInput.coverAlt,
         description: parsedInput.data.description,
         requirements: parsedInput.data.requirements || null,
         benefits: parsedInput.data.benefits || null,
@@ -453,7 +470,6 @@ export async function createAdminJobPosting(formData: FormData) {
         industrialZone: parsedInput.data.industrialZone || null,
         requiredLanguages: parsedInput.data.requiredLanguages,
         languageProficiency: parsedInput.data.languageProficiency || null,
-        visaSupport: parsedInput.data.visaSupport || null,
         shiftType: parsedInput.data.shiftType || null,
         status: "APPROVED",
         publishedAt: now,

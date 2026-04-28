@@ -12,6 +12,8 @@ import {
 import { requireViewerScope } from "@/lib/authz";
 import { FeeType, JobPriority, JobStatus } from "@/types/client";
 import { getClientById } from "@/lib/clients";
+import { OPTION_GROUPS } from "@/lib/config-option-definitions";
+import { getOptionsForSelect } from "@/lib/config-options";
 import { ClientForm } from "@/components/clients/client-form";
 import { ClientContacts } from "@/components/clients/client-contacts";
 import { DeleteClientButton } from "@/components/clients/delete-client-button";
@@ -57,7 +59,12 @@ export default async function ClientDetailPage({ params }: PageProps) {
 
   const client = await getClientById(id, scope);
   if (!client) notFound();
-  const revenueSummary = await getClientRevenueSummary(id, new Date(), scope);
+  const [revenueSummary, industryOptions, companySizeOptions, statusOptions] = await Promise.all([
+    getClientRevenueSummary(id, new Date(), scope),
+    getOptionsForSelect(OPTION_GROUPS.industry, { currentValue: client.industry }),
+    getOptionsForSelect(OPTION_GROUPS.companySize, { currentValue: client.companySize }),
+    getOptionsForSelect(OPTION_GROUPS.clientStatus, { currentValue: client.status }),
+  ]);
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
@@ -243,7 +250,12 @@ export default async function ClientDetailPage({ params }: PageProps) {
         {/* Left: General Info */}
         <div className="xl:col-span-2 space-y-6">
           <div className="rounded-xl border border-border bg-surface shadow-sm p-6">
-            <ClientForm initialData={client} />
+            <ClientForm
+              initialData={client}
+              industryOptions={industryOptions}
+              companySizeOptions={companySizeOptions}
+              statusOptions={statusOptions}
+            />
           </div>
         </div>
 

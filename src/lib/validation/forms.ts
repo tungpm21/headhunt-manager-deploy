@@ -195,7 +195,6 @@ export const employerJobPostingSchema = z
     industrialZone: nullableOptionalText,
     requiredLanguages: z.array(z.string().trim().min(1)).default([]),
     languageProficiency: nullableOptionalText,
-    visaSupport: nullableOptionalText,
     shiftType: nullableOptionalText,
   })
   .superRefine((data, ctx) => {

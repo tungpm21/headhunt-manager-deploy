@@ -3,13 +3,19 @@
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useState, useTransition } from "react";
 import { Search } from "lucide-react";
-import { CompanySize } from "@/types/client";
+import type { OptionChoice } from "@/lib/config-options";
 
-export function ClientFiltersPanel() {
+export function ClientFiltersPanel({
+  industryOptions,
+  companySizeOptions,
+}: {
+  industryOptions: OptionChoice[];
+  companySizeOptions: OptionChoice[];
+}) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [isPending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
 
   const currentSearch = searchParams.get("search") || "";
   const currentIndustry = searchParams.get("industry") || "";
@@ -58,6 +64,32 @@ export function ClientFiltersPanel() {
         />
       </div>
 
+      <div className="sm:w-56">
+        <select
+          value={currentIndustry}
+          onChange={(e) => {
+            startTransition(() => {
+              if (e.target.value) {
+                router.push(pathname + "?" + createQueryString("industry", e.target.value));
+              } else {
+                const params = new URLSearchParams(searchParams.toString());
+                params.delete("industry");
+                params.delete("page");
+                router.push(pathname + "?" + params.toString());
+              }
+            });
+          }}
+          className="block w-full rounded-lg border-0 py-2 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-primary sm:text-sm sm:leading-6"
+        >
+          <option value="">Ngành nghề (Tất cả)</option>
+          {industryOptions.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      </div>
+
       {/* Select Size */}
       <div className="sm:w-48">
         <select
@@ -77,10 +109,11 @@ export function ClientFiltersPanel() {
           className="block w-full rounded-lg border-0 py-2 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-primary sm:text-sm sm:leading-6"
         >
           <option value="">Quy mô (Tất cả)</option>
-          <option value="SMALL">Nhỏ (Dưới 50 NV)</option>
-          <option value="MEDIUM">Vừa (50 - 200 NV)</option>
-          <option value="LARGE">Lớn (200 - 1000 NV)</option>
-          <option value="ENTERPRISE">Tập đoàn (&gt;1000 NV)</option>
+          {companySizeOptions.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
         </select>
       </div>
     </div>

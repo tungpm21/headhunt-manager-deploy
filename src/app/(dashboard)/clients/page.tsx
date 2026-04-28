@@ -3,6 +3,8 @@ import { Suspense } from "react";
 import { Building2 } from "lucide-react";
 import { requireViewerScope } from "@/lib/authz";
 import { getClients } from "@/lib/clients";
+import { OPTION_GROUPS } from "@/lib/config-option-definitions";
+import { getOptionsForSelect } from "@/lib/config-options";
 import { ClientTable } from "@/components/clients/client-table";
 import { ClientFiltersPanel } from "@/components/clients/client-filters";
 import { Pagination } from "@/components/ui/pagination";
@@ -33,6 +35,10 @@ export default async function ClientsPage({ searchParams }: PageProps) {
     page,
     pageSize: 20,
   }, scope);
+  const [industryOptions, companySizeOptions] = await Promise.all([
+    getOptionsForSelect(OPTION_GROUPS.industry, { currentValue: sp.industry }),
+    getOptionsForSelect(OPTION_GROUPS.companySize, { currentValue: sp.companySize }),
+  ]);
 
   return (
     <div className="space-y-6">
@@ -57,7 +63,10 @@ export default async function ClientsPage({ searchParams }: PageProps) {
 
       {/* Filters */}
       <Suspense>
-        <ClientFiltersPanel />
+        <ClientFiltersPanel
+          industryOptions={industryOptions}
+          companySizeOptions={companySizeOptions}
+        />
       </Suspense>
 
       {/* Table */}

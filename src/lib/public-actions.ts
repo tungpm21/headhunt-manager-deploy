@@ -3,7 +3,26 @@
 import { unstable_cache } from "next/cache";
 import { Prisma } from "@prisma/client";
 import { incrementJobPostingView } from "@/lib/job-posting-view-counter";
+import { OPTION_GROUPS } from "@/lib/config-option-definitions";
+import {
+  CONFIG_OPTIONS_CACHE_TAG,
+  formatConfigOptionLabel,
+  formatOptionValuesForDisplay,
+  getOptionFilterValues,
+  getPublicOptionsWithUsage,
+  type OptionChoice,
+} from "@/lib/config-options";
 import { prisma } from "@/lib/prisma";
+import type {
+  CompanyProfileCapabilities,
+  CompanyProfileTheme,
+  ContentBlock,
+} from "@/lib/content-blocks";
+import {
+  normalizeCompanyCapabilities,
+  normalizeCompanyTheme,
+  normalizeContentBlocks,
+} from "@/lib/content-blocks";
 
 export type HomepageJob = {
   id: number;
@@ -214,7 +233,6 @@ export type JobFilters = {
   salaryMin?: number;
   language?: string;
   industrialZone?: string;
-  visaSupport?: string;
   shiftType?: string;
   sort?: "newest" | "oldest" | "salary_high" | "salary_low";
   page?: number;
@@ -226,11 +244,12 @@ export type JobListResult = {
   page: number;
   totalPages: number;
   filters: {
-    industries: string[];
-    locations: string[];
-    workTypes: string[];
-    languages: string[];
-    industrialZones: string[];
+    industries: OptionChoice[];
+    locations: OptionChoice[];
+    workTypes: OptionChoice[];
+    languages: OptionChoice[];
+    industrialZones: OptionChoice[];
+    shiftTypes: OptionChoice[];
   };
 };
 
@@ -262,6 +281,21 @@ export async function getPublicJobs(filters: JobFilters = {}): Promise<JobListRe
   const skillMatchedIds = filters.q
     ? await findJobPostingIdsBySkillKeyword(filters.q)
     : [];
+  const [
+    industryValues,
+    locationValues,
+    workTypeValues,
+    languageValues,
+    industrialZoneValues,
+    shiftTypeValues,
+  ] = await Promise.all([
+    getOptionFilterValues(OPTION_GROUPS.industry, filters.industry),
+    getOptionFilterValues(OPTION_GROUPS.location, filters.location),
+    getOptionFilterValues(OPTION_GROUPS.workType, filters.workType),
+    getOptionFilterValues(OPTION_GROUPS.requiredLanguage, filters.language),
+    getOptionFilterValues(OPTION_GROUPS.industrialZone, filters.industrialZone),
+    getOptionFilterValues(OPTION_GROUPS.shiftType, filters.shiftType),
+  ]);
 
   // Build where clause
   const where: Record<string, unknown> = {
@@ -281,14 +315,13 @@ export async function getPublicJobs(filters: JobFilters = {}): Promise<JobListRe
       },
     ];
   }
-  if (filters.industry) where.industry = filters.industry;
-  if (filters.location) where.location = filters.location;
-  if (filters.workType) where.workType = filters.workType;
+  if (industryValues.length > 0) where.industry = { in: industryValues };
+  if (locationValues.length > 0) where.location = { in: locationValues };
+  if (workTypeValues.length > 0) where.workType = { in: workTypeValues };
   if (filters.salaryMin) where.salaryMin = { gte: filters.salaryMin };
-  if (filters.language) where.requiredLanguages = { has: filters.language };
-  if (filters.industrialZone) where.industrialZone = filters.industrialZone;
-  if (filters.visaSupport) where.visaSupport = filters.visaSupport;
-  if (filters.shiftType) where.shiftType = filters.shiftType;
+  if (languageValues.length > 0) where.requiredLanguages = { hasSome: languageValues };
+  if (industrialZoneValues.length > 0) where.industrialZone = { in: industrialZoneValues };
+  if (shiftTypeValues.length > 0) where.shiftType = { in: shiftTypeValues };
 
   // Build orderBy
   type OrderBy = Record<string, "asc" | "desc">;
@@ -325,12 +358,17 @@ export async function getPublicJobs(filters: JobFilters = {}): Promise<JobListRe
         WHERE status = 'APPROVED' AND array_length("requiredLanguages", 1) > 0
         ORDER BY lang
       `),
+      prisma.jobPosting.findMany({
+        where: { status: "APPROVED", shiftType: { not: null } },
+        select: { shiftType: true },
+        distinct: ["shiftType"],
+      }),
     ]),
     ["job-filter-options"],
     { revalidate: 60 }
   );
 
-  const [jobs, total, distinctIndustries, distinctLocations, distinctWorkTypes, distinctZones, distinctLanguages] =
+  const [jobs, total, distinctIndustries, distinctLocations, distinctWorkTypes, distinctZones, distinctLanguages, distinctShiftTypes] =
     await Promise.all([
       prisma.jobPosting.findMany({
         where,
@@ -360,18 +398,50 @@ export async function getPublicJobs(filters: JobFilters = {}): Promise<JobListRe
       prisma.jobPosting.count({ where }),
       ...await getCachedFilterOptions(),
     ]);
+  const [
+    industryOptions,
+    locationOptions,
+    workTypeOptions,
+    languageOptions,
+    industrialZoneOptions,
+    shiftTypeOptions,
+    formattedJobs,
+  ] = await Promise.all([
+    getPublicOptionsWithUsage(OPTION_GROUPS.industry, distinctIndustries.map((d) => d.industry)),
+    getPublicOptionsWithUsage(OPTION_GROUPS.location, distinctLocations.map((d) => d.location)),
+    getPublicOptionsWithUsage(OPTION_GROUPS.workType, distinctWorkTypes.map((d) => d.workType)),
+    getPublicOptionsWithUsage(OPTION_GROUPS.requiredLanguage, (distinctLanguages as Array<{ lang: string }>).map((d) => d.lang)),
+    getPublicOptionsWithUsage(OPTION_GROUPS.industrialZone, (distinctZones as Array<{ industrialZone: string | null }>).map((d) => d.industrialZone)),
+    getPublicOptionsWithUsage(OPTION_GROUPS.shiftType, (distinctShiftTypes as Array<{ shiftType: string | null }>).map((d) => d.shiftType)),
+    formatOptionValuesForDisplay(jobs, {
+      industry: OPTION_GROUPS.industry,
+      location: OPTION_GROUPS.location,
+      workType: OPTION_GROUPS.workType,
+    }),
+  ]);
+  const jobsWithLanguageLabels = await Promise.all(
+    formattedJobs.map(async (job) => ({
+      ...job,
+      requiredLanguages: await Promise.all(
+        job.requiredLanguages.map((language) =>
+          formatConfigOptionLabel(OPTION_GROUPS.requiredLanguage, language)
+        )
+      ),
+    }))
+  );
 
   return {
-    jobs,
+    jobs: jobsWithLanguageLabels,
     total,
     page,
     totalPages: Math.ceil(total / JOBS_PER_PAGE),
     filters: {
-      industries: distinctIndustries.map((d) => d.industry).filter(Boolean) as string[],
-      locations: distinctLocations.map((d) => d.location).filter(Boolean) as string[],
-      workTypes: distinctWorkTypes.map((d) => d.workType).filter(Boolean) as string[],
-      industrialZones: (distinctZones as Array<{ industrialZone: string | null }>).map((d) => d.industrialZone).filter(Boolean) as string[],
-      languages: (distinctLanguages as Array<{ lang: string }>).map((d) => d.lang).filter(Boolean),
+      industries: industryOptions,
+      locations: locationOptions,
+      workTypes: workTypeOptions,
+      industrialZones: industrialZoneOptions,
+      languages: languageOptions,
+      shiftTypes: shiftTypeOptions,
     },
   };
 }
@@ -382,6 +452,8 @@ export type JobDetail = {
   id: number;
   title: string;
   slug: string;
+  coverImage: string | null;
+  coverAlt: string | null;
   description: string;
   requirements: string | null;
   benefits: string | null;
@@ -397,7 +469,6 @@ export type JobDetail = {
   industrialZone: string | null;
   requiredLanguages: string[];
   languageProficiency: string | null;
-  visaSupport: string | null;
   shiftType: string | null;
   publishedAt: Date | null;
   expiresAt: Date | null;
@@ -426,6 +497,8 @@ export async function getPublicJobBySlug(
       id: true,
       title: true,
       slug: true,
+      coverImage: true,
+      coverAlt: true,
       description: true,
       requirements: true,
       benefits: true,
@@ -441,7 +514,6 @@ export async function getPublicJobBySlug(
       industrialZone: true,
       requiredLanguages: true,
       languageProficiency: true,
-      visaSupport: true,
       shiftType: true,
       status: true,
       publishedAt: true,
@@ -524,42 +596,74 @@ export type PublicCompany = {
   _count: { jobPostings: number };
 };
 
+export type CompanySort = "priority" | "jobs" | "name";
+
+export type CompanyFilters = {
+  q?: string;
+  industry?: string;
+  priority?: boolean;
+  hiring?: boolean;
+  sort?: CompanySort;
+  page?: number;
+};
+
 export type CompanyListResult = {
   companies: PublicCompany[];
   total: number;
   page: number;
   totalPages: number;
+  filters: {
+    industries: OptionChoice[];
+  };
 };
 
 const COMPANIES_PER_PAGE = 12;
 
 const getCachedPublicCompanies = unstable_cache(
-  async (q: string, industry: string, page: number): Promise<CompanyListResult> => {
+  async (
+    q: string,
+    industry: string,
+    priorityOnly: boolean,
+    hiringOnly: boolean,
+    sort: CompanySort,
+    page: number
+  ): Promise<CompanyListResult> => {
     const now = new Date();
-    const where: Record<string, unknown> = { status: "ACTIVE" as const };
+    const industryValues = await getOptionFilterValues(OPTION_GROUPS.industry, industry);
+    const activeSubscriptionWhere = {
+      status: "ACTIVE" as const,
+      startDate: { lte: now },
+      endDate: { gte: now },
+    };
+    const activeJobWhere = {
+      status: "APPROVED" as const,
+      OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
+    };
 
-    if (q) {
-      where.companyName = { contains: q, mode: "insensitive" };
-    }
-    if (industry) where.industry = industry;
+    const eligibleCompanyWhere = {
+      status: "ACTIVE" as const,
+      OR: [
+        { subscription: { is: activeSubscriptionWhere } },
+        { jobPostings: { some: activeJobWhere } },
+      ],
+    };
 
     const qFilter = q
       ? Prisma.sql`AND e."companyName" ILIKE ${`%${q}%`}`
       : Prisma.empty;
     const industryFilter = industry
-      ? Prisma.sql`AND e."industry" = ${industry}`
+      ? Prisma.sql`AND e."industry" IN (${Prisma.join(industryValues)})`
       : Prisma.empty;
-    const offset = (page - 1) * COMPANIES_PER_PAGE;
-
-    const [idRows, total] = await Promise.all([
-      prisma.$queryRaw<Array<{ id: number }>>(Prisma.sql`
-        SELECT e."id"
-        FROM "Employer" e
-        LEFT JOIN "Subscription" s ON s."employerId" = e."id"
-        WHERE e."status" = 'ACTIVE'
-          ${qFilter}
-          ${industryFilter}
-        ORDER BY
+    const priorityFilter = priorityOnly
+      ? Prisma.sql`AND s."tier" IN ('VIP', 'PREMIUM')`
+      : Prisma.empty;
+    const hiringFilter = hiringOnly
+      ? Prisma.sql`AND jobs."activeJobCount" > 0`
+      : Prisma.empty;
+    const sortOrder =
+      sort === "jobs"
+        ? Prisma.sql`
+          jobs."activeJobCount" DESC,
           CASE s."tier"
             WHEN 'VIP' THEN 0
             WHEN 'PREMIUM' THEN 1
@@ -568,10 +672,79 @@ const getCachedPublicCompanies = unstable_cache(
             ELSE 4
           END,
           e."companyName" ASC
+        `
+        : sort === "name"
+          ? Prisma.sql`e."companyName" ASC`
+          : Prisma.sql`
+          CASE s."tier"
+            WHEN 'VIP' THEN 0
+            WHEN 'PREMIUM' THEN 1
+            WHEN 'STANDARD' THEN 2
+            WHEN 'BASIC' THEN 3
+            ELSE 4
+          END,
+          jobs."activeJobCount" DESC,
+          e."companyName" ASC
+        `;
+    const offset = (page - 1) * COMPANIES_PER_PAGE;
+
+    const [idRows, totalRows, industryRows] = await Promise.all([
+      prisma.$queryRaw<Array<{ id: number }>>(Prisma.sql`
+        SELECT e."id"
+        FROM "Employer" e
+        LEFT JOIN "Subscription" s
+          ON s."employerId" = e."id"
+          AND s."status" = 'ACTIVE'
+          AND s."startDate" <= ${now}
+          AND s."endDate" >= ${now}
+        LEFT JOIN LATERAL (
+          SELECT COUNT(*)::int AS "activeJobCount"
+          FROM "JobPosting" jp
+          WHERE jp."employerId" = e."id"
+            AND jp."status" = 'APPROVED'
+            AND (jp."expiresAt" IS NULL OR jp."expiresAt" > ${now})
+        ) jobs ON true
+        WHERE e."status" = 'ACTIVE'
+          AND (s."id" IS NOT NULL OR jobs."activeJobCount" > 0)
+          ${qFilter}
+          ${industryFilter}
+          ${priorityFilter}
+          ${hiringFilter}
+        ORDER BY ${sortOrder}
         LIMIT ${COMPANIES_PER_PAGE}
         OFFSET ${offset}
       `),
-      prisma.employer.count({ where }),
+      prisma.$queryRaw<Array<{ total: number }>>(Prisma.sql`
+        SELECT COUNT(*)::int AS "total"
+        FROM "Employer" e
+        LEFT JOIN "Subscription" s
+          ON s."employerId" = e."id"
+          AND s."status" = 'ACTIVE'
+          AND s."startDate" <= ${now}
+          AND s."endDate" >= ${now}
+        LEFT JOIN LATERAL (
+          SELECT COUNT(*)::int AS "activeJobCount"
+          FROM "JobPosting" jp
+          WHERE jp."employerId" = e."id"
+            AND jp."status" = 'APPROVED'
+            AND (jp."expiresAt" IS NULL OR jp."expiresAt" > ${now})
+        ) jobs ON true
+        WHERE e."status" = 'ACTIVE'
+          AND (s."id" IS NOT NULL OR jobs."activeJobCount" > 0)
+          ${qFilter}
+          ${industryFilter}
+          ${priorityFilter}
+          ${hiringFilter}
+      `),
+      prisma.employer.findMany({
+        where: {
+          ...eligibleCompanyWhere,
+          industry: { not: null },
+        },
+        select: { industry: true },
+        distinct: ["industry"],
+        orderBy: { industry: "asc" },
+      }),
     ]);
 
     const ids = idRows.map((row) => row.id);
@@ -588,14 +761,18 @@ const getCachedPublicCompanies = unstable_cache(
             companySize: true,
             address: true,
             description: true,
-            subscription: { select: { tier: true } },
+            subscription: {
+              select: {
+                tier: true,
+                status: true,
+                startDate: true,
+                endDate: true,
+              },
+            },
             _count: {
               select: {
                 jobPostings: {
-                  where: {
-                    status: "APPROVED",
-                    OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
-                  },
+                  where: activeJobWhere,
                 },
               },
             },
@@ -604,30 +781,63 @@ const getCachedPublicCompanies = unstable_cache(
       : [];
 
     const companyById = new Map(unorderedCompanies.map((company) => [company.id, company]));
-    const companies = ids.reduce<(typeof unorderedCompanies)[number][]>((ordered, id) => {
+    const companies = ids.reduce<PublicCompany[]>((ordered, id) => {
       const company = companyById.get(id);
-      if (company) ordered.push(company);
+      if (company) {
+        const subscription = company.subscription;
+        const activeSubscription =
+          subscription &&
+          subscription.status === "ACTIVE" &&
+          subscription.startDate <= now &&
+          subscription.endDate >= now
+            ? { tier: subscription.tier }
+            : null;
+
+        ordered.push({
+          ...company,
+          subscription: activeSubscription,
+        });
+      }
       return ordered;
     }, []);
+    const total = totalRows[0]?.total ?? 0;
+    const [industryOptions, formattedCompanies] = await Promise.all([
+      getPublicOptionsWithUsage(OPTION_GROUPS.industry, industryRows.map((d) => d.industry)),
+      formatOptionValuesForDisplay(companies, {
+        industry: OPTION_GROUPS.industry,
+        companySize: OPTION_GROUPS.companySize,
+      }),
+    ]);
 
     return {
-      companies,
+      companies: formattedCompanies,
       total,
       page,
       totalPages: Math.ceil(total / COMPANIES_PER_PAGE),
+      filters: {
+        industries: industryOptions,
+      },
     };
   },
   ["public-companies"],
-  { revalidate: 60 }
+  { revalidate: 60, tags: [CONFIG_OPTIONS_CACHE_TAG] }
 );
 
-export async function getPublicCompanies(
-  filters: { q?: string; industry?: string; page?: number } = {}
-): Promise<CompanyListResult> {
+function normalizeCompanySort(sort: CompanySort | undefined): CompanySort {
+  if (sort === "jobs" || sort === "name") return sort;
+  return "priority";
+}
+
+export async function getPublicCompanies(filters: CompanyFilters = {}): Promise<CompanyListResult> {
+  const page = Number.isFinite(filters.page) ? Math.max(1, Math.floor(filters.page || 1)) : 1;
+
   return getCachedPublicCompanies(
     filters.q?.trim() ?? "",
     filters.industry?.trim() ?? "",
-    Math.max(1, filters.page || 1)
+    Boolean(filters.priority),
+    Boolean(filters.hiring),
+    normalizeCompanySort(filters.sort),
+    page
   );
 }
 
@@ -649,6 +859,12 @@ export type CompanyProfile = {
   website: string | null;
   phone: string | null;
   subscription: { tier: string } | null;
+  profileConfig: {
+    theme: CompanyProfileTheme | null;
+    capabilities: CompanyProfileCapabilities | null;
+    sections: ContentBlock[] | null;
+    primaryVideoUrl: string | null;
+  } | null;
   jobPostings: HomepageJob[];
 };
 
@@ -675,6 +891,14 @@ const getCachedCompanyBySlug = unstable_cache(
         phone: true,
         status: true,
         subscription: { select: { tier: true } },
+        profileConfig: {
+          select: {
+            theme: true,
+            capabilities: true,
+            sections: true,
+            primaryVideoUrl: true,
+          },
+        },
         jobPostings: {
           where: {
             status: "APPROVED",
@@ -701,7 +925,24 @@ const getCachedCompanyBySlug = unstable_cache(
     });
 
     if (!employer || employer.status !== "ACTIVE") return null;
-    return employer;
+    const [industryLabel, companySizeLabel] = await Promise.all([
+      formatConfigOptionLabel(OPTION_GROUPS.industry, employer.industry),
+      formatConfigOptionLabel(OPTION_GROUPS.companySize, employer.companySize),
+    ]);
+
+    return {
+      ...employer,
+      industry: industryLabel || employer.industry,
+      companySize: companySizeLabel || employer.companySize,
+      profileConfig: employer.profileConfig
+        ? {
+            theme: normalizeCompanyTheme(employer.profileConfig.theme),
+            capabilities: normalizeCompanyCapabilities(employer.profileConfig.capabilities),
+            sections: normalizeContentBlocks(employer.profileConfig.sections),
+            primaryVideoUrl: employer.profileConfig.primaryVideoUrl,
+          }
+        : null,
+    };
   },
   ["company-profile"],
   { revalidate: 60 }

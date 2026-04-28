@@ -160,6 +160,14 @@ export async function getEmployerModerationById(id: number) {
           createdAt: true,
         },
       },
+      profileConfig: {
+        select: {
+          theme: true,
+          capabilities: true,
+          sections: true,
+          primaryVideoUrl: true,
+        },
+      },
       jobPostings: {
         orderBy: { createdAt: "desc" },
         select: {
@@ -245,6 +253,32 @@ export async function updateEmployerModerationInfo(
   return prisma.employer.update({
     where: { id: employerId },
     data,
+  });
+}
+
+export async function upsertEmployerProfileConfig(
+  employerId: number,
+  data: {
+    theme: unknown;
+    capabilities: unknown;
+    sections: unknown;
+    primaryVideoUrl: string | null;
+  }
+) {
+  const jsonData = {
+    theme: JSON.parse(JSON.stringify(data.theme ?? {})) as Prisma.InputJsonValue,
+    capabilities: JSON.parse(JSON.stringify(data.capabilities ?? {})) as Prisma.InputJsonValue,
+    sections: JSON.parse(JSON.stringify(data.sections ?? [])) as Prisma.InputJsonValue,
+    primaryVideoUrl: data.primaryVideoUrl,
+  };
+
+  return prisma.employerProfileConfig.upsert({
+    where: { employerId },
+    create: {
+      employerId,
+      ...jsonData,
+    },
+    update: jsonData,
   });
 }
 

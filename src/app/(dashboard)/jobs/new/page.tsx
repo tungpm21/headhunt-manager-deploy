@@ -3,6 +3,8 @@ import Link from "next/link";
 import { requireViewerScope } from "@/lib/authz";
 import { JobForm } from "@/components/jobs/job-form";
 import { getAllClients } from "@/lib/clients";
+import { OPTION_GROUPS } from "@/lib/config-option-definitions";
+import { getOptionsForSelect } from "@/lib/config-options";
 import { getAssignableUsers } from "@/lib/jobs";
 
 export const metadata = {
@@ -11,9 +13,12 @@ export const metadata = {
 
 export default async function NewJobPage() {
   const scope = await requireViewerScope();
-  const [clientOptions, users] = await Promise.all([
+  const [clientOptions, users, industryOptions, statusOptions, feeTypeOptions] = await Promise.all([
     getAllClients({ pageSize: 10 }, scope),
     getAssignableUsers(),
+    getOptionsForSelect(OPTION_GROUPS.industry),
+    getOptionsForSelect(OPTION_GROUPS.jobStatus),
+    getOptionsForSelect(OPTION_GROUPS.feeType),
   ]);
 
   return (
@@ -42,7 +47,13 @@ export default async function NewJobPage() {
 
       {/* Form Card */}
       <div className="rounded-xl border border-border bg-surface shadow-sm p-6 sm:p-8">
-        <JobForm initialClients={clientOptions.clients} users={users} />
+        <JobForm
+          initialClients={clientOptions.clients}
+          users={users}
+          industryOptions={industryOptions}
+          statusOptions={statusOptions}
+          feeTypeOptions={feeTypeOptions}
+        />
       </div>
     </div>
   );

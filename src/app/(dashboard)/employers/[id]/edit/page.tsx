@@ -2,6 +2,13 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Building2, PencilLine } from "lucide-react";
 import { getEmployerById } from "@/lib/moderation-actions";
+import {
+  normalizeCompanyCapabilities,
+  normalizeCompanyTheme,
+  normalizeContentBlocks,
+} from "@/lib/content-blocks";
+import { OPTION_GROUPS } from "@/lib/config-option-definitions";
+import { getOptionsForSelect, resolveConfigOptionValue } from "@/lib/config-options";
 import { EmployerEditForm } from "./employer-edit-form";
 
 interface PageProps {
@@ -28,6 +35,11 @@ export default async function EmployerEditPage({ params }: PageProps) {
     notFound();
   }
 
+  const industryOptions = await getOptionsForSelect(OPTION_GROUPS.industry, {
+    currentValue: employer.industry,
+  });
+  const selectedIndustryValue = await resolveConfigOptionValue(OPTION_GROUPS.industry, employer.industry);
+
   const statusConfig = STATUS_CONFIG[employer.status] ?? {
     label: employer.status,
     className: "bg-gray-100 text-gray-600",
@@ -40,7 +52,7 @@ export default async function EmployerEditPage({ params }: PageProps) {
     logo: employer.logo,
     coverImage: employer.coverImage,
     description: employer.description,
-    industry: employer.industry,
+    industry: selectedIndustryValue ?? employer.industry,
     companySize: employer.companySize,
     address: employer.address,
     website: employer.website,
@@ -51,10 +63,18 @@ export default async function EmployerEditPage({ params }: PageProps) {
     coverPositionX: employer.coverPositionX ?? 50,
     coverPositionY: employer.coverPositionY ?? 50,
     coverZoom: employer.coverZoom ?? 100,
+    profileConfig: employer.profileConfig
+      ? {
+          theme: normalizeCompanyTheme(employer.profileConfig.theme),
+          capabilities: normalizeCompanyCapabilities(employer.profileConfig.capabilities),
+          sections: normalizeContentBlocks(employer.profileConfig.sections),
+          primaryVideoUrl: employer.profileConfig.primaryVideoUrl,
+        }
+      : null,
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="mx-auto max-w-7xl space-y-6">
       <div className="flex items-center gap-2 text-sm text-muted">
         <Link
           href={`/employers/${employer.id}`}
@@ -99,7 +119,7 @@ export default async function EmployerEditPage({ params }: PageProps) {
         </div>
       </div>
 
-      <EmployerEditForm employer={serializedEmployer} />
+      <EmployerEditForm employer={serializedEmployer} industryOptions={industryOptions} />
     </div>
   );
 }

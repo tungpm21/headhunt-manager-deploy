@@ -105,6 +105,7 @@ export default async function JobListingPage({ searchParams }: PageProps) {
                   workTypes={result.filters.workTypes}
                   languages={result.filters.languages}
                   industrialZones={result.filters.industrialZones}
+                  shiftTypes={result.filters.shiftTypes}
                 />
               </Suspense>
             </div>
@@ -122,6 +123,7 @@ export default async function JobListingPage({ searchParams }: PageProps) {
                   workTypes={result.filters.workTypes}
                   languages={result.filters.languages}
                   industrialZones={result.filters.industrialZones}
+                  shiftTypes={result.filters.shiftTypes}
                 />
               </Suspense>
             </div>

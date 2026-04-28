@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
 import { requireViewerScope } from "@/lib/authz";
 import { getCandidateById } from "@/lib/candidates";
+import { OPTION_GROUPS } from "@/lib/config-option-definitions";
+import { getOptionsForSelect } from "@/lib/config-options";
 import { getAllTags } from "@/lib/tags";
 import { CandidateForm } from "@/components/candidates/candidate-form";
 import { ArrowLeft } from "lucide-react";
@@ -32,6 +34,19 @@ export default async function EditCandidatePage({ params }: PageProps) {
     ...candidate,
     tags: candidate.tags.map((tag) => ({ tagId: tag.tag.id })),
   };
+  const [
+    locationOptions,
+    industryOptions,
+    statusOptions,
+    sourceOptions,
+    seniorityOptions,
+  ] = await Promise.all([
+    getOptionsForSelect(OPTION_GROUPS.location, { currentValue: candidate.location }),
+    getOptionsForSelect(OPTION_GROUPS.industry, { currentValue: candidate.industry }),
+    getOptionsForSelect(OPTION_GROUPS.candidateStatus, { currentValue: candidate.status }),
+    getOptionsForSelect(OPTION_GROUPS.candidateSource, { currentValue: candidate.source }),
+    getOptionsForSelect(OPTION_GROUPS.candidateSeniority, { currentValue: candidate.level }),
+  ]);
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -54,7 +69,15 @@ export default async function EditCandidatePage({ params }: PageProps) {
 
       {/* FORM */}
       <div className="bg-surface rounded-xl border border-border p-6 shadow-sm">
-        <CandidateForm allTags={allTags} initialData={formCandidate} />
+        <CandidateForm
+          allTags={allTags}
+          initialData={formCandidate}
+          locationOptions={locationOptions}
+          industryOptions={industryOptions}
+          statusOptions={statusOptions}
+          sourceOptions={sourceOptions}
+          seniorityOptions={seniorityOptions}
+        />
       </div>
     </div>
   );

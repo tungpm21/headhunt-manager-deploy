@@ -32,10 +32,19 @@ import {
   updateEmployerModerationStatus,
   updateEmployerSubscription,
   updateJobPostingModeration,
+  upsertEmployerProfileConfig,
   upsertImportedApplicationJobLink,
 } from "@/lib/moderation";
 import { deleteFile, uploadFile } from "@/lib/storage";
 import { expireSubscriptionsIfNeeded } from "@/lib/subscriptions";
+import {
+  normalizeCompanyCapabilities,
+  normalizeCompanyTheme,
+  normalizeContentBlocks,
+  parseJson,
+} from "@/lib/content-blocks";
+import { OPTION_GROUPS } from "@/lib/config-option-definitions";
+import { resolveConfigOptionValue } from "@/lib/config-options";
 import {
   employerClientLinkSchema,
   getFirstZodErrorMessage,
@@ -216,6 +225,12 @@ export async function updateEmployerInfo(
 
   const websiteInput = strNull(formData.get("website"));
   const normalizedWebsite = normalizeWebsite(websiteInput);
+  const profileTheme = normalizeCompanyTheme(parseJson(formData.get("profileTheme")?.toString() ?? ""));
+  const profileCapabilities = normalizeCompanyCapabilities(
+    parseJson(formData.get("profileCapabilities")?.toString() ?? "")
+  );
+  const profileSections = normalizeContentBlocks(formData.get("profileSections")?.toString() ?? "[]");
+  const primaryVideoUrl = strNull(formData.get("primaryVideoUrl"));
   const parsedInput = moderationEmployerInfoSchema.safeParse({
     companyName: formData.get("companyName")?.toString().trim() ?? "",
     description: strNull(formData.get("description")),
@@ -232,6 +247,11 @@ export async function updateEmployerInfo(
       message: getFirstZodErrorMessage(parsedInput.error),
     };
   }
+
+  const canonicalIndustry = await resolveConfigOptionValue(
+    OPTION_GROUPS.industry,
+    parsedInput.data.industry
+  );
 
   // --- Logo upload ---
   const logoFile = formData.get("logo");
@@ -273,20 +293,28 @@ export async function updateEmployerInfo(
   }
 
   try {
-    await updateEmployerModerationInfo(employerId, {
-      companyName: parsedInput.data.companyName,
-      description: parsedInput.data.description || null,
-      logo: uploadedLogoUrl ?? employer.logo,
-      coverImage: uploadedCoverUrl ?? employer.coverImage,
-      coverPositionX: parseInt(formData.get("coverPositionX")?.toString() || "50") || 50,
-      coverPositionY: parseInt(formData.get("coverPositionY")?.toString() || "50") || 50,
-      coverZoom: parseInt(formData.get("coverZoom")?.toString() || "100") || 100,
-      industry: parsedInput.data.industry || null,
-      companySize: parsedInput.data.companySize ?? null,
-      address: parsedInput.data.address || null,
-      website: parsedInput.data.website || null,
-      phone: parsedInput.data.phone || null,
-    });
+    await Promise.all([
+      updateEmployerModerationInfo(employerId, {
+        companyName: parsedInput.data.companyName,
+        description: parsedInput.data.description || null,
+        logo: uploadedLogoUrl ?? employer.logo,
+        coverImage: uploadedCoverUrl ?? employer.coverImage,
+        coverPositionX: parseInt(formData.get("coverPositionX")?.toString() || "50") || 50,
+        coverPositionY: parseInt(formData.get("coverPositionY")?.toString() || "50") || 50,
+        coverZoom: parseInt(formData.get("coverZoom")?.toString() || "100") || 100,
+        industry: canonicalIndustry,
+        companySize: parsedInput.data.companySize ?? null,
+        address: parsedInput.data.address || null,
+        website: parsedInput.data.website || null,
+        phone: parsedInput.data.phone || null,
+      }),
+      upsertEmployerProfileConfig(employerId, {
+        theme: JSON.parse(JSON.stringify(profileTheme)),
+        capabilities: JSON.parse(JSON.stringify(profileCapabilities)),
+        sections: JSON.parse(JSON.stringify(profileSections)),
+        primaryVideoUrl,
+      }),
+    ]);
   } catch (error) {
     if (uploadedLogoUrl) await deleteFile(uploadedLogoUrl);
     if (uploadedCoverUrl) await deleteFile(uploadedCoverUrl);

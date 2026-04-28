@@ -29,6 +29,12 @@ import {
   updateEmployerJobPostingStatus,
   updateEmployerProfileById,
 } from "@/lib/employers";
+import { OPTION_GROUPS } from "@/lib/config-option-definitions";
+import {
+  getConfigOptionItems,
+  getOptionsForSelect,
+  resolveConfigOptionValue,
+} from "@/lib/config-options";
 import {
   buildServerActionRateLimitKey,
   checkRateLimit,
@@ -96,13 +102,35 @@ function normalizeWebsite(value: string | null) {
   }
 }
 
-function parseRequiredLanguages(formData: FormData): string[] {
+async function parseRequiredLanguages(formData: FormData): Promise<string[]> {
   const lang = formData.get("requiredLanguage")?.toString().trim();
   if (!lang || lang === "none") return [];
-  return [lang];
+  const canonicalLanguage = await resolveConfigOptionValue(
+    OPTION_GROUPS.requiredLanguage,
+    lang
+  );
+  return canonicalLanguage && canonicalLanguage !== "none" ? [canonicalLanguage] : [];
 }
 
-function buildEmployerJobPostingInput(formData: FormData) {
+async function buildEmployerJobPostingInput(formData: FormData) {
+  const [
+    industry,
+    location,
+    workType,
+    industrialZone,
+    requiredLanguages,
+    languageProficiency,
+    shiftType,
+  ] = await Promise.all([
+    resolveConfigOptionValue(OPTION_GROUPS.industry, formData.get("industry")?.toString().trim() || null),
+    resolveConfigOptionValue(OPTION_GROUPS.location, formData.get("location")?.toString().trim() || null),
+    resolveConfigOptionValue(OPTION_GROUPS.workType, formData.get("workType")?.toString().trim() || null),
+    resolveConfigOptionValue(OPTION_GROUPS.industrialZone, formData.get("industrialZone")?.toString().trim() || null),
+    parseRequiredLanguages(formData),
+    resolveConfigOptionValue(OPTION_GROUPS.languageProficiency, formData.get("languageProficiency")?.toString().trim() || null),
+    resolveConfigOptionValue(OPTION_GROUPS.shiftType, formData.get("shiftType")?.toString().trim() || null),
+  ]);
+
   return {
     title: formData.get("title")?.toString().trim() ?? "",
     description: formData.get("description")?.toString().trim() ?? "",
@@ -111,17 +139,16 @@ function buildEmployerJobPostingInput(formData: FormData) {
     salaryMin: parseNullableNumber(formData.get("salaryMin")),
     salaryMax: parseNullableNumber(formData.get("salaryMax")),
     salaryDisplay: formData.get("salaryDisplay")?.toString().trim() || null,
-    industry: formData.get("industry")?.toString().trim() || null,
+    industry,
     position: formData.get("position")?.toString().trim() || null,
-    location: formData.get("location")?.toString().trim() || null,
-    workType: formData.get("workType")?.toString().trim() || null,
+    location,
+    workType,
     quantity: Number(formData.get("quantity")?.toString().trim() || "1"),
     skills: parseJobPostingSkills(formData.get("skills")),
-    industrialZone: formData.get("industrialZone")?.toString().trim() || null,
-    requiredLanguages: parseRequiredLanguages(formData),
-    languageProficiency: formData.get("languageProficiency")?.toString().trim() || null,
-    visaSupport: formData.get("visaSupport")?.toString().trim() || null,
-    shiftType: formData.get("shiftType")?.toString().trim() || null,
+    industrialZone,
+    requiredLanguages,
+    languageProficiency,
+    shiftType,
   };
 }
 
@@ -259,11 +286,21 @@ export async function updateCompanyProfileAction(formData: FormData) {
   const session = await requireEmployerSession();
   const websiteInput = formData.get("website")?.toString().trim() || null;
   const normalizedWebsite = normalizeWebsite(websiteInput);
+  const [industry, companySize] = await Promise.all([
+    resolveConfigOptionValue(
+      OPTION_GROUPS.industry,
+      formData.get("industry")?.toString().trim() || null
+    ),
+    resolveConfigOptionValue(
+      OPTION_GROUPS.companySize,
+      formData.get("companySize")?.toString().trim() || null
+    ),
+  ]);
   const parsedInput = employerProfileSchema.safeParse({
     companyName: formData.get("companyName")?.toString().trim() ?? "",
     description: formData.get("description")?.toString().trim() || null,
-    industry: formData.get("industry")?.toString().trim() || null,
-    companySize: formData.get("companySize")?.toString().trim() || null,
+    industry,
+    companySize,
     address: formData.get("address")?.toString().trim() || null,
     website: websiteInput ? normalizedWebsite ?? websiteInput : null,
     phone: formData.get("phone")?.toString().trim() || null,
@@ -296,6 +333,80 @@ export async function updateCompanyProfileAction(formData: FormData) {
 export async function getCompanyProfile() {
   const session = await requireEmployerSession();
   return getEmployerProfileById(session.employerId);
+}
+
+export async function getCompanyProfileOptions() {
+  const session = await requireEmployerSession();
+  const employer = await getEmployerProfileById(session.employerId);
+
+  const [industryOptions, companySizeOptions] = await Promise.all([
+    getOptionsForSelect(OPTION_GROUPS.industry, { currentValue: employer?.industry }),
+    getOptionsForSelect(OPTION_GROUPS.companySize, { currentValue: employer?.companySize }),
+  ]);
+
+  return { industryOptions, companySizeOptions };
+}
+
+export async function getJobPostingFormOptions(current?: {
+  industry?: string | null;
+  location?: string | null;
+  workType?: string | null;
+  industrialZone?: string | null;
+  requiredLanguage?: string | null;
+  languageProficiency?: string | null;
+  shiftType?: string | null;
+}) {
+  await requireEmployerSession();
+
+  const [
+    industryOptions,
+    locationOptions,
+    workTypeOptions,
+    industrialZoneItems,
+    requiredLanguageOptions,
+    languageProficiencyOptions,
+    shiftTypeOptions,
+  ] = await Promise.all([
+    getOptionsForSelect(OPTION_GROUPS.industry, { currentValue: current?.industry }),
+    getOptionsForSelect(OPTION_GROUPS.location, { currentValue: current?.location }),
+    getOptionsForSelect(OPTION_GROUPS.workType, { currentValue: current?.workType }),
+    getConfigOptionItems(OPTION_GROUPS.industrialZone, { includeInactive: true }),
+    getOptionsForSelect(OPTION_GROUPS.requiredLanguage, { currentValue: current?.requiredLanguage }),
+    getOptionsForSelect(OPTION_GROUPS.languageProficiency, { currentValue: current?.languageProficiency }),
+    getOptionsForSelect(OPTION_GROUPS.shiftType, { currentValue: current?.shiftType }),
+  ]);
+
+  const industrialZoneGroups = Object.values(
+    industrialZoneItems
+      .filter((item) => item.isActive || item.value === current?.industrialZone)
+      .reduce<Record<string, { group: string; zones: { value: string; label: string }[] }>>(
+        (groups, item) => {
+          const region =
+            item.metadata &&
+            typeof item.metadata === "object" &&
+            !Array.isArray(item.metadata) &&
+            "region" in item.metadata &&
+            typeof item.metadata.region === "string"
+              ? item.metadata.region
+              : "Khác";
+
+          groups[region] ??= { group: region, zones: [] };
+          groups[region].zones.push({ value: item.value, label: item.label });
+          return groups;
+        },
+        {}
+      )
+  );
+
+  return {
+    industryOptions,
+    locationOptions,
+    workTypeOptions,
+    industrialZoneGroups,
+    requiredLanguageOptions,
+    languageProficiencyOptions,
+    shiftTypeOptions,
+  };
 }
 
 export async function getSubscriptionData() {
@@ -338,9 +449,9 @@ export async function createJobPostingAction(formData: FormData) {
     };
   }
 
-  const parsedInput = employerJobPostingSchema.safeParse(
-    buildEmployerJobPostingInput(formData)
-  );
+    const parsedInput = employerJobPostingSchema.safeParse(
+      await buildEmployerJobPostingInput(formData)
+    );
 
   if (!parsedInput.success) {
     return {
@@ -390,7 +501,6 @@ export async function createJobPostingAction(formData: FormData) {
         industrialZone: parsedInput.data.industrialZone || null,
         requiredLanguages: parsedInput.data.requiredLanguages,
         languageProficiency: parsedInput.data.languageProficiency || null,
-        visaSupport: parsedInput.data.visaSupport || null,
         shiftType: parsedInput.data.shiftType || null,
         status: "PENDING",
       },
@@ -436,7 +546,7 @@ export async function updateJobPostingAction(id: number, formData: FormData) {
   }
 
   const parsedInput = employerJobPostingSchema.safeParse(
-    buildEmployerJobPostingInput(formData)
+    await buildEmployerJobPostingInput(formData)
   );
 
   if (!parsedInput.success) {
@@ -463,7 +573,6 @@ export async function updateJobPostingAction(id: number, formData: FormData) {
     industrialZone: parsedInput.data.industrialZone || null,
     requiredLanguages: parsedInput.data.requiredLanguages,
     languageProficiency: parsedInput.data.languageProficiency || null,
-    visaSupport: parsedInput.data.visaSupport || null,
     shiftType: parsedInput.data.shiftType || null,
     status: job.status === "REJECTED" ? "PENDING" : job.status,
   });

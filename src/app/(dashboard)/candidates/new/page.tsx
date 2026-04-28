@@ -1,5 +1,7 @@
 import { getAllTags } from "@/lib/tags";
 import { CandidateForm } from "@/components/candidates/candidate-form";
+import { OPTION_GROUPS } from "@/lib/config-option-definitions";
+import { getOptionsForSelect } from "@/lib/config-options";
 import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
 
@@ -8,7 +10,21 @@ export const metadata = {
 };
 
 export default async function NewCandidatePage() {
-  const allTags = await getAllTags();
+  const [
+    allTags,
+    locationOptions,
+    industryOptions,
+    statusOptions,
+    sourceOptions,
+    seniorityOptions,
+  ] = await Promise.all([
+    getAllTags(),
+    getOptionsForSelect(OPTION_GROUPS.location),
+    getOptionsForSelect(OPTION_GROUPS.industry),
+    getOptionsForSelect(OPTION_GROUPS.candidateStatus),
+    getOptionsForSelect(OPTION_GROUPS.candidateSource),
+    getOptionsForSelect(OPTION_GROUPS.candidateSeniority),
+  ]);
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -28,7 +44,14 @@ export default async function NewCandidatePage() {
       </div>
 
       <div className="rounded-xl border border-border bg-background p-6 shadow-sm">
-        <CandidateForm allTags={allTags} />
+        <CandidateForm
+          allTags={allTags}
+          locationOptions={locationOptions}
+          industryOptions={industryOptions}
+          statusOptions={statusOptions}
+          sourceOptions={sourceOptions}
+          seniorityOptions={seniorityOptions}
+        />
       </div>
     </div>
   );

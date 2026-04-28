@@ -138,6 +138,11 @@ enum ApplicationStatus {
   IMPORTED    // Đã import vào CRM Candidate
 }
 
+enum OptionValueType {
+  STRING
+  ENUM
+}
+
 // ==================== MODELS ====================
 
 model User {
@@ -430,8 +435,9 @@ model Employer {
   updatedAt   DateTime       @updatedAt
 
   // Relations
-  subscription Subscription?
-  jobPostings  JobPosting[]
+  subscription  Subscription?
+  profileConfig EmployerProfileConfig?
+  jobPostings   JobPosting[]
 
   // Link to CRM Client (admin link thủ công)
   clientId Int?    @unique
@@ -464,10 +470,25 @@ model Subscription {
   @@index([endDate])
 }
 
+model EmployerProfileConfig {
+  id              Int      @id @default(autoincrement())
+  employerId      Int      @unique
+  theme           Json?
+  capabilities    Json?
+  sections        Json?
+  primaryVideoUrl String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  employer Employer @relation(fields: [employerId], references: [id], onDelete: Cascade)
+}
+
 model JobPosting {
   id            Int              @id @default(autoincrement())
   title         String
   slug          String           @unique
+  coverImage    String?
+  coverAlt      String?
   description   String
   requirements  String?
   benefits      String?
@@ -484,7 +505,6 @@ model JobPosting {
   industrialZone      String?
   requiredLanguages   String[]         @default([])
   languageProficiency String?
-  visaSupport         String?
   shiftType           String?
   status        JobPostingStatus @default(DRAFT)
   rejectReason  String?          // Admin điền khi reject
@@ -542,12 +562,64 @@ model Application {
   @@unique([jobPostingId, email])
 }
 
+model OptionSet {
+  key               String          @id
+  label             String
+  description       String?
+  valueType         OptionValueType @default(STRING)
+  allowCustomValues Boolean         @default(true)
+  isSystem          Boolean         @default(false)
+  sortOrder         Int             @default(0)
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  items OptionItem[]
+}
+
+model OptionItem {
+  id           Int      @id @default(autoincrement())
+  setKey       String
+  value        String
+  label        String
+  description  String?
+  isActive     Boolean  @default(true)
+  showInPublic Boolean  @default(false)
+  isSystem     Boolean  @default(false)
+  sortOrder    Int      @default(0)
+  metadata     Json?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  set     OptionSet     @relation(fields: [setKey], references: [key], onDelete: Cascade)
+  aliases OptionAlias[]
+
+  @@unique([setKey, value])
+  @@index([setKey, isActive, sortOrder])
+}
+
+model OptionAlias {
+  id              Int      @id @default(autoincrement())
+  itemId          Int
+  setKey          String
+  alias           String
+  normalizedAlias String
+  createdAt       DateTime @default(now())
+
+  item OptionItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@unique([setKey, normalizedAlias])
+  @@index([itemId])
+}
+
 model BlogPost {
   id          Int      @id @default(autoincrement())
   title       String
   slug        String   @unique
   excerpt     String
+  coverImage  String?
+  coverAlt    String?
   content     String
+  contentBlocks Json?
   category    String
   emoji       String   @default("📝")
   isPublished Boolean  @default(false)

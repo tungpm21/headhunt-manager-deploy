@@ -9,6 +9,11 @@ const nextConfig: NextConfig = {
   // Without this, Turbopack walks up to d:\MH and can't find node_modules
   outputFileTracingRoot: path.join(__dirname),
   devIndicators: false,
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "10mb",
+    },
+  },
   env: {
     NEXT_PUBLIC_SENTRY_DSN: process.env.SENTRY_DSN ?? "",
   },

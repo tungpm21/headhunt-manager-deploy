@@ -9,11 +9,24 @@ import {
   ExternalLink,
   ImagePlus,
   Loader2,
+  RotateCcw,
   Save,
   X,
 } from "lucide-react";
 import { updateEmployerInfo } from "@/lib/moderation-actions";
 import { CoverPositionEditor } from "@/components/CoverPositionEditor";
+import { BlockBuilder } from "@/components/content/BlockBuilder";
+import {
+  COMPANY_THEME_PRESETS,
+  DEFAULT_COMPANY_CAPABILITIES,
+  DEFAULT_COMPANY_THEME,
+  normalizeCompanyCapabilities,
+  normalizeCompanyTheme,
+  type CompanyProfileCapabilities,
+  type CompanyProfileTheme,
+  type ContentBlock,
+} from "@/lib/content-blocks";
+import type { OptionChoice } from "@/lib/config-options";
 
 type EmployerEditData = {
   id: number;
@@ -33,6 +46,12 @@ type EmployerEditData = {
   coverPositionX: number;
   coverPositionY: number;
   coverZoom: number;
+  profileConfig: {
+    theme: CompanyProfileTheme;
+    capabilities: CompanyProfileCapabilities;
+    sections: ContentBlock[];
+    primaryVideoUrl: string | null;
+  } | null;
 };
 
 type MessageState =
@@ -54,8 +73,46 @@ const MAX_COVER_BYTES = 5 * 1024 * 1024;
 const inputClassName =
   "w-full rounded-xl border border-border bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition";
 
+const THEME_FIELDS: Array<{
+  key: keyof CompanyProfileTheme;
+  label: string;
+  note: string;
+}> = [
+  {
+    key: "primaryColor",
+    label: "Màu thương hiệu",
+    note: "Dùng cho cover mặc định và một số điểm nhấn nhỏ, không phủ lên ảnh cover.",
+  },
+  {
+    key: "accentColor",
+    label: "Màu nhấn / button",
+    note: "Dùng cho CTA, nút chính và các điểm chuyển đổi.",
+  },
+  {
+    key: "backgroundColor",
+    label: "Màu nền trang",
+    note: "Nền tổng thể phía sau nội dung công ty.",
+  },
+  {
+    key: "textColor",
+    label: "Màu chữ",
+    note: "Màu tiêu đề và nội dung chính trên trang public.",
+  },
+  {
+    key: "borderColor",
+    label: "Màu khung",
+    note: "Màu viền cho card, gallery và khối thông tin.",
+  },
+  {
+    key: "surfaceColor",
+    label: "Màu ô nội dung",
+    note: "Màu nền của card/section chứa nội dung.",
+  },
+];
+
 interface EmployerEditFormProps {
   employer: EmployerEditData;
+  industryOptions: OptionChoice[];
 }
 
 function useImageUpload(initialUrl: string | null, maxBytes: number) {
@@ -120,12 +177,25 @@ function useImageUpload(initialUrl: string | null, maxBytes: number) {
   return { previewUrl, selectedName, error, fileInputRef, handleFileChange, handleReset };
 }
 
-export function EmployerEditForm({ employer }: EmployerEditFormProps) {
+export function EmployerEditForm({ employer, industryOptions }: EmployerEditFormProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<MessageState>(null);
 
   const logo = useImageUpload(employer.logo, MAX_LOGO_BYTES);
   const cover = useImageUpload(employer.coverImage, MAX_COVER_BYTES);
+  const initialTheme = normalizeCompanyTheme(employer.profileConfig?.theme ?? DEFAULT_COMPANY_THEME);
+  const initialCapabilities = normalizeCompanyCapabilities(
+    employer.profileConfig?.capabilities ?? DEFAULT_COMPANY_CAPABILITIES
+  );
+  const [theme, setTheme] = useState(initialTheme);
+  const [capabilities, setCapabilities] = useState(initialCapabilities);
+  const [primaryVideoUrl, setPrimaryVideoUrl] = useState(employer.profileConfig?.primaryVideoUrl ?? "");
+  const updateThemeValue = (key: keyof CompanyProfileTheme, value: string) => {
+    setTheme((current) => ({ ...current, [key]: value }));
+  };
+  const applyThemePreset = (nextTheme: CompanyProfileTheme) => {
+    setTheme(normalizeCompanyTheme(nextTheme));
+  };
   const [coverPos, setCoverPos] = useState({
     positionX: employer.coverPositionX ?? 50,
     positionY: employer.coverPositionY ?? 50,
@@ -143,6 +213,9 @@ export function EmployerEditForm({ employer }: EmployerEditFormProps) {
 
     setIsSaving(true);
     setMessage(null);
+    formData.set("profileTheme", JSON.stringify(theme));
+    formData.set("profileCapabilities", JSON.stringify(capabilities));
+    formData.set("primaryVideoUrl", primaryVideoUrl);
 
     try {
       const result = await updateEmployerInfo(employer.id, undefined, formData);
@@ -385,14 +458,23 @@ export function EmployerEditForm({ employer }: EmployerEditFormProps) {
               <label htmlFor="industry" className="block text-sm font-medium text-foreground mb-1.5">
                 Ngành nghề
               </label>
-              <input
+              <select
                 id="industry"
                 name="industry"
-                type="text"
                 defaultValue={employer.industry ?? ""}
-                placeholder="Ví dụ: Sản xuất, IT, Logistics..."
+                data-placeholder="industry-example"
                 className={inputClassName}
-              />
+              >
+                <option value="">Chọn ngành nghề</option>
+                {industryOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-1 text-xs text-muted">
+                Danh sách này lấy từ Cấu hình dữ liệu. Muốn thêm ngành mới, thêm tại Settings trước.
+              </p>
             </div>
 
             <div>
@@ -457,6 +539,189 @@ export function EmployerEditForm({ employer }: EmployerEditFormProps) {
                 className={inputClassName}
               />
             </div>
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-border bg-background p-5">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+            <div>
+              <h3 className="text-base font-bold text-foreground">Builder trang giới thiệu công ty</h3>
+              <p className="mt-1 text-sm text-muted">
+                Admin quyết định theme, quyền hiển thị và các section nổi bật cho từng công ty.
+              </p>
+            </div>
+            {canPreviewPublicPage ? (
+              <Link
+                href={`/cong-ty/${employer.slug}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-primary/20 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary transition hover:bg-primary/15"
+              >
+                <ExternalLink className="h-4 w-4" />
+                Preview public
+              </Link>
+            ) : null}
+          </div>
+
+          <div className="mt-5 space-y-5">
+            <div className="grid gap-5 xl:grid-cols-[minmax(0,1.5fr)_minmax(320px,0.85fr)]">
+              <div className="rounded-2xl border border-border bg-white p-4">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">Theme public profile</p>
+                    <p className="mt-1 text-xs leading-5 text-muted">
+                      Cover image luôn hiển thị rõ. Màu nhấn dùng cho button, màu nền dùng cho background,
+                      màu khung và màu ô nội dung dùng cho card/section.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    disabled={!capabilities.theme}
+                    onClick={() => applyThemePreset(DEFAULT_COMPANY_THEME)}
+                    className="inline-flex min-h-9 shrink-0 items-center justify-center gap-2 rounded-xl border border-border bg-background px-3 py-2 text-xs font-semibold text-foreground transition hover:bg-surface disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <RotateCcw className="h-4 w-4" />
+                    Reset mặc định
+                  </button>
+                </div>
+
+                <div className="mt-4 grid gap-2 md:grid-cols-2 xl:grid-cols-3">
+                  {COMPANY_THEME_PRESETS.map((preset) => {
+                    const isCurrent = THEME_FIELDS.every(
+                      ({ key }) => theme[key].toLowerCase() === preset.theme[key].toLowerCase()
+                    );
+                    return (
+                      <button
+                        key={preset.id}
+                        type="button"
+                        disabled={!capabilities.theme}
+                        onClick={() => applyThemePreset(preset.theme)}
+                        className={`rounded-2xl border p-3 text-left transition hover:-translate-y-0.5 hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-50 ${
+                          isCurrent ? "border-primary bg-primary/5 ring-2 ring-primary/20" : "border-border bg-background"
+                        }`}
+                      >
+                        <div
+                          className="h-12 rounded-xl border border-white shadow-inner"
+                          style={{
+                            background: `linear-gradient(135deg, ${preset.theme.backgroundColor} 0%, ${preset.theme.surfaceColor} 48%, ${preset.theme.accentColor} 100%)`,
+                          }}
+                        />
+                        <div className="mt-3 flex items-start justify-between gap-2">
+                          <div>
+                            <p className="text-sm font-semibold text-foreground">{preset.name}</p>
+                            <p className="mt-0.5 line-clamp-2 text-xs leading-5 text-muted">{preset.description}</p>
+                          </div>
+                          <span className="flex shrink-0 gap-1">
+                            {[
+                              preset.theme.accentColor,
+                              preset.theme.backgroundColor,
+                              preset.theme.surfaceColor,
+                            ].map((color) => (
+                              <span
+                                key={color}
+                                className="h-3.5 w-3.5 rounded-full border border-white shadow"
+                                style={{ backgroundColor: color }}
+                              />
+                            ))}
+                          </span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className="mt-4 grid gap-3 md:grid-cols-2">
+                  {THEME_FIELDS.map(({ key, label, note }) => (
+                    <label key={key} className="rounded-2xl border border-border bg-background p-3 text-sm">
+                      <span className="flex items-center justify-between gap-3">
+                        <span className="font-semibold text-foreground">{label}</span>
+                        <span className="text-xs font-medium uppercase tracking-wide text-muted">{theme[key]}</span>
+                      </span>
+                      <span className="mt-2 flex items-center gap-2">
+                        <input
+                          type="color"
+                          value={theme[key]}
+                          disabled={!capabilities.theme}
+                          onChange={(event) => updateThemeValue(key, event.target.value)}
+                          className="h-11 w-12 shrink-0 rounded-lg border border-border bg-white disabled:opacity-50"
+                        />
+                        <input
+                          value={theme[key]}
+                          disabled={!capabilities.theme}
+                          onChange={(event) => updateThemeValue(key, event.target.value)}
+                          className={`${inputClassName} disabled:opacity-50`}
+                        />
+                      </span>
+                      <span className="mt-2 block text-xs leading-5 text-muted">{note}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-5">
+                <div className="rounded-2xl border border-border bg-white p-4">
+                  <p className="text-sm font-semibold text-foreground">Quyền tùy biến</p>
+                  <div className="mt-3 space-y-3">
+                    {([
+                      ["theme", "Cho đổi theme"],
+                      ["gallery", "Cho gallery"],
+                      ["video", "Cho video"],
+                      ["html", "Cho HTML an toàn"],
+                    ] as const).map(([key, label]) => (
+                      <label key={key} className="flex items-center justify-between gap-3 rounded-xl bg-surface px-3 py-2 text-sm">
+                        <span className="font-medium text-foreground">{label}</span>
+                        <input
+                          type="checkbox"
+                          checked={Boolean(capabilities[key])}
+                          onChange={(event) =>
+                            setCapabilities((current) => ({ ...current, [key]: event.target.checked }))
+                          }
+                          className="h-4 w-4 rounded border-border text-primary focus:ring-primary/30"
+                        />
+                      </label>
+                    ))}
+                    <label className="block space-y-1 text-sm">
+                      <span className="font-medium text-foreground">Số ảnh tối đa</span>
+                      <input
+                        type="number"
+                        min={0}
+                        max={12}
+                        value={capabilities.maxImages}
+                        onChange={(event) =>
+                          setCapabilities((current) => ({
+                            ...current,
+                            maxImages: Number.parseInt(event.target.value, 10) || 0,
+                          }))
+                        }
+                        className={inputClassName}
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                <label className="block space-y-1 rounded-2xl border border-border bg-white p-4 text-sm">
+                  <span className="font-semibold text-foreground">Video giới thiệu chính</span>
+                  <input
+                    value={primaryVideoUrl}
+                    disabled={!capabilities.video}
+                    onChange={(event) => setPrimaryVideoUrl(event.target.value)}
+                    placeholder="YouTube hoặc Vimeo URL"
+                    className={`${inputClassName} disabled:opacity-50`}
+                  />
+                </label>
+              </div>
+            </div>
+
+            <BlockBuilder
+              name="profileSections"
+              context="company"
+              title="Section template công ty"
+              description="Dùng rich text, chỉ số, phúc lợi, gallery, video, quote, CTA và HTML an toàn."
+              initialBlocks={employer.profileConfig?.sections ?? []}
+              maxImages={capabilities.maxImages}
+              allowHtml={capabilities.html}
+              previewTheme={theme}
+            />
           </div>
         </div>
 

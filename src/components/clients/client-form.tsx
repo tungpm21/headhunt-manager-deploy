@@ -4,24 +4,17 @@ import { useActionState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClientAction, updateClientAction } from "@/lib/client-actions";
 import { Save, Loader2, Building2 } from "lucide-react";
+import type { OptionChoice } from "@/lib/config-options";
 import { ClientWithRelations } from "@/types/client";
 
 type ActionState = { error?: string; success?: boolean; id?: number } | undefined;
 
 interface ClientFormProps {
   initialData?: ClientWithRelations | null;
+  industryOptions: OptionChoice[];
+  companySizeOptions: OptionChoice[];
+  statusOptions: OptionChoice[];
 }
-
-const INDUSTRIES = [
-  "IT / Phần mềm",
-  "Tài chính / Ngân hàng",
-  "Marketing / Truyền thông",
-  "Kỹ thuật / Sản xuất",
-  "Kinh doanh / Sales",
-  "Nhân sự",
-  "Hành chính",
-  "Khác",
-];
 
 function FieldLabel({ htmlFor, required, children }: { htmlFor: string; required?: boolean; children: React.ReactNode }) {
   return (
@@ -34,7 +27,12 @@ function FieldLabel({ htmlFor, required, children }: { htmlFor: string; required
 const inputCls =
   "w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-muted/50 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition";
 
-export function ClientForm({ initialData }: ClientFormProps) {
+export function ClientForm({
+  initialData,
+  industryOptions,
+  companySizeOptions,
+  statusOptions,
+}: ClientFormProps) {
   const router = useRouter();
 
   async function handleAction(_prev: ActionState, fd: FormData): Promise<ActionState> {
@@ -91,8 +89,8 @@ export function ClientForm({ initialData }: ClientFormProps) {
               className={inputCls}
             >
               <option value="">Chọn lĩnh vực...</option>
-              {INDUSTRIES.map((i) => (
-                <option key={i} value={i}>{i}</option>
+              {industryOptions.map((option) => (
+                <option key={option.value} value={option.value}>{option.label}</option>
               ))}
             </select>
           </div>
@@ -106,10 +104,9 @@ export function ClientForm({ initialData }: ClientFormProps) {
               className={inputCls}
             >
               <option value="">Chọn quy mô...</option>
-              <option value="SMALL">Nhỏ (Dưới 50 NV)</option>
-              <option value="MEDIUM">Vừa (50 - 200 NV)</option>
-              <option value="LARGE">Lớn (200 - 1000 NV)</option>
-              <option value="ENTERPRISE">Tập đoàn (&gt;1000 NV)</option>
+              {companySizeOptions.map((option) => (
+                <option key={option.value} value={option.value}>{option.label}</option>
+              ))}
             </select>
           </div>
 
@@ -121,9 +118,9 @@ export function ClientForm({ initialData }: ClientFormProps) {
               defaultValue={initialData?.status || "ACTIVE"}
               className={inputCls}
             >
-              <option value="ACTIVE">Hoạt động</option>
-              <option value="INACTIVE">Tạm ngừng</option>
-              <option value="BLACKLISTED">Blacklisted</option>
+              {statusOptions.map((option) => (
+                <option key={option.value} value={option.value}>{option.label}</option>
+              ))}
             </select>
           </div>
 

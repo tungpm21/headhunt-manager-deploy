@@ -354,14 +354,18 @@ async function collectDistinctValues(setKey: OptionGroupKey) {
   }
 
   if (setKey === OPTION_GROUPS.location) {
-    const [candidates, jobs, postings] = await Promise.all([
+    const [candidates, clients, jobs, employers, postings] = await Promise.all([
       prisma.candidate.findMany({ where: { location: { not: null } }, select: { location: true }, distinct: ["location"] }),
+      prisma.client.findMany({ where: { location: { not: null } }, select: { location: true }, distinct: ["location"] }),
       prisma.jobOrder.findMany({ where: { location: { not: null } }, select: { location: true }, distinct: ["location"] }),
+      prisma.employer.findMany({ where: { location: { not: null } }, select: { location: true }, distinct: ["location"] }),
       prisma.jobPosting.findMany({ where: { location: { not: null } }, select: { location: true }, distinct: ["location"] }),
     ]);
     return uniqueValues([
       ...candidates.map((item) => item.location),
+      ...clients.map((item) => item.location),
       ...jobs.map((item) => item.location),
+      ...employers.map((item) => item.location),
       ...postings.map((item) => item.location),
     ]);
   }
@@ -376,12 +380,18 @@ async function collectDistinctValues(setKey: OptionGroupKey) {
   }
 
   if (setKey === OPTION_GROUPS.industrialZone) {
-    const rows = await prisma.jobPosting.findMany({
-      where: { industrialZone: { not: null } },
-      select: { industrialZone: true },
-      distinct: ["industrialZone"],
-    });
-    return uniqueValues(rows.map((item) => item.industrialZone));
+    const [clients, jobs, employers, postings] = await Promise.all([
+      prisma.client.findMany({ where: { industrialZone: { not: null } }, select: { industrialZone: true }, distinct: ["industrialZone"] }),
+      prisma.jobOrder.findMany({ where: { industrialZone: { not: null } }, select: { industrialZone: true }, distinct: ["industrialZone"] }),
+      prisma.employer.findMany({ where: { industrialZone: { not: null } }, select: { industrialZone: true }, distinct: ["industrialZone"] }),
+      prisma.jobPosting.findMany({ where: { industrialZone: { not: null } }, select: { industrialZone: true }, distinct: ["industrialZone"] }),
+    ]);
+    return uniqueValues([
+      ...clients.map((item) => item.industrialZone),
+      ...jobs.map((item) => item.industrialZone),
+      ...employers.map((item) => item.industrialZone),
+      ...postings.map((item) => item.industrialZone),
+    ]);
   }
 
   if (setKey === OPTION_GROUPS.requiredLanguage) {
@@ -555,12 +565,14 @@ export async function getOptionUsageCount(
   }
 
   if (setKey === OPTION_GROUPS.location) {
-    const [candidates, jobs, postings] = await Promise.all([
+    const [candidates, clients, jobs, employers, postings] = await Promise.all([
       prisma.candidate.count({ where: { location: { in: textValues }, isDeleted: false } }),
+      prisma.client.count({ where: { location: { in: textValues }, isDeleted: false } }),
       prisma.jobOrder.count({ where: { location: { in: textValues } } }),
+      prisma.employer.count({ where: { location: { in: textValues } } }),
       prisma.jobPosting.count({ where: { location: { in: textValues } } }),
     ]);
-    return candidates + jobs + postings;
+    return candidates + clients + jobs + employers + postings;
   }
 
   if (setKey === OPTION_GROUPS.workType) {
@@ -568,7 +580,13 @@ export async function getOptionUsageCount(
   }
 
   if (setKey === OPTION_GROUPS.industrialZone) {
-    return prisma.jobPosting.count({ where: { industrialZone: { in: textValues } } });
+    const [clients, jobs, employers, postings] = await Promise.all([
+      prisma.client.count({ where: { industrialZone: { in: textValues }, isDeleted: false } }),
+      prisma.jobOrder.count({ where: { industrialZone: { in: textValues } } }),
+      prisma.employer.count({ where: { industrialZone: { in: textValues } } }),
+      prisma.jobPosting.count({ where: { industrialZone: { in: textValues } } }),
+    ]);
+    return clients + jobs + employers + postings;
   }
 
   if (setKey === OPTION_GROUPS.requiredLanguage) {

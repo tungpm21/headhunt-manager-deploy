@@ -152,6 +152,7 @@ export interface CreateJobInput {
   description?: string;
   industry?: string;
   location?: string;
+  industrialZone?: string;
   requiredSkills?: string[];
   salaryMin?: number;
   salaryMax?: number;

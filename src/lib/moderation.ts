@@ -88,6 +88,8 @@ export async function getEmployersData(status = "ALL", page = 1, query = "") {
         companyName: true,
         industry: true,
         address: true,
+        location: true,
+        industrialZone: true,
         status: true,
         slug: true,
         createdAt: true,
@@ -128,6 +130,8 @@ export async function getEmployerModerationById(id: number) {
       industry: true,
       companySize: true,
       address: true,
+      location: true,
+      industrialZone: true,
       website: true,
       phone: true,
       status: true,
@@ -141,6 +145,8 @@ export async function getEmployerModerationById(id: number) {
           industry: true,
           website: true,
           address: true,
+          location: true,
+          industrialZone: true,
           status: true,
         },
       },
@@ -246,6 +252,8 @@ export async function updateEmployerModerationInfo(
     industry: string | null;
     companySize: "SMALL" | "MEDIUM" | "LARGE" | "ENTERPRISE" | null;
     address: string | null;
+    location: string | null;
+    industrialZone: string | null;
     website: string | null;
     phone: string | null;
   }

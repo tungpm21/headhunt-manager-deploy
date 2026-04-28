@@ -92,6 +92,8 @@ export function JobInfoCard({
   initialClients,
   users,
   industryOptions,
+  locationOptions,
+  industrialZoneOptions,
   statusOptions,
   feeTypeOptions,
 }: {
@@ -99,6 +101,8 @@ export function JobInfoCard({
   initialClients: ClientSelectOption[];
   users: { id: number; name: string }[];
   industryOptions: OptionChoice[];
+  locationOptions: OptionChoice[];
+  industrialZoneOptions: OptionChoice[];
   statusOptions: OptionChoice[];
   feeTypeOptions: OptionChoice[];
 }) {
@@ -137,6 +141,8 @@ export function JobInfoCard({
           initialClients={initialClients}
           users={users}
           industryOptions={industryOptions}
+          locationOptions={locationOptions}
+          industrialZoneOptions={industrialZoneOptions}
           statusOptions={statusOptions}
           feeTypeOptions={feeTypeOptions}
           onCancel={() => setIsEditing(false)}

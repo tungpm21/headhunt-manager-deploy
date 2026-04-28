@@ -35,10 +35,17 @@ export default async function EmployerEditPage({ params }: PageProps) {
     notFound();
   }
 
-  const industryOptions = await getOptionsForSelect(OPTION_GROUPS.industry, {
-    currentValue: employer.industry,
-  });
-  const selectedIndustryValue = await resolveConfigOptionValue(OPTION_GROUPS.industry, employer.industry);
+  const [industryOptions, companySizeOptions, locationOptions, industrialZoneOptions] = await Promise.all([
+    getOptionsForSelect(OPTION_GROUPS.industry, { currentValue: employer.industry }),
+    getOptionsForSelect(OPTION_GROUPS.companySize, { currentValue: employer.companySize }),
+    getOptionsForSelect(OPTION_GROUPS.location, { currentValue: employer.location }),
+    getOptionsForSelect(OPTION_GROUPS.industrialZone, { currentValue: employer.industrialZone }),
+  ]);
+  const [selectedIndustryValue, selectedLocationValue, selectedIndustrialZoneValue] = await Promise.all([
+    resolveConfigOptionValue(OPTION_GROUPS.industry, employer.industry),
+    resolveConfigOptionValue(OPTION_GROUPS.location, employer.location),
+    resolveConfigOptionValue(OPTION_GROUPS.industrialZone, employer.industrialZone),
+  ]);
 
   const statusConfig = STATUS_CONFIG[employer.status] ?? {
     label: employer.status,
@@ -55,6 +62,8 @@ export default async function EmployerEditPage({ params }: PageProps) {
     industry: selectedIndustryValue ?? employer.industry,
     companySize: employer.companySize,
     address: employer.address,
+    location: selectedLocationValue ?? employer.location,
+    industrialZone: selectedIndustrialZoneValue ?? employer.industrialZone,
     website: employer.website,
     phone: employer.phone,
     status: employer.status,
@@ -119,7 +128,13 @@ export default async function EmployerEditPage({ params }: PageProps) {
         </div>
       </div>
 
-      <EmployerEditForm employer={serializedEmployer} industryOptions={industryOptions} />
+      <EmployerEditForm
+        employer={serializedEmployer}
+        industryOptions={industryOptions}
+        companySizeOptions={companySizeOptions}
+        locationOptions={locationOptions}
+        industrialZoneOptions={industrialZoneOptions}
+      />
     </div>
   );
 }

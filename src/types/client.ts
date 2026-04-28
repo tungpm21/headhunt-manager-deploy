@@ -30,6 +30,8 @@ export interface ClientFilters {
   search?: string;
   industry?: string;
   companySize?: CompanySize;
+  location?: string;
+  industrialZone?: string;
 }
 
 export interface PaginatedClients {
@@ -58,6 +60,8 @@ export interface CreateClientInput {
   industry?: string;
   companySize?: CompanySize;
   address?: string;
+  location?: string;
+  industrialZone?: string;
   website?: string;
   notes?: string;
   status?: ClientStatus;

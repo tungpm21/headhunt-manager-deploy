@@ -13,6 +13,8 @@ interface ClientFormProps {
   initialData?: ClientWithRelations | null;
   industryOptions: OptionChoice[];
   companySizeOptions: OptionChoice[];
+  locationOptions: OptionChoice[];
+  industrialZoneOptions: OptionChoice[];
   statusOptions: OptionChoice[];
 }
 
@@ -31,6 +33,8 @@ export function ClientForm({
   initialData,
   industryOptions,
   companySizeOptions,
+  locationOptions,
+  industrialZoneOptions,
   statusOptions,
 }: ClientFormProps) {
   const router = useRouter();
@@ -119,6 +123,36 @@ export function ClientForm({
               className={inputCls}
             >
               {statusOptions.map((option) => (
+                <option key={option.value} value={option.value}>{option.label}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <FieldLabel htmlFor="location">Khu vực</FieldLabel>
+            <select
+              id="location"
+              name="location"
+              defaultValue={initialData?.location || ""}
+              className={inputCls}
+            >
+              <option value="">Chọn khu vực...</option>
+              {locationOptions.map((option) => (
+                <option key={option.value} value={option.value}>{option.label}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <FieldLabel htmlFor="industrialZone">Khu công nghiệp</FieldLabel>
+            <select
+              id="industrialZone"
+              name="industrialZone"
+              defaultValue={initialData?.industrialZone || ""}
+              className={inputCls}
+            >
+              <option value="">Chọn KCN...</option>
+              {industrialZoneOptions.map((option) => (
                 <option key={option.value} value={option.value}>{option.label}</option>
               ))}
             </select>

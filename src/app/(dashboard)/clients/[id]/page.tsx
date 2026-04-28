@@ -59,10 +59,12 @@ export default async function ClientDetailPage({ params }: PageProps) {
 
   const client = await getClientById(id, scope);
   if (!client) notFound();
-  const [revenueSummary, industryOptions, companySizeOptions, statusOptions] = await Promise.all([
+  const [revenueSummary, industryOptions, companySizeOptions, locationOptions, industrialZoneOptions, statusOptions] = await Promise.all([
     getClientRevenueSummary(id, new Date(), scope),
     getOptionsForSelect(OPTION_GROUPS.industry, { currentValue: client.industry }),
     getOptionsForSelect(OPTION_GROUPS.companySize, { currentValue: client.companySize }),
+    getOptionsForSelect(OPTION_GROUPS.location, { currentValue: client.location }),
+    getOptionsForSelect(OPTION_GROUPS.industrialZone, { currentValue: client.industrialZone }),
     getOptionsForSelect(OPTION_GROUPS.clientStatus, { currentValue: client.status }),
   ]);
 
@@ -254,6 +256,8 @@ export default async function ClientDetailPage({ params }: PageProps) {
               initialData={client}
               industryOptions={industryOptions}
               companySizeOptions={companySizeOptions}
+              locationOptions={locationOptions}
+              industrialZoneOptions={industrialZoneOptions}
               statusOptions={statusOptions}
             />
           </div>

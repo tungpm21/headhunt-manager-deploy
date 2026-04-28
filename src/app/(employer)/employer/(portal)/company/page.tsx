@@ -21,6 +21,8 @@ export default function CompanyProfilePage() {
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [industryOptions, setIndustryOptions] = useState<OptionChoice[]>([]);
   const [companySizeOptions, setCompanySizeOptions] = useState<OptionChoice[]>([]);
+  const [locationOptions, setLocationOptions] = useState<OptionChoice[]>([]);
+  const [industrialZoneOptions, setIndustrialZoneOptions] = useState<OptionChoice[]>([]);
 
   useEffect(() => {
     Promise.all([getCompanyProfile(), getCompanyProfileOptions()]).then(([data, options]) => {
@@ -33,6 +35,8 @@ export default function CompanyProfilePage() {
       setCoverPreview(data?.coverImage ?? null);
       setIndustryOptions(options.industryOptions);
       setCompanySizeOptions(options.companySizeOptions);
+      setLocationOptions(options.locationOptions);
+      setIndustrialZoneOptions(options.industrialZoneOptions);
       setLoading(false);
     });
   }, []);
@@ -200,6 +204,42 @@ export default function CompanyProfilePage() {
               <option value="">Chọn quy mô</option>
               {companySizeOptions.map((size) => (
                 <option key={size.value} value={size.value}>{size.label}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <div>
+            <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-1.5">
+              Khu vực
+            </label>
+            <select
+              id="location"
+              name="location"
+              defaultValue={employer?.location ?? ""}
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
+            >
+              <option value="">Chọn khu vực</option>
+              {locationOptions.map((option) => (
+                <option key={option.value} value={option.value}>{option.label}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label htmlFor="industrialZone" className="block text-sm font-medium text-gray-700 mb-1.5">
+              Khu công nghiệp
+            </label>
+            <select
+              id="industrialZone"
+              name="industrialZone"
+              defaultValue={employer?.industrialZone ?? ""}
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
+            >
+              <option value="">Chọn KCN</option>
+              {industrialZoneOptions.map((option) => (
+                <option key={option.value} value={option.value}>{option.label}</option>
               ))}
             </select>
           </div>

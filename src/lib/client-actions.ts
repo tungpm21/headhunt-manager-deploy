@@ -25,10 +25,11 @@ import {
 } from "@/types/client";
 
 async function parseClientInput(formData: FormData) {
-  const industry = await resolveConfigOptionValue(
-    OPTION_GROUPS.industry,
-    strVal(formData.get("industry"))
-  );
+  const [industry, location, industrialZone] = await Promise.all([
+    resolveConfigOptionValue(OPTION_GROUPS.industry, strVal(formData.get("industry"))),
+    resolveConfigOptionValue(OPTION_GROUPS.location, strVal(formData.get("location"))),
+    resolveConfigOptionValue(OPTION_GROUPS.industrialZone, strVal(formData.get("industrialZone"))),
+  ]);
 
   return clientFormSchema.safeParse({
     companyName: String(formData.get("companyName") ?? "").trim(),
@@ -38,6 +39,8 @@ async function parseClientInput(formData: FormData) {
       Object.values(CompanySize)
     ),
     address: strVal(formData.get("address")),
+    location,
+    industrialZone,
     website: strVal(formData.get("website")),
     notes: strVal(formData.get("notes")),
     status: enumVal(formData.get("status"), Object.values(ClientStatus)),

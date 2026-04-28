@@ -236,6 +236,8 @@ export async function updateEmployerInfo(
     description: strNull(formData.get("description")),
     industry: strNull(formData.get("industry")),
     address: strNull(formData.get("address")),
+    location: strNull(formData.get("location")),
+    industrialZone: strNull(formData.get("industrialZone")),
     phone: strNull(formData.get("phone")),
     website: websiteInput ? normalizedWebsite ?? websiteInput : null,
     companySize: strNull(formData.get("companySize")),
@@ -252,6 +254,10 @@ export async function updateEmployerInfo(
     OPTION_GROUPS.industry,
     parsedInput.data.industry
   );
+  const [canonicalLocation, canonicalIndustrialZone] = await Promise.all([
+    resolveConfigOptionValue(OPTION_GROUPS.location, parsedInput.data.location),
+    resolveConfigOptionValue(OPTION_GROUPS.industrialZone, parsedInput.data.industrialZone),
+  ]);
 
   // --- Logo upload ---
   const logoFile = formData.get("logo");
@@ -305,6 +311,8 @@ export async function updateEmployerInfo(
         industry: canonicalIndustry,
         companySize: parsedInput.data.companySize ?? null,
         address: parsedInput.data.address || null,
+        location: canonicalLocation,
+        industrialZone: canonicalIndustrialZone,
         website: parsedInput.data.website || null,
         phone: parsedInput.data.phone || null,
       }),

@@ -38,6 +38,8 @@ type EmployerEditData = {
   industry: string | null;
   companySize: string | null;
   address: string | null;
+  location: string | null;
+  industrialZone: string | null;
   website: string | null;
   phone: string | null;
   status: string;
@@ -113,6 +115,9 @@ const THEME_FIELDS: Array<{
 interface EmployerEditFormProps {
   employer: EmployerEditData;
   industryOptions: OptionChoice[];
+  companySizeOptions: OptionChoice[];
+  locationOptions: OptionChoice[];
+  industrialZoneOptions: OptionChoice[];
 }
 
 function useImageUpload(initialUrl: string | null, maxBytes: number) {
@@ -128,10 +133,6 @@ function useImageUpload(initialUrl: string | null, maxBytes: number) {
       objectUrlRef.current = null;
     }
   }
-
-  useEffect(() => {
-    setPreviewUrl(initialUrl);
-  }, [initialUrl]);
 
   useEffect(() => {
     return () => clearObjectUrl();
@@ -177,12 +178,32 @@ function useImageUpload(initialUrl: string | null, maxBytes: number) {
   return { previewUrl, selectedName, error, fileInputRef, handleFileChange, handleReset };
 }
 
-export function EmployerEditForm({ employer, industryOptions }: EmployerEditFormProps) {
+export function EmployerEditForm({
+  employer,
+  industryOptions,
+  companySizeOptions,
+  locationOptions,
+  industrialZoneOptions,
+}: EmployerEditFormProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<MessageState>(null);
 
-  const logo = useImageUpload(employer.logo, MAX_LOGO_BYTES);
-  const cover = useImageUpload(employer.coverImage, MAX_COVER_BYTES);
+  const {
+    previewUrl: logoPreviewUrl,
+    selectedName: logoSelectedName,
+    error: logoError,
+    fileInputRef: logoFileInputRef,
+    handleFileChange: handleLogoFileChange,
+    handleReset: handleLogoReset,
+  } = useImageUpload(employer.logo, MAX_LOGO_BYTES);
+  const {
+    previewUrl: coverPreviewUrl,
+    selectedName: coverSelectedName,
+    error: coverError,
+    fileInputRef: coverFileInputRef,
+    handleFileChange: handleCoverFileChange,
+    handleReset: handleCoverReset,
+  } = useImageUpload(employer.coverImage, MAX_COVER_BYTES);
   const initialTheme = normalizeCompanyTheme(employer.profileConfig?.theme ?? DEFAULT_COMPANY_THEME);
   const initialCapabilities = normalizeCompanyCapabilities(
     employer.profileConfig?.capabilities ?? DEFAULT_COMPANY_CAPABILITIES
@@ -190,6 +211,7 @@ export function EmployerEditForm({ employer, industryOptions }: EmployerEditForm
   const [theme, setTheme] = useState(initialTheme);
   const [capabilities, setCapabilities] = useState(initialCapabilities);
   const [primaryVideoUrl, setPrimaryVideoUrl] = useState(employer.profileConfig?.primaryVideoUrl ?? "");
+  const effectiveCompanySizeOptions = companySizeOptions.length > 0 ? companySizeOptions : COMPANY_SIZES;
   const updateThemeValue = (key: keyof CompanyProfileTheme, value: string) => {
     setTheme((current) => ({ ...current, [key]: value }));
   };
@@ -205,9 +227,9 @@ export function EmployerEditForm({ employer, industryOptions }: EmployerEditForm
   const canPreviewPublicPage = employer.status === "ACTIVE";
 
   async function handleSubmit(formData: FormData) {
-    if ((logo.error && logo.fileInputRef.current?.files?.length) ||
-      (cover.error && cover.fileInputRef.current?.files?.length)) {
-      setMessage({ type: "error", text: logo.error || cover.error || "Lỗi file ảnh." });
+    if ((logoError && logoFileInputRef.current?.files?.length) ||
+      (coverError && coverFileInputRef.current?.files?.length)) {
+      setMessage({ type: "error", text: logoError || coverError || "Lỗi file ảnh." });
       return;
     }
 
@@ -225,8 +247,8 @@ export function EmployerEditForm({ employer, industryOptions }: EmployerEditForm
         return;
       }
 
-      logo.handleReset();
-      cover.handleReset();
+      handleLogoReset();
+      handleCoverReset();
       setMessage({ type: "success", text: result.message || "Đã lưu thay đổi." });
     } catch (error) {
       console.error("EmployerEditForm submit error:", error);
@@ -303,8 +325,8 @@ export function EmployerEditForm({ employer, industryOptions }: EmployerEditForm
 
             <div className="flex flex-col items-center gap-4">
               <div className="h-24 w-24 rounded-2xl border border-border bg-surface overflow-hidden flex items-center justify-center">
-                {logo.previewUrl ? (
-                  <img src={logo.previewUrl} alt={employer.companyName} className="h-full w-full object-cover" />
+                {logoPreviewUrl ? (
+                  <img src={logoPreviewUrl} alt={employer.companyName} className="h-full w-full object-cover" />
                 ) : (
                   <Building2 className="h-9 w-9 text-primary" />
                 )}
@@ -312,31 +334,31 @@ export function EmployerEditForm({ employer, industryOptions }: EmployerEditForm
 
               <div className="w-full space-y-2">
                 <input
-                  ref={logo.fileInputRef}
+                  ref={logoFileInputRef}
                   id="logo"
                   name="logo"
                   type="file"
                   accept="image/jpeg,image/png,image/webp"
-                  onChange={logo.handleFileChange}
+                  onChange={handleLogoFileChange}
                   className="hidden"
                 />
                 <button
                   type="button"
-                  onClick={() => logo.fileInputRef.current?.click()}
+                  onClick={() => logoFileInputRef.current?.click()}
                   className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-border px-4 py-2.5 text-sm font-medium text-foreground transition hover:bg-surface"
                 >
                   <ImagePlus className="h-4 w-4" />
-                  {logo.previewUrl ? "Đổi logo" : "Tải logo lên"}
+                  {logoPreviewUrl ? "Đổi logo" : "Tải logo lên"}
                 </button>
 
-                {logo.selectedName && (
+                {logoSelectedName && (
                   <>
                     <div className="rounded-xl border border-primary/20 bg-primary/10 px-3 py-1.5 text-xs text-primary truncate">
-                      {logo.selectedName}
+                      {logoSelectedName}
                     </div>
                     <button
                       type="button"
-                      onClick={logo.handleReset}
+                      onClick={handleLogoReset}
                       className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl border border-border px-4 py-2 text-xs font-medium text-muted transition hover:bg-surface hover:text-foreground"
                     >
                       <X className="h-3.5 w-3.5" />
@@ -344,7 +366,7 @@ export function EmployerEditForm({ employer, industryOptions }: EmployerEditForm
                     </button>
                   </>
                 )}
-                {logo.error && <p className="text-xs text-red-600">{logo.error}</p>}
+                {logoError && <p className="text-xs text-red-600">{logoError}</p>}
               </div>
             </div>
           </div>
@@ -358,8 +380,8 @@ export function EmployerEditForm({ employer, industryOptions }: EmployerEditForm
 
             {/* Cover preview */}
             <div className="w-full h-32 rounded-xl border border-border bg-surface overflow-hidden flex items-center justify-center">
-              {cover.previewUrl ? (
-                <img src={cover.previewUrl} alt="Cover" className="w-full h-full object-cover" />
+              {coverPreviewUrl ? (
+                <img src={coverPreviewUrl} alt="Cover" className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full bg-gradient-to-r from-[var(--color-fdi-dark)] via-[#005A9E] to-[var(--color-fdi-primary)] flex items-center justify-center">
                   <p className="text-white/60 text-xs">Chưa có ảnh bìa — sẽ dùng gradient mặc định</p>
@@ -369,31 +391,31 @@ export function EmployerEditForm({ employer, industryOptions }: EmployerEditForm
 
             <div className="space-y-2">
               <input
-                ref={cover.fileInputRef}
+                ref={coverFileInputRef}
                 id="coverImage"
                 name="coverImage"
                 type="file"
                 accept="image/jpeg,image/png,image/webp"
-                onChange={cover.handleFileChange}
+                onChange={handleCoverFileChange}
                 className="hidden"
               />
               <button
                 type="button"
-                onClick={() => cover.fileInputRef.current?.click()}
+                onClick={() => coverFileInputRef.current?.click()}
                 className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-border px-4 py-2.5 text-sm font-medium text-foreground transition hover:bg-surface"
               >
                 <ImagePlus className="h-4 w-4" />
-                {cover.previewUrl ? "Đổi ảnh bìa" : "Tải ảnh bìa lên"}
+                {coverPreviewUrl ? "Đổi ảnh bìa" : "Tải ảnh bìa lên"}
               </button>
 
-              {cover.selectedName && (
+              {coverSelectedName && (
                 <>
                   <div className="rounded-xl border border-primary/20 bg-primary/10 px-3 py-1.5 text-xs text-primary truncate">
-                    {cover.selectedName}
+                    {coverSelectedName}
                   </div>
                   <button
                     type="button"
-                    onClick={cover.handleReset}
+                    onClick={handleCoverReset}
                     className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl border border-border px-4 py-2 text-xs font-medium text-muted transition hover:bg-surface hover:text-foreground"
                   >
                     <X className="h-3.5 w-3.5" />
@@ -401,15 +423,15 @@ export function EmployerEditForm({ employer, industryOptions }: EmployerEditForm
                   </button>
                 </>
               )}
-              {cover.error && <p className="text-xs text-red-600">{cover.error}</p>}
+              {coverError && <p className="text-xs text-red-600">{coverError}</p>}
             </div>
 
             {/* Cover position editor */}
-            {cover.previewUrl && (
+            {coverPreviewUrl && (
               <div className="space-y-2">
                 <p className="text-xs font-medium text-foreground">Căn chỉnh vị trí hiển thị</p>
                 <CoverPositionEditor
-                  imageUrl={cover.previewUrl}
+                  imageUrl={coverPreviewUrl}
                   positionX={coverPos.positionX}
                   positionY={coverPos.positionY}
                   zoom={coverPos.zoom}
@@ -437,6 +459,49 @@ export function EmployerEditForm({ employer, industryOptions }: EmployerEditForm
               defaultValue={employer.companyName}
               className={inputClassName}
             />
+          </div>
+
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+            <div>
+              <label htmlFor="location" className="block text-sm font-medium text-foreground mb-1.5">
+                Khu vực
+              </label>
+              <select
+                id="location"
+                name="location"
+                defaultValue={employer.location ?? ""}
+                className={inputClassName}
+              >
+                <option value="">Chọn khu vực</option>
+                {locationOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label htmlFor="industrialZone" className="block text-sm font-medium text-foreground mb-1.5">
+                Khu công nghiệp
+              </label>
+              <select
+                id="industrialZone"
+                name="industrialZone"
+                defaultValue={employer.industrialZone ?? ""}
+                className={inputClassName}
+              >
+                <option value="">Chọn KCN</option>
+                {industrialZoneOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-1 text-xs text-muted">
+                Dùng để sync với filter công ty và việc làm; địa chỉ chi tiết vẫn nhập bên dưới.
+              </p>
+            </div>
           </div>
 
           <div>
@@ -488,7 +553,7 @@ export function EmployerEditForm({ employer, industryOptions }: EmployerEditForm
                 className={inputClassName}
               >
                 <option value="">Chọn quy mô</option>
-                {COMPANY_SIZES.map((size) => (
+                {effectiveCompanySizeOptions.map((size) => (
                   <option key={size.value} value={size.value}>
                     {size.label}
                   </option>

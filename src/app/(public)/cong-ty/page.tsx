@@ -45,12 +45,14 @@ export default async function CompanyListingPage({ searchParams }: PageProps) {
   const params = await searchParams;
   const q = getStringParam(params, "q");
   const industry = getStringParam(params, "industry");
+  const location = getStringParam(params, "location");
+  const industrialZone = getStringParam(params, "industrialZone");
   const priority = getStringParam(params, "priority") === "1";
   const hiring = getStringParam(params, "hiring") === "1";
   const sort = getCompanySort(getStringParam(params, "sort"));
   const page = getPageParam(params);
 
-  const result = await getPublicCompanies({ q, industry, priority, hiring, sort, page });
+  const result = await getPublicCompanies({ q, industry, location, industrialZone, priority, hiring, sort, page });
   const featuredCompany = result.page === 1 ? result.companies.find(isPriorityCompany) : undefined;
   const priorityCompanies = result.companies.filter(
     (company) => company.id !== featuredCompany?.id && isPriorityCompany(company)
@@ -58,7 +60,7 @@ export default async function CompanyListingPage({ searchParams }: PageProps) {
   const standardCompanies = result.companies.filter(
     (company) => company.id !== featuredCompany?.id && !isPriorityCompany(company)
   );
-  const hasActiveFilters = Boolean(q || industry || priority || hiring || sort !== "priority");
+  const hasActiveFilters = Boolean(q || industry || location || industrialZone || priority || hiring || sort !== "priority");
 
   return (
     <div id="main-content" className="min-h-screen bg-[var(--color-fdi-mist)]">
@@ -96,7 +98,7 @@ export default async function CompanyListingPage({ searchParams }: PageProps) {
           </div>
 
           <form action="/cong-ty" className="mt-8 rounded-2xl border border-[var(--color-fdi-border)] bg-white p-4 shadow-[0_18px_44px_-38px_rgba(7,26,47,0.55)]">
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(280px,1.35fr)_repeat(4,minmax(150px,1fr))]">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(260px,1.35fr)_repeat(6,minmax(135px,1fr))]">
               <div className="sm:col-span-2 lg:col-span-1">
                 <label htmlFor="company-search" className="mb-1.5 block text-xs font-bold text-[var(--color-fdi-text)]">
                   Tìm công ty
@@ -126,6 +128,44 @@ export default async function CompanyListingPage({ searchParams }: PageProps) {
                 >
                   <option value="">Tất cả ngành nghề</option>
                   {result.filters.industries.map((item) => (
+                    <option key={item.value} value={item.value}>
+                      {item.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label htmlFor="company-location" className="mb-1.5 block text-xs font-bold text-[var(--color-fdi-text)]">
+                  Khu vực
+                </label>
+                <select
+                  id="company-location"
+                  name="location"
+                  defaultValue={location ?? ""}
+                  className="min-h-11 w-full cursor-pointer rounded-lg border border-[var(--color-fdi-border)] bg-white px-3 py-2 text-sm text-[var(--color-fdi-text)] transition-colors focus:border-[var(--color-fdi-primary)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-primary)]/25"
+                >
+                  <option value="">Tất cả khu vực</option>
+                  {result.filters.locations.map((item) => (
+                    <option key={item.value} value={item.value}>
+                      {item.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label htmlFor="company-industrial-zone" className="mb-1.5 block text-xs font-bold text-[var(--color-fdi-text)]">
+                  Khu công nghiệp
+                </label>
+                <select
+                  id="company-industrial-zone"
+                  name="industrialZone"
+                  defaultValue={industrialZone ?? ""}
+                  className="min-h-11 w-full cursor-pointer rounded-lg border border-[var(--color-fdi-border)] bg-white px-3 py-2 text-sm text-[var(--color-fdi-text)] transition-colors focus:border-[var(--color-fdi-primary)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-primary)]/25"
+                >
+                  <option value="">Tất cả KCN</option>
+                  {result.filters.industrialZones.map((item) => (
                     <option key={item.value} value={item.value}>
                       {item.label}
                     </option>

@@ -44,9 +44,10 @@ async function parseJobInput(formData: FormData, clientId: number) {
   const salaryMaxStr = formData.get("salaryMax")?.toString();
   const quantityStr = formData.get("quantity")?.toString();
   const feeStr = formData.get("fee")?.toString();
-  const [industry, location] = await Promise.all([
+  const [industry, location, industrialZone] = await Promise.all([
     resolveConfigOptionValue(OPTION_GROUPS.industry, strVal(formData.get("industry"))),
     resolveConfigOptionValue(OPTION_GROUPS.location, strVal(formData.get("location"))),
+    resolveConfigOptionValue(OPTION_GROUPS.industrialZone, strVal(formData.get("industrialZone"))),
   ]);
 
   return jobFormSchema.safeParse({
@@ -55,6 +56,7 @@ async function parseJobInput(formData: FormData, clientId: number) {
     description: strVal(formData.get("description")),
     industry,
     location,
+    industrialZone,
     requiredSkills: parseRequiredSkills(formData.get("requiredSkills")),
     salaryMin: salaryMinStr ? parseFloat(salaryMinStr) : undefined,
     salaryMax: salaryMaxStr ? parseFloat(salaryMaxStr) : undefined,

@@ -101,6 +101,9 @@ async function buildWhere(filters: ClientFilters): Promise<Prisma.ClientWhereInp
     where.OR = [
       { companyName: { contains: s, mode: "insensitive" } },
       { industry: { contains: s, mode: "insensitive" } },
+      { location: { contains: s, mode: "insensitive" } },
+      { industrialZone: { contains: s, mode: "insensitive" } },
+      { address: { contains: s, mode: "insensitive" } },
       { website: { contains: s, mode: "insensitive" } },
     ];
   }
@@ -115,6 +118,22 @@ async function buildWhere(filters: ClientFilters): Promise<Prisma.ClientWhereInp
 
   if (filters.companySize)
     where.companySize = filters.companySize;
+
+  if (filters.location) {
+    const locationValues = await getOptionFilterValues(
+      OPTION_GROUPS.location,
+      filters.location
+    );
+    where.location = { in: locationValues };
+  }
+
+  if (filters.industrialZone) {
+    const industrialZoneValues = await getOptionFilterValues(
+      OPTION_GROUPS.industrialZone,
+      filters.industrialZone
+    );
+    where.industrialZone = { in: industrialZoneValues };
+  }
 
   return where;
 }

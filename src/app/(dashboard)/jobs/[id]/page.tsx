@@ -36,9 +36,11 @@ export default async function JobDetailPage({ params }: PageProps) {
 
   if (!job || !bridge) notFound();
 
-  const [clientOptions, industryOptions, statusOptions, feeTypeOptions] = await Promise.all([
+  const [clientOptions, industryOptions, locationOptions, industrialZoneOptions, statusOptions, feeTypeOptions] = await Promise.all([
     getAllClients({ pageSize: 10, includeIds: [job.clientId] }, scope),
     getOptionsForSelect(OPTION_GROUPS.industry, { currentValue: job.industry }),
+    getOptionsForSelect(OPTION_GROUPS.location, { currentValue: job.location }),
+    getOptionsForSelect(OPTION_GROUPS.industrialZone, { currentValue: job.industrialZone }),
     getOptionsForSelect(OPTION_GROUPS.jobStatus, { currentValue: job.status }),
     getOptionsForSelect(OPTION_GROUPS.feeType, { currentValue: job.feeType }),
   ]);
@@ -91,6 +93,8 @@ export default async function JobDetailPage({ params }: PageProps) {
           initialClients={clientOptions.clients}
           users={users}
           industryOptions={industryOptions}
+          locationOptions={locationOptions}
+          industrialZoneOptions={industrialZoneOptions}
           statusOptions={statusOptions}
           feeTypeOptions={feeTypeOptions}
         />

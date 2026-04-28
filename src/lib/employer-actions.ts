@@ -286,7 +286,7 @@ export async function updateCompanyProfileAction(formData: FormData) {
   const session = await requireEmployerSession();
   const websiteInput = formData.get("website")?.toString().trim() || null;
   const normalizedWebsite = normalizeWebsite(websiteInput);
-  const [industry, companySize] = await Promise.all([
+  const [industry, companySize, location, industrialZone] = await Promise.all([
     resolveConfigOptionValue(
       OPTION_GROUPS.industry,
       formData.get("industry")?.toString().trim() || null
@@ -295,6 +295,14 @@ export async function updateCompanyProfileAction(formData: FormData) {
       OPTION_GROUPS.companySize,
       formData.get("companySize")?.toString().trim() || null
     ),
+    resolveConfigOptionValue(
+      OPTION_GROUPS.location,
+      formData.get("location")?.toString().trim() || null
+    ),
+    resolveConfigOptionValue(
+      OPTION_GROUPS.industrialZone,
+      formData.get("industrialZone")?.toString().trim() || null
+    ),
   ]);
   const parsedInput = employerProfileSchema.safeParse({
     companyName: formData.get("companyName")?.toString().trim() ?? "",
@@ -302,6 +310,8 @@ export async function updateCompanyProfileAction(formData: FormData) {
     industry,
     companySize,
     address: formData.get("address")?.toString().trim() || null,
+    location,
+    industrialZone,
     website: websiteInput ? normalizedWebsite ?? websiteInput : null,
     phone: formData.get("phone")?.toString().trim() || null,
   });
@@ -319,6 +329,8 @@ export async function updateCompanyProfileAction(formData: FormData) {
     industry: parsedInput.data.industry || null,
     companySize: parsedInput.data.companySize ?? undefined,
     address: parsedInput.data.address || null,
+    location: parsedInput.data.location || null,
+    industrialZone: parsedInput.data.industrialZone || null,
     website: parsedInput.data.website || null,
     phone: parsedInput.data.phone || null,
     coverPositionX: parseInt(formData.get("coverPositionX")?.toString() || "50") || 50,
@@ -339,12 +351,14 @@ export async function getCompanyProfileOptions() {
   const session = await requireEmployerSession();
   const employer = await getEmployerProfileById(session.employerId);
 
-  const [industryOptions, companySizeOptions] = await Promise.all([
+  const [industryOptions, companySizeOptions, locationOptions, industrialZoneOptions] = await Promise.all([
     getOptionsForSelect(OPTION_GROUPS.industry, { currentValue: employer?.industry }),
     getOptionsForSelect(OPTION_GROUPS.companySize, { currentValue: employer?.companySize }),
+    getOptionsForSelect(OPTION_GROUPS.location, { currentValue: employer?.location }),
+    getOptionsForSelect(OPTION_GROUPS.industrialZone, { currentValue: employer?.industrialZone }),
   ]);
 
-  return { industryOptions, companySizeOptions };
+  return { industryOptions, companySizeOptions, locationOptions, industrialZoneOptions };
 }
 
 export async function getJobPostingFormOptions(current?: {

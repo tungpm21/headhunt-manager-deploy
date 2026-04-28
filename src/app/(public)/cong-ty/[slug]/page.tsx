@@ -92,6 +92,8 @@ export default async function CompanyProfilePage({ params }: PageProps) {
   const infoItems = [
     { icon: Building2, label: "Ngành nghề", value: company.industry },
     { icon: Users, label: "Quy mô", value: company.companySize },
+    { icon: MapPin, label: "Khu vực", value: company.location },
+    { icon: Building2, label: "Khu công nghiệp", value: company.industrialZone },
     { icon: MapPin, label: "Địa chỉ", value: company.address },
     { icon: Globe, label: "Website", value: company.website, isLink: true },
   ];
@@ -184,6 +186,17 @@ export default async function CompanyProfilePage({ params }: PageProps) {
           </div>
           <div className="mt-2 flex flex-wrap items-center gap-3 text-sm" style={mutedTextStyle}>
             {company.industry ? <span>{company.industry}</span> : null}
+            {company.industrialZone ? (
+              <span className="flex items-center gap-1">
+                <Building2 className="h-3.5 w-3.5" aria-hidden="true" />
+                {company.industrialZone}
+              </span>
+            ) : company.location ? (
+              <span className="flex items-center gap-1">
+                <MapPin className="h-3.5 w-3.5" aria-hidden="true" />
+                {company.location}
+              </span>
+            ) : null}
             {company.jobPostings.length > 0 ? (
               <span className="flex items-center gap-1 font-medium" style={{ color: theme.accentColor }}>
                 <Briefcase className="h-3.5 w-3.5" />

@@ -9,9 +9,11 @@ export const metadata = {
 };
 
 export default async function NewClientPage() {
-  const [industryOptions, companySizeOptions, statusOptions] = await Promise.all([
+  const [industryOptions, companySizeOptions, locationOptions, industrialZoneOptions, statusOptions] = await Promise.all([
     getOptionsForSelect(OPTION_GROUPS.industry),
     getOptionsForSelect(OPTION_GROUPS.companySize),
+    getOptionsForSelect(OPTION_GROUPS.location),
+    getOptionsForSelect(OPTION_GROUPS.industrialZone),
     getOptionsForSelect(OPTION_GROUPS.clientStatus),
   ]);
 
@@ -44,6 +46,8 @@ export default async function NewClientPage() {
         <ClientForm
           industryOptions={industryOptions}
           companySizeOptions={companySizeOptions}
+          locationOptions={locationOptions}
+          industrialZoneOptions={industrialZoneOptions}
           statusOptions={statusOptions}
         />
       </div>

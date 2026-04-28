@@ -96,6 +96,8 @@ export async function updateEmployerProfileById(
     industry: string | null;
     companySize: "SMALL" | "MEDIUM" | "LARGE" | "ENTERPRISE" | undefined;
     address: string | null;
+    location: string | null;
+    industrialZone: string | null;
     website: string | null;
     phone: string | null;
     coverImage?: string | null;

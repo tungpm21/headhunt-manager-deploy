@@ -13,10 +13,12 @@ export const metadata = {
 
 export default async function NewJobPage() {
   const scope = await requireViewerScope();
-  const [clientOptions, users, industryOptions, statusOptions, feeTypeOptions] = await Promise.all([
+  const [clientOptions, users, industryOptions, locationOptions, industrialZoneOptions, statusOptions, feeTypeOptions] = await Promise.all([
     getAllClients({ pageSize: 10 }, scope),
     getAssignableUsers(),
     getOptionsForSelect(OPTION_GROUPS.industry),
+    getOptionsForSelect(OPTION_GROUPS.location),
+    getOptionsForSelect(OPTION_GROUPS.industrialZone),
     getOptionsForSelect(OPTION_GROUPS.jobStatus),
     getOptionsForSelect(OPTION_GROUPS.feeType),
   ]);
@@ -51,6 +53,8 @@ export default async function NewJobPage() {
           initialClients={clientOptions.clients}
           users={users}
           industryOptions={industryOptions}
+          locationOptions={locationOptions}
+          industrialZoneOptions={industrialZoneOptions}
           statusOptions={statusOptions}
           feeTypeOptions={feeTypeOptions}
         />

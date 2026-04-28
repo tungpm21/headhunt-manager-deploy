@@ -63,6 +63,7 @@ function CoverImage({
 export function CompanyCard({ company, imagePriority = false, variant = "standard" }: CompanyCardProps) {
   const jobCount = company._count.jobPostings;
   const companySize = getCompanySizeLabel(company.companySize);
+  const hasStructuredPlace = Boolean(company.industrialZone || company.location);
   const isFeatured = variant === "featured";
   const isPriority = variant === "priority";
 
@@ -133,7 +134,19 @@ export function CompanyCard({ company, imagePriority = false, variant = "standar
                   {companySize}
                 </span>
               )}
-              {company.address && (
+              {company.industrialZone && (
+                <span className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-[var(--color-fdi-border)] bg-white px-3 py-1.5">
+                  <Building2 className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                  <span className="truncate">KCN: {company.industrialZone}</span>
+                </span>
+              )}
+              {company.location && (
+                <span className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-[var(--color-fdi-border)] bg-white px-3 py-1.5">
+                  <MapPin className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                  <span className="truncate">{company.location}</span>
+                </span>
+              )}
+              {company.address && !hasStructuredPlace && (
                 <span className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-[var(--color-fdi-border)] bg-white px-3 py-1.5">
                   <MapPin className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                   <span className="truncate">{company.address}</span>
@@ -224,7 +237,19 @@ export function CompanyCard({ company, imagePriority = false, variant = "standar
                 {companySize}
               </span>
             )}
-            {company.address && (
+            {company.industrialZone && (
+              <span className="inline-flex min-w-0 items-center gap-1 rounded-full bg-[var(--color-fdi-surface)] px-2.5 py-1 font-medium">
+                <Building2 className="h-3 w-3 shrink-0" aria-hidden="true" />
+                <span className="truncate">KCN: {company.industrialZone}</span>
+              </span>
+            )}
+            {company.location && (
+              <span className="inline-flex min-w-0 items-center gap-1 rounded-full bg-[var(--color-fdi-surface)] px-2.5 py-1 font-medium">
+                <MapPin className="h-3 w-3 shrink-0" aria-hidden="true" />
+                <span className="truncate">{company.location}</span>
+              </span>
+            )}
+            {company.address && !hasStructuredPlace && (
               <span className="inline-flex min-w-0 items-center gap-1 rounded-full bg-[var(--color-fdi-surface)] px-2.5 py-1 font-medium">
                 <MapPin className="h-3 w-3 shrink-0" aria-hidden="true" />
                 <span className="truncate">{company.address}</span>

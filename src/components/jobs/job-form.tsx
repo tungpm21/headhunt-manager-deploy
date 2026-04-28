@@ -19,6 +19,8 @@ interface JobFormProps {
   initialClients: ClientSelectOption[];
   users: { id: number; name: string }[];
   industryOptions: OptionChoice[];
+  locationOptions: OptionChoice[];
+  industrialZoneOptions: OptionChoice[];
   statusOptions: OptionChoice[];
   feeTypeOptions: OptionChoice[];
   onCancel?: () => void;
@@ -53,6 +55,8 @@ export function JobForm({
   initialClients,
   users,
   industryOptions,
+  locationOptions,
+  industrialZoneOptions,
   statusOptions,
   feeTypeOptions,
   onCancel,
@@ -158,14 +162,36 @@ export function JobForm({
 
           <div>
             <FieldLabel htmlFor="location">Khu vực</FieldLabel>
-            <input
+            <select
               id="location"
               name="location"
-              type="text"
               defaultValue={initialData?.location || ""}
-              placeholder="TP.HCM, Hà Nội..."
               className={inputCls}
-            />
+            >
+              <option value="">Chọn khu vực...</option>
+              {locationOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <FieldLabel htmlFor="industrialZone">Khu công nghiệp</FieldLabel>
+            <select
+              id="industrialZone"
+              name="industrialZone"
+              defaultValue={initialData?.industrialZone || ""}
+              className={inputCls}
+            >
+              <option value="">Chọn KCN...</option>
+              {industrialZoneOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="sm:col-span-2">

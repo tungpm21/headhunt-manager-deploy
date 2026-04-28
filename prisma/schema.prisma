@@ -313,6 +313,8 @@ model Client {
   industry    String?
   companySize CompanySize?
   address     String?
+  location    String?
+  industrialZone String?
   website     String?
   notes       String?
   status      ClientStatus @default(ACTIVE) // Trạng thái khách hàng
@@ -328,6 +330,8 @@ model Client {
   jobOrders   JobOrder[]
 
   @@index([companyName])
+  @@index([location])
+  @@index([industrialZone])
   @@index([isDeleted])
 }
 
@@ -349,6 +353,7 @@ model JobOrder {
   description    String?
   industry       String?     // Ngành nghề (theo spec)
   location       String?     // Địa điểm làm việc (theo spec)
+  industrialZone String?     // Khu công nghiệp (theo spec)
   requiredSkills String[]    // Kỹ năng yêu cầu (theo spec)
   salaryMin      Float?
   salaryMax      Float?
@@ -376,6 +381,8 @@ model JobOrder {
   @@index([status])
   @@index([priority])
   @@index([industry])
+  @@index([location])
+  @@index([industrialZone])
   @@index([clientId])
   @@index([requiredSkills], type: Gin, map: "idx_job_required_skills")
 }
@@ -427,6 +434,8 @@ model Employer {
   industry    String?
   companySize CompanySize?
   address     String?
+  location    String?
+  industrialZone String?
   website     String?
   phone       String?
   status      EmployerStatus @default(PENDING)
@@ -446,6 +455,8 @@ model Employer {
   @@index([status])
   @@index([slug])
   @@index([industry])
+  @@index([location])
+  @@index([industrialZone])
 }
 
 model Subscription {

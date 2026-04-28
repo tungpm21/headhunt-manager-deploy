@@ -100,10 +100,10 @@ After every implementation slice:
 
 | ID | Task | Status | Notes |
 | --- | --- | --- | --- |
-| P7-01 | Make Kanban selected-job only | [ ] | Secondary view |
-| P7-02 | Add per-card pending state | [ ] | Avoid whole board lock |
-| P7-03 | Add stage dropdown/buttons to selected card | [ ] | DnD fallback |
-| P7-04 | Improve mobile fallback | [ ] | DnD not required |
+| P7-01 | Make Kanban selected-job only | [x] | `/employer/pipeline` now renders a job selector first; applications load only after a job is selected |
+| P7-02 | Add per-card pending state | [x] | Status updates track pending by application id instead of locking the whole board |
+| P7-03 | Add stage dropdown/buttons to selected card | [x] | Cards and preview panel both support explicit status updates without drag-and-drop |
+| P7-04 | Improve mobile fallback | [x] | Mobile uses stacked cards with select/buttons; drag-and-drop board is desktop-only |
 | P7-05 | Remove old inline Link Client UI | [ ] | After Account Mapping stable |
 | P7-06 | Redirect legacy employer pages | [ ] | After portal stable |
 
@@ -119,6 +119,16 @@ Result:
 Changed files:
 Remaining risk:
 Next task:
+```
+
+```text
+Date: 2026-04-29
+Task: Phase 7 P7-01 through P7-04 employer pipeline optimization
+Commands: GitNexus impact EmployerPipelineBoard/EmployerPipelinePage/getRecruitmentPipelineData/updateApplicationPipelineStatusAction/getEmployerApplicationPipelineData -> LOW; npx tsc --noEmit -> pass; targeted eslint for pipeline page, board, employers.ts -> pass; npm run build -> pass; Playwright smoke login -> /employer/pipeline -> ?job=117 -> pass; status update IMPORTED -> REVIEWED -> IMPORTED restore -> pass
+Result: Employer pipeline no longer renders an all-jobs Kanban by default. The page now selects one job first, loads only that job's applications, provides per-card pending status, dropdown/button status updates, a profile preview panel, and a mobile list fallback.
+Changed files: src/app/(employer)/employer/(portal)/pipeline/page.tsx, src/components/employer/EmployerPipelineBoard.tsx, src/lib/employers.ts
+Remaining risk: Build still emits the existing Postgres SSL mode warning. P7-05 and P7-06 remain deferred because account mapping/legacy redirects need a separate product decision.
+Next task: Commit Phase 7 P7-01 through P7-04 if diff review is clean.
 ```
 
 ```text

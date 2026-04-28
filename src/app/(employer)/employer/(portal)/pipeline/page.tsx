@@ -9,9 +9,9 @@ type PageProps = {
 export default async function EmployerPipelinePage({ searchParams }: PageProps) {
   const params = await searchParams;
   const selectedJobId = params.job ? Number.parseInt(params.job, 10) : null;
-  const data = await getRecruitmentPipelineData(
-    selectedJobId && Number.isInteger(selectedJobId) ? selectedJobId : undefined
-  );
+  const normalizedJobId =
+    selectedJobId && Number.isInteger(selectedJobId) ? selectedJobId : null;
+  const data = await getRecruitmentPipelineData(normalizedJobId ?? undefined);
 
   const applications = data.applications.map((application) => ({
     id: application.id,
@@ -42,14 +42,15 @@ export default async function EmployerPipelinePage({ searchParams }: PageProps) 
           Pipeline tuyển dụng
         </h1>
         <p className="mt-1 text-gray-500">
-          Quản lý ứng viên theo từng trạng thái tuyển dụng cho các tin đã đăng.
+          Quản lý ứng viên theo từng tin tuyển dụng, có Kanban phụ và thao tác nhanh không cần kéo thả.
         </p>
       </div>
 
       <EmployerPipelineBoard
+        key={normalizedJobId ?? "job-selector"}
         initialApplications={applications}
         jobs={jobs}
-        selectedJobId={selectedJobId && Number.isInteger(selectedJobId) ? selectedJobId : null}
+        selectedJobId={normalizedJobId}
       />
     </div>
   );

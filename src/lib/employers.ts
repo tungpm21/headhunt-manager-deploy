@@ -512,32 +512,31 @@ export async function getEmployerApplicationPipelineData(
   employerId: number,
   jobPostingId?: number
 ) {
-  const where: Prisma.ApplicationWhereInput = {
-    jobPosting: { employerId },
-  };
-
-  if (jobPostingId) {
-    where.jobPostingId = jobPostingId;
-  }
-
-  const [applications, jobs] = await Promise.all([
-    prisma.application.findMany({
-      where,
-      orderBy: [
-        { updatedAt: "desc" },
-        { createdAt: "desc" },
-      ],
-      include: {
-        jobPosting: {
-          select: {
-            id: true,
-            title: true,
-            slug: true,
-            status: true,
+  const applicationQuery = jobPostingId
+    ? prisma.application.findMany({
+        where: {
+          jobPosting: { employerId },
+          jobPostingId,
+        },
+        orderBy: [
+          { updatedAt: "desc" },
+          { createdAt: "desc" },
+        ],
+        include: {
+          jobPosting: {
+            select: {
+              id: true,
+              title: true,
+              slug: true,
+              status: true,
+            },
           },
         },
-      },
-    }),
+      })
+    : Promise.resolve([]);
+
+  const [applications, jobs] = await Promise.all([
+    applicationQuery,
     prisma.jobPosting.findMany({
       where: { employerId },
       orderBy: { createdAt: "desc" },

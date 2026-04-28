@@ -28,6 +28,7 @@ import {
   type ContentStat,
 } from "@/lib/content-blocks";
 import { ContentBlocksRenderer } from "./ContentBlocksRenderer";
+import { MarkdownEditor } from "./MarkdownEditor";
 import { MediaUploadButton } from "./MediaUploadButton";
 
 type BlockBuilderProps = {
@@ -69,6 +70,10 @@ const inputClass =
   "w-full rounded-xl border border-border bg-white px-3 py-2 text-sm text-foreground placeholder:text-muted focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25";
 const smallButtonClass =
   "inline-flex h-9 items-center justify-center gap-2 rounded-lg border border-border bg-white px-3 text-xs font-semibold text-foreground transition hover:bg-surface";
+
+function countMarkdownImages(value: string) {
+  return value.match(/!\[[^\]]*]\([^)]+\)/g)?.length ?? 0;
+}
 
 function createDefaultBlock(type: ContentBlockType): ContentBlock {
   const id = createContentBlockId(type);
@@ -324,15 +329,15 @@ function BlockEditor({
       </div>
 
       {block.type === "richText" ? (
-        <label className="space-y-1">
-          <span className="text-sm font-semibold text-foreground">Markdown</span>
-          <textarea
-            value={block.markdown ?? ""}
-            onChange={(event) => updateBlock(block.id, { markdown: event.target.value })}
-            rows={12}
-            className={`${inputClass} min-h-[260px] font-mono`}
-          />
-        </label>
+        <MarkdownEditor
+          label="Markdown"
+          value={block.markdown ?? ""}
+          onChange={(markdown) => updateBlock(block.id, { markdown })}
+          rows={12}
+          uploadContext={context}
+          maxImages={maxImages}
+          usedImages={Math.max(0, imageCount - countMarkdownImages(block.markdown ?? ""))}
+        />
       ) : null}
 
       {block.type === "html" ? (

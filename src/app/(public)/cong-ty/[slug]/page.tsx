@@ -155,8 +155,8 @@ export default async function CompanyProfilePage({ params }: PageProps) {
       <section className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="-mt-14 pl-6 sm:pl-10">
           <div
-            className="flex h-28 w-28 items-center justify-center overflow-hidden rounded-3xl shadow-lg ring-[6px]"
-            style={{ backgroundColor: theme.surfaceColor, borderColor: theme.borderColor, color: theme.textColor }}
+            className="flex h-28 w-28 items-center justify-center overflow-hidden rounded-3xl bg-white shadow-lg"
+            style={{ color: theme.textColor }}
           >
             <LogoImage
               src={company.logo}

@@ -89,10 +89,10 @@ After every implementation slice:
 | --- | --- | --- | --- |
 | P6-01 | Audit admin vs portal builder fields | [x] | Existing uncommitted builder work audited; see 06-builder-sync-audit-2026-04-29.md |
 | P6-02 | Define shared builder contract | [~] | `content-blocks.ts` has shared theme/capability/block normalization; formal field-by-field contract still pending |
-| P6-03 | Add profile draft flow if needed | [ ] | Draft, submit, approve/reject |
+| P6-03 | Add profile draft flow if needed | [x] | Added CompanyProfileDraft model/migration; employer profile submits draft instead of publishing directly |
 | P6-04 | Update company profile editor | [x] | Existing portal profile editor uses BlockBuilder, theme, logo/cover upload, capabilities |
-| P6-05 | Add draft preview | [ ] | No accidental publish |
-| P6-06 | Add admin profile draft review | [ ] | Publish control |
+| P6-05 | Add draft preview | [x] | Admin preview route `/companies/[id]/profile-drafts/[draftId]/preview` renders draft payload without publishing |
+| P6-06 | Add admin profile draft review | [x] | `/companies/[id]?tab=profile-drafts` can approve/publish or reject submitted profile drafts |
 | P6-07 | Align job posting builder fields | [~] | Employer create/edit has markdown content, cover image/alt, taxonomy, language, shift, FDI fields; admin parity still needs final comparison |
 | P6-08 | Share media validation | [~] | Upload permissions and limits exist, but validation is not fully centralized yet |
 
@@ -119,6 +119,16 @@ Result:
 Changed files:
 Remaining risk:
 Next task:
+```
+
+```text
+Date: 2026-04-29
+Task: Phase 6 profile draft/review hardening
+Commands: npx prisma generate -> pass; npx prisma validate -> pass; npx tsc --noEmit -> pass; targeted eslint for draft/profile/admin files -> pass with one no-img-element preview warning; npx prisma migrate deploy -> pass; npm run build -> pass
+Result: Employer profile saves now create/update a submitted CompanyProfileDraft instead of writing public Employer/ProfileConfig records. Admin company detail has a profile-drafts review tab with approve/publish, reject actions, and draft-only preview route.
+Changed files: prisma/schema.prisma, prisma/migrations/20260429110000_add_company_profile_drafts/migration.sql, src/lib/employer-actions.ts, src/lib/workspace-actions.ts, src/app/(employer)/employer/(portal)/company/page.tsx, src/app/(dashboard)/companies/[id]/page.tsx, src/app/(dashboard)/companies/[id]/profile-drafts/[draftId]/preview/page.tsx
+Remaining risk: Employer form button copy still uses the existing saved-text in one label and should be polished with encoding-safe cleanup.
+Next task: P6-02/P6-07 formal builder contract and admin job/profile parity comparison.
 ```
 
 ```text

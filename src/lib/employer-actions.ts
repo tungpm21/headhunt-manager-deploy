@@ -1,6 +1,6 @@
 "use server";
 
-import { ApplicationStatus } from "@prisma/client";
+import { ApplicationStatus, CompanyDraftStatus, Prisma } from "@prisma/client";
 import { compareSync, hashSync } from "bcrypt-ts";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -31,8 +31,6 @@ import {
   updateEmployerApplicationStatus,
   updateEmployerJobPosting,
   updateEmployerJobPostingStatus,
-  updateEmployerProfileById,
-  upsertEmployerProfileConfigForPortal,
 } from "@/lib/employers";
 import { OPTION_GROUPS } from "@/lib/config-option-definitions";
 import {
@@ -56,6 +54,8 @@ import {
   checkRateLimit,
 } from "@/lib/rate-limit-redis";
 import { deleteFile, uploadFile } from "@/lib/storage";
+import { getWorkspaceForEmployer } from "@/lib/workspace";
+import { prisma } from "@/lib/prisma";
 import {
   employerJobPostingSchema,
   employerLoginSchema,
@@ -419,6 +419,14 @@ export async function updateCompanyProfileAction(formData: FormData) {
     };
   }
 
+  const workspace = await getWorkspaceForEmployer(session.employerId);
+  if (!workspace) {
+    return {
+      success: false,
+      message: "Company Workspace chưa được liên kết với tài khoản này.",
+    };
+  }
+
   const logoFile = formData.get("logo");
   const nextLogo = logoFile instanceof File && logoFile.size > 0 ? logoFile : null;
   let uploadedLogoUrl: string | null = null;
@@ -455,30 +463,73 @@ export async function updateCompanyProfileAction(formData: FormData) {
   }
 
   try {
-    await Promise.all([
-      updateEmployerProfileById(session.employerId, {
-        companyName: parsedInput.data.companyName,
-        description: parsedInput.data.description || null,
-        logo: uploadedLogoUrl ?? employer.logo,
-        coverImage: uploadedCoverUrl ?? employer.coverImage,
-        industry: parsedInput.data.industry || null,
-        companySize: parsedInput.data.companySize ?? null,
-        address: parsedInput.data.address || null,
-        location: parsedInput.data.location || null,
-        industrialZone: parsedInput.data.industrialZone || null,
-        website: parsedInput.data.website || null,
-        phone: parsedInput.data.phone || null,
-        coverPositionX: parseInt(formData.get("coverPositionX")?.toString() || "50") || 50,
-        coverPositionY: parseInt(formData.get("coverPositionY")?.toString() || "50") || 50,
-        coverZoom: parseInt(formData.get("coverZoom")?.toString() || "100") || 100,
-      }),
-      upsertEmployerProfileConfigForPortal(session.employerId, {
-        theme: JSON.parse(JSON.stringify(profileTheme)),
-        capabilities: JSON.parse(JSON.stringify(currentCapabilities)),
-        sections: JSON.parse(JSON.stringify(profileSections)),
+    const existingDraft = await prisma.companyProfileDraft.findFirst({
+      where: {
+        workspaceId: workspace.id,
+        status: {
+          in: [
+            CompanyDraftStatus.DRAFT,
+            CompanyDraftStatus.SUBMITTED,
+            CompanyDraftStatus.REJECTED,
+          ],
+        },
+      },
+      orderBy: { updatedAt: "desc" },
+      select: { id: true },
+    });
+
+    const draftPayload = {
+      companyName: parsedInput.data.companyName,
+      description: parsedInput.data.description || null,
+      logo: uploadedLogoUrl ?? employer.logo,
+      coverImage: uploadedCoverUrl ?? employer.coverImage,
+      industry: parsedInput.data.industry || null,
+      companySize: parsedInput.data.companySize ?? null,
+      address: parsedInput.data.address || null,
+      location: parsedInput.data.location || null,
+      industrialZone: parsedInput.data.industrialZone || null,
+      website: parsedInput.data.website || null,
+      phone: parsedInput.data.phone || null,
+      coverPositionX: parseInt(formData.get("coverPositionX")?.toString() || "50") || 50,
+      coverPositionY: parseInt(formData.get("coverPositionY")?.toString() || "50") || 50,
+      coverZoom: parseInt(formData.get("coverZoom")?.toString() || "100") || 100,
+      profileConfig: {
+        theme: profileTheme,
+        capabilities: currentCapabilities,
+        sections: profileSections,
         primaryVideoUrl,
-      }),
-    ]);
+      },
+    };
+    const draftData = {
+      payload: JSON.parse(JSON.stringify(draftPayload)) as Prisma.InputJsonValue,
+      status: CompanyDraftStatus.SUBMITTED,
+      submittedByName: employer.companyName,
+      submittedByEmail: employer.email,
+      submittedAt: new Date(),
+      reviewedAt: null,
+      reviewedById: null,
+      rejectReason: null,
+    };
+
+    if (existingDraft) {
+      await prisma.companyProfileDraft.update({
+        where: { id: existingDraft.id },
+        data: draftData,
+      });
+    } else {
+      await prisma.companyProfileDraft.create({
+        data: { workspaceId: workspace.id, ...draftData },
+      });
+    }
+
+    revalidatePath("/employer/company");
+    revalidatePath("/companies");
+    revalidatePath(`/companies/${workspace.id}`);
+
+    return {
+      success: true,
+      message: "Đã gửi bản nháp hồ sơ công ty để admin duyệt.",
+    };
   } catch (error) {
     if (uploadedLogoUrl) await deleteFile(uploadedLogoUrl);
     if (uploadedCoverUrl) await deleteFile(uploadedCoverUrl);
@@ -489,28 +540,47 @@ export async function updateCompanyProfileAction(formData: FormData) {
     };
   }
 
-  if (uploadedLogoUrl && employer.logo && employer.logo !== uploadedLogoUrl) {
-    await deleteFile(employer.logo);
-  }
-  if (uploadedCoverUrl && employer.coverImage && employer.coverImage !== uploadedCoverUrl) {
-    await deleteFile(employer.coverImage);
-  }
 
-  revalidatePath("/employer/company");
-  revalidatePath("/employer/dashboard");
-  revalidatePath("/cong-ty");
-  revalidatePath(`/cong-ty/${employer.slug}`);
-  revalidatePath("/viec-lam");
-  employer.jobPostings.forEach((job) => {
-    revalidatePath(`/viec-lam/${job.slug}`);
-  });
 
-  return { success: true, message: "Cập nhật thông tin thành công." };
 }
 
 export async function getCompanyProfile() {
   const session = await requireEmployerSession();
   return getEmployerProfileForPortalById(session.employerId);
+}
+
+export async function getCompanyProfileDraftStatus() {
+  const session = await requireEmployerSession();
+  const workspace = await getWorkspaceForEmployer(session.employerId);
+
+  if (!workspace) return null;
+
+  const draft = await prisma.companyProfileDraft.findFirst({
+    where: {
+      workspaceId: workspace.id,
+      status: {
+        in: [CompanyDraftStatus.SUBMITTED, CompanyDraftStatus.REJECTED],
+      },
+    },
+    orderBy: { updatedAt: "desc" },
+    select: {
+      id: true,
+      status: true,
+      submittedAt: true,
+      reviewedAt: true,
+      rejectReason: true,
+      updatedAt: true,
+    },
+  });
+
+  if (!draft) return null;
+
+  return {
+    ...draft,
+    submittedAt: draft.submittedAt?.toISOString() ?? null,
+    reviewedAt: draft.reviewedAt?.toISOString() ?? null,
+    updatedAt: draft.updatedAt.toISOString(),
+  };
 }
 
 export async function getCompanyProfileOptions() {

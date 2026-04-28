@@ -17,6 +17,7 @@ import {
     MessageSquare,
     Clock,
     CheckCircle2,
+    AlertTriangle,
 } from "lucide-react";
 import { requireAdmin } from "@/lib/authz";
 import {
@@ -24,6 +25,10 @@ import {
     withWorkspaceSubmissionAccess,
 } from "@/lib/workspace";
 import { prisma } from "@/lib/prisma";
+import {
+    approveCompanyProfileDraftAction,
+    rejectCompanyProfileDraftAction,
+} from "@/lib/workspace-actions";
 
 export const metadata = {
     title: "Chi tiết Công ty — Headhunt Manager",
@@ -89,7 +94,14 @@ export default async function CompanyDetailPage({ params, searchParams }: PagePr
     const activeTab = sp.tab ?? "overview";
 
     // Gather stats for overview
-    const [jobPostingCount, applicationCount, jobOrderCount, submissionCount, portalUserCount] =
+    const [
+        jobPostingCount,
+        applicationCount,
+        jobOrderCount,
+        submissionCount,
+        portalUserCount,
+        profileDraftCount,
+    ] =
         await Promise.all([
             workspace.employer
                 ? prisma.jobPosting.count({ where: { employerId: workspace.employer.id } })
@@ -108,6 +120,9 @@ export default async function CompanyDetailPage({ params, searchParams }: PagePr
                 })
                 : 0,
             prisma.companyPortalUser.count({ where: { workspaceId } }),
+            prisma.companyProfileDraft.count({
+                where: { workspaceId, status: "SUBMITTED" },
+            }),
         ]);
 
     const tabs = [
@@ -117,6 +132,7 @@ export default async function CompanyDetailPage({ params, searchParams }: PagePr
             ? [
                 { key: "jobs", label: `Tin tuyển dụng (${jobPostingCount})`, icon: FileText },
                 { key: "applications", label: `Ứng tuyển (${applicationCount})`, icon: Mail },
+                { key: "profile-drafts", label: `Duyệt hồ sơ (${profileDraftCount})`, icon: AlertTriangle },
             ]
             : []),
         ...(workspace.client
@@ -231,7 +247,10 @@ export default async function CompanyDetailPage({ params, searchParams }: PagePr
                 {activeTab === "submissions" && workspace.client && (
                     <SubmissionsTab workspaceId={workspace.id} />
                 )}
-                {activeTab !== "overview" && activeTab !== "mapping" && activeTab !== "submissions" && (
+                {activeTab === "profile-drafts" && workspace.employer && (
+                    <ProfileDraftsTab workspaceId={workspace.id} />
+                )}
+                {activeTab !== "overview" && activeTab !== "mapping" && activeTab !== "submissions" && activeTab !== "profile-drafts" && (
                     <div className="text-center py-12 text-muted">
                         <p className="text-lg font-medium mb-1">Tab &quot;{activeTab}&quot;</p>
                         <p className="text-sm">Sẽ được xây dựng trong các phase tiếp theo.</p>
@@ -640,6 +659,133 @@ async function SubmissionsTab({ workspaceId }: { workspaceId: number }) {
                     </tbody>
                 </table>
             </div>
+        </div>
+    );
+}
+
+async function ProfileDraftsTab({ workspaceId }: { workspaceId: number }) {
+    const drafts = await prisma.companyProfileDraft.findMany({
+        where: { workspaceId },
+        orderBy: [{ status: "asc" }, { updatedAt: "desc" }],
+        take: 20,
+        select: {
+            id: true,
+            status: true,
+            payload: true,
+            submittedByName: true,
+            submittedByEmail: true,
+            submittedAt: true,
+            reviewedAt: true,
+            rejectReason: true,
+            updatedAt: true,
+            reviewedBy: { select: { name: true, email: true } },
+        },
+    });
+
+    return (
+        <div className="space-y-4">
+            {drafts.length === 0 ? (
+                <div className="rounded-xl border border-dashed border-border bg-surface p-10 text-center text-muted">
+                    <AlertTriangle className="mx-auto mb-2 h-9 w-9 opacity-40" />
+                    Chưa có bản nháp hồ sơ nào từ công ty.
+                </div>
+            ) : (
+                drafts.map((draft) => {
+                    const payload =
+                        draft.payload && typeof draft.payload === "object" && !Array.isArray(draft.payload)
+                            ? (draft.payload as Record<string, unknown>)
+                            : {};
+                    const companyName =
+                        typeof payload.companyName === "string" && payload.companyName.trim()
+                            ? payload.companyName
+                            : "Hồ sơ công ty";
+                    const description =
+                        typeof payload.description === "string" ? payload.description : "";
+                    const isSubmitted = draft.status === "SUBMITTED";
+
+                    return (
+                        <div key={draft.id} className="rounded-xl border border-border bg-surface p-5 shadow-sm">
+                            <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                                <div>
+                                    <div className="flex flex-wrap items-center gap-2">
+                                        <h3 className="text-base font-semibold text-foreground">{companyName}</h3>
+                                        <span
+                                            className={`rounded-full px-2.5 py-1 text-xs font-medium ${
+                                                draft.status === "SUBMITTED"
+                                                    ? "bg-amber-100 text-amber-700"
+                                                    : draft.status === "APPROVED"
+                                                        ? "bg-emerald-100 text-emerald-700"
+                                                        : draft.status === "REJECTED"
+                                                            ? "bg-red-100 text-red-700"
+                                                            : "bg-slate-100 text-slate-700"
+                                            }`}
+                                        >
+                                            {draft.status}
+                                        </span>
+                                    </div>
+                                    <p className="mt-1 text-sm text-muted">
+                                        {draft.submittedByName || draft.submittedByEmail || "Company user"} ·{" "}
+                                        {formatDateTime(draft.submittedAt ?? draft.updatedAt)}
+                                    </p>
+                                    {description && (
+                                        <p className="mt-3 line-clamp-3 max-w-3xl text-sm text-foreground">
+                                            {description}
+                                        </p>
+                                    )}
+                                    <Link
+                                        href={`/companies/${workspaceId}/profile-drafts/${draft.id}/preview`}
+                                        target="_blank"
+                                        className="mt-3 inline-flex text-sm font-medium text-primary hover:underline"
+                                    >
+                                        Preview bản nháp
+                                    </Link>
+                                    {draft.rejectReason && (
+                                        <p className="mt-3 rounded-lg border border-red-100 bg-red-50 p-3 text-sm text-red-700">
+                                            {draft.rejectReason}
+                                        </p>
+                                    )}
+                                    {draft.reviewedBy && (
+                                        <p className="mt-2 text-xs text-muted">
+                                            Reviewed by {draft.reviewedBy.name || draft.reviewedBy.email}
+                                            {draft.reviewedAt ? ` · ${formatDateTime(draft.reviewedAt)}` : ""}
+                                        </p>
+                                    )}
+                                </div>
+
+                                {isSubmitted && (
+                                    <div className="flex min-w-[280px] flex-col gap-2">
+                                        <form action={approveCompanyProfileDraftAction}>
+                                            <input type="hidden" name="draftId" value={draft.id} />
+                                            <button
+                                                type="submit"
+                                                className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700"
+                                            >
+                                                <CheckCircle2 className="h-4 w-4" />
+                                                Duyệt và publish
+                                            </button>
+                                        </form>
+                                        <form action={rejectCompanyProfileDraftAction} className="space-y-2">
+                                            <input type="hidden" name="draftId" value={draft.id} />
+                                            <textarea
+                                                name="reason"
+                                                rows={3}
+                                                placeholder="Lý do từ chối để công ty chỉnh lại"
+                                                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                                            />
+                                            <button
+                                                type="submit"
+                                                className="inline-flex w-full items-center justify-center rounded-lg border border-red-200 bg-red-50 px-4 py-2.5 text-sm font-semibold text-red-700 transition hover:bg-red-100"
+                                            >
+                                                Từ chối
+                                            </button>
+                                        </form>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    );
+                })
+            )}
         </div>
     );
 }

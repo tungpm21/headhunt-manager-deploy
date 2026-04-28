@@ -165,6 +165,7 @@ model User {
   completedReminders CandidateReminder[] @relation("ReminderCompletedBy")
   uploadedCVs       CandidateCV[]   @relation("CVUploadedBy")
   activityLogs      ActivityLog[]
+  reviewedProfileDrafts CompanyProfileDraft[] @relation("CompanyProfileDraftReviewer")
 }
 
 model Candidate {
@@ -666,6 +667,13 @@ enum SubmissionFeedbackDecision {
   REJECTED
 }
 
+enum CompanyDraftStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  REJECTED
+}
+
 model CompanyWorkspace {
   id            Int                    @id @default(autoincrement())
   displayName   String
@@ -680,6 +688,7 @@ model CompanyWorkspace {
   client        Client?                @relation("WorkspaceClient", fields: [clientId], references: [id])
   portalUsers   CompanyPortalUser[]    @relation("WorkspacePortalUsers")
   feedback      SubmissionFeedback[]   @relation("WorkspaceFeedback")
+  profileDrafts CompanyProfileDraft[]  @relation("WorkspaceProfileDrafts")
 
   createdAt     DateTime               @default(now())
   updatedAt     DateTime               @updatedAt
@@ -722,4 +731,25 @@ model SubmissionFeedback {
 
   @@index([workspaceId, createdAt])
   @@index([jobCandidateId, createdAt])
+}
+
+model CompanyProfileDraft {
+  id               Int                @id @default(autoincrement())
+  workspaceId      Int
+  status           CompanyDraftStatus @default(DRAFT)
+  payload          Json
+  submittedByName  String?
+  submittedByEmail String?
+  submittedAt      DateTime?
+  reviewedAt       DateTime?
+  reviewedById     Int?
+  rejectReason     String?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+
+  workspace        CompanyWorkspace   @relation("WorkspaceProfileDrafts", fields: [workspaceId], references: [id])
+  reviewedBy       User?              @relation("CompanyProfileDraftReviewer", fields: [reviewedById], references: [id])
+
+  @@index([workspaceId, status, updatedAt])
+  @@index([reviewedById])
 }

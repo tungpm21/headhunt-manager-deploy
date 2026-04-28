@@ -7,6 +7,7 @@ import { BlockBuilder } from "@/components/content/BlockBuilder";
 import {
   updateCompanyProfileAction,
   getCompanyProfile,
+  getCompanyProfileDraftStatus,
   getCompanyProfileOptions,
 } from "@/lib/employer-actions";
 import {
@@ -32,6 +33,7 @@ import {
 type OptionChoice = { value: string; label: string };
 type EmployerProfile = NonNullable<Awaited<ReturnType<typeof getCompanyProfile>>>;
 type CompanyProfileOptions = Awaited<ReturnType<typeof getCompanyProfileOptions>>;
+type CompanyProfileDraftStatus = Awaited<ReturnType<typeof getCompanyProfileDraftStatus>>;
 
 type MessageState =
   | { type: "success"; text: string }
@@ -144,12 +146,18 @@ function useImageUpload(initialUrl: string | null, maxBytes: number) {
 export default function CompanyProfilePage() {
   const [employer, setEmployer] = useState<EmployerProfile | null>(null);
   const [options, setOptions] = useState<CompanyProfileOptions | null>(null);
+  const [draftStatus, setDraftStatus] = useState<CompanyProfileDraftStatus>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([getCompanyProfile(), getCompanyProfileOptions()]).then(([profile, formOptions]) => {
+    Promise.all([
+      getCompanyProfile(),
+      getCompanyProfileOptions(),
+      getCompanyProfileDraftStatus(),
+    ]).then(([profile, formOptions, draft]) => {
       setEmployer(profile);
       setOptions(formOptions);
+      setDraftStatus(draft);
       setLoading(false);
     });
   }, []);
@@ -175,7 +183,9 @@ export default function CompanyProfilePage() {
       key={String(employer.updatedAt)}
       employer={employer}
       options={options}
+      draftStatus={draftStatus}
       onSaved={(updatedEmployer) => setEmployer(updatedEmployer)}
+      onDraftStatusChange={setDraftStatus}
     />
   );
 }
@@ -183,11 +193,15 @@ export default function CompanyProfilePage() {
 function CompanyProfileForm({
   employer,
   options,
+  draftStatus,
   onSaved,
+  onDraftStatusChange,
 }: {
   employer: EmployerProfile;
   options: CompanyProfileOptions;
+  draftStatus: CompanyProfileDraftStatus;
   onSaved: (employer: EmployerProfile) => void;
+  onDraftStatusChange: (draftStatus: CompanyProfileDraftStatus) => void;
 }) {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<MessageState>(null);
@@ -248,8 +262,12 @@ function CompanyProfileForm({
       if (result.success) {
         handleLogoReset();
         handleCoverReset();
-        const updated = await getCompanyProfile();
+        const [updated, draft] = await Promise.all([
+          getCompanyProfile(),
+          getCompanyProfileDraftStatus(),
+        ]);
         if (updated) onSaved(updated);
+        onDraftStatusChange(draft);
       }
     } catch (error) {
       console.error("CompanyProfilePage submit error:", error);
@@ -298,6 +316,27 @@ function CompanyProfileForm({
           )}
           <p className={`text-sm ${message.type === "success" ? "text-emerald-700" : "text-red-700"}`}>
             {message.text}
+          </p>
+        </div>
+      )}
+
+      {draftStatus && (
+        <div
+          className={`rounded-xl border p-4 text-sm ${
+            draftStatus.status === "REJECTED"
+              ? "border-amber-200 bg-amber-50 text-amber-800"
+              : "border-blue-200 bg-blue-50 text-blue-800"
+          }`}
+        >
+          <p className="font-semibold">
+            {draftStatus.status === "REJECTED"
+              ? "Bản nháp gần nhất đã bị từ chối"
+              : "Bản nháp đang chờ admin duyệt"}
+          </p>
+          <p className="mt-1">
+            {draftStatus.status === "REJECTED"
+              ? draftStatus.rejectReason || "Admin chưa nhập lý do cụ thể."
+              : "Thay đổi mới sẽ không xuất hiện trên trang public cho tới khi admin duyệt."}
           </p>
         </div>
       )}
@@ -593,7 +632,7 @@ function CompanyProfileForm({
 
         <div className="flex flex-col gap-3 border-t border-gray-100 pt-2 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-xs text-gray-400">
-            Khi lưu, trang công ty public và các tin liên quan sẽ được revalidate tự động.
+            Khi gửi duyệt, trang public chưa thay đổi cho tới khi admin phê duyệt.
           </p>
           <button
             type="submit"
@@ -601,7 +640,7 @@ function CompanyProfileForm({
             className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-teal-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-teal-200 transition hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-            {saving ? "Đang lưu..." : "Lưu thay đổi"}
+            {saving ? "Đang gửi..." : "Gửi duyệt"}
           </button>
         </div>
       </form>

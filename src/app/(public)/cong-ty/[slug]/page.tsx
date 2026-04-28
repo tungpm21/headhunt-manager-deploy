@@ -95,12 +95,19 @@ export default async function CompanyProfilePage({ params }: PageProps) {
     { icon: MapPin, label: "Địa chỉ", value: company.address },
     { icon: Globe, label: "Website", value: company.website, isLink: true },
   ];
+  const pageStyle = { backgroundColor: theme.backgroundColor, color: theme.textColor };
+  const panelStyle = {
+    backgroundColor: theme.surfaceColor,
+    borderColor: theme.borderColor,
+    color: theme.textColor,
+  };
+  const mutedTextStyle = { color: `${theme.textColor}B3` };
 
   return (
-    <div id="main-content" className="min-h-screen" style={{ backgroundColor: theme.backgroundColor }}>
-      <nav aria-label="Breadcrumb" className="border-b border-[var(--color-fdi-mist)] bg-white">
+    <div id="main-content" className="min-h-screen" style={pageStyle}>
+      <nav aria-label="Breadcrumb" className="border-b bg-white" style={{ borderColor: theme.borderColor }}>
         <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
-          <ol className="flex items-center gap-2 text-sm text-[var(--color-fdi-text-secondary)]">
+          <ol className="flex items-center gap-2 text-sm" style={mutedTextStyle}>
             <li>
               <Link
                 href="/cong-ty"
@@ -111,7 +118,7 @@ export default async function CompanyProfilePage({ params }: PageProps) {
               </Link>
             </li>
             <li aria-hidden="true">/</li>
-            <li aria-current="page" className="max-w-xs truncate font-medium text-[var(--color-fdi-text)]">
+            <li aria-current="page" className="max-w-xs truncate font-medium" style={{ color: theme.textColor }}>
               {company.companyName}
             </li>
           </ol>
@@ -142,18 +149,15 @@ export default async function CompanyProfilePage({ params }: PageProps) {
               }}
             />
           )}
-          <div
-            className="absolute inset-0"
-            style={{
-              background: `linear-gradient(180deg, transparent 35%, ${theme.primaryColor}E6 100%)`,
-            }}
-          />
         </div>
       </section>
 
       <section className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="-mt-14 pl-6 sm:pl-10">
-          <div className="flex h-28 w-28 items-center justify-center overflow-hidden rounded-3xl bg-white shadow-lg ring-[6px] ring-white">
+          <div
+            className="flex h-28 w-28 items-center justify-center overflow-hidden rounded-3xl shadow-lg ring-[6px]"
+            style={{ backgroundColor: theme.surfaceColor, borderColor: theme.borderColor, color: theme.textColor }}
+          >
             <LogoImage
               src={company.logo}
               alt={company.companyName}
@@ -167,7 +171,7 @@ export default async function CompanyProfilePage({ params }: PageProps) {
         <div className="mb-5 mt-4 pl-6 sm:pl-10">
           <div className="flex flex-wrap items-center gap-2">
             <h1
-              className="text-2xl font-bold text-[var(--color-fdi-text)] sm:text-3xl"
+              className="text-2xl font-bold sm:text-3xl"
               style={{ fontFamily: "var(--font-heading)" }}
             >
               {company.companyName}
@@ -178,10 +182,10 @@ export default async function CompanyProfilePage({ params }: PageProps) {
               </span>
             ) : null}
           </div>
-          <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-[var(--color-fdi-text-secondary)]">
+          <div className="mt-2 flex flex-wrap items-center gap-3 text-sm" style={mutedTextStyle}>
             {company.industry ? <span>{company.industry}</span> : null}
             {company.jobPostings.length > 0 ? (
-              <span className="flex items-center gap-1 font-medium text-[var(--color-fdi-primary)]">
+              <span className="flex items-center gap-1 font-medium" style={{ color: theme.accentColor }}>
                 <Briefcase className="h-3.5 w-3.5" />
                 {company.jobPostings.length} vị trí đang tuyển
               </span>
@@ -198,12 +202,12 @@ export default async function CompanyProfilePage({ params }: PageProps) {
             {company.jobPostings.length > 0 ? (
               <section id="jobs">
                 <h2
-                  className="mb-4 text-lg font-bold text-[var(--color-fdi-text)]"
+                  className="mb-4 text-lg font-bold"
                   style={{ fontFamily: "var(--font-heading)" }}
                 >
                   Vị trí đang tuyển ({company.jobPostings.length})
                 </h2>
-                <div className="rounded-2xl bg-white p-3 shadow-sm sm:p-4">
+                <div className="rounded-2xl border p-3 shadow-sm sm:p-4" style={panelStyle}>
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:gap-5">
                     {company.jobPostings.map((job: HomepageJob) => (
                       <div key={job.id} className="min-w-0">
@@ -216,7 +220,7 @@ export default async function CompanyProfilePage({ params }: PageProps) {
             ) : null}
 
             {company.jobPostings.length === 0 && !company.description && sections.length === 0 ? (
-              <div className="rounded-xl border border-[var(--color-fdi-mist)] bg-white p-8 text-center text-[var(--color-fdi-text-secondary)]">
+              <div className="rounded-xl border p-8 text-center" style={{ ...panelStyle, ...mutedTextStyle }}>
                 <Building2 className="mx-auto mb-3 h-10 w-10 opacity-30" />
                 <p className="text-sm">Chưa có thông tin tuyển dụng</p>
               </div>
@@ -225,24 +229,25 @@ export default async function CompanyProfilePage({ params }: PageProps) {
 
           <aside className="lg:w-80 lg:shrink-0">
             <div className="space-y-4 lg:sticky lg:top-24">
-              <div className="rounded-2xl border border-[var(--color-fdi-mist)] bg-white p-6 shadow-sm">
+              <div className="rounded-2xl border p-6 shadow-sm" style={panelStyle}>
                 <h3
-                  className="text-sm font-semibold uppercase tracking-wider text-[var(--color-fdi-text)]"
+                  className="text-sm font-semibold uppercase tracking-wider"
                   style={{ fontFamily: "var(--font-heading)" }}
                 >
                   Thông tin liên hệ
                 </h3>
-                <dl className="mt-4 space-y-3 text-sm text-[var(--color-fdi-text-secondary)]">
+                <dl className="mt-4 space-y-3 text-sm" style={mutedTextStyle}>
                   {infoItems.map(
                     (item) =>
                       item.value && (
                         <div key={item.label} className="flex items-start gap-2.5">
                           <item.icon
-                            className="mt-0.5 h-4 w-4 shrink-0 text-[var(--color-fdi-primary)]"
+                            className="mt-0.5 h-4 w-4 shrink-0"
+                            style={{ color: theme.primaryColor }}
                             aria-hidden="true"
                           />
                           <div>
-                            <dt className="mb-0.5 text-xs uppercase tracking-wider text-[var(--color-fdi-text-secondary)]">
+                            <dt className="mb-0.5 text-xs uppercase tracking-wider" style={mutedTextStyle}>
                               {item.label}
                             </dt>
                             {item.isLink ? (
@@ -252,13 +257,14 @@ export default async function CompanyProfilePage({ params }: PageProps) {
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   aria-label={`${item.value} (mở trong tab mới)`}
-                                  className="break-all text-[var(--color-fdi-primary)] hover:underline"
+                                  className="break-all hover:underline"
+                                  style={{ color: theme.accentColor }}
                                 >
                                   {item.value.replace(/^https?:\/\//, "")}
                                 </a>
                               </dd>
                             ) : (
-                              <dd className="text-[var(--color-fdi-text)]">{item.value}</dd>
+                              <dd style={{ color: theme.textColor }}>{item.value}</dd>
                             )}
                           </div>
                         </div>

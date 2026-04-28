@@ -1,5 +1,7 @@
+import type { CSSProperties } from "react";
 import {
   getSafeVideoEmbedUrl,
+  normalizeCompanyTheme,
   normalizeContentBlocks,
   type CompanyProfileTheme,
   type ContentBlock,
@@ -29,47 +31,58 @@ export function ContentBlocksRenderer({
     return null;
   }
 
-  const accentColor = theme?.accentColor ?? "#D24B16";
+  const normalizedTheme = normalizeCompanyTheme(theme);
+  const accentColor = normalizedTheme.accentColor;
+  const primaryColor = normalizedTheme.primaryColor;
+  const textColor = normalizedTheme.textColor;
+  const mutedTextColor = `${textColor}B3`;
+  const sectionStyle: CSSProperties = {
+    backgroundColor: normalizedTheme.surfaceColor,
+    borderColor: normalizedTheme.borderColor,
+    color: textColor,
+  };
+  const softPanelStyle: CSSProperties = {
+    backgroundColor: normalizedTheme.backgroundColor,
+    borderColor: normalizedTheme.borderColor,
+    color: textColor,
+  };
+  const mutedTextStyle: CSSProperties = { color: mutedTextColor };
 
   return (
     <div className={`space-y-6 ${className}`}>
       {enabledBlocks.length === 0 && fallbackMarkdown ? (
-        <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
-          <SafeRichContent content={fallbackMarkdown} className="text-[var(--color-fdi-text-secondary)]" />
+        <section className="rounded-2xl border p-6 shadow-sm sm:p-8" style={sectionStyle}>
+          <SafeRichContent content={fallbackMarkdown} />
         </section>
       ) : null}
 
       {enabledBlocks.map((block) => {
         if (block.type === "richText" && block.markdown?.trim()) {
           return (
-            <section key={block.id} className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
+            <section key={block.id} className="rounded-2xl border p-6 shadow-sm sm:p-8" style={sectionStyle}>
               {block.title ? <SectionTitle title={block.title} accentColor={accentColor} /> : null}
-              <SafeRichContent content={block.markdown} className="text-[var(--color-fdi-text-secondary)]" />
+              <SafeRichContent content={block.markdown} />
             </section>
           );
         }
 
         if (block.type === "html" && block.html?.trim()) {
           return (
-            <section key={block.id} className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
+            <section key={block.id} className="rounded-2xl border p-6 shadow-sm sm:p-8" style={sectionStyle}>
               {block.title ? <SectionTitle title={block.title} accentColor={accentColor} /> : null}
-              <SafeRichContent
-                content={block.html}
-                allowHtml
-                className="text-[var(--color-fdi-text-secondary)]"
-              />
+              <SafeRichContent content={block.html} allowHtml />
             </section>
           );
         }
 
         if (block.type === "image" && block.url && block.alt) {
           return (
-            <figure key={block.id} className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+            <figure key={block.id} className="overflow-hidden rounded-2xl border shadow-sm" style={sectionStyle}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={block.url} alt={block.alt} loading="lazy" className="h-auto w-full object-cover" />
               {(block.title || block.caption) && (
-                <figcaption className="space-y-1 px-5 py-4 text-sm text-[var(--color-fdi-text-secondary)]">
-                  {block.title ? <p className="font-semibold text-[var(--color-fdi-text)]">{block.title}</p> : null}
+                <figcaption className="space-y-1 px-5 py-4 text-sm" style={mutedTextStyle}>
+                  {block.title ? <p className="font-semibold" style={{ color: textColor }}>{block.title}</p> : null}
                   {block.caption ? <p>{block.caption}</p> : null}
                 </figcaption>
               )}
@@ -79,11 +92,11 @@ export function ContentBlocksRenderer({
 
         if (block.type === "gallery" && block.images?.length) {
           return (
-            <section key={block.id} className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
+            <section key={block.id} className="rounded-2xl border p-5 shadow-sm sm:p-6" style={sectionStyle}>
               {block.title ? <SectionTitle title={block.title} accentColor={accentColor} /> : null}
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {block.images.map((image) => (
-                  <figure key={`${block.id}-${image.url}`} className="overflow-hidden rounded-xl bg-gray-50">
+                  <figure key={`${block.id}-${image.url}`} className="overflow-hidden rounded-xl" style={softPanelStyle}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={image.url}
@@ -92,7 +105,7 @@ export function ContentBlocksRenderer({
                       className="aspect-[4/3] w-full object-cover"
                     />
                     {image.caption ? (
-                      <figcaption className="px-3 py-2 text-xs text-[var(--color-fdi-text-secondary)]">
+                      <figcaption className="px-3 py-2 text-xs" style={mutedTextStyle}>
                         {image.caption}
                       </figcaption>
                     ) : null}
@@ -107,12 +120,12 @@ export function ContentBlocksRenderer({
           return (
             <blockquote
               key={block.id}
-              className="rounded-2xl border-l-4 bg-white p-6 text-lg font-medium leading-relaxed text-[var(--color-fdi-text)] shadow-sm"
-              style={{ borderLeftColor: accentColor }}
+              className="rounded-2xl border-l-4 p-6 text-lg font-medium leading-relaxed shadow-sm"
+              style={{ ...sectionStyle, borderLeftColor: accentColor }}
             >
               <p>{block.quote}</p>
               {block.attribution ? (
-                <footer className="mt-3 text-sm font-normal text-[var(--color-fdi-text-secondary)]">
+                <footer className="mt-3 text-sm font-normal" style={mutedTextStyle}>
                   {block.attribution}
                 </footer>
               ) : null}
@@ -122,15 +135,15 @@ export function ContentBlocksRenderer({
 
         if (block.type === "stats" && block.stats?.length) {
           return (
-            <section key={block.id} className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
+            <section key={block.id} className="rounded-2xl border p-5 shadow-sm sm:p-6" style={sectionStyle}>
               {block.title ? <SectionTitle title={block.title} accentColor={accentColor} /> : null}
               <div className="grid gap-3 sm:grid-cols-3">
                 {block.stats.map((stat) => (
-                  <div key={`${block.id}-${stat.label}`} className="rounded-xl bg-gray-50 p-4">
-                    <p className="text-2xl font-bold text-[var(--color-fdi-text)]">{stat.value}</p>
-                    <p className="mt-1 text-sm font-semibold text-[var(--color-fdi-text)]">{stat.label}</p>
+                  <div key={`${block.id}-${stat.label}`} className="rounded-xl border p-4" style={softPanelStyle}>
+                    <p className="text-2xl font-bold" style={{ color: textColor }}>{stat.value}</p>
+                    <p className="mt-1 text-sm font-semibold" style={{ color: textColor }}>{stat.label}</p>
                     {stat.description ? (
-                      <p className="mt-1 text-xs text-[var(--color-fdi-text-secondary)]">{stat.description}</p>
+                      <p className="mt-1 text-xs" style={mutedTextStyle}>{stat.description}</p>
                     ) : null}
                   </div>
                 ))}
@@ -141,17 +154,17 @@ export function ContentBlocksRenderer({
 
         if (block.type === "benefits" && block.benefits?.length) {
           return (
-            <section key={block.id} className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
+            <section key={block.id} className="rounded-2xl border p-5 shadow-sm sm:p-6" style={sectionStyle}>
               {block.title ? <SectionTitle title={block.title} accentColor={accentColor} /> : null}
               <div className="grid gap-3 sm:grid-cols-2">
                 {block.benefits.map((benefit) => (
-                  <div key={`${block.id}-${benefit.title}`} className="rounded-xl border border-gray-100 bg-gray-50 p-4">
-                    <p className="text-sm font-semibold text-[var(--color-fdi-text)]">
+                  <div key={`${block.id}-${benefit.title}`} className="rounded-xl border p-4" style={softPanelStyle}>
+                    <p className="text-sm font-semibold" style={{ color: textColor }}>
                       {benefit.icon ? `${benefit.icon} ` : null}
                       {benefit.title}
                     </p>
                     {benefit.description ? (
-                      <p className="mt-1 text-sm text-[var(--color-fdi-text-secondary)]">{benefit.description}</p>
+                      <p className="mt-1 text-sm" style={mutedTextStyle}>{benefit.description}</p>
                     ) : null}
                   </div>
                 ))}
@@ -165,7 +178,7 @@ export function ContentBlocksRenderer({
           if (!embedUrl) return null;
 
           return (
-            <section key={block.id} className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
+            <section key={block.id} className="rounded-2xl border p-5 shadow-sm sm:p-6" style={sectionStyle}>
               {block.title ? <SectionTitle title={block.title} accentColor={accentColor} /> : null}
               <div className="overflow-hidden rounded-2xl bg-black">
                 <iframe
@@ -187,7 +200,7 @@ export function ContentBlocksRenderer({
               key={block.id}
               className="rounded-2xl p-6 text-white shadow-sm"
               style={{
-                background: `linear-gradient(135deg, ${theme?.primaryColor ?? "#0479A8"}, ${accentColor})`,
+                background: `linear-gradient(135deg, ${primaryColor}, ${accentColor})`,
               }}
             >
               {block.title ? <h2 className="text-xl font-bold">{block.title}</h2> : null}
@@ -212,7 +225,7 @@ function SectionTitle({ title, accentColor }: { title: string; accentColor: stri
   return (
     <div className="mb-4 flex items-center gap-3">
       <span className="h-2 w-2 rounded-full" style={{ backgroundColor: accentColor }} />
-      <h2 className="text-lg font-bold text-[var(--color-fdi-text)]">{title}</h2>
+      <h2 className="text-lg font-bold">{title}</h2>
     </div>
   );
 }

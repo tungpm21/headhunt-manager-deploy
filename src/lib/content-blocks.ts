@@ -51,6 +51,9 @@ export type CompanyProfileTheme = {
   primaryColor: string;
   accentColor: string;
   backgroundColor: string;
+  textColor: string;
+  borderColor: string;
+  surfaceColor: string;
 };
 
 export type CompanyProfileCapabilities = {
@@ -65,7 +68,89 @@ export const DEFAULT_COMPANY_THEME: CompanyProfileTheme = {
   primaryColor: "#0479A8",
   accentColor: "#D24B16",
   backgroundColor: "#F6F8FB",
+  textColor: "#0F172A",
+  borderColor: "#D8E2EC",
+  surfaceColor: "#FFFFFF",
 };
+
+export const COMPANY_THEME_PRESETS: Array<{
+  id: string;
+  name: string;
+  description: string;
+  theme: CompanyProfileTheme;
+}> = [
+  {
+    id: "fdi-clean-blue",
+    name: "FDI Clean Blue",
+    description: "Sạch, chuyên nghiệp, hợp với đa số doanh nghiệp sản xuất.",
+    theme: DEFAULT_COMPANY_THEME,
+  },
+  {
+    id: "executive-navy",
+    name: "Executive Navy",
+    description: "Trang công ty cao cấp với navy đậm và CTA màu amber.",
+    theme: {
+      primaryColor: "#123B5D",
+      accentColor: "#B7791F",
+      backgroundColor: "#F3F6F8",
+      textColor: "#102033",
+      borderColor: "#D5DEE8",
+      surfaceColor: "#FFFFFF",
+    },
+  },
+  {
+    id: "industrial-green",
+    name: "Industrial Green",
+    description: "Tin cậy, ổn định, hợp với sản xuất và doanh nghiệp xanh.",
+    theme: {
+      primaryColor: "#116149",
+      accentColor: "#0E8F6E",
+      backgroundColor: "#F3FAF7",
+      textColor: "#10241E",
+      borderColor: "#C9E2D8",
+      surfaceColor: "#FFFFFF",
+    },
+  },
+  {
+    id: "tech-slate",
+    name: "Tech Slate",
+    description: "Hiện đại, tương phản rõ, hợp với công nghệ và kỹ thuật.",
+    theme: {
+      primaryColor: "#1F3A5F",
+      accentColor: "#0284C7",
+      backgroundColor: "#F5F8FC",
+      textColor: "#0B1220",
+      borderColor: "#D6E0EA",
+      surfaceColor: "#FFFFFF",
+    },
+  },
+  {
+    id: "warm-premium",
+    name: "Warm Premium",
+    description: "Nền ấm nhẹ, nút cam đỏ nổi bật cho hồ sơ premium.",
+    theme: {
+      primaryColor: "#7C2D12",
+      accentColor: "#C2410C",
+      backgroundColor: "#FFF7ED",
+      textColor: "#1F130B",
+      borderColor: "#FED7AA",
+      surfaceColor: "#FFFFFF",
+    },
+  },
+  {
+    id: "minimal-ink",
+    name: "Minimal Ink",
+    description: "Tối giản, trung tính, giúp ảnh và nội dung nổi bật.",
+    theme: {
+      primaryColor: "#334155",
+      accentColor: "#111827",
+      backgroundColor: "#F8FAFC",
+      textColor: "#111827",
+      borderColor: "#CBD5E1",
+      surfaceColor: "#FFFFFF",
+    },
+  },
+];
 
 export const DEFAULT_COMPANY_CAPABILITIES: CompanyProfileCapabilities = {
   theme: true,
@@ -203,6 +288,15 @@ export function normalizeCompanyTheme(value: unknown): CompanyProfileTheme {
     backgroundColor: HEX_COLOR_RE.test(stringValue(source.backgroundColor))
       ? stringValue(source.backgroundColor)
       : DEFAULT_COMPANY_THEME.backgroundColor,
+    textColor: HEX_COLOR_RE.test(stringValue(source.textColor))
+      ? stringValue(source.textColor)
+      : DEFAULT_COMPANY_THEME.textColor,
+    borderColor: HEX_COLOR_RE.test(stringValue(source.borderColor))
+      ? stringValue(source.borderColor)
+      : DEFAULT_COMPANY_THEME.borderColor,
+    surfaceColor: HEX_COLOR_RE.test(stringValue(source.surfaceColor))
+      ? stringValue(source.surfaceColor)
+      : DEFAULT_COMPANY_THEME.surfaceColor,
   };
 }
 

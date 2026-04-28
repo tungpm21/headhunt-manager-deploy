@@ -20,6 +20,7 @@ import {
   countBlockImages,
   createContentBlockId,
   normalizeContentBlocks,
+  type CompanyProfileTheme,
   type ContentBenefit,
   type ContentBlock,
   type ContentBlockType,
@@ -37,6 +38,7 @@ type BlockBuilderProps = {
   description?: string;
   maxImages?: number;
   allowHtml?: boolean;
+  previewTheme?: CompanyProfileTheme;
 };
 
 const typeLabels: Record<ContentBlockType, string> = {
@@ -112,6 +114,7 @@ export function BlockBuilder({
   description,
   maxImages = 8,
   allowHtml = false,
+  previewTheme,
 }: BlockBuilderProps) {
   const [blocks, setBlocks] = useState<ContentBlock[]>(() => normalizeContentBlocks(initialBlocks));
   const [selectedId, setSelectedId] = useState<string | null>(() => blocks[0]?.id ?? null);
@@ -250,7 +253,7 @@ export function BlockBuilder({
             <p className="text-xs text-muted">Preview full-width, scroll riêng để xem layout public rõ hơn.</p>
           </div>
           <div className="max-h-[760px] min-h-[360px] overflow-auto rounded-2xl border border-border bg-surface p-5">
-            <ContentBlocksRenderer blocks={blocks} />
+            <ContentBlocksRenderer blocks={blocks} theme={previewTheme} />
           </div>
         </div>
       </div>

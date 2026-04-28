@@ -9,6 +9,7 @@ import {
   ExternalLink,
   ImagePlus,
   Loader2,
+  RotateCcw,
   Save,
   X,
 } from "lucide-react";
@@ -16,6 +17,7 @@ import { updateEmployerInfo } from "@/lib/moderation-actions";
 import { CoverPositionEditor } from "@/components/CoverPositionEditor";
 import { BlockBuilder } from "@/components/content/BlockBuilder";
 import {
+  COMPANY_THEME_PRESETS,
   DEFAULT_COMPANY_CAPABILITIES,
   DEFAULT_COMPANY_THEME,
   normalizeCompanyCapabilities,
@@ -70,6 +72,43 @@ const MAX_COVER_BYTES = 5 * 1024 * 1024;
 
 const inputClassName =
   "w-full rounded-xl border border-border bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition";
+
+const THEME_FIELDS: Array<{
+  key: keyof CompanyProfileTheme;
+  label: string;
+  note: string;
+}> = [
+  {
+    key: "primaryColor",
+    label: "Màu thương hiệu",
+    note: "Dùng cho cover mặc định và một số điểm nhấn nhỏ, không phủ lên ảnh cover.",
+  },
+  {
+    key: "accentColor",
+    label: "Màu nhấn / button",
+    note: "Dùng cho CTA, nút chính và các điểm chuyển đổi.",
+  },
+  {
+    key: "backgroundColor",
+    label: "Màu nền trang",
+    note: "Nền tổng thể phía sau nội dung công ty.",
+  },
+  {
+    key: "textColor",
+    label: "Màu chữ",
+    note: "Màu tiêu đề và nội dung chính trên trang public.",
+  },
+  {
+    key: "borderColor",
+    label: "Màu khung",
+    note: "Màu viền cho card, gallery và khối thông tin.",
+  },
+  {
+    key: "surfaceColor",
+    label: "Màu ô nội dung",
+    note: "Màu nền của card/section chứa nội dung.",
+  },
+];
 
 interface EmployerEditFormProps {
   employer: EmployerEditData;
@@ -151,6 +190,12 @@ export function EmployerEditForm({ employer, industryOptions }: EmployerEditForm
   const [theme, setTheme] = useState(initialTheme);
   const [capabilities, setCapabilities] = useState(initialCapabilities);
   const [primaryVideoUrl, setPrimaryVideoUrl] = useState(employer.profileConfig?.primaryVideoUrl ?? "");
+  const updateThemeValue = (key: keyof CompanyProfileTheme, value: string) => {
+    setTheme((current) => ({ ...current, [key]: value }));
+  };
+  const applyThemePreset = (nextTheme: CompanyProfileTheme) => {
+    setTheme(normalizeCompanyTheme(nextTheme));
+  };
   const [coverPos, setCoverPos] = useState({
     positionX: employer.coverPositionX ?? 50,
     positionY: employer.coverPositionY ?? 50,
@@ -519,87 +564,152 @@ export function EmployerEditForm({ employer, industryOptions }: EmployerEditForm
           </div>
 
           <div className="mt-5 space-y-5">
-            <div className="grid gap-5 xl:grid-cols-[1fr_1fr_1fr]">
+            <div className="grid gap-5 xl:grid-cols-[minmax(0,1.5fr)_minmax(320px,0.85fr)]">
               <div className="rounded-2xl border border-border bg-white p-4">
-                <p className="text-sm font-semibold text-foreground">Theme</p>
-                <div className="mt-3 grid gap-3">
-                  {([
-                    ["primaryColor", "Màu chính"],
-                    ["accentColor", "Màu nhấn"],
-                    ["backgroundColor", "Màu nền"],
-                  ] as const).map(([key, label]) => (
-                    <label key={key} className="grid grid-cols-[96px_1fr] items-center gap-3 text-sm">
-                      <span className="font-medium text-muted">{label}</span>
-                      <span className="flex items-center gap-2">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">Theme public profile</p>
+                    <p className="mt-1 text-xs leading-5 text-muted">
+                      Cover image luôn hiển thị rõ. Màu nhấn dùng cho button, màu nền dùng cho background,
+                      màu khung và màu ô nội dung dùng cho card/section.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    disabled={!capabilities.theme}
+                    onClick={() => applyThemePreset(DEFAULT_COMPANY_THEME)}
+                    className="inline-flex min-h-9 shrink-0 items-center justify-center gap-2 rounded-xl border border-border bg-background px-3 py-2 text-xs font-semibold text-foreground transition hover:bg-surface disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <RotateCcw className="h-4 w-4" />
+                    Reset mặc định
+                  </button>
+                </div>
+
+                <div className="mt-4 grid gap-2 md:grid-cols-2 xl:grid-cols-3">
+                  {COMPANY_THEME_PRESETS.map((preset) => {
+                    const isCurrent = THEME_FIELDS.every(
+                      ({ key }) => theme[key].toLowerCase() === preset.theme[key].toLowerCase()
+                    );
+                    return (
+                      <button
+                        key={preset.id}
+                        type="button"
+                        disabled={!capabilities.theme}
+                        onClick={() => applyThemePreset(preset.theme)}
+                        className={`rounded-2xl border p-3 text-left transition hover:-translate-y-0.5 hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-50 ${
+                          isCurrent ? "border-primary bg-primary/5 ring-2 ring-primary/20" : "border-border bg-background"
+                        }`}
+                      >
+                        <div
+                          className="h-12 rounded-xl border border-white shadow-inner"
+                          style={{
+                            background: `linear-gradient(135deg, ${preset.theme.backgroundColor} 0%, ${preset.theme.surfaceColor} 48%, ${preset.theme.accentColor} 100%)`,
+                          }}
+                        />
+                        <div className="mt-3 flex items-start justify-between gap-2">
+                          <div>
+                            <p className="text-sm font-semibold text-foreground">{preset.name}</p>
+                            <p className="mt-0.5 line-clamp-2 text-xs leading-5 text-muted">{preset.description}</p>
+                          </div>
+                          <span className="flex shrink-0 gap-1">
+                            {[
+                              preset.theme.accentColor,
+                              preset.theme.backgroundColor,
+                              preset.theme.surfaceColor,
+                            ].map((color) => (
+                              <span
+                                key={color}
+                                className="h-3.5 w-3.5 rounded-full border border-white shadow"
+                                style={{ backgroundColor: color }}
+                              />
+                            ))}
+                          </span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className="mt-4 grid gap-3 md:grid-cols-2">
+                  {THEME_FIELDS.map(({ key, label, note }) => (
+                    <label key={key} className="rounded-2xl border border-border bg-background p-3 text-sm">
+                      <span className="flex items-center justify-between gap-3">
+                        <span className="font-semibold text-foreground">{label}</span>
+                        <span className="text-xs font-medium uppercase tracking-wide text-muted">{theme[key]}</span>
+                      </span>
+                      <span className="mt-2 flex items-center gap-2">
                         <input
                           type="color"
                           value={theme[key]}
                           disabled={!capabilities.theme}
-                          onChange={(event) => setTheme((current) => ({ ...current, [key]: event.target.value }))}
-                          className="h-10 w-12 rounded-lg border border-border bg-white disabled:opacity-50"
+                          onChange={(event) => updateThemeValue(key, event.target.value)}
+                          className="h-11 w-12 shrink-0 rounded-lg border border-border bg-white disabled:opacity-50"
                         />
                         <input
                           value={theme[key]}
                           disabled={!capabilities.theme}
-                          onChange={(event) => setTheme((current) => ({ ...current, [key]: event.target.value }))}
+                          onChange={(event) => updateThemeValue(key, event.target.value)}
                           className={`${inputClassName} disabled:opacity-50`}
                         />
                       </span>
+                      <span className="mt-2 block text-xs leading-5 text-muted">{note}</span>
                     </label>
                   ))}
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-border bg-white p-4">
-                <p className="text-sm font-semibold text-foreground">Quyền tùy biến</p>
-                <div className="mt-3 space-y-3">
-                  {([
-                    ["theme", "Cho đổi theme"],
-                    ["gallery", "Cho gallery"],
-                    ["video", "Cho video"],
-                    ["html", "Cho HTML an toàn"],
-                  ] as const).map(([key, label]) => (
-                    <label key={key} className="flex items-center justify-between gap-3 rounded-xl bg-surface px-3 py-2 text-sm">
-                      <span className="font-medium text-foreground">{label}</span>
+              <div className="space-y-5">
+                <div className="rounded-2xl border border-border bg-white p-4">
+                  <p className="text-sm font-semibold text-foreground">Quyền tùy biến</p>
+                  <div className="mt-3 space-y-3">
+                    {([
+                      ["theme", "Cho đổi theme"],
+                      ["gallery", "Cho gallery"],
+                      ["video", "Cho video"],
+                      ["html", "Cho HTML an toàn"],
+                    ] as const).map(([key, label]) => (
+                      <label key={key} className="flex items-center justify-between gap-3 rounded-xl bg-surface px-3 py-2 text-sm">
+                        <span className="font-medium text-foreground">{label}</span>
+                        <input
+                          type="checkbox"
+                          checked={Boolean(capabilities[key])}
+                          onChange={(event) =>
+                            setCapabilities((current) => ({ ...current, [key]: event.target.checked }))
+                          }
+                          className="h-4 w-4 rounded border-border text-primary focus:ring-primary/30"
+                        />
+                      </label>
+                    ))}
+                    <label className="block space-y-1 text-sm">
+                      <span className="font-medium text-foreground">Số ảnh tối đa</span>
                       <input
-                        type="checkbox"
-                        checked={Boolean(capabilities[key])}
+                        type="number"
+                        min={0}
+                        max={12}
+                        value={capabilities.maxImages}
                         onChange={(event) =>
-                          setCapabilities((current) => ({ ...current, [key]: event.target.checked }))
+                          setCapabilities((current) => ({
+                            ...current,
+                            maxImages: Number.parseInt(event.target.value, 10) || 0,
+                          }))
                         }
-                        className="h-4 w-4 rounded border-border text-primary focus:ring-primary/30"
+                        className={inputClassName}
                       />
                     </label>
-                  ))}
-                  <label className="block space-y-1 text-sm">
-                    <span className="font-medium text-foreground">Số ảnh tối đa</span>
-                    <input
-                      type="number"
-                      min={0}
-                      max={12}
-                      value={capabilities.maxImages}
-                      onChange={(event) =>
-                        setCapabilities((current) => ({
-                          ...current,
-                          maxImages: Number.parseInt(event.target.value, 10) || 0,
-                        }))
-                      }
-                      className={inputClassName}
-                    />
-                  </label>
+                  </div>
                 </div>
-              </div>
 
-              <label className="block space-y-1 rounded-2xl border border-border bg-white p-4 text-sm">
-                <span className="font-semibold text-foreground">Video giới thiệu chính</span>
-                <input
-                  value={primaryVideoUrl}
-                  disabled={!capabilities.video}
-                  onChange={(event) => setPrimaryVideoUrl(event.target.value)}
-                  placeholder="YouTube hoặc Vimeo URL"
-                  className={`${inputClassName} disabled:opacity-50`}
-                />
-              </label>
+                <label className="block space-y-1 rounded-2xl border border-border bg-white p-4 text-sm">
+                  <span className="font-semibold text-foreground">Video giới thiệu chính</span>
+                  <input
+                    value={primaryVideoUrl}
+                    disabled={!capabilities.video}
+                    onChange={(event) => setPrimaryVideoUrl(event.target.value)}
+                    placeholder="YouTube hoặc Vimeo URL"
+                    className={`${inputClassName} disabled:opacity-50`}
+                  />
+                </label>
+              </div>
             </div>
 
             <BlockBuilder
@@ -610,6 +720,7 @@ export function EmployerEditForm({ employer, industryOptions }: EmployerEditForm
               initialBlocks={employer.profileConfig?.sections ?? []}
               maxImages={capabilities.maxImages}
               allowHtml={capabilities.html}
+              previewTheme={theme}
             />
           </div>
         </div>

@@ -14,6 +14,23 @@ type HomepageSectionDotsProps = {
 export function HomepageSectionDots({ sections }: HomepageSectionDotsProps) {
   const [activeId, setActiveId] = useState(sections[0]?.id ?? "");
 
+  const scrollToSection = (id: string) => {
+    const element = document.getElementById(id);
+    if (!element) return;
+
+    const headerOffset = 84;
+    const rect = element.getBoundingClientRect();
+    const availableHeight = window.innerHeight - headerOffset;
+    const centerOffset =
+      rect.height < availableHeight ? (availableHeight - rect.height) / 2 : 0;
+    const top = window.scrollY + rect.top - headerOffset - centerOffset;
+
+    window.scrollTo({
+      top: Math.max(0, top),
+      behavior: "smooth",
+    });
+  };
+
   useEffect(() => {
     if (sections.length === 0) return;
 
@@ -62,10 +79,8 @@ export function HomepageSectionDots({ sections }: HomepageSectionDotsProps) {
             aria-current={isActive ? "location" : undefined}
             onClick={(event) => {
               event.preventDefault();
-              document.getElementById(section.id)?.scrollIntoView({
-                behavior: "smooth",
-                block: "start",
-              });
+              setActiveId(section.id);
+              scrollToSection(section.id);
             }}
             className="group relative flex h-7 w-7 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-primary)]/35"
           >

@@ -12,7 +12,6 @@ const homepageSections = [
   { id: "home-employers", label: "Nhà tuyển dụng" },
   { id: "home-jobs", label: "Việc làm" },
   { id: "home-industries", label: "Ngành nghề" },
-  { id: "home-market", label: "Tín hiệu thị trường" },
   { id: "home-insights", label: "Chia sẻ" },
 ];
 
@@ -40,36 +39,8 @@ export default async function HomePage() {
         <FeaturedJobs jobs={data.featuredJobs} />
       </div>
       <div id="home-industries" className="scroll-mt-28">
-        <IndustryGrid industries={data.industries} />
+        <IndustryGrid industries={data.industries} stats={data.stats} />
       </div>
-      <section id="home-market" className="scroll-mt-28 bg-[linear-gradient(180deg,#F5F8FA_0%,#FFFFFB_100%)] px-4 py-10 sm:px-6 lg:px-8 lg:py-12">
-        <div className="mx-auto grid max-w-7xl gap-4 rounded-[2rem] border border-[#D8E7EA] bg-[linear-gradient(180deg,#FFFFFF_0%,#F8FCFC_100%)] p-5 shadow-[0_28px_72px_-56px_rgba(7,26,47,0.42)] sm:p-6 lg:grid-cols-[1.15fr_0.85fr_0.85fr_0.85fr] lg:p-7">
-          <div className="lg:pr-6">
-            <p className="inline-flex rounded-full border border-[#BFDCE4] bg-[#EAF7FA] px-3 py-1 text-xs font-bold uppercase text-[var(--color-fdi-primary)] shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">Market signal</p>
-            <h2 className="mt-3 text-2xl font-black text-[var(--color-fdi-ink)] sm:text-3xl" style={{ fontFamily: "var(--font-heading)" }}>
-              FDI hiring momentum
-            </h2>
-            <p className="mt-2 max-w-md text-sm font-medium leading-6 text-[var(--color-fdi-text-secondary)]">
-              Tổng hợp nhanh quy mô cơ hội và số doanh nghiệp FDI đang tuyển dụng trên FDIWork.
-            </p>
-          </div>
-          <div className="rounded-2xl border border-[#DDE8EA] bg-white p-5 shadow-[0_18px_42px_-38px_rgba(7,26,47,0.42)]">
-            <p className="text-4xl font-black tabular-nums text-[var(--color-fdi-ink)]">{data.stats.totalJobs.toLocaleString("vi-VN")}+</p>
-            <p className="mt-2 text-sm font-bold text-[var(--color-fdi-primary)]">Việc đang mở</p>
-            <p className="mt-1 text-xs font-medium text-[var(--color-fdi-text-secondary)]">Cập nhật từ các tin FDI đang active</p>
-          </div>
-          <div className="rounded-2xl border border-[#DDE8EA] bg-white p-5 shadow-[0_18px_42px_-38px_rgba(7,26,47,0.42)]">
-            <p className="text-4xl font-black tabular-nums text-[var(--color-fdi-ink)]">{data.stats.totalEmployers.toLocaleString("vi-VN")}+</p>
-            <p className="mt-2 text-sm font-bold text-[var(--color-fdi-primary)]">Doanh nghiệp FDI</p>
-            <p className="mt-1 text-xs font-medium text-[var(--color-fdi-text-secondary)]">Có hồ sơ công ty và vai trò tuyển dụng</p>
-          </div>
-          <div className="rounded-2xl border border-[#DDE8EA] bg-white p-5 shadow-[0_18px_42px_-38px_rgba(7,26,47,0.42)]">
-            <p className="text-4xl font-black tabular-nums text-[var(--color-fdi-ink)]">1</p>
-            <p className="mt-2 text-sm font-bold text-[var(--color-fdi-primary)]">Bước ứng tuyển</p>
-            <p className="mt-1 text-xs font-medium text-[var(--color-fdi-text-secondary)]">Luồng tìm kiếm đến chi tiết việc làm gọn hơn</p>
-          </div>
-        </div>
-      </section>
       <div id="home-insights" className="scroll-mt-28">
         <BlogSection />
       </div>

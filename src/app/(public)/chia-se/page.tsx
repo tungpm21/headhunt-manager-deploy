@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, BarChart3, BookOpen, Briefcase, TrendingUp } from "lucide-react";
 import { getPublishedBlogPosts } from "@/lib/blog-actions";
@@ -63,12 +64,22 @@ export default async function ChiaSePage() {
                                 key={post.id}
                                 href={`/chia-se/${post.slug}`}
                                 aria-label={post.title}
-                                className="overflow-hidden rounded-xl border border-[var(--color-fdi-mist)] bg-white shadow-[0_16px_36px_-30px_rgba(15,23,42,0.5)] transition-[border-color,box-shadow,transform] duration-200 ease-out hover:-translate-y-0.5 hover:border-[var(--color-fdi-primary)]/25 hover:shadow-[0_24px_46px_-34px_rgba(15,23,42,0.65)]"
+                                className="group overflow-hidden rounded-xl border border-[var(--color-fdi-mist)] bg-white shadow-[0_16px_36px_-30px_rgba(15,23,42,0.5)] transition-[border-color,box-shadow,transform] duration-200 ease-out hover:-translate-y-0.5 hover:border-[var(--color-fdi-primary)]/25 hover:shadow-[0_24px_46px_-34px_rgba(15,23,42,0.65)]"
                             >
                                 <div className="relative flex aspect-[16/8.5] items-center justify-center overflow-hidden bg-[linear-gradient(135deg,#F8FBFF_0%,#EDF6FF_52%,#FFF7ED_100%)]">
-                                    <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-white/80 bg-white shadow-[0_18px_36px_-24px_rgba(15,23,42,0.7)]">
-                                        <PostIcon className="h-7 w-7 text-[var(--color-fdi-primary)]" aria-hidden="true" />
-                                    </div>
+                                    {post.coverImage ? (
+                                        <Image
+                                            src={post.coverImage}
+                                            alt={post.coverAlt ?? post.title}
+                                            fill
+                                            sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+                                            className="object-cover transition duration-300 group-hover:scale-[1.03]"
+                                        />
+                                    ) : (
+                                        <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-white/80 bg-white shadow-[0_18px_36px_-24px_rgba(15,23,42,0.7)]">
+                                            <PostIcon className="h-7 w-7 text-[var(--color-fdi-primary)]" aria-hidden="true" />
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="p-5">
                                     <div className="flex items-center gap-2 mb-3">

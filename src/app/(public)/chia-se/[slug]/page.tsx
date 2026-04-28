@@ -25,14 +25,29 @@ function getReadingMinutes(value: string) {
   return Math.max(1, Math.ceil(words / 240));
 }
 
+function createHeadingAnchor(value: string) {
+  const slug = value
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/g, "d")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+
+  return slug ? `section-${slug}` : "";
+}
+
 function extractHeadings(blocks: unknown, fallback: string) {
   const markdown = normalizeContentBlocks(blocks)
     .map((block) => block.markdown ?? "")
     .join("\n\n") || fallback;
 
   return Array.from(markdown.matchAll(/^#{2,3}\s+(.+)$/gm))
-    .map((match) => stripMarkdown(match[1] ?? ""))
-    .filter(Boolean)
+    .map((match) => {
+      const title = stripMarkdown(match[1] ?? "");
+      return { title, id: createHeadingAnchor(title) };
+    })
+    .filter((heading) => heading.title && heading.id)
     .slice(0, 6);
 }
 
@@ -138,9 +153,14 @@ export default async function BlogPostPage({ params }: PageProps) {
               <p className="font-semibold text-[var(--color-fdi-text)]">Nội dung chính</p>
               {headings.length > 0 ? (
                 <ol className="mt-3 space-y-2 text-[var(--color-fdi-text-secondary)]">
-                  {headings.map((heading) => (
-                    <li key={heading} className="line-clamp-2">
-                      {heading}
+                  {headings.map((heading, index) => (
+                    <li key={`${heading.id}-${index}`}>
+                      <a
+                        href={`#${heading.id}`}
+                        className="line-clamp-2 rounded-md transition hover:text-[var(--color-fdi-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-primary)]"
+                      >
+                        {heading.title}
+                      </a>
                     </li>
                   ))}
                 </ol>

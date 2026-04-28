@@ -15,6 +15,18 @@ type ContentBlocksRendererProps = {
   className?: string;
 };
 
+function createBlockAnchorId(block: ContentBlock, index: number) {
+  const slug = (block.id || `${block.type}-${index + 1}`)
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/g, "d")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+
+  return `content-${slug || index + 1}`;
+}
+
 function getEnabledBlocks(blocks: unknown): ContentBlock[] {
   return normalizeContentBlocks(blocks).filter((block) => block.enabled !== false);
 }
@@ -56,28 +68,45 @@ export function ContentBlocksRenderer({
         </section>
       ) : null}
 
-      {enabledBlocks.map((block) => {
+      {enabledBlocks.map((block, index) => {
+        const blockAnchorId = createBlockAnchorId(block, index);
+
         if (block.type === "richText" && block.markdown?.trim()) {
           return (
-            <section key={block.id} className="rounded-2xl border p-6 shadow-sm sm:p-8" style={sectionStyle}>
+            <section
+              key={block.id}
+              id={blockAnchorId}
+              className="scroll-mt-28 rounded-2xl border p-6 shadow-sm sm:p-8"
+              style={sectionStyle}
+            >
               {block.title ? <SectionTitle title={block.title} accentColor={accentColor} /> : null}
-              <SafeRichContent content={block.markdown} />
+              <SafeRichContent content={block.markdown} headingIdPrefix={blockAnchorId} />
             </section>
           );
         }
 
         if (block.type === "html" && block.html?.trim()) {
           return (
-            <section key={block.id} className="rounded-2xl border p-6 shadow-sm sm:p-8" style={sectionStyle}>
+            <section
+              key={block.id}
+              id={blockAnchorId}
+              className="scroll-mt-28 rounded-2xl border p-6 shadow-sm sm:p-8"
+              style={sectionStyle}
+            >
               {block.title ? <SectionTitle title={block.title} accentColor={accentColor} /> : null}
-              <SafeRichContent content={block.html} allowHtml />
+              <SafeRichContent content={block.html} allowHtml headingIdPrefix={blockAnchorId} />
             </section>
           );
         }
 
         if (block.type === "image" && block.url && block.alt) {
           return (
-            <figure key={block.id} className="overflow-hidden rounded-2xl border shadow-sm" style={sectionStyle}>
+            <figure
+              key={block.id}
+              id={blockAnchorId}
+              className="scroll-mt-28 overflow-hidden rounded-2xl border shadow-sm"
+              style={sectionStyle}
+            >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={block.url} alt={block.alt} loading="lazy" className="h-auto w-full object-cover" />
               {(block.title || block.caption) && (
@@ -92,7 +121,12 @@ export function ContentBlocksRenderer({
 
         if (block.type === "gallery" && block.images?.length) {
           return (
-            <section key={block.id} className="rounded-2xl border p-5 shadow-sm sm:p-6" style={sectionStyle}>
+            <section
+              key={block.id}
+              id={blockAnchorId}
+              className="scroll-mt-28 rounded-2xl border p-5 shadow-sm sm:p-6"
+              style={sectionStyle}
+            >
               {block.title ? <SectionTitle title={block.title} accentColor={accentColor} /> : null}
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {block.images.map((image) => (
@@ -120,7 +154,8 @@ export function ContentBlocksRenderer({
           return (
             <blockquote
               key={block.id}
-              className="rounded-2xl border-l-4 p-6 text-lg font-medium leading-relaxed shadow-sm"
+              id={blockAnchorId}
+              className="scroll-mt-28 rounded-2xl border-l-4 p-6 text-lg font-medium leading-relaxed shadow-sm"
               style={{ ...sectionStyle, borderLeftColor: accentColor }}
             >
               <p>{block.quote}</p>
@@ -135,7 +170,12 @@ export function ContentBlocksRenderer({
 
         if (block.type === "stats" && block.stats?.length) {
           return (
-            <section key={block.id} className="rounded-2xl border p-5 shadow-sm sm:p-6" style={sectionStyle}>
+            <section
+              key={block.id}
+              id={blockAnchorId}
+              className="scroll-mt-28 rounded-2xl border p-5 shadow-sm sm:p-6"
+              style={sectionStyle}
+            >
               {block.title ? <SectionTitle title={block.title} accentColor={accentColor} /> : null}
               <div className="grid gap-3 sm:grid-cols-3">
                 {block.stats.map((stat) => (
@@ -154,7 +194,12 @@ export function ContentBlocksRenderer({
 
         if (block.type === "benefits" && block.benefits?.length) {
           return (
-            <section key={block.id} className="rounded-2xl border p-5 shadow-sm sm:p-6" style={sectionStyle}>
+            <section
+              key={block.id}
+              id={blockAnchorId}
+              className="scroll-mt-28 rounded-2xl border p-5 shadow-sm sm:p-6"
+              style={sectionStyle}
+            >
               {block.title ? <SectionTitle title={block.title} accentColor={accentColor} /> : null}
               <div className="grid gap-3 sm:grid-cols-2">
                 {block.benefits.map((benefit) => (
@@ -178,7 +223,12 @@ export function ContentBlocksRenderer({
           if (!embedUrl) return null;
 
           return (
-            <section key={block.id} className="rounded-2xl border p-5 shadow-sm sm:p-6" style={sectionStyle}>
+            <section
+              key={block.id}
+              id={blockAnchorId}
+              className="scroll-mt-28 rounded-2xl border p-5 shadow-sm sm:p-6"
+              style={sectionStyle}
+            >
               {block.title ? <SectionTitle title={block.title} accentColor={accentColor} /> : null}
               <div className="overflow-hidden rounded-2xl bg-black">
                 <iframe
@@ -198,7 +248,8 @@ export function ContentBlocksRenderer({
           return (
             <section
               key={block.id}
-              className="rounded-2xl p-6 text-white shadow-sm"
+              id={blockAnchorId}
+              className="scroll-mt-28 rounded-2xl p-6 text-white shadow-sm"
               style={{
                 background: `linear-gradient(135deg, ${primaryColor}, ${accentColor})`,
               }}

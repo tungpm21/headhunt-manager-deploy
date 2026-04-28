@@ -10,6 +10,7 @@ type SafeRichContentProps = {
   content: string;
   allowHtml?: boolean;
   className?: string;
+  headingIdPrefix?: string;
 };
 
 const sanitizeSchema = {
@@ -61,7 +62,7 @@ function getNodeText(node: ReactNode): string {
   return "";
 }
 
-function createHeadingAnchor(value: string) {
+function createHeadingAnchor(value: string, prefix?: string) {
   const slug = value
     .toLowerCase()
     .normalize("NFD")
@@ -70,10 +71,12 @@ function createHeadingAnchor(value: string) {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "");
 
-  return slug ? `section-${slug}` : "";
+  if (!slug) return "";
+  return prefix ? `${prefix}-${slug}` : `section-${slug}`;
 }
 
-const components: Components = {
+function createComponents(headingIdPrefix?: string): Components {
+  return {
   a: ({ children, href, ...props }) => (
     <a
       href={href}
@@ -86,7 +89,7 @@ const components: Components = {
   ),
   h2: ({ children, ...props }) => {
     const explicitId = typeof props.id === "string" ? props.id : "";
-    const headingId = explicitId || createHeadingAnchor(getNodeText(children));
+      const headingId = explicitId || createHeadingAnchor(getNodeText(children), headingIdPrefix);
 
     return (
       <h2 {...props} id={headingId || undefined}>
@@ -96,7 +99,7 @@ const components: Components = {
   },
   h3: ({ children, ...props }) => {
     const explicitId = typeof props.id === "string" ? props.id : "";
-    const headingId = explicitId || createHeadingAnchor(getNodeText(children));
+      const headingId = explicitId || createHeadingAnchor(getNodeText(children), headingIdPrefix);
 
     return (
       <h3 {...props} id={headingId || undefined}>
@@ -121,9 +124,15 @@ const components: Components = {
       />
     </span>
   ),
-};
+  };
+}
 
-export function SafeRichContent({ content, allowHtml = false, className = "" }: SafeRichContentProps) {
+export function SafeRichContent({
+  content,
+  allowHtml = false,
+  className = "",
+  headingIdPrefix,
+}: SafeRichContentProps) {
   const source = allowHtml ? normalizeSafeHtmlEmbeds(content) : content;
   const rehypePlugins: PluggableList = allowHtml
     ? [rehypeRaw, [rehypeSanitize, sanitizeSchema]]
@@ -136,7 +145,7 @@ export function SafeRichContent({ content, allowHtml = false, className = "" }: 
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         rehypePlugins={rehypePlugins}
-        components={components}
+        components={createComponents(headingIdPrefix)}
       >
         {source}
       </ReactMarkdown>

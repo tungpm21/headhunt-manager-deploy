@@ -6,7 +6,7 @@ import { ArrowLeft, CalendarDays, Clock } from "lucide-react";
 import { ContentBlocksRenderer } from "@/components/content/ContentBlocksRenderer";
 import { SafeRichContent } from "@/components/content/SafeRichContent";
 import { getLatestBlogPosts, getPublishedBlogPostBySlug } from "@/lib/blog-actions";
-import { normalizeContentBlocks, stripMarkdown } from "@/lib/content-blocks";
+import { normalizeContentBlocks, stripMarkdown, type ContentBlock } from "@/lib/content-blocks";
 
 export const revalidate = 300;
 
@@ -37,18 +37,94 @@ function createHeadingAnchor(value: string) {
   return slug ? `section-${slug}` : "";
 }
 
-function extractHeadings(blocks: unknown, fallback: string) {
-  const markdown = normalizeContentBlocks(blocks)
-    .map((block) => block.markdown ?? "")
-    .join("\n\n") || fallback;
+function createBlockAnchorId(block: ContentBlock, index: number) {
+  const slug = (block.id || `${block.type}-${index + 1}`)
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/g, "d")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
 
+  return `content-${slug || index + 1}`;
+}
+
+function createNestedHeadingAnchor(blockAnchorId: string, value: string) {
+  const slug = value
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/g, "d")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+
+  return slug ? `${blockAnchorId}-${slug}` : "";
+}
+
+const blockTypeLabels: Record<ContentBlock["type"], string> = {
+  richText: "Nội dung",
+  image: "Ảnh",
+  gallery: "Gallery",
+  quote: "Trích dẫn",
+  stats: "Chỉ số",
+  benefits: "Phúc lợi",
+  video: "Video",
+  html: "HTML",
+  cta: "CTA",
+};
+
+function getBlockTitle(block: ContentBlock, index: number) {
+  if (block.title) return block.title;
+  if (block.type === "image") return block.caption || block.alt || `Hình ảnh ${index + 1}`;
+  if (block.type === "gallery") return `Gallery ${index + 1}`;
+  if (block.type === "quote") return stripMarkdown(block.quote || "").slice(0, 72) || "Trích dẫn";
+  if (block.type === "video") return "Video";
+  if (block.type === "stats") return "Những con số nổi bật";
+  if (block.type === "benefits") return "Điểm nổi bật";
+  if (block.type === "cta") return block.label || "Liên kết";
+  if (block.type === "html") return "Nội dung tuỳ chỉnh";
+  return `Nội dung ${index + 1}`;
+}
+
+function extractMarkdownHeadings(markdown: string, prefix?: string) {
   return Array.from(markdown.matchAll(/^#{2,3}\s+(.+)$/gm))
     .map((match) => {
       const title = stripMarkdown(match[1] ?? "");
-      return { title, id: createHeadingAnchor(title) };
+      const id = prefix ? createNestedHeadingAnchor(prefix, title) : createHeadingAnchor(title);
+      return { title, id };
     })
-    .filter((heading) => heading.title && heading.id)
-    .slice(0, 6);
+    .filter((heading) => heading.title && heading.id);
+}
+
+function extractHeadings(blocks: unknown, fallback: string) {
+  const enabledBlocks = normalizeContentBlocks(blocks).filter((block) => block.enabled !== false);
+
+  if (enabledBlocks.length === 0) {
+    return fallback.trim()
+      ? [
+          {
+            id: "article-content",
+            title: "Nội dung bài viết",
+            label: "Markdown",
+            children: extractMarkdownHeadings(fallback).slice(0, 6),
+          },
+        ]
+      : [];
+  }
+
+  return enabledBlocks
+    .map((block, index) => {
+      const blockAnchorId = createBlockAnchorId(block, index);
+      const markdown = block.markdown || block.html || "";
+
+      return {
+        id: blockAnchorId,
+        title: getBlockTitle(block, index),
+        label: blockTypeLabels[block.type],
+        children: extractMarkdownHeadings(markdown, blockAnchorId).slice(0, 4),
+      };
+    })
+    .filter((section) => section.title && section.id);
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -82,7 +158,7 @@ export default async function BlogPostPage({ params }: PageProps) {
   if (!post) notFound();
 
   const relatedPosts = (await getLatestBlogPosts(4)).filter((item) => item.id !== post.id).slice(0, 3);
-  const headings = extractHeadings(post.contentBlocks, post.content);
+  const tableOfContents = extractHeadings(post.contentBlocks, post.content);
   const readingMinutes = getReadingMinutes(post.content);
 
   return (
@@ -151,16 +227,40 @@ export default async function BlogPostPage({ params }: PageProps) {
           <aside className="hidden lg:block">
             <div className="sticky top-24 rounded-2xl border border-gray-200 bg-white p-4 text-sm shadow-sm">
               <p className="font-semibold text-[var(--color-fdi-text)]">Nội dung chính</p>
-              {headings.length > 0 ? (
-                <ol className="mt-3 space-y-2 text-[var(--color-fdi-text-secondary)]">
-                  {headings.map((heading, index) => (
-                    <li key={`${heading.id}-${index}`}>
+              {tableOfContents.length > 0 ? (
+                <ol className="mt-3 space-y-3 text-[var(--color-fdi-text-secondary)]">
+                  {tableOfContents.map((section, index) => (
+                    <li key={`${section.id}-${index}`}>
                       <a
-                        href={`#${heading.id}`}
-                        className="line-clamp-2 rounded-md transition hover:text-[var(--color-fdi-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-primary)]"
+                        href={`#${section.id}`}
+                        className="group flex gap-2 rounded-lg p-2 transition hover:bg-[var(--color-fdi-surface)] hover:text-[var(--color-fdi-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-primary)]"
                       >
-                        {heading.title}
+                        <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[var(--color-fdi-surface)] text-[11px] font-bold text-[var(--color-fdi-primary)] group-hover:bg-white">
+                          {index + 1}
+                        </span>
+                        <span className="min-w-0">
+                          <span className="line-clamp-2 font-semibold text-[var(--color-fdi-text)] group-hover:text-[var(--color-fdi-primary)]">
+                            {section.title}
+                          </span>
+                          <span className="mt-0.5 block text-[11px] uppercase tracking-wide text-[var(--color-fdi-text-secondary)]">
+                            {section.label}
+                          </span>
+                        </span>
                       </a>
+                      {section.children.length > 0 ? (
+                        <ol className="ml-9 mt-1 space-y-1 border-l border-gray-200 pl-3">
+                          {section.children.map((heading) => (
+                            <li key={heading.id}>
+                              <a
+                                href={`#${heading.id}`}
+                                className="line-clamp-2 rounded-md py-1 text-xs transition hover:text-[var(--color-fdi-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-primary)]"
+                              >
+                                {heading.title}
+                              </a>
+                            </li>
+                          ))}
+                        </ol>
+                      ) : null}
                     </li>
                   ))}
                 </ol>
@@ -174,7 +274,10 @@ export default async function BlogPostPage({ params }: PageProps) {
             {normalizeContentBlocks(post.contentBlocks).length > 0 ? (
               <ContentBlocksRenderer blocks={post.contentBlocks} fallbackMarkdown={post.content} />
             ) : (
-              <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-[0_18px_44px_-34px_rgba(15,23,42,0.55)] sm:p-8">
+              <section
+                id="article-content"
+                className="scroll-mt-28 rounded-2xl border border-gray-200 bg-white p-6 shadow-[0_18px_44px_-34px_rgba(15,23,42,0.55)] sm:p-8"
+              >
                 <SafeRichContent content={post.content} allowHtml className="text-[var(--color-fdi-text)]" />
               </section>
             )}

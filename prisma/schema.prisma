@@ -327,6 +327,7 @@ model Client {
   createdById Int
   contacts    ClientContact[]
   employer    Employer? @relation("EmployerClient") // FDIWork: 1 Client có thể link 1 Employer
+  workspace   CompanyWorkspace? @relation("WorkspaceClient")
   jobOrders   JobOrder[]
 
   @@index([companyName])
@@ -400,6 +401,7 @@ model JobCandidate {
   jobOrderId  Int
   candidate   Candidate @relation(fields: [candidateId], references: [id])
   candidateId Int
+  feedback    SubmissionFeedback[] @relation("FeedbackJobCandidate")
 
   @@unique([jobOrderId, candidateId])
 }
@@ -451,6 +453,7 @@ model Employer {
   // Link to CRM Client (admin link thủ công)
   clientId Int?    @unique
   client   Client? @relation("EmployerClient", fields: [clientId], references: [id])
+  workspace CompanyWorkspace? @relation("WorkspaceEmployer")
 
   @@index([status])
   @@index([slug])
@@ -640,4 +643,83 @@ model BlogPost {
 
   @@index([isPublished, sortOrder])
   @@index([slug])
+}
+
+// ==================== COMPANY WORKSPACE ====================
+
+enum CompanyWorkspaceStatus {
+  ACTIVE
+  PENDING
+  SUSPENDED
+}
+
+enum CompanyPortalRole {
+  OWNER
+  MEMBER
+  VIEWER
+}
+
+enum SubmissionFeedbackDecision {
+  INTERESTED
+  NEED_MORE_INFO
+  INTERVIEW
+  REJECTED
+}
+
+model CompanyWorkspace {
+  id            Int                    @id @default(autoincrement())
+  displayName   String
+  slug          String                 @unique
+  status        CompanyWorkspaceStatus @default(ACTIVE)
+  portalEnabled Boolean                @default(false)
+
+  employerId    Int?                   @unique
+  clientId      Int?                   @unique
+
+  employer      Employer?              @relation("WorkspaceEmployer", fields: [employerId], references: [id])
+  client        Client?                @relation("WorkspaceClient", fields: [clientId], references: [id])
+  portalUsers   CompanyPortalUser[]    @relation("WorkspacePortalUsers")
+  feedback      SubmissionFeedback[]   @relation("WorkspaceFeedback")
+
+  createdAt     DateTime               @default(now())
+  updatedAt     DateTime               @updatedAt
+
+  @@index([status])
+}
+
+model CompanyPortalUser {
+  id             Int                @id @default(autoincrement())
+  workspaceId    Int
+  email          String
+  password       String?
+  name           String?
+  role           CompanyPortalRole  @default(MEMBER)
+  isActive       Boolean            @default(true)
+  lastLoginAt    DateTime?
+
+  workspace      CompanyWorkspace   @relation("WorkspacePortalUsers", fields: [workspaceId], references: [id])
+  feedback       SubmissionFeedback[] @relation("FeedbackAuthor")
+
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  @@unique([workspaceId, email])
+  @@index([email])
+}
+
+model SubmissionFeedback {
+  id                  Int                          @id @default(autoincrement())
+  workspaceId         Int
+  jobCandidateId      Int
+  authorPortalUserId  Int?
+  decision            SubmissionFeedbackDecision?
+  message             String?
+  createdAt           DateTime                     @default(now())
+
+  workspace           CompanyWorkspace             @relation("WorkspaceFeedback", fields: [workspaceId], references: [id])
+  jobCandidate        JobCandidate                 @relation("FeedbackJobCandidate", fields: [jobCandidateId], references: [id])
+  authorPortalUser    CompanyPortalUser?           @relation("FeedbackAuthor", fields: [authorPortalUserId], references: [id])
+
+  @@index([workspaceId, createdAt])
+  @@index([jobCandidateId, createdAt])
 }

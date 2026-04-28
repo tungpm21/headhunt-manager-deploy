@@ -94,12 +94,13 @@ export async function updateEmployerProfileById(
     companyName: string;
     description: string | null;
     industry: string | null;
-    companySize: "SMALL" | "MEDIUM" | "LARGE" | "ENTERPRISE" | undefined;
+    companySize: "SMALL" | "MEDIUM" | "LARGE" | "ENTERPRISE" | null | undefined;
     address: string | null;
     location: string | null;
     industrialZone: string | null;
     website: string | null;
     phone: string | null;
+    logo?: string | null;
     coverImage?: string | null;
     coverPositionX?: number;
     coverPositionY?: number;
@@ -115,6 +116,46 @@ export async function updateEmployerProfileById(
 export async function getEmployerProfileById(employerId: number) {
   return prisma.employer.findUnique({
     where: { id: employerId },
+  });
+}
+
+export async function getEmployerProfileForPortalById(employerId: number) {
+  return prisma.employer.findUnique({
+    where: { id: employerId },
+    include: {
+      profileConfig: true,
+      jobPostings: {
+        select: {
+          slug: true,
+        },
+      },
+    },
+  });
+}
+
+export async function upsertEmployerProfileConfigForPortal(
+  employerId: number,
+  data: {
+    theme: unknown;
+    capabilities: unknown;
+    sections: unknown;
+    primaryVideoUrl: string | null;
+  }
+) {
+  const jsonData = {
+    theme: JSON.parse(JSON.stringify(data.theme ?? {})) as Prisma.InputJsonValue,
+    capabilities: JSON.parse(JSON.stringify(data.capabilities ?? {})) as Prisma.InputJsonValue,
+    sections: JSON.parse(JSON.stringify(data.sections ?? [])) as Prisma.InputJsonValue,
+    primaryVideoUrl: data.primaryVideoUrl,
+  };
+
+  return prisma.employerProfileConfig.upsert({
+    where: { employerId },
+    create: {
+      employerId,
+      ...jsonData,
+    },
+    update: jsonData,
   });
 }
 
@@ -200,6 +241,8 @@ export async function createEmployerJobPostingAndIncrementQuota(data: {
   jobPosting: {
     title: string;
     slug: string;
+    coverImage: string | null;
+    coverAlt: string | null;
     description: string;
     requirements: string | null;
     benefits: string | null;
@@ -247,6 +290,8 @@ export async function updateEmployerJobPosting(
   id: number,
   data: {
     title: string;
+    coverImage: string | null;
+    coverAlt: string | null;
     description: string;
     requirements: string | null;
     benefits: string | null;
@@ -461,4 +506,90 @@ export async function getEmployerJobApplicants(jobPostingId: number, employerId:
   });
 
   return { jobTitle: job.title, applicants };
+}
+
+export async function getEmployerApplicationPipelineData(
+  employerId: number,
+  jobPostingId?: number
+) {
+  const where: Prisma.ApplicationWhereInput = {
+    jobPosting: { employerId },
+  };
+
+  if (jobPostingId) {
+    where.jobPostingId = jobPostingId;
+  }
+
+  const [applications, jobs] = await Promise.all([
+    prisma.application.findMany({
+      where,
+      orderBy: [
+        { updatedAt: "desc" },
+        { createdAt: "desc" },
+      ],
+      include: {
+        jobPosting: {
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            status: true,
+          },
+        },
+      },
+    }),
+    prisma.jobPosting.findMany({
+      where: { employerId },
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        title: true,
+        status: true,
+        _count: {
+          select: {
+            applications: true,
+          },
+        },
+      },
+    }),
+  ]);
+
+  return { applications, jobs };
+}
+
+export async function updateEmployerApplicationStatus(
+  employerId: number,
+  applicationId: number,
+  status: ApplicationStatus
+) {
+  const application = await prisma.application.findUnique({
+    where: { id: applicationId },
+    select: {
+      id: true,
+      jobPosting: {
+        select: {
+          employerId: true,
+        },
+      },
+    },
+  });
+
+  if (!application || application.jobPosting.employerId !== employerId) {
+    return null;
+  }
+
+  return prisma.application.update({
+    where: { id: applicationId },
+    data: { status },
+    include: {
+      jobPosting: {
+        select: {
+          id: true,
+          title: true,
+          slug: true,
+          status: true,
+        },
+      },
+    },
+  });
 }

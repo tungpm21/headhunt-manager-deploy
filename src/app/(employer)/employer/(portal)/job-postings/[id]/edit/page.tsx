@@ -23,7 +23,7 @@ export default async function EditJobPostingPage({
   }
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
+    <div className="mx-auto max-w-5xl space-y-6">
       <div className="flex items-center gap-4">
         <Link
           href={`/employer/job-postings/${job.id}`}

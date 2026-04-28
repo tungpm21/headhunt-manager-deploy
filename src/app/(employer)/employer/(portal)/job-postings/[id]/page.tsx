@@ -8,6 +8,7 @@ import { ArrowLeft, Eye, Users, Clock, MapPin, Briefcase, DollarSign, Calendar, 
 import { format, formatDistanceToNow } from "date-fns";
 import { vi } from "date-fns/locale";
 import { JobActionButtons } from "./actions";
+import { SafeRichContent } from "@/components/content/SafeRichContent";
 
 const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
   DRAFT: { label: "Nháp", className: "bg-gray-100 text-gray-600" },
@@ -83,6 +84,16 @@ export default async function JobPostingDetailPage({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main content */}
         <div className="lg:col-span-2 space-y-6">
+          {job.coverImage && (
+            <div className="overflow-hidden rounded-xl border border-gray-100 bg-white">
+              <img
+                src={job.coverImage}
+                alt={job.coverAlt ?? job.title}
+                className="aspect-[16/7] w-full object-cover"
+              />
+            </div>
+          )}
+
           {/* Job details */}
           <div className="bg-white rounded-xl border border-gray-100 p-6 space-y-5">
             <Section title="Mô tả công việc" content={job.description} />
@@ -197,9 +208,7 @@ function Section({ title, content }: { title: string; content: string }) {
   return (
     <div>
       <h3 className="font-semibold text-gray-800 mb-2">{title}</h3>
-      <div className="text-sm text-gray-600 whitespace-pre-line leading-relaxed">
-        {content}
-      </div>
+      <SafeRichContent content={content} allowHtml className="text-sm text-gray-600" />
     </div>
   );
 }

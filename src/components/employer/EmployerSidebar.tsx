@@ -7,6 +7,7 @@ import {
   Briefcase,
   Building2,
   CreditCard,
+  ListChecks,
   LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -15,6 +16,7 @@ import { logoutEmployerAction } from "@/lib/employer-actions";
 const navigation = [
   { name: "Tổng quan", href: "/employer/dashboard", icon: LayoutDashboard },
   { name: "Tin tuyển dụng", href: "/employer/job-postings", icon: Briefcase },
+  { name: "Pipeline tuyển dụng", href: "/employer/pipeline", icon: ListChecks },
   { name: "Hồ sơ công ty", href: "/employer/company", icon: Building2 },
   { name: "Gói dịch vụ", href: "/employer/subscription", icon: CreditCard },
 ];

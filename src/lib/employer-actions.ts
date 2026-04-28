@@ -1,5 +1,6 @@
 "use server";
 
+import { ApplicationStatus } from "@prisma/client";
 import { compareSync, hashSync } from "bcrypt-ts";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -17,17 +18,21 @@ import {
   findEmployerBySlug,
   findEmployerJobPostingBySlug,
   findRecentEmployerJobPostingDuplicate,
+  getEmployerApplicationPipelineData,
   getEmployerDashboardSnapshot,
   getEmployerJobApplicants,
   getEmployerJobPostingsForPortal,
   getEmployerNotificationSnapshot,
   getEmployerOwnedJobPosting,
+  getEmployerProfileForPortalById,
   getEmployerProfileById,
   getEmployerSubscriptionSnapshot,
   getEmployerWithSubscription,
+  updateEmployerApplicationStatus,
   updateEmployerJobPosting,
   updateEmployerJobPostingStatus,
   updateEmployerProfileById,
+  upsertEmployerProfileConfigForPortal,
 } from "@/lib/employers";
 import { OPTION_GROUPS } from "@/lib/config-option-definitions";
 import {
@@ -36,9 +41,21 @@ import {
   resolveConfigOptionValue,
 } from "@/lib/config-options";
 import {
+  DEFAULT_COMPANY_CAPABILITIES,
+  DEFAULT_COMPANY_THEME,
+  countBlockImages,
+  normalizeCompanyCapabilities,
+  normalizeCompanyTheme,
+  normalizeContentBlocks,
+  parseJson,
+  type CompanyProfileCapabilities,
+  type ContentBlock,
+} from "@/lib/content-blocks";
+import {
   buildServerActionRateLimitKey,
   checkRateLimit,
 } from "@/lib/rate-limit-redis";
+import { deleteFile, uploadFile } from "@/lib/storage";
 import {
   employerJobPostingSchema,
   employerLoginSchema,
@@ -73,6 +90,57 @@ function parseNullableNumber(value: FormDataEntryValue | null) {
 
   const parsed = Number(normalized);
   return Number.isFinite(parsed) ? parsed : Number.NaN;
+}
+
+const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const MAX_LOGO_SIZE_BYTES = 2 * 1024 * 1024;
+const MAX_COVER_SIZE_BYTES = 5 * 1024 * 1024;
+const IMAGE_EXTENSION_MAP: Record<string, string> = {
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/webp": "webp",
+};
+
+function strNull(value: FormDataEntryValue | null): string | null {
+  const normalized = value?.toString().trim();
+  return normalized || null;
+}
+
+async function uploadEmployerImageFile(
+  folder: string,
+  prefix: string,
+  file: File,
+  maxBytes: number
+): Promise<{ url: string } | { error: string }> {
+  if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+    return { error: "Chỉ chấp nhận file JPG, PNG hoặc WebP." };
+  }
+  if (file.size > maxBytes) {
+    return { error: `File quá lớn. Tối đa ${Math.round(maxBytes / 1024 / 1024)}MB.` };
+  }
+
+  const extension = IMAGE_EXTENSION_MAP[file.type] ?? "tmp";
+  const fileName = `${prefix}-${Date.now()}.${extension}`;
+  const result = await uploadFile(folder, fileName, file);
+  return { url: result.url };
+}
+
+function buildEmployerJobCoverInput(formData: FormData) {
+  const coverImage = strNull(formData.get("coverImage"));
+  const coverAlt = coverImage ? strNull(formData.get("coverAlt")) : null;
+  return { coverImage, coverAlt };
+}
+
+function filterProfileBlocksByCapabilities(
+  blocks: ContentBlock[],
+  capabilities: CompanyProfileCapabilities
+) {
+  return blocks.filter((block) => {
+    if (block.type === "gallery" && !capabilities.gallery) return false;
+    if (block.type === "video" && !capabilities.video) return false;
+    if (block.type === "html" && !capabilities.html) return false;
+    return true;
+  });
 }
 
 function generateSlug(name: string): string {
@@ -284,6 +352,12 @@ export async function getEmployerDashboardData() {
 
 export async function updateCompanyProfileAction(formData: FormData) {
   const session = await requireEmployerSession();
+  const employer = await getEmployerProfileForPortalById(session.employerId);
+
+  if (!employer) {
+    return { success: false, message: "Không tìm thấy tài khoản công ty." };
+  }
+
   const websiteInput = formData.get("website")?.toString().trim() || null;
   const normalizedWebsite = normalizeWebsite(websiteInput);
   const [industry, companySize, location, industrialZone] = await Promise.all([
@@ -323,28 +397,120 @@ export async function updateCompanyProfileAction(formData: FormData) {
     };
   }
 
-  await updateEmployerProfileById(session.employerId, {
-    companyName: parsedInput.data.companyName,
-    description: parsedInput.data.description || null,
-    industry: parsedInput.data.industry || null,
-    companySize: parsedInput.data.companySize ?? undefined,
-    address: parsedInput.data.address || null,
-    location: parsedInput.data.location || null,
-    industrialZone: parsedInput.data.industrialZone || null,
-    website: parsedInput.data.website || null,
-    phone: parsedInput.data.phone || null,
-    coverPositionX: parseInt(formData.get("coverPositionX")?.toString() || "50") || 50,
-    coverPositionY: parseInt(formData.get("coverPositionY")?.toString() || "50") || 50,
-    coverZoom: parseInt(formData.get("coverZoom")?.toString() || "100") || 100,
-  });
+  const currentCapabilities = normalizeCompanyCapabilities(
+    employer.profileConfig?.capabilities ?? DEFAULT_COMPANY_CAPABILITIES
+  );
+  const currentTheme = normalizeCompanyTheme(employer.profileConfig?.theme ?? DEFAULT_COMPANY_THEME);
+  const profileTheme = currentCapabilities.theme
+    ? normalizeCompanyTheme(parseJson(formData.get("profileTheme")?.toString() ?? ""))
+    : currentTheme;
+  const profileSections = filterProfileBlocksByCapabilities(
+    normalizeContentBlocks(formData.get("profileSections")?.toString() ?? "[]"),
+    currentCapabilities
+  );
+  const primaryVideoUrl = currentCapabilities.video
+    ? strNull(formData.get("primaryVideoUrl"))
+    : employer.profileConfig?.primaryVideoUrl ?? null;
+
+  if (countBlockImages(profileSections) > currentCapabilities.maxImages) {
+    return {
+      success: false,
+      message: `Bạn chỉ được dùng tối đa ${currentCapabilities.maxImages} ảnh trong builder.`,
+    };
+  }
+
+  const logoFile = formData.get("logo");
+  const nextLogo = logoFile instanceof File && logoFile.size > 0 ? logoFile : null;
+  let uploadedLogoUrl: string | null = null;
+
+  if (nextLogo) {
+    const result = await uploadEmployerImageFile(
+      "logos",
+      `employer-logo-${session.employerId}`,
+      nextLogo,
+      MAX_LOGO_SIZE_BYTES
+    );
+    if ("error" in result) {
+      return { success: false, message: result.error };
+    }
+    uploadedLogoUrl = result.url;
+  }
+
+  const coverFile = formData.get("coverImage");
+  const nextCover = coverFile instanceof File && coverFile.size > 0 ? coverFile : null;
+  let uploadedCoverUrl: string | null = null;
+
+  if (nextCover) {
+    const result = await uploadEmployerImageFile(
+      "covers",
+      `employer-cover-${session.employerId}`,
+      nextCover,
+      MAX_COVER_SIZE_BYTES
+    );
+    if ("error" in result) {
+      if (uploadedLogoUrl) await deleteFile(uploadedLogoUrl);
+      return { success: false, message: result.error };
+    }
+    uploadedCoverUrl = result.url;
+  }
+
+  try {
+    await Promise.all([
+      updateEmployerProfileById(session.employerId, {
+        companyName: parsedInput.data.companyName,
+        description: parsedInput.data.description || null,
+        logo: uploadedLogoUrl ?? employer.logo,
+        coverImage: uploadedCoverUrl ?? employer.coverImage,
+        industry: parsedInput.data.industry || null,
+        companySize: parsedInput.data.companySize ?? null,
+        address: parsedInput.data.address || null,
+        location: parsedInput.data.location || null,
+        industrialZone: parsedInput.data.industrialZone || null,
+        website: parsedInput.data.website || null,
+        phone: parsedInput.data.phone || null,
+        coverPositionX: parseInt(formData.get("coverPositionX")?.toString() || "50") || 50,
+        coverPositionY: parseInt(formData.get("coverPositionY")?.toString() || "50") || 50,
+        coverZoom: parseInt(formData.get("coverZoom")?.toString() || "100") || 100,
+      }),
+      upsertEmployerProfileConfigForPortal(session.employerId, {
+        theme: JSON.parse(JSON.stringify(profileTheme)),
+        capabilities: JSON.parse(JSON.stringify(currentCapabilities)),
+        sections: JSON.parse(JSON.stringify(profileSections)),
+        primaryVideoUrl,
+      }),
+    ]);
+  } catch (error) {
+    if (uploadedLogoUrl) await deleteFile(uploadedLogoUrl);
+    if (uploadedCoverUrl) await deleteFile(uploadedCoverUrl);
+    console.error("updateCompanyProfileAction error:", error);
+    return {
+      success: false,
+      message: "Không thể cập nhật thông tin công ty.",
+    };
+  }
+
+  if (uploadedLogoUrl && employer.logo && employer.logo !== uploadedLogoUrl) {
+    await deleteFile(employer.logo);
+  }
+  if (uploadedCoverUrl && employer.coverImage && employer.coverImage !== uploadedCoverUrl) {
+    await deleteFile(employer.coverImage);
+  }
 
   revalidatePath("/employer/company");
-  return { success: true, message: "Cap nhat thong tin thanh cong." };
+  revalidatePath("/employer/dashboard");
+  revalidatePath("/cong-ty");
+  revalidatePath(`/cong-ty/${employer.slug}`);
+  revalidatePath("/viec-lam");
+  employer.jobPostings.forEach((job) => {
+    revalidatePath(`/viec-lam/${job.slug}`);
+  });
+
+  return { success: true, message: "Cập nhật thông tin thành công." };
 }
 
 export async function getCompanyProfile() {
   const session = await requireEmployerSession();
-  return getEmployerProfileById(session.employerId);
+  return getEmployerProfileForPortalById(session.employerId);
 }
 
 export async function getCompanyProfileOptions() {
@@ -463,15 +629,19 @@ export async function createJobPostingAction(formData: FormData) {
     };
   }
 
-    const parsedInput = employerJobPostingSchema.safeParse(
-      await buildEmployerJobPostingInput(formData)
-    );
+  const parsedInput = employerJobPostingSchema.safeParse(
+    await buildEmployerJobPostingInput(formData)
+  );
+  const coverInput = buildEmployerJobCoverInput(formData);
 
   if (!parsedInput.success) {
     return {
       success: false,
       message: getFirstZodErrorMessage(parsedInput.error),
     };
+  }
+  if (coverInput.coverImage && !coverInput.coverAlt) {
+    return { success: false, message: "Vui lòng nhập alt text cho ảnh cover." };
   }
 
   const duplicate = await findRecentEmployerJobPostingDuplicate(
@@ -500,6 +670,8 @@ export async function createJobPostingAction(formData: FormData) {
       jobPosting: {
         title: parsedInput.data.title,
         slug,
+        coverImage: coverInput.coverImage,
+        coverAlt: coverInput.coverAlt,
         description: parsedInput.data.description,
         requirements: parsedInput.data.requirements || null,
         benefits: parsedInput.data.benefits || null,
@@ -562,6 +734,7 @@ export async function updateJobPostingAction(id: number, formData: FormData) {
   const parsedInput = employerJobPostingSchema.safeParse(
     await buildEmployerJobPostingInput(formData)
   );
+  const coverInput = buildEmployerJobCoverInput(formData);
 
   if (!parsedInput.success) {
     return {
@@ -569,9 +742,14 @@ export async function updateJobPostingAction(id: number, formData: FormData) {
       message: getFirstZodErrorMessage(parsedInput.error),
     };
   }
+  if (coverInput.coverImage && !coverInput.coverAlt) {
+    return { success: false, message: "Vui lòng nhập alt text cho ảnh cover." };
+  }
 
   await updateEmployerJobPosting(id, {
     title: parsedInput.data.title,
+    coverImage: coverInput.coverImage,
+    coverAlt: coverInput.coverAlt,
     description: parsedInput.data.description,
     requirements: parsedInput.data.requirements || null,
     benefits: parsedInput.data.benefits || null,
@@ -592,6 +770,9 @@ export async function updateJobPostingAction(id: number, formData: FormData) {
   });
 
   revalidatePath("/employer/job-postings");
+  revalidatePath(`/employer/job-postings/${id}`);
+  revalidatePath("/viec-lam");
+  revalidatePath(`/viec-lam/${job.slug}`);
   return { success: true, message: "Cap nhat tin thanh cong." };
 }
 
@@ -659,4 +840,39 @@ export async function deleteJobPostingAction(id: number) {
 export async function getJobApplicants(jobPostingId: number) {
   const session = await requireEmployerSession();
   return getEmployerJobApplicants(jobPostingId, session.employerId);
+}
+
+export async function getRecruitmentPipelineData(jobPostingId?: number) {
+  const session = await requireEmployerSession();
+  return getEmployerApplicationPipelineData(session.employerId, jobPostingId);
+}
+
+export async function updateApplicationPipelineStatusAction(
+  applicationId: number,
+  status: string
+) {
+  const session = await requireEmployerSession();
+  const nextStatus = Object.values(ApplicationStatus).includes(status as ApplicationStatus)
+    ? (status as ApplicationStatus)
+    : null;
+
+  if (!nextStatus) {
+    return { success: false, message: "Trạng thái ứng viên không hợp lệ." };
+  }
+
+  const application = await updateEmployerApplicationStatus(
+    session.employerId,
+    applicationId,
+    nextStatus
+  );
+
+  if (!application) {
+    return { success: false, message: "Không tìm thấy hồ sơ ứng tuyển." };
+  }
+
+  revalidatePath("/employer/pipeline");
+  revalidatePath("/employer/job-postings");
+  revalidatePath(`/employer/job-postings/${application.jobPosting.id}`);
+
+  return { success: true, application };
 }

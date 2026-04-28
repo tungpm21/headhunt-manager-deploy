@@ -1,7 +1,8 @@
 "use server";
 
 import { randomUUID } from "crypto";
-import { requireAdmin } from "@/lib/authz";
+import { auth } from "@/auth";
+import { requireEmployerSession } from "@/lib/employer-auth";
 import { uploadFile } from "@/lib/storage";
 
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -21,8 +22,18 @@ type UploadResult =
   | { success: true; url: string; alt: string }
   | { success: false; error: string };
 
+async function requireContentUploadPermission() {
+  const session = await auth();
+
+  if (session?.user?.role === "ADMIN") {
+    return;
+  }
+
+  await requireEmployerSession();
+}
+
 export async function uploadContentImage(formData: FormData): Promise<UploadResult> {
-  await requireAdmin();
+  await requireContentUploadPermission();
 
   const file = formData.get("file");
   const context = formData.get("context")?.toString() ?? "";

@@ -39,6 +39,8 @@ type BlockBuilderProps = {
   description?: string;
   maxImages?: number;
   allowHtml?: boolean;
+  allowGallery?: boolean;
+  allowVideo?: boolean;
   previewTheme?: CompanyProfileTheme;
 };
 
@@ -119,6 +121,8 @@ export function BlockBuilder({
   description,
   maxImages = 8,
   allowHtml = false,
+  allowGallery = true,
+  allowVideo = true,
   previewTheme,
 }: BlockBuilderProps) {
   const [blocks, setBlocks] = useState<ContentBlock[]>(() => normalizeContentBlocks(initialBlocks));
@@ -127,9 +131,14 @@ export function BlockBuilder({
   const selectedBlock = blocks.find((block) => block.id === selectedId) ?? blocks[0] ?? null;
   const serializedBlocks = useMemo(() => JSON.stringify(blocks), [blocks]);
 
+  const mediaTypes: ContentBlockType[] = [
+    "image",
+    ...(allowGallery ? ["gallery" as const] : []),
+    ...(allowVideo ? ["video" as const] : []),
+  ];
   const availableTypes: ContentBlockType[] = context === "company"
-    ? ["richText", "stats", "benefits", "image", "gallery", "video", "quote", "cta", ...(allowHtml ? ["html" as const] : [])]
-    : ["richText", "image", "gallery", "video", "quote", "cta", ...(allowHtml ? ["html" as const] : [])];
+    ? ["richText", "stats", "benefits", ...mediaTypes, "quote", "cta", ...(allowHtml ? ["html" as const] : [])]
+    : ["richText", ...mediaTypes, "quote", "cta", ...(allowHtml ? ["html" as const] : [])];
 
   function addBlock(type: ContentBlockType) {
     const block = createDefaultBlock(type);

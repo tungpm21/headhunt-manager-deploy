@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Briefcase,
+  Building,
   Building2,
   FileDown,
   FileText,
@@ -25,6 +26,7 @@ import type { NotificationCounts } from "@/lib/notifications";
 const navigation = [
   { name: "Tổng quan", href: "/dashboard", icon: LayoutDashboard },
   { name: "Talent Pool", href: "/candidates", icon: Users },
+  { name: "Công ty", href: "/companies", icon: Building },
   { name: "Khách hàng", href: "/clients", icon: Building2 },
   { name: "Job Orders", href: "/jobs", icon: Briefcase },
   { name: "Submissions", href: "/submissions", icon: SendHorizonal },

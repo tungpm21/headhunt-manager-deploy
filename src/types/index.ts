@@ -157,3 +157,46 @@ export interface PaginatedResponse<T> {
   pageSize: number;
   totalPages: number;
 }
+
+// Company Workspace types
+export type CompanyWorkspaceStatus = "ACTIVE" | "PENDING" | "SUSPENDED";
+export type CompanyPortalRole = "OWNER" | "MEMBER" | "VIEWER";
+export type SubmissionFeedbackDecision =
+  | "INTERESTED"
+  | "NEED_MORE_INFO"
+  | "INTERVIEW"
+  | "REJECTED";
+
+export interface CompanyWorkspace {
+  id: number;
+  displayName: string;
+  slug: string;
+  status: CompanyWorkspaceStatus;
+  portalEnabled: boolean;
+  employerId?: number;
+  clientId?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CompanyPortalUser {
+  id: number;
+  workspaceId: number;
+  email: string;
+  name?: string;
+  role: CompanyPortalRole;
+  isActive: boolean;
+  lastLoginAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SubmissionFeedback {
+  id: number;
+  workspaceId: number;
+  jobCandidateId: number;
+  authorPortalUserId?: number;
+  decision?: SubmissionFeedbackDecision;
+  message?: string;
+  createdAt: string;
+}

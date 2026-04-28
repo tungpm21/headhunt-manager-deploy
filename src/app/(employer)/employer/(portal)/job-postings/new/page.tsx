@@ -1,19 +1,18 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import {
   createJobPostingAction,
   getJobPostingFormOptions,
 } from "@/lib/employer-actions";
-import { ArrowLeft, Send, AlertCircle } from "lucide-react";
-import Link from "next/link";
+import { MarkdownEditor } from "@/components/content/MarkdownEditor";
+import { MediaUploadButton } from "@/components/content/MediaUploadButton";
+import { ArrowLeft, Send, AlertCircle, Loader2 } from "lucide-react";
 import { JOB_POSITIONS } from "@/lib/job-taxonomy";
 
-const inputClass =
-  "w-full px-4 py-2.5 rounded-xl border border-gray-200 text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all";
-
-const selectClass =
-  "w-full px-4 py-2.5 rounded-xl border border-gray-200 text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all";
+const inputClassName =
+  "w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-800 placeholder:text-gray-400 transition focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/25";
 
 type OptionChoice = { value: string; label: string };
 type JobPostingFormOptions = Awaited<ReturnType<typeof getJobPostingFormOptions>>;
@@ -21,6 +20,8 @@ type JobPostingFormOptions = Awaited<ReturnType<typeof getJobPostingFormOptions>
 export default function NewJobPostingPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [coverImage, setCoverImage] = useState("");
+  const [coverAlt, setCoverAlt] = useState("");
   const [formOptions, setFormOptions] = useState<JobPostingFormOptions | null>(null);
   const submittingRef = useRef(false);
 
@@ -33,6 +34,9 @@ export default function NewJobPostingPage() {
     submittingRef.current = true;
     setError("");
     setLoading(true);
+    formData.set("coverImage", coverImage);
+    formData.set("coverAlt", coverAlt);
+
     try {
       const result = await createJobPostingAction(formData);
       if (result && !result.success) {
@@ -55,239 +59,269 @@ export default function NewJobPostingPage() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
+    <div className="mx-auto max-w-5xl space-y-6">
       <div className="flex items-center gap-4">
         <Link
           href="/employer/job-postings"
-          className="h-9 w-9 rounded-lg border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors"
+          className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 transition hover:bg-gray-50"
         >
           <ArrowLeft className="h-4 w-4 text-gray-500" />
         </Link>
         <div>
           <h1 className="text-2xl font-bold text-gray-800">Đăng tin tuyển dụng</h1>
-          <p className="text-gray-500 mt-0.5 text-sm">Tin sẽ được gửi duyệt sau khi đăng</p>
+          <p className="mt-0.5 text-sm text-gray-500">Tin sẽ được gửi duyệt sau khi đăng</p>
         </div>
       </div>
 
       {error && (
-        <div className="flex items-start gap-3 rounded-lg bg-red-50 border border-red-200 p-4">
-          <AlertCircle className="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" />
+        <div className="flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4">
+          <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-red-500" />
           <p className="text-sm text-red-700">{error}</p>
         </div>
       )}
 
-      <form action={handleSubmit} className="space-y-5">
-        {/* === Card 1: Basic job info === */}
-        <div className="bg-white rounded-xl border border-gray-100 p-6 space-y-5">
-          {/* Title */}
-          <div>
-            <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1.5">
-              Tiêu đề tin <span className="text-red-500">*</span>
-            </label>
-            <input
-              id="title"
-              name="title"
-              type="text"
-              required
-              placeholder="VD: Kỹ sư cơ khí - Nhà máy Samsung Bắc Ninh"
-              className={inputClass}
+      <form action={handleSubmit} className="space-y-6">
+        <div className="rounded-xl border border-gray-100 bg-white p-6">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+            <div>
+              <p className="text-sm font-semibold text-gray-800">Ảnh cover tin tuyển dụng</p>
+              <p className="mt-1 text-xs text-gray-500">
+                Tùy chọn. Nếu để trống sẽ dùng nhận diện của công ty.
+              </p>
+            </div>
+            <MediaUploadButton
+              context="job"
+              kind="cover"
+              alt={coverAlt}
+              onUploaded={(image) => {
+                setCoverImage(image.url);
+                setCoverAlt(image.alt);
+              }}
+              label="Upload cover"
             />
           </div>
-
-          {/* Description */}
-          <div>
-            <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1.5">
-              Mô tả công việc <span className="text-red-500">*</span>
-            </label>
-            <textarea
-              id="description"
-              name="description"
-              rows={5}
-              required
-              placeholder="Mô tả chi tiết về công việc, trách nhiệm, môi trường làm việc..."
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all resize-none"
-            />
-          </div>
-
-          {/* Requirements */}
-          <div>
-            <label htmlFor="requirements" className="block text-sm font-medium text-gray-700 mb-1.5">
-              Yêu cầu ứng viên
-            </label>
-            <textarea
-              id="requirements"
-              name="requirements"
-              rows={3}
-              placeholder="Bằng cấp, kinh nghiệm, kỹ năng cần thiết..."
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all resize-none"
-            />
-          </div>
-
-          {/* Benefits */}
-          <div>
-            <label htmlFor="benefits" className="block text-sm font-medium text-gray-700 mb-1.5">
-              Phúc lợi
-            </label>
-            <textarea
-              id="benefits"
-              name="benefits"
-              rows={2}
-              placeholder="Lương tháng 13, bảo hiểm, xe đưa đón, ăn ca..."
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all resize-none"
-            />
-          </div>
-
-          {/* Salary */}
-          <div>
-            <p className="text-sm font-medium text-gray-700 mb-2">
-              Mức lương
-              <span className="text-xs font-normal text-gray-400 ml-2">Hiển thị dải lương tăng ~40% lượt ứng tuyển</span>
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div>
-                <label htmlFor="salaryMin" className="block text-xs text-gray-500 mb-1">Tối thiểu (triệu VND)</label>
-                <input id="salaryMin" name="salaryMin" type="number" min="0" step="0.1" placeholder="VD: 15" className={inputClass} />
-              </div>
-              <div>
-                <label htmlFor="salaryMax" className="block text-xs text-gray-500 mb-1">Tối đa (triệu VND)</label>
-                <input id="salaryMax" name="salaryMax" type="number" min="0" step="0.1" placeholder="VD: 25" className={inputClass} />
-              </div>
-              <div>
-                <label htmlFor="salaryDisplay" className="block text-xs text-gray-500 mb-1">Hiển thị</label>
-                <input id="salaryDisplay" name="salaryDisplay" type="text" placeholder="VD: 15-25 triệu" className={inputClass} />
-              </div>
+          <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_220px]">
+            <div className="space-y-3">
+              <input
+                value={coverAlt}
+                onChange={(event) => setCoverAlt(event.target.value)}
+                placeholder="Alt text mô tả ảnh cover"
+                className={inputClassName}
+              />
+              <input
+                value={coverImage}
+                onChange={(event) => setCoverImage(event.target.value)}
+                placeholder="URL ảnh cover hoặc upload từ nút bên trên"
+                className={inputClassName}
+              />
             </div>
-          </div>
-
-          {/* Industry / Position / Location / WorkType */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="industry" className="block text-sm font-medium text-gray-700 mb-1.5">Ngành nghề</label>
-              <select id="industry" name="industry" className={selectClass}>
-                <option value="">Chọn ngành</option>
-                {formOptions.industryOptions.map((i: OptionChoice) => <option key={i.value} value={i.value}>{i.label}</option>)}
-              </select>
-            </div>
-            <div>
-              <label htmlFor="position" className="block text-sm font-medium text-gray-700 mb-1.5">Cấp bậc</label>
-              <select id="position" name="position" className={selectClass}>
-                <option value="">Chọn cấp bậc</option>
-                {JOB_POSITIONS.map((p) => <option key={p} value={p}>{p}</option>)}
-              </select>
-            </div>
-            <div>
-              <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-1.5">Tỉnh / Thành phố</label>
-              <select id="location" name="location" className={selectClass}>
-                <option value="">Chọn khu vực</option>
-                {formOptions.locationOptions.map((l: OptionChoice) => <option key={l.value} value={l.value}>{l.label}</option>)}
-              </select>
-            </div>
-            <div>
-              <label htmlFor="workType" className="block text-sm font-medium text-gray-700 mb-1.5">Hình thức làm việc</label>
-              <select id="workType" name="workType" className={selectClass}>
-                <option value="">Chọn hình thức</option>
-                {formOptions.workTypeOptions.map((w: OptionChoice) => <option key={w.value} value={w.value}>{w.label}</option>)}
-              </select>
-            </div>
-          </div>
-
-          {/* Quantity + Skills */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="quantity" className="block text-sm font-medium text-gray-700 mb-1.5">Số lượng tuyển</label>
-              <input id="quantity" name="quantity" type="number" min="1" defaultValue="1" className={inputClass} />
-            </div>
-            <div>
-              <label htmlFor="skills" className="block text-sm font-medium text-gray-700 mb-1.5">Kỹ năng (tags)</label>
-              <input id="skills" name="skills" type="text" placeholder="VD: AutoCAD, SolidWorks (phân cách bằng dấu phẩy)" className={inputClass} />
+            <div className="overflow-hidden rounded-xl border border-gray-200 bg-gray-50">
+              {coverImage ? (
+                <img src={coverImage} alt={coverAlt || "Job cover"} className="aspect-[16/10] w-full object-cover" />
+              ) : (
+                <div className="flex aspect-[16/10] items-center justify-center text-xs text-gray-400">
+                  Dùng logo/cover công ty
+                </div>
+              )}
             </div>
           </div>
         </div>
 
-        {/* === Card 2: FDI-specific fields === */}
-        <div className="bg-white rounded-xl border border-[#0077B6]/20 p-6 space-y-5">
-          <div className="flex items-center gap-2 pb-4 border-b border-gray-100">
-            <div className="h-1.5 w-5 rounded-full bg-[#0077B6]" />
-            <p className="text-sm font-semibold text-[#023E8A]">Yêu cầu đặc thù FDI</p>
-            <span className="text-xs text-gray-400">— không có trên VietnamWorks hay TopCV</span>
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(300px,0.65fr)]">
+          <div className="space-y-6">
+            <div className="rounded-xl border border-gray-100 bg-white p-6 space-y-5">
+              <div>
+                <label htmlFor="title" className="mb-1.5 block text-sm font-medium text-gray-700">
+                  Tiêu đề tin <span className="text-red-500">*</span>
+                </label>
+                <input
+                  id="title"
+                  name="title"
+                  type="text"
+                  required
+                  placeholder="VD: Kỹ sư cơ khí - Nhà máy Samsung Bắc Ninh"
+                  className={inputClassName}
+                />
+              </div>
+
+              <div>
+                <label htmlFor="description" className="mb-1.5 block text-sm font-medium text-gray-700">
+                  Mô tả công việc <span className="text-red-500">*</span>
+                </label>
+                <MarkdownEditor
+                  name="description"
+                  label=""
+                  required
+                  rows={10}
+                  uploadContext="job"
+                  maxImages={3}
+                />
+              </div>
+
+              <div>
+                <label htmlFor="requirements" className="mb-1.5 block text-sm font-medium text-gray-700">
+                  Yêu cầu ứng viên
+                </label>
+                <MarkdownEditor
+                  name="requirements"
+                  label=""
+                  rows={7}
+                  uploadContext="job"
+                  maxImages={3}
+                />
+              </div>
+
+              <div>
+                <label htmlFor="benefits" className="mb-1.5 block text-sm font-medium text-gray-700">
+                  Phúc lợi
+                </label>
+                <MarkdownEditor
+                  name="benefits"
+                  label=""
+                  rows={6}
+                  uploadContext="job"
+                  maxImages={3}
+                />
+              </div>
+            </div>
           </div>
 
-          {/* Industrial zone + Shift type */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <aside className="space-y-5">
+            <div className="rounded-xl border border-gray-100 bg-white p-6 space-y-4">
+              <div>
+                <label htmlFor="salaryDisplay" className="mb-1.5 block text-sm font-medium text-gray-700">
+                  Hiển thị lương
+                </label>
+                <input id="salaryDisplay" name="salaryDisplay" placeholder="VD: 15-25 triệu" className={inputClassName} />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label htmlFor="salaryMin" className="mb-1 block text-xs text-gray-500">
+                    Tối thiểu (triệu VND)
+                  </label>
+                  <input id="salaryMin" name="salaryMin" type="number" min="0" step="0.1" placeholder="15" className={inputClassName} />
+                </div>
+                <div>
+                  <label htmlFor="salaryMax" className="mb-1 block text-xs text-gray-500">
+                    Tối đa (triệu VND)
+                  </label>
+                  <input id="salaryMax" name="salaryMax" type="number" min="0" step="0.1" placeholder="25" className={inputClassName} />
+                </div>
+              </div>
+
+              <SelectField id="industry" label="Ngành nghề" options={formOptions.industryOptions} placeholder="Chọn ngành" />
+              <SelectField id="position" label="Cấp bậc" options={JOB_POSITIONS.map((value) => ({ value, label: value }))} placeholder="Chọn cấp bậc" />
+              <SelectField id="location" label="Tỉnh / Thành phố" options={formOptions.locationOptions} placeholder="Chọn khu vực" />
+              <SelectField id="workType" label="Hình thức làm việc" options={formOptions.workTypeOptions} placeholder="Chọn hình thức" />
+
+              <div>
+                <label htmlFor="quantity" className="mb-1.5 block text-sm font-medium text-gray-700">
+                  Số lượng tuyển
+                </label>
+                <input id="quantity" name="quantity" type="number" min="1" defaultValue="1" className={inputClassName} />
+              </div>
+
+              <div>
+                <label htmlFor="skills" className="mb-1.5 block text-sm font-medium text-gray-700">
+                  Kỹ năng (tags)
+                </label>
+                <input id="skills" name="skills" placeholder="VD: AutoCAD, SolidWorks" className={inputClassName} />
+                <p className="mt-1 text-xs text-gray-400">Nhập nhiều kỹ năng, ngăn cách bằng dấu phẩy.</p>
+              </div>
+            </div>
+          </aside>
+        </div>
+
+        <div className="rounded-xl border border-[#0077B6]/20 bg-white p-6 space-y-5">
+          <div className="flex items-center gap-2 border-b border-gray-100 pb-4">
+            <div className="h-1.5 w-5 rounded-full bg-[#0077B6]" />
+            <p className="text-sm font-semibold text-[#023E8A]">Yêu cầu đặc thù FDI</p>
+            <span className="text-xs text-gray-400">không có trên VietnamWorks hay TopCV</span>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <label htmlFor="industrialZone" className="block text-sm font-medium text-gray-700 mb-1.5">
+              <label htmlFor="industrialZone" className="mb-1.5 block text-sm font-medium text-gray-700">
                 Khu công nghiệp
               </label>
-              <select id="industrialZone" name="industrialZone" className={selectClass}>
+              <select id="industrialZone" name="industrialZone" className={inputClassName}>
                 <option value="">Chọn khu công nghiệp</option>
                 {formOptions.industrialZoneGroups.map((group) => (
                   <optgroup key={group.group} label={group.group}>
                     {group.zones.map((zone) => (
-                      <option key={zone.value} value={zone.value}>{zone.label}</option>
+                      <option key={zone.value} value={zone.value}>
+                        {zone.label}
+                      </option>
                     ))}
                   </optgroup>
                 ))}
               </select>
-              <p className="text-xs text-gray-400 mt-1">Ứng viên tìm việc theo KCN, không chỉ tỉnh thành.</p>
+              <p className="mt-1 text-xs text-gray-400">Ứng viên tìm việc theo KCN, không chỉ tỉnh thành.</p>
             </div>
-            <div>
-              <label htmlFor="shiftType" className="block text-sm font-medium text-gray-700 mb-1.5">
-                Ca làm việc
-              </label>
-              <select id="shiftType" name="shiftType" className={selectClass}>
-                <option value="">Không chỉ định</option>
-                {formOptions.shiftTypeOptions.map((option: OptionChoice) => (
-                  <option key={option.value} value={option.value}>{option.label}</option>
-                ))}
-              </select>
-            </div>
+
+            <SelectField id="shiftType" label="Ca làm việc" options={formOptions.shiftTypeOptions} placeholder="Không chỉ định" />
           </div>
 
-          {/* Language + Proficiency */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <label htmlFor="requiredLanguage" className="block text-sm font-medium text-gray-700 mb-1.5">
-                Ngôn ngữ yêu cầu
-              </label>
-              <select id="requiredLanguage" name="requiredLanguage" className={selectClass}>
-                {formOptions.requiredLanguageOptions.map((l: OptionChoice) => (
-                  <option key={l.value} value={l.value}>{l.label}</option>
-                ))}
-              </select>
-              <p className="text-xs text-gray-400 mt-1">Ứng viên có kỹ năng ngôn ngữ phù hợp sẽ được ưu tiên hiển thị.</p>
+              <SelectField
+                id="requiredLanguage"
+                label="Ngôn ngữ yêu cầu"
+                options={formOptions.requiredLanguageOptions}
+                placeholder="Không yêu cầu"
+                defaultValue="none"
+              />
+              <p className="mt-1 text-xs text-gray-400">
+                Ứng viên có kỹ năng ngôn ngữ phù hợp sẽ được ưu tiên hiển thị.
+              </p>
             </div>
-            <div>
-              <label htmlFor="languageProficiency" className="block text-sm font-medium text-gray-700 mb-1.5">
-                Mức thành thạo
-              </label>
-              <select id="languageProficiency" name="languageProficiency" className={selectClass}>
-                <option value="">Không chỉ định</option>
-                {formOptions.languageProficiencyOptions.map((l: OptionChoice) => (
-                  <option key={l.value} value={l.value}>{l.label}</option>
-                ))}
-              </select>
-            </div>
+            <SelectField id="languageProficiency" label="Mức thành thạo" options={formOptions.languageProficiencyOptions} placeholder="Không chỉ định" />
           </div>
-
         </div>
 
-        {/* Submit */}
-        <div className="flex items-center justify-between py-2">
+        <div className="flex flex-col gap-3 py-2 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-xs text-gray-400">Tin sẽ hiển thị sau khi admin duyệt (thường trong 24 giờ)</p>
           <button
             type="submit"
             disabled={loading}
-            className="flex items-center gap-2 px-6 py-3 rounded-xl bg-teal-600 text-white font-semibold hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg shadow-teal-200"
+            className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-teal-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-teal-200 transition hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {loading ? (
-              <div className="h-5 w-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-            ) : (
-              <Send className="h-4 w-4" />
-            )}
-            Đăng tin (Gửi duyệt)
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+            {loading ? "Đang gửi..." : "Đăng tin (Gửi duyệt)"}
           </button>
         </div>
       </form>
+    </div>
+  );
+}
+
+function SelectField({
+  id,
+  label,
+  options,
+  placeholder,
+  defaultValue = "",
+}: {
+  id: string;
+  label: string;
+  options: OptionChoice[];
+  placeholder: string;
+  defaultValue?: string;
+}) {
+  return (
+    <div>
+      <label htmlFor={id} className="mb-1.5 block text-sm font-medium text-gray-700">
+        {label}
+      </label>
+      <select id={id} name={id} defaultValue={defaultValue} className={inputClassName}>
+        <option value="">{placeholder}</option>
+        {options.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
     </div>
   );
 }

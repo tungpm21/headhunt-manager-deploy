@@ -121,6 +121,16 @@ Add entries newest first.
 
 ```text
 Date: 2026-04-29
+Task: Full Admin CRM frontend/backend audit
+Commands: Desktop route audit for 40+ Admin CRM routes -> pass; mobile route audit for core Admin CRM routes -> pass; logged-out auth redirect smoke -> pass; non-mutating interaction smoke for global search, company filters/tabs, jobs filters, submissions stage filter, moderation status filter, mobile menu -> pass; npx prisma validate -> pass with existing driverAdapters deprecation warning; npx tsc --noEmit -> pass; npx eslint src/components/blog/BlogPostForm.tsx -> pass; npm run build -> pass with existing Postgres SSL mode warning
+Result: No blocking CRM Admin logic/render issue found. Fixed one accessibility polish issue: blog create/edit form now exposes the form title as the page h1, so /blog/new and /blog/1/edit have proper main headings.
+Changed files: src/components/blog/BlogPostForm.tsx, docs/company-workspace-rebuild-2026-04-28/TRACKER.md
+Remaining risk: MEMBER role smoke could not be completed because known seed MEMBER credentials did not authenticate on the current DB; static scan confirms sensitive admin server loaders/actions call requireAdmin, while candidates/jobs/submissions use viewer scope. Existing warnings remain: Postgres SSL mode warning and Prisma driverAdapters preview deprecation.
+Next task: If needed, create/verify a known MEMBER test account, then run role-boundary smoke for MEMBER versus ADMIN.
+```
+
+```text
+Date: 2026-04-29
 Task: Admin CRM UI/UX audit and refinement
 Commands: GitNexus impact DashboardLayout -> LOW; GitNexus impact CompaniesPage -> LOW; GitNexus impact Sidebar -> LOW; npx tsc --noEmit -> pass; targeted eslint for dashboard layout/sidebar/companies page -> pass; npm run build -> pass with existing Postgres SSL mode warning; Playwright desktop/mobile Admin CRM smoke -> pass
 Result: Fixed CRM page-level horizontal overflow by allowing the dashboard content pane to shrink. Standardized Company Workspace UI copy for managers: sidebar now shows Công ty, /companies heading uses Công ty with a small Company Workspace badge, and role/portal filters use Vietnamese labels while preserving backend query values.

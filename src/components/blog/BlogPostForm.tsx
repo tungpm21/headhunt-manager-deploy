@@ -103,9 +103,9 @@ export function BlogPostForm({ post }: { post?: BlogPostData }) {
 
         <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
           <div>
-            <h2 className="text-xl font-bold text-foreground">
+            <h1 className="text-xl font-bold text-foreground">
               {post ? "Chỉnh sửa bài viết" : "Tạo bài viết mới"}
-            </h2>
+            </h1>
             <p className="mt-1 text-sm text-muted">
               Dùng block builder để tạo bài chia sẻ có cover, ảnh, gallery, video và nội dung Markdown.
             </p>

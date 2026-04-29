@@ -106,6 +106,9 @@ After every implementation slice:
 | P7-04 | Improve mobile fallback | [x] | Mobile uses stacked cards with select/buttons; drag-and-drop board is desktop-only |
 | P7-05 | Remove old inline Link Client UI | [x] | Employer detail now links to Company Workspace mapping instead of mutating legacy Employer.clientId inline |
 | P7-06 | Redirect legacy employer pages | [!] | Blocked until Company Portal job-postings/profile pages are feature-complete; redirecting now would send users to stubs |
+| P7-06a | Replace `/company/job-postings` stub | [x] | Portal now renders a workspace-scoped job postings list with status filters, counts, application links, and public preview links |
+| P7-06b | Add `/company/job-postings` detail/create/edit actions | [ ] | Needed before redirecting legacy employer job-postings routes |
+| P7-06c | Replace `/company/profile` stub with profile builder | [ ] | Needed before redirecting legacy employer company/profile route |
 
 ## Verification Log
 
@@ -119,6 +122,16 @@ Result:
 Changed files:
 Remaining risk:
 Next task:
+```
+
+```text
+Date: 2026-04-29
+Task: Phase 7 P7-06a company portal job postings list
+Commands: GitNexus impact CompanyJobPostingsPage -> LOW; npx tsc --noEmit -> pass; npx eslint "src/app/(company)/company/(portal)/job-postings/page.tsx" -> pass; npm run build -> pass with existing Postgres SSL mode warning
+Result: Replaced `/company/job-postings` stub with a workspace-scoped list backed by the linked Employer. The page supports status filters, summary counts, application links filtered by job, rejected reasons, and public preview links.
+Changed files: src/app/(company)/company/(portal)/job-postings/page.tsx, docs/company-workspace-rebuild-2026-04-28/TRACKER.md
+Remaining risk: Create/edit/detail management still lives only under legacy `/employer/job-postings`, so P7-06 remains blocked until P7-06b and P7-06c are done.
+Next task: Implement `/company/job-postings` detail/create/edit actions or replace `/company/profile` stub.
 ```
 
 ```text

@@ -58,7 +58,7 @@ After every implementation slice:
 | P3-03 | Add `/company` layout and nav | [x] | CompanyPortalSidebar with capability-aware tabs |
 | P3-04 | Add dashboard | [x] | Stat cards by workspace facets |
 | P3-05 | Add `/employer/*` compatibility redirects/wrappers | [ ] | Deferred — existing employer routes still functional |
-| P3-06 | Add portal user management | [ ] | Deferred to later iteration |
+| P3-06 | Add portal user management | [x] | `/company/users` now lets Owners create users, update roles, reset passwords, and activate/deactivate workspace users |
 | P3-07 | Add auth/access tests | [ ] | No test infra; verified via tsc |
 
 ## Phase 4: Applications Inbox
@@ -119,6 +119,16 @@ Result:
 Changed files:
 Remaining risk:
 Next task:
+```
+
+```text
+Date: 2026-04-29
+Task: Phase 3 P3-06 portal user management
+Commands: GitNexus impact CompanyUsersPage -> LOW; npx tsc --noEmit -> pass; targeted eslint for company users page/component/actions -> pass; npm run build -> pass; GitNexus detect_changes staged -> LOW
+Result: Replaced `/company/users` stub with Owner-only workspace user management. Owners can create portal users, change roles, reset passwords, and lock/unlock users with server-side workspace guards.
+Changed files: src/app/(company)/company/(portal)/users/page.tsx, src/components/company/CompanyPortalUsersManager.tsx, src/lib/company-portal-user-actions.ts, docs/company-workspace-rebuild-2026-04-28/TRACKER.md
+Remaining risk: Email delivery/invitation flow is not included; Owner must share temporary passwords out of band for now.
+Next task: Commit Phase 3 P3-06 if staged diff remains scoped.
 ```
 
 ```text

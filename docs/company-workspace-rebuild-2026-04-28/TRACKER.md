@@ -121,6 +121,16 @@ Add entries newest first.
 
 ```text
 Date: 2026-04-29
+Task: Admin role-boundary hardening for blog routes
+Commands: GitNexus impact BlogListPage -> LOW; GitNexus impact NewBlogPostPage -> LOW; GitNexus impact EditBlogPostPage -> LOW; npx tsc --noEmit -> pass; targeted eslint for blog admin pages -> pass; npm run build -> pass with existing Postgres SSL mode warning; temporary MEMBER role-boundary smoke -> pass; admin blog route smoke -> pass
+Result: Blog admin routes now call requireAdmin at page level, not only through server actions/data helpers. Temporary MEMBER could access viewer-scope pages but was redirected away from companies, blog, moderation, packages, and settings. Temporary MEMBER user was deleted after smoke.
+Changed files: src/app/(dashboard)/blog/page.tsx, src/app/(dashboard)/blog/new/page.tsx, src/app/(dashboard)/blog/[id]/edit/page.tsx, docs/company-workspace-rebuild-2026-04-28/TRACKER.md
+Remaining risk: Existing Postgres SSL mode warning remains unrelated to this change.
+Next task: Continue deployment hardening by addressing environment warnings or adding automated smoke scripts for Admin CRM.
+```
+
+```text
+Date: 2026-04-29
 Task: Full Admin CRM frontend/backend audit
 Commands: Desktop route audit for 40+ Admin CRM routes -> pass; mobile route audit for core Admin CRM routes -> pass; logged-out auth redirect smoke -> pass; non-mutating interaction smoke for global search, company filters/tabs, jobs filters, submissions stage filter, moderation status filter, mobile menu -> pass; npx prisma validate -> pass with existing driverAdapters deprecation warning; npx tsc --noEmit -> pass; npx eslint src/components/blog/BlogPostForm.tsx -> pass; npm run build -> pass with existing Postgres SSL mode warning
 Result: No blocking CRM Admin logic/render issue found. Fixed one accessibility polish issue: blog create/edit form now exposes the form title as the page h1, so /blog/new and /blog/1/edit have proper main headings.

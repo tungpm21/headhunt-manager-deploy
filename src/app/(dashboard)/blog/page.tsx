@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { FileText, Plus, Pencil } from "lucide-react";
 import { getBlogPosts } from "@/lib/blog-actions";
+import { requireAdmin } from "@/lib/authz";
 import { DeleteBlogButton } from "./delete-button";
 import type { BlogPost } from "@prisma/client";
 
 export default async function BlogListPage() {
+    await requireAdmin();
     const { posts, total } = await getBlogPosts();
 
     return (

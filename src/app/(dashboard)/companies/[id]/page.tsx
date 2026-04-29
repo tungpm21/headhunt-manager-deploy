@@ -24,6 +24,11 @@ import {
     getCompanyWorkspaceById,
     withWorkspaceSubmissionAccess,
 } from "@/lib/workspace";
+import {
+    CompanyWorkspaceMappingPanel,
+    type MappingClientOption,
+    type MappingEmployerOption,
+} from "@/components/dashboard/CompanyWorkspaceMappingPanel";
 import { prisma } from "@/lib/prisma";
 import {
     approveCompanyProfileDraftAction,
@@ -81,6 +86,86 @@ const formatDateTime = (value: Date) =>
         timeStyle: "short",
     }).format(value);
 
+async function getMappingOptions(workspaceId: number): Promise<{
+    employers: MappingEmployerOption[];
+    clients: MappingClientOption[];
+}> {
+    const [employers, clients] = await Promise.all([
+        prisma.employer.findMany({
+            orderBy: { companyName: "asc" },
+            take: 200,
+            select: {
+                id: true,
+                companyName: true,
+                email: true,
+                status: true,
+                clientId: true,
+                workspace: {
+                    select: {
+                        id: true,
+                        displayName: true,
+                    },
+                },
+            },
+        }),
+        prisma.client.findMany({
+            where: { isDeleted: false },
+            orderBy: { companyName: "asc" },
+            take: 200,
+            select: {
+                id: true,
+                companyName: true,
+                status: true,
+                workspace: {
+                    select: {
+                        id: true,
+                        displayName: true,
+                    },
+                },
+                employer: {
+                    select: {
+                        id: true,
+                        companyName: true,
+                    },
+                },
+            },
+        }),
+    ]);
+
+    return {
+        employers: employers
+            .map((employer) => ({
+                id: employer.id,
+                companyName: employer.companyName,
+                email: employer.email,
+                status: employer.status,
+                linkedWorkspaceId: employer.workspace?.id ?? null,
+                linkedWorkspaceName: employer.workspace?.displayName ?? null,
+                legacyClientId: employer.clientId,
+            }))
+            .sort((a, b) => {
+                if (a.linkedWorkspaceId === workspaceId) return -1;
+                if (b.linkedWorkspaceId === workspaceId) return 1;
+                return 0;
+            }),
+        clients: clients
+            .map((client) => ({
+                id: client.id,
+                companyName: client.companyName,
+                status: client.status,
+                linkedWorkspaceId: client.workspace?.id ?? null,
+                linkedWorkspaceName: client.workspace?.displayName ?? null,
+                legacyEmployerId: client.employer?.id ?? null,
+                legacyEmployerName: client.employer?.companyName ?? null,
+            }))
+            .sort((a, b) => {
+                if (a.linkedWorkspaceId === workspaceId) return -1;
+                if (b.linkedWorkspaceId === workspaceId) return 1;
+                return 0;
+            }),
+    };
+}
+
 export default async function CompanyDetailPage({ params, searchParams }: PageProps) {
     await requireAdmin();
     const { id } = await params;
@@ -92,6 +177,10 @@ export default async function CompanyDetailPage({ params, searchParams }: PagePr
     if (!workspace) notFound();
 
     const activeTab = sp.tab ?? "overview";
+    const mappingOptions =
+        activeTab === "mapping"
+            ? await getMappingOptions(workspaceId)
+            : { employers: [], clients: [] };
 
     // Gather stats for overview
     const [
@@ -242,7 +331,11 @@ export default async function CompanyDetailPage({ params, searchParams }: PagePr
                     />
                 )}
                 {activeTab === "mapping" && (
-                    <MappingTab workspace={workspace} />
+                    <MappingTab
+                        workspace={workspace}
+                        employerOptions={mappingOptions.employers}
+                        clientOptions={mappingOptions.clients}
+                    />
                 )}
                 {activeTab === "submissions" && workspace.client && (
                     <SubmissionsTab workspaceId={workspace.id} />
@@ -301,80 +394,25 @@ function OverviewTab({
 
 function MappingTab({
     workspace,
+    employerOptions,
+    clientOptions,
 }: {
     workspace: NonNullable<Awaited<ReturnType<typeof getCompanyWorkspaceById>>>;
+    employerOptions: MappingEmployerOption[];
+    clientOptions: MappingClientOption[];
 }) {
     return (
-        <div className="space-y-6">
-            {/* Employer mapping card */}
-            <div className="rounded-xl border border-border bg-surface p-6 shadow-sm">
-                <h3 className="text-lg font-semibold text-foreground mb-3 flex items-center gap-2">
-                    <Building2 className="h-5 w-5 text-blue-500" />
-                    FDI Employer
-                </h3>
-                {workspace.employer ? (
-                    <div className="space-y-2">
-                        <p className="text-sm">
-                            <strong>{workspace.employer.companyName}</strong> (ID: {workspace.employer.id})
-                        </p>
-                        <p className="text-sm text-muted">Email: {workspace.employer.email}</p>
-                        <p className="text-sm text-muted">Slug: /{workspace.employer.slug}</p>
-                        <Link
-                            href={`/employers/${workspace.employer.id}`}
-                            className="inline-flex items-center gap-1 text-sm text-primary hover:underline mt-2"
-                        >
-                            Xem chi tiết Employer →
-                        </Link>
-                    </div>
-                ) : (
-                    <p className="text-sm text-muted">
-                        Chưa liên kết Employer. Vào tab Admin để liên kết hoặc tạo tài khoản Employer.
-                    </p>
-                )}
-            </div>
-
-            {/* Client mapping card */}
-            <div className="rounded-xl border border-border bg-surface p-6 shadow-sm">
-                <h3 className="text-lg font-semibold text-foreground mb-3 flex items-center gap-2">
-                    <Shield className="h-5 w-5 text-purple-500" />
-                    CRM Client
-                </h3>
-                {workspace.client ? (
-                    <div className="space-y-2">
-                        <p className="text-sm">
-                            <strong>{workspace.client.companyName}</strong> (ID: {workspace.client.id})
-                        </p>
-                        <Link
-                            href={`/clients/${workspace.client.id}`}
-                            className="inline-flex items-center gap-1 text-sm text-primary hover:underline mt-2"
-                        >
-                            Xem chi tiết Client →
-                        </Link>
-                    </div>
-                ) : (
-                    <p className="text-sm text-muted">
-                        Chưa liên kết Client. Vào tab Admin để liên kết hoặc tạo Client.
-                    </p>
-                )}
-            </div>
-
-            {/* Portal status card */}
-            <div className="rounded-xl border border-border bg-surface p-6 shadow-sm">
-                <h3 className="text-lg font-semibold text-foreground mb-3 flex items-center gap-2">
-                    <Globe className="h-5 w-5 text-emerald-500" />
-                    Company Portal
-                </h3>
-                <p className="text-sm">
-                    Trạng thái:{" "}
-                    <strong className={workspace.portalEnabled ? "text-emerald-600" : "text-muted"}>
-                        {workspace.portalEnabled ? "Đang bật" : "Đang tắt"}
-                    </strong>
-                </p>
-                <p className="text-xs text-muted mt-1">
-                    Chức năng bật/tắt portal sẽ được bổ sung với Account Mapping wizard đầy đủ.
-                </p>
-            </div>
-        </div>
+        <CompanyWorkspaceMappingPanel
+            workspace={{
+                id: workspace.id,
+                displayName: workspace.displayName,
+                portalEnabled: workspace.portalEnabled,
+                employer: workspace.employer,
+                client: workspace.client,
+            }}
+            employerOptions={employerOptions}
+            clientOptions={clientOptions}
+        />
     );
 }
 

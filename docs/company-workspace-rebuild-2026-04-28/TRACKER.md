@@ -43,11 +43,11 @@ After every implementation slice:
 | --- | --- | --- | --- |
 | P2-01 | Add `/companies` list | [x] | Master workspace list with facet badges |
 | P2-02 | Add `/companies/[id]` detail tabs | [x] | 9 tabs: overview, mapping, jobs, applications, orders, submissions, portal users, billing, activity |
-| P2-03 | Build Account Mapping wizard | [~] | Mapping tab with read-only cards; write actions exist but wizard UI deferred |
-| P2-04 | Add duplicate detection | [ ] | Deferred to when mapping wizard gets interactive UI |
+| P2-03 | Build Account Mapping wizard | [x] | `/companies/[id]?tab=mapping` now links/unlinks Employer and Client, and toggles portal |
+| P2-04 | Add duplicate detection | [x] | Mapping selects disable entities already assigned to another workspace and show the workspace name |
 | P2-05 | Add mapping server actions | [x] | link/unlink employer/client, toggle portal — all with ActivityLog |
 | P2-06 | Add ActivityLog events | [x] | All mapping actions logged |
-| P2-07 | Link old Employer/Client pages to workspace | [ ] | Deferred — existing pages still functional |
+| P2-07 | Link old Employer/Client pages to workspace | [~] | Employer detail now routes mapping changes to Company Workspace; Client detail cross-link still pending |
 
 ## Phase 3: Company Portal
 
@@ -119,6 +119,16 @@ Result:
 Changed files:
 Remaining risk:
 Next task:
+```
+
+```text
+Date: 2026-04-29
+Task: Phase 2 P2-03/P2-04 Account Mapping wizard
+Commands: GitNexus impact CompanyDetailPage/MappingTab/linkWorkspaceToClient/linkWorkspaceToEmployer -> LOW; npx tsc --noEmit -> pass; targeted eslint for companies detail + mapping panel -> pass; npm run build -> pass; Playwright smoke production /companies/3?tab=mapping -> pass
+Result: Company Workspace mapping tab now has an interactive wizard for linking/unlinking FDI Employer and CRM Client, duplicate-aware disabled options, and portal toggle. It uses workspace-actions as the source of truth, preserving legacy Employer.clientId sync from prior fixes.
+Changed files: src/app/(dashboard)/companies/[id]/page.tsx, src/components/dashboard/CompanyWorkspaceMappingPanel.tsx, docs/company-workspace-rebuild-2026-04-28/TRACKER.md
+Remaining risk: Client detail page does not yet link back to workspace.
+Next task: Commit Phase 2 mapping wizard if diff review is clean.
 ```
 
 ```text

@@ -121,6 +121,16 @@ Add entries newest first.
 
 ```text
 Date: 2026-04-29
+Task: Admin CRM UI/UX audit and refinement
+Commands: GitNexus impact DashboardLayout -> LOW; GitNexus impact CompaniesPage -> LOW; GitNexus impact Sidebar -> LOW; npx tsc --noEmit -> pass; targeted eslint for dashboard layout/sidebar/companies page -> pass; npm run build -> pass with existing Postgres SSL mode warning; Playwright desktop/mobile Admin CRM smoke -> pass
+Result: Fixed CRM page-level horizontal overflow by allowing the dashboard content pane to shrink. Standardized Company Workspace UI copy for managers: sidebar now shows Công ty, /companies heading uses Công ty with a small Company Workspace badge, and role/portal filters use Vietnamese labels while preserving backend query values.
+Changed files: src/app/(dashboard)/layout.tsx, src/components/sidebar.tsx, src/app/(dashboard)/companies/page.tsx, docs/company-workspace-rebuild-2026-04-28/admin-crm-ui-audit-2026-04-29.md
+Remaining risk: Full visual redesign of every CRM route is intentionally deferred; this pass focused on confirmed overflow and confusing company consolidation labels.
+Next task: Continue deeper per-page UI polish only after choosing a target surface, e.g. Job Orders table density, Submissions workflow, or Company detail tabs.
+```
+
+```text
+Date: 2026-04-29
 Task: Homepage resilience + Admin CRM company UI smoke
 Commands: GitNexus impact getHomepageData -> LOW; npx tsc --noEmit -> pass; npx eslint src/lib/public-actions.ts -> pass; npm run build -> pass with existing Postgres SSL mode warning; Playwright Admin CRM smoke on /companies filters, legacy redirects, and company detail tabs -> pass
 Result: Homepage data load now fails closed to an empty payload instead of crashing the page when the public DB query times out. Admin CRM verified: Company Workspace sidebar is visible, legacy Employer/Client sidebar entries are hidden, /employers and /clients redirect to /companies role filters, list filters render, detail tabs render, and no horizontal overflow was detected at 1440x900.

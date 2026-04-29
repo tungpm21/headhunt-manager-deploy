@@ -40,7 +40,7 @@ export default async function DashboardLayout({
       <MobileSidebar isAdmin={isAdmin} counts={counts} />
       <Sidebar isAdmin={isAdmin} counts={counts} className="hidden md:flex" />
 
-      <div className="flex h-screen flex-1 flex-col overflow-hidden">
+      <div className="flex h-screen min-w-0 flex-1 flex-col overflow-hidden">
         <header className="flex h-16 shrink-0 items-center justify-between border-b border-border bg-surface px-6 md:justify-end">
           <div className="font-bold text-primary md:hidden">HM</div>
           <div className="flex items-center gap-3">
@@ -59,7 +59,7 @@ export default async function DashboardLayout({
           </div>
         </header>
 
-        <main className="flex-1 overflow-auto bg-background p-4 pt-14 sm:p-6 sm:pt-14 md:pt-6 lg:p-8">
+        <main className="min-w-0 flex-1 overflow-auto bg-background p-4 pt-14 sm:p-6 sm:pt-14 md:pt-6 lg:p-8">
           {children}
         </main>
       </div>

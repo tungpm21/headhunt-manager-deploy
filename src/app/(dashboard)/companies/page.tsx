@@ -32,17 +32,17 @@ interface PageProps {
 }
 
 const roleFilters: Array<{ value: WorkspaceRoleFilter; label: string }> = [
-    { value: "all", label: "All" },
-    { value: "employer", label: "Employer" },
-    { value: "client", label: "Client" },
-    { value: "both", label: "Both" },
-    { value: "unlinked", label: "Unlinked" },
+    { value: "all", label: "Tất cả" },
+    { value: "employer", label: "Nhà tuyển dụng" },
+    { value: "client", label: "Đối tác CRM" },
+    { value: "both", label: "Cả hai" },
+    { value: "unlinked", label: "Chưa liên kết" },
 ];
 
 const portalFilters: Array<{ value: WorkspacePortalFilter; label: string }> = [
-    { value: "all", label: "All portal" },
-    { value: "enabled", label: "Portal on" },
-    { value: "disabled", label: "Portal off" },
+    { value: "all", label: "Tất cả portal" },
+    { value: "enabled", label: "Đã bật portal" },
+    { value: "disabled", label: "Chưa bật portal" },
 ];
 
 function normalizeRole(value: string | undefined): WorkspaceRoleFilter {
@@ -85,18 +85,23 @@ export default async function CompaniesPage({ searchParams }: PageProps) {
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-foreground">Company Workspace</h1>
+                    <div className="flex flex-wrap items-center gap-2">
+                        <h1 className="text-2xl font-bold text-foreground">Công ty</h1>
+                        <span className="rounded-full border border-border bg-background px-2.5 py-1 text-xs font-semibold text-muted">
+                            Company Workspace
+                        </span>
+                    </div>
                     <p className="mt-1 text-sm text-muted">
                         {result.total > 0
-                            ? `${result.total} workspace trong hệ thống`
-                            : "Chưa có workspace nào khớp bộ lọc hiện tại."}
+                            ? `${result.total} công ty trong hệ thống`
+                            : "Chưa có công ty nào khớp bộ lọc hiện tại."}
                     </p>
                 </div>
             </div>
 
             {sp.missing ? (
                 <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-                    Không tìm thấy Company Workspace cho legacy record: {sp.missing}. Hãy kiểm tra lại backfill/link workspace.
+                    Không tìm thấy Company Workspace cho bản ghi cũ: {sp.missing}. Hãy kiểm tra lại backfill hoặc liên kết workspace.
                 </div>
             ) : null}
 
@@ -105,7 +110,7 @@ export default async function CompaniesPage({ searchParams }: PageProps) {
                     <input
                         name="q"
                         defaultValue={q}
-                        placeholder="Tìm theo tên công ty, slug, Employer hoặc Client"
+                        placeholder="Tìm theo tên công ty, slug, nhà tuyển dụng hoặc đối tác CRM"
                         className="h-10 rounded-md border border-border bg-background px-3 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary"
                     />
                     <select
@@ -169,8 +174,8 @@ export default async function CompaniesPage({ searchParams }: PageProps) {
                         {result.items.map((ws) => {
                             const status = statusMeta[ws.status] ?? statusMeta.ACTIVE;
                             const facets: string[] = [];
-                            if (ws.employer) facets.push("FDI Employer");
-                            if (ws.client) facets.push("CRM Client");
+                            if (ws.employer) facets.push("Nhà tuyển dụng FDIWork");
+                            if (ws.client) facets.push("Đối tác CRM");
                             if (facets.length === 0) facets.push("Chưa liên kết");
 
                             return (
@@ -220,7 +225,7 @@ export default async function CompaniesPage({ searchParams }: PageProps) {
                             <tr>
                                 <td colSpan={4} className="px-4 py-12 text-center text-muted">
                                     <Building className="mx-auto h-10 w-10 mb-2 opacity-40" />
-                                    Chưa có workspace nào. Chạy backfill script để tạo.
+                                    Chưa có công ty nào. Chạy backfill script để tạo workspace từ dữ liệu cũ.
                                 </td>
                             </tr>
                         )}

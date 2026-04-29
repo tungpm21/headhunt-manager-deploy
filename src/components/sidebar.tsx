@@ -24,9 +24,9 @@ import type { NotificationCounts } from "@/lib/notifications";
 const navigation = [
   { name: "Tổng quan", href: "/dashboard", icon: LayoutDashboard },
   { name: "Talent Pool", href: "/candidates", icon: Users },
-  { name: "Company Workspace", href: "/companies", icon: Building },
-  { name: "Job Orders", href: "/jobs", icon: Briefcase },
-  { name: "Submissions", href: "/submissions", icon: SendHorizonal },
+  { name: "Công ty", href: "/companies", icon: Building },
+  { name: "Yêu cầu tuyển dụng", href: "/jobs", icon: Briefcase },
+  { name: "Hồ sơ gửi khách", href: "/submissions", icon: SendHorizonal },
   { name: "Nhập dữ liệu", href: "/import", icon: UploadCloud },
 ];
 
@@ -47,7 +47,7 @@ const fdiworkNav: SidebarNavItem[] = [
     badgeKey: "pendingJobs",
   },
   {
-    name: "Applications",
+    name: "Ứng viên FDIWork",
     href: "/moderation/applications",
     icon: FileDown,
     badgeKey: "newApplications",

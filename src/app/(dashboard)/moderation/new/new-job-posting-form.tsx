@@ -13,6 +13,7 @@ import {
 import { MarkdownEditor } from "@/components/content/MarkdownEditor";
 import { MediaUploadButton } from "@/components/content/MediaUploadButton";
 import { createAdminJobPosting } from "@/lib/admin-job-posting-actions";
+import type { OptionChoice } from "@/lib/config-options";
 
 type EmployerOption = {
   id: number;
@@ -83,7 +84,13 @@ const PROFICIENCY_LEVELS = [
 const inputClassName =
   "w-full rounded-xl border border-border bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition";
 
-export function NewJobPostingForm({ employers }: { employers: EmployerOption[] }) {
+export function NewJobPostingForm({
+  employers,
+  locationOptions,
+}: {
+  employers: EmployerOption[];
+  locationOptions: OptionChoice[];
+}) {
   const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
   const [coverImage, setCoverImage] = useState("");
@@ -393,7 +400,14 @@ export function NewJobPostingForm({ employers }: { employers: EmployerOption[] }
                 >
                   Khu vực
                 </label>
-                <input id="location" name="location" type="text" className={inputClassName} />
+                <select id="location" name="location" defaultValue="" className={inputClassName}>
+                  <option value="">Chọn khu vực</option>
+                  {locationOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div>

@@ -1,5 +1,7 @@
 import { notFound } from "next/navigation";
 import { getAdminJobPostingById } from "@/lib/admin-job-posting-actions";
+import { OPTION_GROUPS } from "@/lib/config-option-definitions";
+import { getOptionsForSelect } from "@/lib/config-options";
 import { JobPostingEditForm } from "./job-posting-edit-form";
 
 export default async function JobPostingEditPage({
@@ -20,8 +22,13 @@ export default async function JobPostingEditPage({
     notFound();
   }
 
+  const locationOptions = await getOptionsForSelect(OPTION_GROUPS.location, {
+    currentValue: job.location,
+  });
+
   return (
     <JobPostingEditForm
+      locationOptions={locationOptions}
       job={{
         id: job.id,
         title: job.title,

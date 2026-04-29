@@ -430,6 +430,7 @@ export async function updateCandidateStageAction(
     });
 
     revalidatePath(`/jobs/${jobCandidate.jobOrderId}`);
+    revalidatePath("/submissions");
     revalidatePath("/dashboard");
     return { success: true, message: "Đã cập nhật trạng thái ứng tuyển." };
   } catch (error) {
@@ -485,6 +486,7 @@ export async function updateCandidatePipelineAction(
     });
 
     revalidatePath(`/jobs/${jobCandidate.jobOrderId}`);
+    revalidatePath("/submissions");
     return { success: true, message: "Đã cập nhật thông tin pipeline." };
   } catch (error) {
     console.error("updateCandidatePipelineAction error:", error);

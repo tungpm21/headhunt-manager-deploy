@@ -29,6 +29,9 @@ import {
     type MappingClientOption,
     type MappingEmployerOption,
 } from "@/components/dashboard/CompanyWorkspaceMappingPanel";
+import { AdminCompanyProfileEditor } from "@/components/dashboard/AdminCompanyProfileEditor";
+import { OPTION_GROUPS } from "@/lib/config-option-definitions";
+import { getOptionsForSelect } from "@/lib/config-options";
 import { prisma } from "@/lib/prisma";
 import {
     approveCompanyProfileDraftAction,
@@ -252,6 +255,7 @@ export default async function CompanyDetailPage({ params, searchParams }: PagePr
         { key: "mapping", label: "Liên kết", icon: LinkIcon },
         ...(workspace.employer
             ? [
+                { key: "profile-edit", label: "Chỉnh sửa profile", icon: Building },
                 { key: "jobs", label: `Tin tuyển dụng (${jobPostingCount})`, icon: FileText },
                 { key: "applications", label: `Ứng tuyển (${applicationCount})`, icon: Mail },
                 { key: "profile-drafts", label: `Duyệt hồ sơ (${profileDraftCount})`, icon: AlertTriangle },
@@ -371,6 +375,9 @@ export default async function CompanyDetailPage({ params, searchParams }: PagePr
                         clientOptions={mappingOptions.clients}
                     />
                 )}
+                {activeTab === "profile-edit" && workspace.employer && (
+                    <ProfileEditTab workspaceId={workspace.id} employerId={workspace.employer.id} />
+                )}
                 {activeTab === "submissions" && workspace.client && (
                     <SubmissionsTab workspaceId={workspace.id} />
                 )}
@@ -407,6 +414,77 @@ export default async function CompanyDetailPage({ params, searchParams }: PagePr
 }
 
 // ==================== TAB COMPONENTS ====================
+
+async function ProfileEditTab({
+    workspaceId,
+    employerId,
+}: {
+    workspaceId: number;
+    employerId: number;
+}) {
+    const employer = await prisma.employer.findUnique({
+        where: { id: employerId },
+        select: {
+            id: true,
+            companyName: true,
+            slug: true,
+            email: true,
+            logo: true,
+            coverImage: true,
+            coverPositionX: true,
+            coverPositionY: true,
+            coverZoom: true,
+            description: true,
+            industry: true,
+            companySize: true,
+            address: true,
+            location: true,
+            industrialZone: true,
+            website: true,
+            phone: true,
+            profileConfig: {
+                select: {
+                    theme: true,
+                    capabilities: true,
+                    sections: true,
+                    primaryVideoUrl: true,
+                },
+            },
+        },
+    });
+
+    if (!employer) {
+        return (
+            <div className="rounded-xl border border-dashed border-border bg-surface p-10 text-center text-muted">
+                Không tìm thấy Employer để chỉnh profile.
+            </div>
+        );
+    }
+
+    const [industryOptions, companySizeOptions, locationOptions, industrialZoneOptions] =
+        await Promise.all([
+            getOptionsForSelect(OPTION_GROUPS.industry, { currentValue: employer.industry }),
+            getOptionsForSelect(OPTION_GROUPS.companySize, { currentValue: employer.companySize }),
+            getOptionsForSelect(OPTION_GROUPS.location, { currentValue: employer.location }),
+            getOptionsForSelect(OPTION_GROUPS.industrialZone, { currentValue: employer.industrialZone }),
+        ]);
+
+    return (
+        <AdminCompanyProfileEditor
+            workspaceId={workspaceId}
+            employer={{
+                ...employer,
+                companySize: employer.companySize ?? null,
+            }}
+            options={{
+                industryOptions,
+                companySizeOptions,
+                locationOptions,
+                industrialZoneOptions,
+            }}
+        />
+    );
+}
 
 function OverviewTab({
     workspace,

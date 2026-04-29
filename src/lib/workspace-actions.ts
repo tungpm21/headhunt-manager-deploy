@@ -4,7 +4,28 @@ import { revalidatePath } from "next/cache";
 import { CompanyDraftStatus, CompanySize, Prisma } from "@prisma/client";
 import { requireAdmin } from "@/lib/authz";
 import { logActivity } from "@/lib/activity-log";
+import { OPTION_GROUPS } from "@/lib/config-option-definitions";
+import { resolveConfigOptionValue } from "@/lib/config-options";
+import {
+    DEFAULT_COMPANY_CAPABILITIES,
+    DEFAULT_COMPANY_THEME,
+    countBlockImages,
+    normalizeCompanyCapabilities,
+    normalizeCompanyTheme,
+    normalizeContentBlocks,
+    parseJson,
+} from "@/lib/content-blocks";
+import {
+    getMediaFileExtension,
+    type MediaUploadKind,
+    validateMediaImageFile,
+} from "@/lib/media-validation";
 import { prisma } from "@/lib/prisma";
+import { deleteFile, uploadFile } from "@/lib/storage";
+import {
+    employerProfileSchema,
+    getFirstZodErrorMessage,
+} from "@/lib/validation/forms";
 
 const COMPANY_SIZE_VALUES = new Set<string>(Object.values(CompanySize));
 
@@ -24,6 +45,38 @@ function numberOrDefault(value: unknown, fallback: number) {
 
 function inputJson(value: unknown): Prisma.InputJsonValue {
     return JSON.parse(JSON.stringify(value ?? null)) as Prisma.InputJsonValue;
+}
+
+function normalizeWebsite(value: string | null) {
+    if (!value) return null;
+    const normalized = /^https?:\/\//i.test(value) ? value : `https://${value}`;
+
+    try {
+        return new URL(normalized).toString();
+    } catch {
+        return null;
+    }
+}
+
+function boundedInt(value: FormDataEntryValue | null, fallback: number, min: number, max: number) {
+    const parsed = Number(value?.toString());
+    if (!Number.isFinite(parsed)) return fallback;
+    return Math.min(max, Math.max(min, Math.trunc(parsed)));
+}
+
+async function uploadAdminEmployerImageFile(
+    folder: string,
+    prefix: string,
+    file: File,
+    kind: MediaUploadKind
+): Promise<{ url: string } | { error: string }> {
+    const validationError = validateMediaImageFile(file, kind);
+    if (validationError) return { error: validationError };
+
+    const extension = getMediaFileExtension(file.type);
+    const fileName = `${prefix}-${Date.now()}.${extension}`;
+    const result = await uploadFile(folder, fileName, file);
+    return { url: result.url };
 }
 
 function parseProfileDraftPayload(payload: Prisma.JsonValue) {
@@ -255,6 +308,171 @@ export async function toggleWorkspacePortal(
     revalidatePath("/companies");
     revalidatePath(`/companies/${workspaceId}`);
     return { success: true };
+}
+
+export async function updateAdminCompanyProfileAction(
+    workspaceId: number,
+    formData: FormData
+): Promise<{ success: boolean; message: string }> {
+    const { userId } = await requireAdmin();
+
+    const workspace = await prisma.companyWorkspace.findUnique({
+        where: { id: workspaceId },
+        select: {
+            id: true,
+            displayName: true,
+            employer: {
+                include: {
+                    profileConfig: true,
+                    jobPostings: { select: { slug: true } },
+                },
+            },
+        },
+    });
+
+    if (!workspace?.employer) {
+        return { success: false, message: "Workspace chưa liên kết Employer để chỉnh profile." };
+    }
+
+    const employer = workspace.employer;
+    const websiteInput = stringOrNull(formData.get("website"));
+    const normalizedWebsite = normalizeWebsite(websiteInput);
+    const [industry, companySize, location, industrialZone] = await Promise.all([
+        resolveConfigOptionValue(OPTION_GROUPS.industry, stringOrNull(formData.get("industry"))),
+        resolveConfigOptionValue(OPTION_GROUPS.companySize, stringOrNull(formData.get("companySize"))),
+        resolveConfigOptionValue(OPTION_GROUPS.location, stringOrNull(formData.get("location"))),
+        resolveConfigOptionValue(OPTION_GROUPS.industrialZone, stringOrNull(formData.get("industrialZone"))),
+    ]);
+
+    const parsedInput = employerProfileSchema.safeParse({
+        companyName: formData.get("companyName")?.toString().trim() ?? "",
+        description: stringOrNull(formData.get("description")),
+        industry,
+        companySize,
+        address: stringOrNull(formData.get("address")),
+        location,
+        industrialZone,
+        website: websiteInput ? normalizedWebsite ?? websiteInput : null,
+        phone: stringOrNull(formData.get("phone")),
+    });
+
+    if (!parsedInput.success) {
+        return { success: false, message: getFirstZodErrorMessage(parsedInput.error) };
+    }
+
+    const currentCapabilities = normalizeCompanyCapabilities(
+        employer.profileConfig?.capabilities ?? DEFAULT_COMPANY_CAPABILITIES
+    );
+    const profileTheme = normalizeCompanyTheme(
+        parseJson(formData.get("profileTheme")?.toString() ?? "") || DEFAULT_COMPANY_THEME
+    );
+    const profileSections = normalizeContentBlocks(
+        formData.get("profileSections")?.toString() ?? "[]"
+    );
+    const primaryVideoUrl = stringOrNull(formData.get("primaryVideoUrl"));
+
+    if (countBlockImages(profileSections) > currentCapabilities.maxImages) {
+        return {
+            success: false,
+            message: `Profile builder đang dùng quá ${currentCapabilities.maxImages} ảnh cho gói hiện tại.`,
+        };
+    }
+
+    const logoFile = formData.get("logo");
+    const nextLogo = logoFile instanceof File && logoFile.size > 0 ? logoFile : null;
+    let uploadedLogoUrl: string | null = null;
+
+    if (nextLogo) {
+        const result = await uploadAdminEmployerImageFile(
+            "logos",
+            `employer-logo-${employer.id}`,
+            nextLogo,
+            "profileLogo"
+        );
+        if ("error" in result) return { success: false, message: result.error };
+        uploadedLogoUrl = result.url;
+    }
+
+    const coverFile = formData.get("coverImage");
+    const nextCover = coverFile instanceof File && coverFile.size > 0 ? coverFile : null;
+    let uploadedCoverUrl: string | null = null;
+
+    if (nextCover) {
+        const result = await uploadAdminEmployerImageFile(
+            "covers",
+            `employer-cover-${employer.id}`,
+            nextCover,
+            "profileCover"
+        );
+        if ("error" in result) {
+            if (uploadedLogoUrl) await deleteFile(uploadedLogoUrl);
+            return { success: false, message: result.error };
+        }
+        uploadedCoverUrl = result.url;
+    }
+
+    const logoUrlInput =
+        typeof formData.get("logoUrl") === "string"
+            ? stringOrNull(formData.get("logoUrl"))
+            : employer.logo;
+    const coverImageUrlInput =
+        typeof formData.get("coverImageUrl") === "string"
+            ? stringOrNull(formData.get("coverImageUrl"))
+            : employer.coverImage;
+
+    try {
+        await prisma.$transaction([
+            prisma.employer.update({
+                where: { id: employer.id },
+                data: {
+                    ...parsedInput.data,
+                    logo: uploadedLogoUrl ?? logoUrlInput,
+                    coverImage: uploadedCoverUrl ?? coverImageUrlInput,
+                    coverPositionX: boundedInt(formData.get("coverPositionX"), 50, 0, 100),
+                    coverPositionY: boundedInt(formData.get("coverPositionY"), 50, 0, 100),
+                    coverZoom: boundedInt(formData.get("coverZoom"), 100, 100, 200),
+                },
+            }),
+            prisma.employerProfileConfig.upsert({
+                where: { employerId: employer.id },
+                create: {
+                    employerId: employer.id,
+                    theme: inputJson(profileTheme),
+                    capabilities: inputJson(currentCapabilities),
+                    sections: inputJson(profileSections),
+                    primaryVideoUrl,
+                },
+                update: {
+                    theme: inputJson(profileTheme),
+                    capabilities: inputJson(currentCapabilities),
+                    sections: inputJson(profileSections),
+                    primaryVideoUrl,
+                },
+            }),
+        ]);
+
+        await logActivity("COMPANY_PROFILE_ADMIN_UPDATED", "CompanyWorkspace", workspace.id, userId, {
+            employerId: employer.id,
+        });
+
+        revalidatePath("/companies");
+        revalidatePath(`/companies/${workspace.id}`);
+        revalidatePath("/company/profile");
+        revalidatePath("/employer/company");
+        revalidatePath("/cong-ty");
+        revalidatePath(`/cong-ty/${employer.slug}`);
+        revalidatePath("/viec-lam");
+        employer.jobPostings.forEach((job) => {
+            revalidatePath(`/viec-lam/${job.slug}`);
+        });
+
+        return { success: true, message: "Đã cập nhật profile công ty và publish trực tiếp." };
+    } catch (error) {
+        if (uploadedLogoUrl) await deleteFile(uploadedLogoUrl);
+        if (uploadedCoverUrl) await deleteFile(uploadedCoverUrl);
+        console.error("updateAdminCompanyProfileAction error:", error);
+        return { success: false, message: "Không thể cập nhật profile công ty." };
+    }
 }
 
 export async function approveCompanyProfileDraftAction(

@@ -13,6 +13,7 @@ import {
 import { MarkdownEditor } from "@/components/content/MarkdownEditor";
 import { MediaUploadButton } from "@/components/content/MediaUploadButton";
 import { updateAdminJobPosting } from "@/lib/admin-job-posting-actions";
+import type { OptionChoice } from "@/lib/config-options";
 import {
   INDUSTRIAL_ZONE_GROUPS,
   JOB_WORK_TYPES,
@@ -69,7 +70,13 @@ const STATUS_LABELS: Record<string, string> = {
   PAUSED: "Tạm ẩn",
 };
 
-export function JobPostingEditForm({ job }: { job: EditableJobPosting }) {
+export function JobPostingEditForm({
+  job,
+  locationOptions,
+}: {
+  job: EditableJobPosting;
+  locationOptions: OptionChoice[];
+}) {
   const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
   const [coverImage, setCoverImage] = useState(job.coverImage ?? "");
@@ -419,13 +426,19 @@ export function JobPostingEditForm({ job }: { job: EditableJobPosting }) {
               >
                 Khu vực
               </label>
-              <input
+              <select
                 id="location"
                 name="location"
-                type="text"
                 defaultValue={job.location ?? ""}
                 className={inputClassName}
-              />
+              >
+                <option value="">Chọn khu vực</option>
+                {locationOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div>

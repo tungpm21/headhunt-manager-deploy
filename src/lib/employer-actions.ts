@@ -351,7 +351,7 @@ export async function getEmployerDashboardData() {
 }
 
 export async function updateCompanyProfileAction(formData: FormData) {
-  const access = await resolveEmployerProfileAccess();
+  const access = await resolveEmployerPortalAccess("/company/profile");
   if (!access) {
     return {
       success: false,
@@ -553,13 +553,13 @@ export async function updateCompanyProfileAction(formData: FormData) {
 }
 
 export async function getCompanyProfile() {
-  const access = await resolveEmployerProfileAccess();
+  const access = await resolveEmployerPortalAccess("/company/profile");
   if (!access) return null;
   return getEmployerProfileForPortalById(access.employerId);
 }
 
 export async function getCompanyProfileDraftStatus() {
-  const access = await resolveEmployerProfileAccess();
+  const access = await resolveEmployerPortalAccess("/company/profile");
   if (!access) return null;
   const workspace = await getWorkspaceForEmployer(access.employerId);
 
@@ -594,7 +594,7 @@ export async function getCompanyProfileDraftStatus() {
 }
 
 export async function getCompanyProfileOptions() {
-  const access = await resolveEmployerProfileAccess();
+  const access = await resolveEmployerPortalAccess("/company/profile");
   if (!access) {
     return {
       industryOptions: [],
@@ -624,7 +624,18 @@ export async function getJobPostingFormOptions(current?: {
   languageProficiency?: string | null;
   shiftType?: string | null;
 }) {
-  await requireEmployerSession();
+  const access = await resolveEmployerPortalAccess("/company/job-postings");
+  if (!access) {
+    return {
+      industryOptions: [],
+      locationOptions: [],
+      workTypeOptions: [],
+      industrialZoneGroups: [],
+      requiredLanguageOptions: [],
+      languageProficiencyOptions: [],
+      shiftTypeOptions: [],
+    };
+  }
 
   const [
     industryOptions,
@@ -693,13 +704,17 @@ export async function getEmployerNotificationData() {
 }
 
 export async function getJobPostingDetail(id: number) {
-  const session = await requireEmployerSession();
-  return getEmployerOwnedJobPosting(id, session.employerId);
+  const access = await resolveEmployerPortalAccess("/company/job-postings");
+  if (!access) return null;
+  return getEmployerOwnedJobPosting(id, access.employerId);
 }
 
 export async function createJobPostingAction(formData: FormData) {
-  const session = await requireEmployerSession();
-  const employer = await getEmployerWithSubscription(session.employerId);
+  const access = await resolveEmployerPortalAccess("/company/job-postings");
+  if (!access) {
+    return { success: false, message: "Workspace chưa liên kết Employer." };
+  }
+  const employer = await getEmployerWithSubscription(access.employerId);
 
   if (!employer) {
     return { success: false, message: "Khong tim thay tai khoan." };
@@ -733,7 +748,7 @@ export async function createJobPostingAction(formData: FormData) {
   }
 
   const duplicate = await findRecentEmployerJobPostingDuplicate(
-    session.employerId,
+    access.employerId,
     parsedInput.data.title,
     parsedInput.data.description
   );
@@ -753,7 +768,7 @@ export async function createJobPostingAction(formData: FormData) {
 
   try {
     await createEmployerJobPostingAndIncrementQuota({
-      employerId: session.employerId,
+      employerId: access.employerId,
       subscriptionId: sub.id,
       jobPosting: {
         title: parsedInput.data.title,
@@ -806,14 +821,20 @@ export async function createJobPostingAction(formData: FormData) {
     };
   }
 
+  const routeBase = await getEmployerJobPostingsRouteBase();
   revalidatePath("/employer/job-postings");
+  revalidatePath("/company/job-postings");
   revalidatePath("/employer/dashboard");
-  redirect("/employer/job-postings");
+  revalidatePath("/company/dashboard");
+  redirect(routeBase);
 }
 
 export async function updateJobPostingAction(id: number, formData: FormData) {
-  const session = await requireEmployerSession();
-  const job = await getEmployerOwnedJobPosting(id, session.employerId);
+  const access = await resolveEmployerPortalAccess("/company/job-postings");
+  if (!access) {
+    return { success: false, message: "Workspace chưa liên kết Employer." };
+  }
+  const job = await getEmployerOwnedJobPosting(id, access.employerId);
 
   if (!job) {
     return { success: false, message: "Khong tim thay tin tuyen dung." };
@@ -858,15 +879,20 @@ export async function updateJobPostingAction(id: number, formData: FormData) {
   });
 
   revalidatePath("/employer/job-postings");
+  revalidatePath("/company/job-postings");
   revalidatePath(`/employer/job-postings/${id}`);
+  revalidatePath(`/company/job-postings/${id}`);
   revalidatePath("/viec-lam");
   revalidatePath(`/viec-lam/${job.slug}`);
   return { success: true, message: "Cap nhat tin thanh cong." };
 }
 
 export async function toggleJobPostingStatus(id: number) {
-  const session = await requireEmployerSession();
-  const job = await getEmployerOwnedJobPosting(id, session.employerId);
+  const access = await resolveEmployerPortalAccess("/company/job-postings");
+  if (!access) {
+    return { success: false, message: "Workspace chưa liên kết Employer." };
+  }
+  const job = await getEmployerOwnedJobPosting(id, access.employerId);
 
   if (!job) {
     return { success: false, message: "Khong tim thay tin." };
@@ -875,6 +901,7 @@ export async function toggleJobPostingStatus(id: number) {
   if (job.status === "APPROVED") {
     await updateEmployerJobPostingStatus(id, "PAUSED");
     revalidatePath("/employer/job-postings");
+    revalidatePath("/company/job-postings");
     return { success: true, message: "Da tam an tin." };
   }
 
@@ -885,6 +912,7 @@ export async function toggleJobPostingStatus(id: number) {
 
     await updateEmployerJobPostingStatus(id, "APPROVED");
     revalidatePath("/employer/job-postings");
+    revalidatePath("/company/job-postings");
     return { success: true, message: "Da bat lai tin." };
   }
 
@@ -895,15 +923,20 @@ export async function toggleJobPostingStatus(id: number) {
 }
 
 export async function deleteJobPostingAction(id: number) {
-  const session = await requireEmployerSession();
-  const result = await deleteEmployerJobPostingWithQuotaPolicy(id, session.employerId);
+  const access = await resolveEmployerPortalAccess("/company/job-postings");
+  if (!access) {
+    return { success: false, message: "Workspace chưa liên kết Employer." };
+  }
+  const result = await deleteEmployerJobPostingWithQuotaPolicy(id, access.employerId);
 
   if (!result) {
     return { success: false, message: "Không tìm thấy tin." };
   }
 
   revalidatePath("/employer/job-postings");
+  revalidatePath("/company/job-postings");
   revalidatePath("/employer/dashboard");
+  revalidatePath("/company/dashboard");
   revalidatePath("/viec-lam");
   revalidatePath("/cong-ty");
   revalidatePath(`/viec-lam/${result.slug}`);
@@ -926,8 +959,9 @@ export async function deleteJobPostingAction(id: number) {
 }
 
 export async function getJobApplicants(jobPostingId: number) {
-  const session = await requireEmployerSession();
-  return getEmployerJobApplicants(jobPostingId, session.employerId);
+  const access = await resolveEmployerPortalAccess("/company/job-postings");
+  if (!access) return null;
+  return getEmployerJobApplicants(jobPostingId, access.employerId);
 }
 
 export async function getRecruitmentPipelineData(jobPostingId?: number) {
@@ -965,12 +999,22 @@ export async function updateApplicationPipelineStatusAction(
   return { success: true, application };
 }
 
-async function resolveEmployerProfileAccess() {
+async function getEmployerJobPostingsRouteBase() {
+  const headerStore = await headers();
+  const referer = headerStore.get("referer") ?? "";
+  const nextUrl = headerStore.get("next-url") ?? "";
+  return referer.includes("/company/job-postings") ||
+    nextUrl.includes("/company/job-postings")
+    ? "/company/job-postings"
+    : "/employer/job-postings";
+}
+
+async function resolveEmployerPortalAccess(companyPathPrefix: string) {
   const headerStore = await headers();
   const referer = headerStore.get("referer") ?? "";
   const nextUrl = headerStore.get("next-url") ?? "";
   const preferCompanyPortal =
-    referer.includes("/company/profile") || nextUrl.includes("/company/profile");
+    referer.includes(companyPathPrefix) || nextUrl.includes(companyPathPrefix);
 
   if (preferCompanyPortal) {
     const companyCookieSession = await getCompanyPortalSession();

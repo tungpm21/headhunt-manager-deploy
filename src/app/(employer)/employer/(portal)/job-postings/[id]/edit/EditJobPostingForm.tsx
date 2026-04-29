@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { AlertCircle, AlertTriangle, Loader2, Save } from "lucide-react";
 import {
   getJobPostingFormOptions,
@@ -44,6 +44,10 @@ type JobPostingFormOptions = Awaited<ReturnType<typeof getJobPostingFormOptions>
 
 export function EditJobPostingForm({ job }: { job: EditableJobPosting }) {
   const router = useRouter();
+  const pathname = usePathname();
+  const jobPostingsBase = pathname.startsWith("/company/")
+    ? "/company/job-postings"
+    : "/employer/job-postings";
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [coverImage, setCoverImage] = useState(job.coverImage ?? "");
@@ -79,7 +83,7 @@ export function EditJobPostingForm({ job }: { job: EditableJobPosting }) {
         return;
       }
 
-      router.push(`/employer/job-postings/${job.id}`);
+      router.push(`${jobPostingsBase}/${job.id}`);
       router.refresh();
     } catch {
       setError("Không thể cập nhật tin tuyển dụng. Vui lòng thử lại.");
@@ -328,7 +332,7 @@ export function EditJobPostingForm({ job }: { job: EditableJobPosting }) {
 
         <div className="flex flex-col gap-3 py-2 sm:flex-row sm:items-center sm:justify-between">
           <Link
-            href={`/employer/job-postings/${job.id}`}
+            href={`${jobPostingsBase}/${job.id}`}
             className="text-sm text-gray-500 transition hover:text-gray-700"
           >
             Hủy và quay lại chi tiết tin

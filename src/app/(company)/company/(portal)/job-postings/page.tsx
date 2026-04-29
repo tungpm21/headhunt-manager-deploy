@@ -7,6 +7,7 @@ import {
   Clock,
   Eye,
   FileText,
+  Plus,
   Search,
   Users,
 } from "lucide-react";
@@ -115,10 +116,19 @@ export default async function CompanyJobPostingsPage({
             Quản lý danh sách tin của {workspace.employer?.companyName ?? "công ty"}.
           </p>
         </div>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          <SummaryCard label="Tổng tin" value={data.total} />
-          <SummaryCard label="Trang này" value={data.jobs.length} />
-          <SummaryCard label="Ứng viên" value={totalApplications} />
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+            <SummaryCard label="Tổng tin" value={data.total} />
+            <SummaryCard label="Trang này" value={data.jobs.length} />
+            <SummaryCard label="Ứng viên" value={totalApplications} />
+          </div>
+          <Link
+            href="/company/job-postings/new"
+            className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-white transition hover:bg-primary/90"
+          >
+            <Plus className="h-4 w-4" />
+            Đăng tin
+          </Link>
         </div>
       </div>
 
@@ -202,6 +212,12 @@ export default async function CompanyJobPostingsPage({
                       </span>
                     </div>
                     <div className="flex flex-wrap gap-2">
+                      <Link
+                        href={`/company/job-postings/${job.id}`}
+                        className="inline-flex min-h-9 items-center rounded-lg border border-border bg-white px-3 text-sm font-semibold text-foreground transition hover:border-primary/40"
+                      >
+                        Chi tiết
+                      </Link>
                       <Link
                         href={`/company/applications?job=${job.id}`}
                         className="inline-flex min-h-9 items-center rounded-lg border border-border bg-white px-3 text-sm font-semibold text-foreground transition hover:border-primary/40"

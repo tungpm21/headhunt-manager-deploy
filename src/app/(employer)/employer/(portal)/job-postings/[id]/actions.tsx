@@ -2,7 +2,7 @@
 
 import { deleteJobPostingAction, toggleJobPostingStatus } from "@/lib/employer-actions";
 import { Pause, Play, Trash2 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 
 export function JobActionButtons({
@@ -13,6 +13,10 @@ export function JobActionButtons({
   status: string;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
+  const jobPostingsBase = pathname.startsWith("/company/")
+    ? "/company/job-postings"
+    : "/employer/job-postings";
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
@@ -44,7 +48,7 @@ export function JobActionButtons({
       const result = await deleteJobPostingAction(jobId);
       alert(result.message);
       if (result.success && "deleted" in result && result.deleted) {
-        router.push("/employer/job-postings");
+        router.push(jobPostingsBase);
       } else {
         router.refresh();
       }

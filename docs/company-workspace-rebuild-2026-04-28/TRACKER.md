@@ -105,9 +105,9 @@ After every implementation slice:
 | P7-03 | Add stage dropdown/buttons to selected card | [x] | Cards and preview panel both support explicit status updates without drag-and-drop |
 | P7-04 | Improve mobile fallback | [x] | Mobile uses stacked cards with select/buttons; drag-and-drop board is desktop-only |
 | P7-05 | Remove old inline Link Client UI | [x] | Employer detail now links to Company Workspace mapping instead of mutating legacy Employer.clientId inline |
-| P7-06 | Redirect legacy employer pages | [!] | Blocked until Company Portal job-postings/profile pages are feature-complete; redirecting now would send users to stubs |
+| P7-06 | Redirect legacy employer pages | [ ] | Unblocked by P7-06b/P7-06c; compatibility redirects still pending |
 | P7-06a | Replace `/company/job-postings` stub | [x] | Portal now renders a workspace-scoped job postings list with status filters, counts, application links, and public preview links |
-| P7-06b | Add `/company/job-postings` detail/create/edit actions | [ ] | Needed before redirecting legacy employer job-postings routes |
+| P7-06b | Add `/company/job-postings` detail/create/edit actions | [x] | Company Portal now exposes job detail, create, edit, pause/resume, delete through route-aware legacy job builder/actions |
 | P7-06c | Replace `/company/profile` stub with profile builder | [x] | Company Portal profile now reuses the full employer profile builder through workspace-scoped profile actions |
 
 ## Verification Log
@@ -122,6 +122,16 @@ Result:
 Changed files:
 Remaining risk:
 Next task:
+```
+
+```text
+Date: 2026-04-29
+Task: Phase 7 P7-06b company portal job detail/create/edit
+Commands: GitNexus impact getJobPostingFormOptions/getJobPostingDetail/createJobPostingAction/updateJobPostingAction/toggleJobPostingStatus/deleteJobPostingAction/getJobApplicants/NewJobPostingPage/EditJobPostingForm/JobPostingDetailPage/EditJobPostingPage/JobActionButtons -> LOW; npx tsc --noEmit -> pass; targeted eslint for company/employer job posting routes/actions -> pass with existing no-img-element warnings; npm run build -> pass with existing Postgres SSL mode warning; GitNexus detect_changes staged -> CRITICAL due expected job-posting action/page fanout
+Result: Added canonical Company Portal job-posting management routes for list -> new/detail/edit. Existing job builder/detail/action UI is route-aware and server actions resolve the linked Employer from Company Portal requests under `/company/job-postings`.
+Changed files: src/lib/employer-actions.ts, src/app/(company)/company/(portal)/job-postings/page.tsx, src/app/(company)/company/(portal)/job-postings/new/page.tsx, src/app/(company)/company/(portal)/job-postings/[id]/page.tsx, src/app/(company)/company/(portal)/job-postings/[id]/edit/page.tsx, src/app/(employer)/employer/(portal)/job-postings/new/page.tsx, src/app/(employer)/employer/(portal)/job-postings/[id]/page.tsx, src/app/(employer)/employer/(portal)/job-postings/[id]/actions.tsx, src/app/(employer)/employer/(portal)/job-postings/[id]/edit/page.tsx, src/app/(employer)/employer/(portal)/job-postings/[id]/edit/EditJobPostingForm.tsx, docs/company-workspace-rebuild-2026-04-28/TRACKER.md
+Remaining risk: Company routes reuse the existing legacy job builder UI instead of a fully extracted shared component. GitNexus reports CRITICAL because this intentionally touches shared job-posting read/write actions and route-aware page controls. P7-06 redirects are now unblocked but still not implemented.
+Next task: Implement compatibility redirects/wrappers for `/employer/*` to canonical `/company/*`.
 ```
 
 ```text

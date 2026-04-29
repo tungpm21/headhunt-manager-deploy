@@ -1,14 +1,18 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { headers } from "next/headers";
 import { ArrowLeft } from "lucide-react";
 import { getJobPostingDetail } from "@/lib/employer-actions";
 import { EditJobPostingForm } from "./EditJobPostingForm";
 
 export default async function EditJobPostingPage({
   params,
+  routeBase,
 }: {
   params: Promise<{ id: string }>;
+  routeBase?: string;
 }) {
+  const activeRouteBase = routeBase ?? (await getJobPostingRouteBase());
   const { id } = await params;
   const jobId = Number.parseInt(id, 10);
 
@@ -26,7 +30,7 @@ export default async function EditJobPostingPage({
     <div className="mx-auto max-w-5xl space-y-6">
       <div className="flex items-center gap-4">
         <Link
-          href={`/employer/job-postings/${job.id}`}
+          href={`${activeRouteBase}/${job.id}`}
           className="h-9 w-9 rounded-lg border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors"
         >
           <ArrowLeft className="h-4 w-4 text-gray-500" />
@@ -42,4 +46,14 @@ export default async function EditJobPostingPage({
       <EditJobPostingForm job={job} />
     </div>
   );
+}
+
+async function getJobPostingRouteBase() {
+  const headerStore = await headers();
+  const referer = headerStore.get("referer") ?? "";
+  const nextUrl = headerStore.get("next-url") ?? "";
+  return referer.includes("/company/job-postings") ||
+    nextUrl.includes("/company/job-postings")
+    ? "/company/job-postings"
+    : "/employer/job-postings";
 }

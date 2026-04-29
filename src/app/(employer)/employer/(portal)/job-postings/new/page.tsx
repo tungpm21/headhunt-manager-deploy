@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   createJobPostingAction,
   getJobPostingFormOptions,
@@ -18,6 +19,10 @@ type OptionChoice = { value: string; label: string };
 type JobPostingFormOptions = Awaited<ReturnType<typeof getJobPostingFormOptions>>;
 
 export default function NewJobPostingPage() {
+  const pathname = usePathname();
+  const jobPostingsBase = pathname.startsWith("/company/")
+    ? "/company/job-postings"
+    : "/employer/job-postings";
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [coverImage, setCoverImage] = useState("");
@@ -62,7 +67,7 @@ export default function NewJobPostingPage() {
     <div className="mx-auto max-w-5xl space-y-6">
       <div className="flex items-center gap-4">
         <Link
-          href="/employer/job-postings"
+          href={jobPostingsBase}
           className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 transition hover:bg-gray-50"
         >
           <ArrowLeft className="h-4 w-4 text-gray-500" />

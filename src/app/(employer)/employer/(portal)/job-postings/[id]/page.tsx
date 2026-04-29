@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { headers } from "next/headers";
 import {
   getJobPostingDetail,
   getJobApplicants,
@@ -21,9 +22,12 @@ const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
 
 export default async function JobPostingDetailPage({
   params,
+  routeBase,
 }: {
   params: Promise<{ id: string }>;
+  routeBase?: string;
 }) {
+  const activeRouteBase = routeBase ?? (await getJobPostingRouteBase());
   const { id } = await params;
   const jobId = parseInt(id);
   if (isNaN(jobId)) notFound();
@@ -43,7 +47,7 @@ export default async function JobPostingDetailPage({
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-start gap-4">
           <Link
-            href="/employer/job-postings"
+            href={activeRouteBase}
             className="h-9 w-9 rounded-lg border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors mt-1"
           >
             <ArrowLeft className="h-4 w-4 text-gray-500" />
@@ -63,7 +67,7 @@ export default async function JobPostingDetailPage({
         </div>
         <div className="flex items-center gap-3">
           <Link
-            href={`/employer/job-postings/${job.id}/edit`}
+            href={`${activeRouteBase}/${job.id}/edit`}
             className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-white text-gray-700 hover:bg-gray-50 border border-gray-200 transition-all"
           >
             <Pencil className="h-4 w-4" />
@@ -202,6 +206,16 @@ export default async function JobPostingDetailPage({
       </div>
     </div>
   );
+}
+
+async function getJobPostingRouteBase() {
+  const headerStore = await headers();
+  const referer = headerStore.get("referer") ?? "";
+  const nextUrl = headerStore.get("next-url") ?? "";
+  return referer.includes("/company/job-postings") ||
+    nextUrl.includes("/company/job-postings")
+    ? "/company/job-postings"
+    : "/employer/job-postings";
 }
 
 function Section({ title, content }: { title: string; content: string }) {

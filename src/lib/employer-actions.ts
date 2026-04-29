@@ -965,25 +965,33 @@ export async function getJobApplicants(jobPostingId: number) {
 }
 
 export async function getRecruitmentPipelineData(jobPostingId?: number) {
-  const session = await requireEmployerSession();
-  return getEmployerApplicationPipelineData(session.employerId, jobPostingId);
+  const access = await resolveEmployerPortalAccess("/company/pipeline");
+  if (!access) {
+    return { applications: [], jobs: [] };
+  }
+
+  return getEmployerApplicationPipelineData(access.employerId, jobPostingId);
 }
 
 export async function updateApplicationPipelineStatusAction(
   applicationId: number,
   status: string
 ) {
-  const session = await requireEmployerSession();
+  const access = await resolveEmployerPortalAccess("/company/pipeline");
   const nextStatus = Object.values(ApplicationStatus).includes(status as ApplicationStatus)
     ? (status as ApplicationStatus)
     : null;
+
+  if (!access) {
+    return { success: false, message: "Workspace chưa liên kết Employer." };
+  }
 
   if (!nextStatus) {
     return { success: false, message: "Trạng thái ứng viên không hợp lệ." };
   }
 
   const application = await updateEmployerApplicationStatus(
-    session.employerId,
+    access.employerId,
     applicationId,
     nextStatus
   );
@@ -993,8 +1001,11 @@ export async function updateApplicationPipelineStatusAction(
   }
 
   revalidatePath("/employer/pipeline");
+  revalidatePath("/company/pipeline");
   revalidatePath("/employer/job-postings");
+  revalidatePath("/company/job-postings");
   revalidatePath(`/employer/job-postings/${application.jobPosting.id}`);
+  revalidatePath(`/company/job-postings/${application.jobPosting.id}`);
 
   return { success: true, application };
 }

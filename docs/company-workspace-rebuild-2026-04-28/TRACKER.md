@@ -105,12 +105,13 @@ After every implementation slice:
 | P7-03 | Add stage dropdown/buttons to selected card | [x] | Cards and preview panel both support explicit status updates without drag-and-drop |
 | P7-04 | Improve mobile fallback | [x] | Mobile uses stacked cards with select/buttons; drag-and-drop board is desktop-only |
 | P7-05 | Remove old inline Link Client UI | [x] | Employer detail now links to Company Workspace mapping instead of mutating legacy Employer.clientId inline |
-| P7-06 | Redirect legacy employer pages | [~] | Safe subset redirected: login, dashboard, profile, job-postings list/new/detail/edit. Pipeline/subscription/register remain until canonical replacements are ready |
+| P7-06 | Redirect legacy employer pages | [~] | Safe subset redirected: login, dashboard, profile, pipeline, job-postings list/new/detail/edit. Subscription/register remain until canonical replacements are ready |
 | P7-06a | Replace `/company/job-postings` stub | [x] | Portal now renders a workspace-scoped job postings list with status filters, counts, application links, and public preview links |
 | P7-06b | Add `/company/job-postings` detail/create/edit actions | [x] | Company Portal now exposes job detail, create, edit, pause/resume, delete through route-aware legacy job builder/actions |
 | P7-06c | Replace `/company/profile` stub with profile builder | [x] | Company Portal profile now reuses the full employer profile builder through workspace-scoped profile actions |
 | P7-06d | Extract profile builder before `/employer/company` redirect | [x] | Company Portal imports `CompanyProfileRoute.tsx`; legacy `/employer/company` now redirects to `/company/profile` |
 | P7-06e | Extract job posting form/detail before deeper job redirects | [x] | Job form/detail/edit implementations moved to route implementation files so Company Portal no longer imports redirecting legacy pages |
+| P7-06f | Add canonical Company Portal pipeline | [x] | `/company/pipeline` now owns the Kanban route; legacy `/employer/pipeline` redirects with selected job preserved |
 
 ## Verification Log
 
@@ -124,6 +125,16 @@ Result:
 Changed files:
 Remaining risk:
 Next task:
+```
+
+```text
+Date: 2026-04-29
+Task: Phase 7 P7-06f canonical company pipeline route
+Commands: GitNexus impact EmployerPipelinePage/getRecruitmentPipelineData/updateApplicationPipelineStatusAction/EmployerPipelineBoard/CompanyPortalSidebar -> LOW; npx tsc --noEmit -> pass; targeted eslint -> pass; npm run build -> pass with existing Postgres SSL mode warning; GitNexus detect_changes staged -> MEDIUM because legacy EmployerPipelinePage auth/subscription processes now redirect to Company Portal
+Result: Added `/company/pipeline`, moved the legacy pipeline page into `PipelineRoute.tsx`, added a Company Portal sidebar tab, made the board route-aware, and updated pipeline data/status actions to resolve Company Portal employer access. Legacy `/employer/pipeline` redirects to `/company/pipeline` while preserving `job`.
+Changed files: src/app/(company)/company/(portal)/pipeline/page.tsx, src/app/(employer)/employer/(portal)/pipeline/page.tsx, src/app/(employer)/employer/(portal)/pipeline/PipelineRoute.tsx, src/components/company/CompanyPortalSidebar.tsx, src/components/employer/EmployerPipelineBoard.tsx, src/lib/employer-actions.ts, docs/company-workspace-rebuild-2026-04-28/TRACKER.md
+Remaining risk: `/employer/subscription` and `/employer/register` remain legacy because Company Portal billing/user provisioning flows still need a product decision.
+Next task: Audit Company Portal client-side navigation and decide whether billing should replace employer subscription or remain admin-managed.
 ```
 
 ```text

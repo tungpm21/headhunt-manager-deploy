@@ -7,6 +7,7 @@ import {
     Briefcase,
     FileText,
     LayoutDashboard,
+    ListChecks,
     LogOut,
     Mail,
     Send,
@@ -44,6 +45,12 @@ export function CompanyPortalSidebar({
             name: "Ứng tuyển",
             href: "/company/applications",
             icon: Mail,
+            show: session.capabilities.employer,
+        },
+        {
+            name: "Pipeline",
+            href: "/company/pipeline",
+            icon: ListChecks,
             show: session.capabilities.employer,
         },
         {

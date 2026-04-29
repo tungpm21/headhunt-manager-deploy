@@ -195,6 +195,7 @@ function ApplicationCard({
   dragHandle,
   onSelect,
   onStatusChange,
+  jobPostingBase,
 }: {
   application: PipelineApplication;
   isPending: boolean;
@@ -202,6 +203,7 @@ function ApplicationCard({
   dragHandle?: ReactNode;
   onSelect: (applicationId: number) => void;
   onStatusChange: (applicationId: number, status: ApplicationStatusValue) => void;
+  jobPostingBase: string;
 }) {
   const visibleActions = QUICK_ACTIONS.filter(
     (action) => action.status !== application.status
@@ -224,7 +226,7 @@ function ApplicationCard({
             <StatusBadge status={application.status} />
           </div>
           <Link
-            href={`/employer/job-postings/${application.jobPosting.id}`}
+            href={`${jobPostingBase}/${application.jobPosting.id}`}
             className="mt-1 line-clamp-2 text-xs font-medium text-teal-700 hover:underline"
           >
             {application.jobPosting.title}
@@ -306,12 +308,14 @@ function SortableApplicationCard({
   isSelected,
   onSelect,
   onStatusChange,
+  jobPostingBase,
 }: {
   application: PipelineApplication;
   isPending: boolean;
   isSelected: boolean;
   onSelect: (applicationId: number) => void;
   onStatusChange: (applicationId: number, status: ApplicationStatusValue) => void;
+  jobPostingBase: string;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({
@@ -334,6 +338,7 @@ function SortableApplicationCard({
         isSelected={isSelected}
         onSelect={onSelect}
         onStatusChange={onStatusChange}
+        jobPostingBase={jobPostingBase}
         dragHandle={
           <button
             type="button"
@@ -358,6 +363,7 @@ function StageColumn({
   selectedApplicationId,
   onSelect,
   onStatusChange,
+  jobPostingBase,
 }: {
   stage: (typeof STAGES)[number];
   applications: PipelineApplication[];
@@ -365,6 +371,7 @@ function StageColumn({
   selectedApplicationId: number | null;
   onSelect: (applicationId: number) => void;
   onStatusChange: (applicationId: number, status: ApplicationStatusValue) => void;
+  jobPostingBase: string;
 }) {
   const { setNodeRef } = useDroppable({ id: stage.value });
 
@@ -401,6 +408,7 @@ function StageColumn({
                 isSelected={selectedApplicationId === application.id}
                 onSelect={onSelect}
                 onStatusChange={onStatusChange}
+                jobPostingBase={jobPostingBase}
               />
             ))
           )}
@@ -414,10 +422,12 @@ function ApplicationDetailPanel({
   application,
   isPending,
   onStatusChange,
+  jobPostingBase,
 }: {
   application: PipelineApplication | null;
   isPending: boolean;
   onStatusChange: (applicationId: number, status: ApplicationStatusValue) => void;
+  jobPostingBase: string;
 }) {
   if (!application) {
     return (
@@ -437,7 +447,7 @@ function ApplicationDetailPanel({
             {application.fullName}
           </h2>
           <Link
-            href={`/employer/job-postings/${application.jobPosting.id}`}
+            href={`${jobPostingBase}/${application.jobPosting.id}`}
             className="mt-1 block truncate text-sm font-medium text-teal-700 hover:underline"
           >
             {application.jobPosting.title}
@@ -485,7 +495,7 @@ function ApplicationDetailPanel({
           </a>
         ) : null}
         <Link
-          href={`/employer/job-postings/${application.jobPosting.id}`}
+          href={`${jobPostingBase}/${application.jobPosting.id}`}
           className="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-700 transition hover:border-teal-200 hover:text-teal-700"
         >
           Mở tin tuyển dụng
@@ -520,10 +530,14 @@ export function EmployerPipelineBoard({
   initialApplications,
   jobs,
   selectedJobId,
+  routeBase = "/employer/pipeline",
+  jobPostingBase = "/employer/job-postings",
 }: {
   initialApplications: PipelineApplication[];
   jobs: PipelineJob[];
   selectedJobId: number | null;
+  routeBase?: string;
+  jobPostingBase?: string;
 }) {
   const router = useRouter();
   const sensors = useSensors(
@@ -555,11 +569,11 @@ export function EmployerPipelineBoard({
 
   function handleJobChange(jobId: string) {
     if (!jobId) {
-      router.push("/employer/pipeline");
+      router.push(routeBase);
       return;
     }
 
-    router.push(`/employer/pipeline?job=${jobId}`);
+    router.push(`${routeBase}?job=${jobId}`);
   }
 
   async function commitStatusChange(
@@ -684,7 +698,7 @@ export function EmployerPipelineBoard({
               jobs.slice(0, 9).map((job) => (
                 <Link
                   key={job.id}
-                  href={`/employer/pipeline?job=${job.id}`}
+                  href={`${routeBase}?job=${job.id}`}
                   className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 transition hover:border-teal-200 hover:bg-teal-50/50"
                 >
                   <p className="line-clamp-2 text-sm font-semibold text-gray-900">
@@ -738,6 +752,7 @@ export function EmployerPipelineBoard({
                     isSelected={selectedApplicationId === application.id}
                     onSelect={setSelectedApplicationId}
                     onStatusChange={commitStatusChange}
+                    jobPostingBase={jobPostingBase}
                   />
                 ))}
               </div>
@@ -760,6 +775,7 @@ export function EmployerPipelineBoard({
                         selectedApplicationId={selectedApplicationId}
                         onSelect={setSelectedApplicationId}
                         onStatusChange={commitStatusChange}
+                        jobPostingBase={jobPostingBase}
                       />
                     ))}
                   </div>
@@ -777,6 +793,7 @@ export function EmployerPipelineBoard({
                   : false
               }
               onStatusChange={commitStatusChange}
+              jobPostingBase={jobPostingBase}
             />
           </div>
         </div>

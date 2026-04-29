@@ -46,6 +46,11 @@ import {
 import { OPTION_GROUPS } from "@/lib/config-option-definitions";
 import { resolveConfigOptionValue } from "@/lib/config-options";
 import {
+  getMediaFileExtension,
+  type MediaUploadKind,
+  validateMediaImageFile,
+} from "@/lib/media-validation";
+import {
   employerClientLinkSchema,
   getFirstZodErrorMessage,
   moderationEmployerInfoSchema,
@@ -53,9 +58,6 @@ import {
   moderationRejectJobSchema,
   moderationSubscriptionSchema,
 } from "@/lib/validation/forms";
-
-const ALLOWED_LOGO_TYPES = ["image/jpeg", "image/png", "image/webp"];
-const MAX_LOGO_SIZE_BYTES = 2 * 1024 * 1024;
 
 function strNull(value: FormDataEntryValue | null): string | null {
   const normalized = value?.toString().trim();
@@ -187,25 +189,17 @@ export async function getEmployerJobPostings(employerId: number, page = 1) {
   return getEmployerJobPostingsForModeration(employerId, page);
 }
 
-const EXTENSION_MAP: Record<string, string> = {
-  "image/jpeg": "jpg",
-  "image/png": "png",
-  "image/webp": "webp",
-};
-
 async function uploadImageFile(
   folder: string,
   prefix: string,
   file: File,
-  maxBytes: number
+  kind: MediaUploadKind
 ): Promise<{ url: string } | { error: string }> {
-  if (!ALLOWED_LOGO_TYPES.includes(file.type)) {
-    return { error: "Chi chap nhan file JPG, PNG hoac WebP." };
+  const validationError = validateMediaImageFile(file, kind);
+  if (validationError) {
+    return { error: validationError };
   }
-  if (file.size > maxBytes) {
-    return { error: `File qua lon. Toi da ${Math.round(maxBytes / 1024 / 1024)}MB.` };
-  }
-  const safeExt = EXTENSION_MAP[file.type] ?? "tmp";
+  const safeExt = getMediaFileExtension(file.type);
   const fileName = `${prefix}-${Date.now()}.${safeExt}`;
   const result = await uploadFile(folder, fileName, file);
   return { url: result.url };
@@ -269,7 +263,7 @@ export async function updateEmployerInfo(
       "logos",
       `employer-logo-${employerId}`,
       nextLogo,
-      MAX_LOGO_SIZE_BYTES
+      "profileLogo"
     );
     if ("error" in result) {
       return { success: false, message: result.error };
@@ -278,7 +272,6 @@ export async function updateEmployerInfo(
   }
 
   // --- Cover image upload ---
-  const MAX_COVER_SIZE_BYTES = 5 * 1024 * 1024; // 5MB for banners
   const coverFile = formData.get("coverImage");
   const nextCover = coverFile instanceof File && coverFile.size > 0 ? coverFile : null;
   let uploadedCoverUrl: string | null = null;
@@ -288,7 +281,7 @@ export async function updateEmployerInfo(
       "covers",
       `employer-cover-${employerId}`,
       nextCover,
-      MAX_COVER_SIZE_BYTES
+      "profileCover"
     );
     if ("error" in result) {
       // Roll back logo if already uploaded

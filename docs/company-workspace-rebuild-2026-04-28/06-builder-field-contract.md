@@ -150,15 +150,17 @@ Current rules:
 - Logo max size: 2MB.
 - Cover max size: 5MB.
 - Job/content image uploads go through `MediaUploadButton` and `uploadContentImage`.
-- Employer profile logo/cover file validation is still local to the profile page/action pair.
+- Shared media validation lives in `src/lib/media-validation.ts`.
 
-P6-08 remains partial until the MIME/type/size rules are exported from one shared module and reused by:
+The shared contract is reused by:
 
 - profile logo upload
 - profile cover upload
 - job cover upload
 - content inline image upload
 - admin upload surfaces
+
+Candidate avatar and CV uploads are intentionally outside this builder contract because they also perform file-signature checks and accept non-builder document formats.
 
 ## Implementation Rule
 

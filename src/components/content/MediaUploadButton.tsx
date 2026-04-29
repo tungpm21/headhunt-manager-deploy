@@ -3,6 +3,7 @@
 import { useRef, useState, useTransition } from "react";
 import { ImagePlus, Loader2 } from "lucide-react";
 import { uploadContentImage } from "@/lib/content-media-actions";
+import { MEDIA_IMAGE_ACCEPT } from "@/lib/media-validation";
 
 type MediaUploadButtonProps = {
   context: "blog" | "company" | "job";
@@ -20,7 +21,7 @@ export function MediaUploadButton({
   alt,
   onUploaded,
   disabled = false,
-  label = "Tai anh",
+  label = "Tải ảnh",
   className = "",
 }: MediaUploadButtonProps) {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -58,7 +59,7 @@ export function MediaUploadButton({
       <input
         ref={inputRef}
         type="file"
-        accept="image/jpeg,image/png,image/webp"
+        accept={MEDIA_IMAGE_ACCEPT}
         className="hidden"
         onChange={handleFileChange}
       />
@@ -67,10 +68,10 @@ export function MediaUploadButton({
         disabled={isDisabled}
         onClick={() => inputRef.current?.click()}
         className={`inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-border bg-white px-3 py-2 text-sm font-semibold text-foreground transition hover:bg-surface disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
-        title={!alt.trim() ? "Nhap alt text truoc khi upload anh" : undefined}
+        title={!alt.trim() ? "Nhập alt text trước khi upload ảnh" : undefined}
       >
         {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />}
-        {isPending ? "Dang tai..." : label}
+        {isPending ? "Đang tải..." : label}
       </button>
       {error ? <p className="text-xs text-red-600">{error}</p> : null}
     </div>

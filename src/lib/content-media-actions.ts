@@ -3,20 +3,23 @@
 import { randomUUID } from "crypto";
 import { auth } from "@/auth";
 import { requireEmployerSession } from "@/lib/employer-auth";
+import {
+  getMediaFileExtension,
+  type MediaUploadKind,
+  validateMediaImageFile,
+} from "@/lib/media-validation";
 import { uploadFile } from "@/lib/storage";
-
-const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
-const EXTENSION_MAP: Record<string, string> = {
-  "image/jpeg": "jpg",
-  "image/png": "png",
-  "image/webp": "webp",
-};
 
 const CONTEXT_FOLDERS: Record<string, string> = {
   blog: "content/blog",
   company: "content/company",
   job: "content/job",
 };
+
+function getContentUploadKind(context: string, kind: "cover" | "inline"): MediaUploadKind {
+  if (kind === "inline") return "contentInline";
+  return context === "job" ? "jobCover" : "contentCover";
+}
 
 type UploadResult =
   | { success: true; url: string; alt: string }
@@ -41,25 +44,18 @@ export async function uploadContentImage(formData: FormData): Promise<UploadResu
   const alt = formData.get("alt")?.toString().trim() ?? "";
 
   if (!(file instanceof File) || file.size === 0) {
-    return { success: false, error: "Vui long chon file anh." };
+    return { success: false, error: "Vui lòng chọn file ảnh." };
   }
   if (!alt) {
-    return { success: false, error: "Vui long nhap alt text cho anh." };
+    return { success: false, error: "Vui lòng nhập alt text cho ảnh." };
   }
-  if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
-    return { success: false, error: "Chi chap nhan JPG, PNG hoac WebP." };
-  }
-
-  const maxBytes = kind === "cover" ? 5 * 1024 * 1024 : 3 * 1024 * 1024;
-  if (file.size > maxBytes) {
-    return {
-      success: false,
-      error: `File qua lon. Toi da ${Math.round(maxBytes / 1024 / 1024)}MB.`,
-    };
+  const validationError = validateMediaImageFile(file, getContentUploadKind(context, kind));
+  if (validationError) {
+    return { success: false, error: validationError };
   }
 
   const folder = CONTEXT_FOLDERS[context] ?? "content/misc";
-  const extension = EXTENSION_MAP[file.type] ?? "tmp";
+  const extension = getMediaFileExtension(file.type);
   const fileName = `${kind}-${Date.now()}-${randomUUID()}.${extension}`;
   const result = await uploadFile(folder, fileName, file);
 

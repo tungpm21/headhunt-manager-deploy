@@ -94,7 +94,7 @@ After every implementation slice:
 | P6-05 | Add draft preview | [x] | Admin preview route `/companies/[id]/profile-drafts/[draftId]/preview` renders draft payload without publishing |
 | P6-06 | Add admin profile draft review | [x] | `/companies/[id]?tab=profile-drafts` can approve/publish or reject submitted profile drafts |
 | P6-07 | Align job posting builder fields | [x] | Field coverage compared and aligned; option-source cleanup remains under P6-08 |
-| P6-08 | Share media validation | [~] | Upload permissions and limits exist, but validation is not fully centralized yet |
+| P6-08 | Share media validation | [x] | Builder image MIME/type/size rules centralized in `src/lib/media-validation.ts` and reused by profile, job/content, and admin upload surfaces |
 
 ## Phase 7: Kanban Optimization and Cleanup
 
@@ -119,6 +119,16 @@ Result:
 Changed files:
 Remaining risk:
 Next task:
+```
+
+```text
+Date: 2026-04-29
+Task: Phase 6 P6-08 shared media validation
+Commands: GitNexus impact uploadContentImage/MediaUploadButton/updateCompanyProfileAction/useImageUpload/updateEmployerInfo/uploadImageFile/EmployerEditForm -> LOW; npx tsc --noEmit -> pass; targeted eslint for media/profile/admin upload files -> pass with existing no-img-element warnings; npm run build -> first run failed on transient /chia-se DB timeout after compile/type, second run pass; GitNexus detect_changes staged -> HIGH due profile/media flow fanout; context reviewed for updateCompanyProfileAction/updateEmployerInfo/uploadContentImage
+Result: Added `src/lib/media-validation.ts` as the shared builder image contract. Content uploads, job cover uploads, employer profile uploads, and admin employer media uploads now reuse the same MIME/type/size limits and extension mapping.
+Changed files: src/lib/media-validation.ts, src/lib/content-media-actions.ts, src/components/content/MediaUploadButton.tsx, src/lib/employer-actions.ts, src/lib/moderation-actions.ts, src/app/(employer)/employer/(portal)/company/page.tsx, src/app/(dashboard)/employers/[id]/edit/employer-edit-form.tsx, docs/company-workspace-rebuild-2026-04-28/06-builder-field-contract.md, docs/company-workspace-rebuild-2026-04-28/TRACKER.md
+Remaining risk: GitNexus flags HIGH because the shared validation touches employer profile/admin profile/content upload flows. Candidate avatar/CV uploads still use their own validation because they need signature checks and document MIME handling outside the builder contract.
+Next task: Commit P6-08 if GitNexus detect_changes is expected.
 ```
 
 ```text

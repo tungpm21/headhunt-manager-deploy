@@ -19,6 +19,11 @@ import {
   type CompanyProfileTheme,
 } from "@/lib/content-blocks";
 import {
+  MEDIA_IMAGE_ACCEPT,
+  type MediaUploadKind,
+  validateMediaImageFile,
+} from "@/lib/media-validation";
+import {
   AlertCircle,
   Building2,
   CheckCircle2,
@@ -39,10 +44,6 @@ type MessageState =
   | { type: "success"; text: string }
   | { type: "error"; text: string }
   | null;
-
-const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
-const MAX_LOGO_BYTES = 2 * 1024 * 1024;
-const MAX_COVER_BYTES = 5 * 1024 * 1024;
 
 const inputClassName =
   "w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-800 placeholder:text-gray-400 transition focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/25 disabled:cursor-not-allowed disabled:opacity-60";
@@ -84,7 +85,7 @@ const THEME_FIELDS: Array<{
   },
 ];
 
-function useImageUpload(initialUrl: string | null, maxBytes: number) {
+function useImageUpload(initialUrl: string | null, kind: MediaUploadKind) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(initialUrl);
   const [selectedName, setSelectedName] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -106,20 +107,12 @@ function useImageUpload(initialUrl: string | null, maxBytes: number) {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    if (!ALLOWED_TYPES.includes(file.type)) {
+    const validationError = validateMediaImageFile(file, kind);
+    if (validationError) {
       clearObjectUrl();
       setPreviewUrl(initialUrl);
       setSelectedName("");
-      setError("Chỉ chấp nhận file JPG, PNG hoặc WebP.");
-      if (fileInputRef.current) fileInputRef.current.value = "";
-      return;
-    }
-
-    if (file.size > maxBytes) {
-      clearObjectUrl();
-      setPreviewUrl(initialUrl);
-      setSelectedName("");
-      setError(`File quá lớn. Tối đa ${Math.round(maxBytes / 1024 / 1024)}MB.`);
+      setError(validationError);
       if (fileInputRef.current) fileInputRef.current.value = "";
       return;
     }
@@ -226,7 +219,7 @@ function CompanyProfileForm({
     fileInputRef: logoFileInputRef,
     handleFileChange: handleLogoFileChange,
     handleReset: handleLogoReset,
-  } = useImageUpload(employer.logo, MAX_LOGO_BYTES);
+  } = useImageUpload(employer.logo, "profileLogo");
   const {
     previewUrl: coverPreviewUrl,
     selectedName: coverSelectedName,
@@ -234,7 +227,7 @@ function CompanyProfileForm({
     fileInputRef: coverFileInputRef,
     handleFileChange: handleCoverFileChange,
     handleReset: handleCoverReset,
-  } = useImageUpload(employer.coverImage, MAX_COVER_BYTES);
+  } = useImageUpload(employer.coverImage, "profileCover");
 
   const updateThemeValue = (key: keyof CompanyProfileTheme, value: string) => {
     setTheme((current) => ({ ...current, [key]: value }));
@@ -360,7 +353,7 @@ function CompanyProfileForm({
                   id="logo"
                   name="logo"
                   type="file"
-                  accept="image/jpeg,image/png,image/webp"
+                  accept={MEDIA_IMAGE_ACCEPT}
                   onChange={handleLogoFileChange}
                   className="hidden"
                 />
@@ -418,7 +411,7 @@ function CompanyProfileForm({
                     id="coverImage"
                     name="coverImage"
                     type="file"
-                    accept="image/jpeg,image/png,image/webp"
+                    accept={MEDIA_IMAGE_ACCEPT}
                     onChange={handleCoverFileChange}
                     className="hidden"
                   />

@@ -55,6 +55,11 @@ import {
 } from "@/lib/rate-limit-redis";
 import { deleteFile, uploadFile } from "@/lib/storage";
 import { getWorkspaceForEmployer } from "@/lib/workspace";
+import {
+  getMediaFileExtension,
+  type MediaUploadKind,
+  validateMediaImageFile,
+} from "@/lib/media-validation";
 import { prisma } from "@/lib/prisma";
 import {
   employerJobPostingSchema,
@@ -92,15 +97,6 @@ function parseNullableNumber(value: FormDataEntryValue | null) {
   return Number.isFinite(parsed) ? parsed : Number.NaN;
 }
 
-const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
-const MAX_LOGO_SIZE_BYTES = 2 * 1024 * 1024;
-const MAX_COVER_SIZE_BYTES = 5 * 1024 * 1024;
-const IMAGE_EXTENSION_MAP: Record<string, string> = {
-  "image/jpeg": "jpg",
-  "image/png": "png",
-  "image/webp": "webp",
-};
-
 function strNull(value: FormDataEntryValue | null): string | null {
   const normalized = value?.toString().trim();
   return normalized || null;
@@ -110,16 +106,14 @@ async function uploadEmployerImageFile(
   folder: string,
   prefix: string,
   file: File,
-  maxBytes: number
+  kind: MediaUploadKind
 ): Promise<{ url: string } | { error: string }> {
-  if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
-    return { error: "Chỉ chấp nhận file JPG, PNG hoặc WebP." };
-  }
-  if (file.size > maxBytes) {
-    return { error: `File quá lớn. Tối đa ${Math.round(maxBytes / 1024 / 1024)}MB.` };
+  const validationError = validateMediaImageFile(file, kind);
+  if (validationError) {
+    return { error: validationError };
   }
 
-  const extension = IMAGE_EXTENSION_MAP[file.type] ?? "tmp";
+  const extension = getMediaFileExtension(file.type);
   const fileName = `${prefix}-${Date.now()}.${extension}`;
   const result = await uploadFile(folder, fileName, file);
   return { url: result.url };
@@ -436,7 +430,7 @@ export async function updateCompanyProfileAction(formData: FormData) {
       "logos",
       `employer-logo-${session.employerId}`,
       nextLogo,
-      MAX_LOGO_SIZE_BYTES
+      "profileLogo"
     );
     if ("error" in result) {
       return { success: false, message: result.error };
@@ -453,7 +447,7 @@ export async function updateCompanyProfileAction(formData: FormData) {
       "covers",
       `employer-cover-${session.employerId}`,
       nextCover,
-      MAX_COVER_SIZE_BYTES
+      "profileCover"
     );
     if ("error" in result) {
       if (uploadedLogoUrl) await deleteFile(uploadedLogoUrl);

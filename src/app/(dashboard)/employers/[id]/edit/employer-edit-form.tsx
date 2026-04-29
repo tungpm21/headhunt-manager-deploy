@@ -27,6 +27,11 @@ import {
   type ContentBlock,
 } from "@/lib/content-blocks";
 import type { OptionChoice } from "@/lib/config-options";
+import {
+  MEDIA_IMAGE_ACCEPT,
+  type MediaUploadKind,
+  validateMediaImageFile,
+} from "@/lib/media-validation";
 
 type EmployerEditData = {
   id: number;
@@ -68,9 +73,6 @@ const COMPANY_SIZES = [
   { value: "ENTERPRISE", label: "Tập đoàn (> 1000 nhân viên)" },
 ];
 
-const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
-const MAX_LOGO_BYTES = 2 * 1024 * 1024;
-const MAX_COVER_BYTES = 5 * 1024 * 1024;
 
 const inputClassName =
   "w-full rounded-xl border border-border bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition";
@@ -120,7 +122,7 @@ interface EmployerEditFormProps {
   industrialZoneOptions: OptionChoice[];
 }
 
-function useImageUpload(initialUrl: string | null, maxBytes: number) {
+function useImageUpload(initialUrl: string | null, kind: MediaUploadKind) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(initialUrl);
   const [selectedName, setSelectedName] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
@@ -141,20 +143,12 @@ function useImageUpload(initialUrl: string | null, maxBytes: number) {
   function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (!file) return;
-
-    if (!ALLOWED_TYPES.includes(file.type)) {
+    const validationError = validateMediaImageFile(file, kind);
+    if (validationError) {
       clearObjectUrl();
       setPreviewUrl(initialUrl);
       setSelectedName("");
-      setError("Chỉ chấp nhận file JPG, PNG hoặc WebP.");
-      if (fileInputRef.current) fileInputRef.current.value = "";
-      return;
-    }
-    if (file.size > maxBytes) {
-      clearObjectUrl();
-      setPreviewUrl(initialUrl);
-      setSelectedName("");
-      setError(`File quá lớn. Tối đa ${Math.round(maxBytes / 1024 / 1024)}MB.`);
+      setError(validationError);
       if (fileInputRef.current) fileInputRef.current.value = "";
       return;
     }
@@ -195,7 +189,7 @@ export function EmployerEditForm({
     fileInputRef: logoFileInputRef,
     handleFileChange: handleLogoFileChange,
     handleReset: handleLogoReset,
-  } = useImageUpload(employer.logo, MAX_LOGO_BYTES);
+  } = useImageUpload(employer.logo, "profileLogo");
   const {
     previewUrl: coverPreviewUrl,
     selectedName: coverSelectedName,
@@ -203,7 +197,7 @@ export function EmployerEditForm({
     fileInputRef: coverFileInputRef,
     handleFileChange: handleCoverFileChange,
     handleReset: handleCoverReset,
-  } = useImageUpload(employer.coverImage, MAX_COVER_BYTES);
+  } = useImageUpload(employer.coverImage, "profileCover");
   const initialTheme = normalizeCompanyTheme(employer.profileConfig?.theme ?? DEFAULT_COMPANY_THEME);
   const initialCapabilities = normalizeCompanyCapabilities(
     employer.profileConfig?.capabilities ?? DEFAULT_COMPANY_CAPABILITIES
@@ -338,7 +332,7 @@ export function EmployerEditForm({
                   id="logo"
                   name="logo"
                   type="file"
-                  accept="image/jpeg,image/png,image/webp"
+                  accept={MEDIA_IMAGE_ACCEPT}
                   onChange={handleLogoFileChange}
                   className="hidden"
                 />
@@ -395,7 +389,7 @@ export function EmployerEditForm({
                 id="coverImage"
                 name="coverImage"
                 type="file"
-                accept="image/jpeg,image/png,image/webp"
+                accept={MEDIA_IMAGE_ACCEPT}
                 onChange={handleCoverFileChange}
                 className="hidden"
               />

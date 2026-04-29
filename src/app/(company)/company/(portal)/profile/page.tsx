@@ -1,5 +1,5 @@
 import { Building } from "lucide-react";
-import EmployerCompanyProfilePage from "@/app/(employer)/employer/(portal)/company/page";
+import CompanyProfileRoute from "@/app/(employer)/employer/(portal)/company/CompanyProfileRoute";
 import { requireCompanyPortalSession } from "@/lib/company-portal-auth";
 
 export const metadata = { title: "Hồ sơ công ty - Company Portal" };
@@ -21,5 +21,5 @@ export default async function CompanyProfilePage() {
     );
   }
 
-  return <EmployerCompanyProfilePage />;
+  return <CompanyProfileRoute />;
 }

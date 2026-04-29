@@ -105,11 +105,11 @@ After every implementation slice:
 | P7-03 | Add stage dropdown/buttons to selected card | [x] | Cards and preview panel both support explicit status updates without drag-and-drop |
 | P7-04 | Improve mobile fallback | [x] | Mobile uses stacked cards with select/buttons; drag-and-drop board is desktop-only |
 | P7-05 | Remove old inline Link Client UI | [x] | Employer detail now links to Company Workspace mapping instead of mutating legacy Employer.clientId inline |
-| P7-06 | Redirect legacy employer pages | [~] | Safe subset redirected: login, dashboard, job-postings list/new/detail/edit. Profile/pipeline/subscription/register remain until canonical replacements are ready |
+| P7-06 | Redirect legacy employer pages | [~] | Safe subset redirected: login, dashboard, profile, job-postings list/new/detail/edit. Pipeline/subscription/register remain until canonical replacements are ready |
 | P7-06a | Replace `/company/job-postings` stub | [x] | Portal now renders a workspace-scoped job postings list with status filters, counts, application links, and public preview links |
 | P7-06b | Add `/company/job-postings` detail/create/edit actions | [x] | Company Portal now exposes job detail, create, edit, pause/resume, delete through route-aware legacy job builder/actions |
 | P7-06c | Replace `/company/profile` stub with profile builder | [x] | Company Portal profile now reuses the full employer profile builder through workspace-scoped profile actions |
-| P7-06d | Extract profile builder before `/employer/company` redirect | [ ] | Needed because `/company/profile` currently imports the legacy profile builder page |
+| P7-06d | Extract profile builder before `/employer/company` redirect | [x] | Company Portal imports `CompanyProfileRoute.tsx`; legacy `/employer/company` now redirects to `/company/profile` |
 | P7-06e | Extract job posting form/detail before deeper job redirects | [x] | Job form/detail/edit implementations moved to route implementation files so Company Portal no longer imports redirecting legacy pages |
 
 ## Verification Log
@@ -124,6 +124,16 @@ Result:
 Changed files:
 Remaining risk:
 Next task:
+```
+
+```text
+Date: 2026-04-29
+Task: Phase 7 P7-06d profile route extraction and legacy redirect
+Commands: GitNexus exact impact for `CompanyProfilePage` mis-resolved to public company route, so cypher was used to confirm target symbols; GitNexus impact useImageUpload/CompanyProfileForm -> LOW; npx tsc --noEmit -> pass; targeted eslint -> pass with existing no-img-element warning; npm run build -> pass with existing Postgres SSL mode warning; GitNexus detect_changes staged -> LOW
+Result: Moved the profile builder implementation to `CompanyProfileRoute.tsx`. Company Portal imports the route implementation directly, and legacy `/employer/company` redirects to `/company/profile` without creating an import loop.
+Changed files: src/app/(company)/company/(portal)/profile/page.tsx, src/app/(employer)/employer/(portal)/company/page.tsx, src/app/(employer)/employer/(portal)/company/CompanyProfileRoute.tsx, docs/company-workspace-rebuild-2026-04-28/TRACKER.md
+Remaining risk: `/employer/pipeline`, `/employer/subscription`, and `/employer/register` remain legacy because the Company Portal does not yet have canonical equivalents for those flows.
+Next task: Decide whether `/company/applications` should replace `/employer/pipeline`, then build the canonical applications/pipeline route before redirecting the legacy route.
 ```
 
 ```text

@@ -120,6 +120,16 @@ After every implementation slice:
 Add entries newest first.
 
 ```text
+Date: 2026-04-29
+Task: Homepage resilience + Admin CRM company UI smoke
+Commands: GitNexus impact getHomepageData -> LOW; npx tsc --noEmit -> pass; npx eslint src/lib/public-actions.ts -> pass; npm run build -> pass with existing Postgres SSL mode warning; Playwright Admin CRM smoke on /companies filters, legacy redirects, and company detail tabs -> pass
+Result: Homepage data load now fails closed to an empty payload instead of crashing the page when the public DB query times out. Admin CRM verified: Company Workspace sidebar is visible, legacy Employer/Client sidebar entries are hidden, /employers and /clients redirect to /companies role filters, list filters render, detail tabs render, and no horizontal overflow was detected at 1440x900.
+Changed files: src/lib/public-actions.ts, docs/company-workspace-rebuild-2026-04-28/TRACKER.md
+Remaining risk: Empty homepage fallback can briefly hide public data during DB outages until cache revalidates. Both-capability UI was route-smoked but current seed data may not include a real both-linked workspace for full visual verification.
+Next task: Continue Phase 7 cleanup or move to the next product slice after confirming Admin CRM smoke screenshots/flows are sufficient.
+```
+
+```text
 Date:
 Task:
 Commands:

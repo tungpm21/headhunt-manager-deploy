@@ -71,11 +71,22 @@ export type HomepageData = {
   };
 };
 
+const EMPTY_HOMEPAGE_DATA: HomepageData = {
+  featuredJobs: [],
+  bannerEmployers: [],
+  topEmployers: [],
+  industries: [],
+  stats: {
+    totalJobs: 0,
+    totalEmployers: 0,
+  },
+};
+
 export const getHomepageData = unstable_cache(
   async (): Promise<HomepageData> => {
     const now = new Date();
 
-    const [featuredJobs, bannerEmployers, allActiveEmployers, industryGroups, totalJobs, totalEmployers] =
+    const homepageQueries =
       await Promise.all([
         // 18 latest APPROVED jobs (9 per carousel page)
         prisma.jobPosting.findMany({
@@ -185,7 +196,15 @@ export const getHomepageData = unstable_cache(
           },
         }),
         prisma.employer.count({ where: { status: "ACTIVE" } }),
-      ]);
+      ]).catch((error) => {
+        console.error("Failed to load homepage data", error);
+        return null;
+      });
+
+    if (!homepageQueries) return EMPTY_HOMEPAGE_DATA;
+
+    const [featuredJobs, bannerEmployers, allActiveEmployers, industryGroups, totalJobs, totalEmployers] =
+      homepageQueries;
 
     const industries: IndustryCount[] = industryGroups
       .filter((g) => g.industry !== null)

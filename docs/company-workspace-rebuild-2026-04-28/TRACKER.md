@@ -88,12 +88,12 @@ After every implementation slice:
 | ID | Task | Status | Notes |
 | --- | --- | --- | --- |
 | P6-01 | Audit admin vs portal builder fields | [x] | Existing uncommitted builder work audited; see 06-builder-sync-audit-2026-04-29.md |
-| P6-02 | Define shared builder contract | [~] | `content-blocks.ts` has shared theme/capability/block normalization; formal field-by-field contract still pending |
+| P6-02 | Define shared builder contract | [x] | Formal field-level contract added in `06-builder-field-contract.md` |
 | P6-03 | Add profile draft flow if needed | [x] | Added CompanyProfileDraft model/migration; employer profile submits draft instead of publishing directly |
 | P6-04 | Update company profile editor | [x] | Existing portal profile editor uses BlockBuilder, theme, logo/cover upload, capabilities |
 | P6-05 | Add draft preview | [x] | Admin preview route `/companies/[id]/profile-drafts/[draftId]/preview` renders draft payload without publishing |
 | P6-06 | Add admin profile draft review | [x] | `/companies/[id]?tab=profile-drafts` can approve/publish or reject submitted profile drafts |
-| P6-07 | Align job posting builder fields | [~] | Employer create/edit has markdown content, cover image/alt, taxonomy, language, shift, FDI fields; admin parity still needs final comparison |
+| P6-07 | Align job posting builder fields | [x] | Field coverage compared and aligned; option-source cleanup remains under P6-08 |
 | P6-08 | Share media validation | [~] | Upload permissions and limits exist, but validation is not fully centralized yet |
 
 ## Phase 7: Kanban Optimization and Cleanup
@@ -119,6 +119,16 @@ Result:
 Changed files:
 Remaining risk:
 Next task:
+```
+
+```text
+Date: 2026-04-29
+Task: Phase 6 P6-02/P6-07 builder contract and job field parity
+Commands: GitNexus query for builder/job/profile surfaces; manual field comparison across employer/admin job forms, employer/admin job actions, validation schema, content-block helpers
+Result: Added formal builder field contract. Profile builder contract now defines draft-gated fields, content block capabilities, and moderation rule. Job builder contract confirms admin and employer field coverage parity and documents remaining option-source standardization separately.
+Changed files: docs/company-workspace-rebuild-2026-04-28/06-builder-field-contract.md, docs/company-workspace-rebuild-2026-04-28/TRACKER.md
+Remaining risk: No runtime code changed. Admin job create/edit option sources are still inconsistent with employer config-option helpers; tracked as P6-08 follow-up.
+Next task: Commit docs slice, then implement P6-08 shared media/option validation if continuing Phase 6.
 ```
 
 ```text

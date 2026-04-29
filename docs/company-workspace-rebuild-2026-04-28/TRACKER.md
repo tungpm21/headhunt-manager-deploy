@@ -105,13 +105,15 @@ After every implementation slice:
 | P7-03 | Add stage dropdown/buttons to selected card | [x] | Cards and preview panel both support explicit status updates without drag-and-drop |
 | P7-04 | Improve mobile fallback | [x] | Mobile uses stacked cards with select/buttons; drag-and-drop board is desktop-only |
 | P7-05 | Remove old inline Link Client UI | [x] | Employer detail now links to Company Workspace mapping instead of mutating legacy Employer.clientId inline |
-| P7-06 | Redirect legacy employer pages | [~] | Safe subset redirected: login, dashboard, profile, pipeline, job-postings list/new/detail/edit. Subscription/register remain until canonical replacements are ready |
+| P7-06 | Redirect legacy employer pages | [x] | Login, register, dashboard, profile, pipeline, job-postings list/new/detail/edit, and subscription now redirect to canonical Company Portal routes |
 | P7-06a | Replace `/company/job-postings` stub | [x] | Portal now renders a workspace-scoped job postings list with status filters, counts, application links, and public preview links |
 | P7-06b | Add `/company/job-postings` detail/create/edit actions | [x] | Company Portal now exposes job detail, create, edit, pause/resume, delete through route-aware legacy job builder/actions |
 | P7-06c | Replace `/company/profile` stub with profile builder | [x] | Company Portal profile now reuses the full employer profile builder through workspace-scoped profile actions |
 | P7-06d | Extract profile builder before `/employer/company` redirect | [x] | Company Portal imports `CompanyProfileRoute.tsx`; legacy `/employer/company` now redirects to `/company/profile` |
 | P7-06e | Extract job posting form/detail before deeper job redirects | [x] | Job form/detail/edit implementations moved to route implementation files so Company Portal no longer imports redirecting legacy pages |
 | P7-06f | Add canonical Company Portal pipeline | [x] | `/company/pipeline` now owns the Kanban route; legacy `/employer/pipeline` redirects with selected job preserved |
+| P7-07 | Consolidate Admin CRM Company UI | [x] | Sidebar hides legacy Employer/Client modules; `/companies` is the control center with role/portal filters; legacy Employer/Client admin routes redirect to matching Company Workspace records |
+| P7-08 | Add Company Portal billing and Job Orders | [x] | `/company/billing` is view-only from Employer subscription; `/company/job-orders` and detail pages are readonly from linked Client job orders |
 
 ## Verification Log
 
@@ -125,6 +127,16 @@ Result:
 Changed files:
 Remaining risk:
 Next task:
+```
+
+```text
+Date: 2026-04-29
+Task: Phase 7 P7-07/P7-08 admin Company Workspace consolidation and portal readonly surfaces
+Commands: GitNexus impact Sidebar/CompaniesPage/listWorkspaces/CompanyDetailPage/legacy Employer and Client routes/CompanyBillingPage/CompanyJobOrdersPage -> LOW; npx tsc --noEmit -> pass; targeted eslint for changed routes/helpers -> pass; npm run build -> pass with existing Postgres SSL mode warning; GitNexus detect_changes staged -> LOW
+Result: Admin CRM navigation now uses Company Workspace as the only Employer/Client control center. `/companies` supports role and portal filters; legacy `/employers`, `/clients`, detail, edit, and new client routes redirect to the matching workspace or a missing-state filter. Company detail tabs now show real readonly panels for jobs, applications, job orders, portal users, billing, and activity. Company Portal billing is view-only from Employer subscription, and Client-capability Job Orders list/detail are readonly.
+Changed files: src/components/sidebar.tsx, src/lib/workspace.ts, src/app/(dashboard)/companies/page.tsx, src/app/(dashboard)/companies/[id]/page.tsx, src/app/(dashboard)/clients/page.tsx, src/app/(dashboard)/clients/new/page.tsx, src/app/(dashboard)/clients/[id]/page.tsx, src/app/(dashboard)/employers/page.tsx, src/app/(dashboard)/employers/[id]/page.tsx, src/app/(dashboard)/employers/[id]/edit/page.tsx, src/app/(employer)/employer/(auth)/register/page.tsx, src/app/(employer)/employer/(portal)/subscription/page.tsx, src/app/(company)/company/(portal)/billing/page.tsx, src/app/(company)/company/(portal)/job-orders/page.tsx, src/app/(company)/company/(portal)/job-orders/[id]/page.tsx, docs/company-workspace-rebuild-2026-04-28/TRACKER.md
+Remaining risk: Legacy routes are redirects, not deleted, so public FDIWork and existing backend entities remain unchanged. Subscription expiry warning in portal follows persisted subscription status only to satisfy React purity lint.
+Next task: Manual browser smoke `/companies`, legacy redirects, and company portal capability visibility if more assurance is needed before deploy.
 ```
 
 ```text

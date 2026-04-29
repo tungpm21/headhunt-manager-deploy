@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import {
   Briefcase,
   Building,
-  Building2,
   FileDown,
   FileText,
   LayoutDashboard,
@@ -16,7 +15,6 @@ import {
   Settings,
   ShieldCheck,
   UploadCloud,
-  UserCog,
   Users,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
@@ -26,8 +24,7 @@ import type { NotificationCounts } from "@/lib/notifications";
 const navigation = [
   { name: "Tổng quan", href: "/dashboard", icon: LayoutDashboard },
   { name: "Talent Pool", href: "/candidates", icon: Users },
-  { name: "Công ty", href: "/companies", icon: Building },
-  { name: "Khách hàng", href: "/clients", icon: Building2 },
+  { name: "Company Workspace", href: "/companies", icon: Building },
   { name: "Job Orders", href: "/jobs", icon: Briefcase },
   { name: "Submissions", href: "/submissions", icon: SendHorizonal },
   { name: "Nhập dữ liệu", href: "/import", icon: UploadCloud },
@@ -54,12 +51,6 @@ const fdiworkNav: SidebarNavItem[] = [
     href: "/moderation/applications",
     icon: FileDown,
     badgeKey: "newApplications",
-  },
-  {
-    name: "Nhà tuyển dụng",
-    href: "/employers",
-    icon: UserCog,
-    badgeKey: "pendingEmployers",
   },
   { name: "Gói dịch vụ", href: "/packages", icon: Package },
   { name: "Cấu hình", href: "/settings/options", icon: Settings },

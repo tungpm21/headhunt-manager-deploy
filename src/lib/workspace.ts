@@ -102,16 +102,57 @@ export function withWorkspaceSubmissionAccess(workspaceId: number) {
 /**
  * List all workspaces for admin with pagination.
  */
-export async function listWorkspaces(page = 1, pageSize = 20) {
+export type WorkspaceRoleFilter = "all" | "employer" | "client" | "both" | "unlinked";
+export type WorkspacePortalFilter = "all" | "enabled" | "disabled";
+
+export async function listWorkspaces(
+    page = 1,
+    pageSize = 20,
+    filters: {
+        q?: string;
+        role?: WorkspaceRoleFilter;
+        portal?: WorkspacePortalFilter;
+    } = {}
+) {
     const skip = (page - 1) * pageSize;
+    const q = filters.q?.trim();
+    const role = filters.role ?? "all";
+    const portal = filters.portal ?? "all";
+    const where: Prisma.CompanyWorkspaceWhereInput = {
+        ...(q
+            ? {
+                  OR: [
+                      { displayName: { contains: q, mode: "insensitive" } },
+                      { slug: { contains: q, mode: "insensitive" } },
+                      { employer: { companyName: { contains: q, mode: "insensitive" } } },
+                      { client: { companyName: { contains: q, mode: "insensitive" } } },
+                  ],
+              }
+            : {}),
+        ...(portal === "enabled"
+            ? { portalEnabled: true }
+            : portal === "disabled"
+              ? { portalEnabled: false }
+              : {}),
+        ...(role === "employer"
+            ? { employerId: { not: null }, clientId: null }
+            : role === "client"
+              ? { clientId: { not: null }, employerId: null }
+              : role === "both"
+                ? { employerId: { not: null }, clientId: { not: null } }
+                : role === "unlinked"
+                  ? { employerId: null, clientId: null }
+                  : {}),
+    };
     const [items, total] = await Promise.all([
         prisma.companyWorkspace.findMany({
+            where,
             skip,
             take: pageSize,
             orderBy: { displayName: "asc" },
             include: workspaceInclude,
         }),
-        prisma.companyWorkspace.count(),
+        prisma.companyWorkspace.count({ where }),
     ]);
     return { items, total, page, pageSize, totalPages: Math.ceil(total / pageSize) };
 }

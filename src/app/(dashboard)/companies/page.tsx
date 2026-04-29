@@ -1,5 +1,9 @@
 import { requireAdmin } from "@/lib/authz";
-import { listWorkspaces } from "@/lib/workspace";
+import {
+    listWorkspaces,
+    type WorkspacePortalFilter,
+    type WorkspaceRoleFilter,
+} from "@/lib/workspace";
 import Link from "next/link";
 import {
     Building,
@@ -21,30 +25,134 @@ interface PageProps {
     searchParams: Promise<{
         page?: string;
         q?: string;
-        filter?: string;
+        role?: string;
+        portal?: string;
+        missing?: string;
     }>;
+}
+
+const roleFilters: Array<{ value: WorkspaceRoleFilter; label: string }> = [
+    { value: "all", label: "All" },
+    { value: "employer", label: "Employer" },
+    { value: "client", label: "Client" },
+    { value: "both", label: "Both" },
+    { value: "unlinked", label: "Unlinked" },
+];
+
+const portalFilters: Array<{ value: WorkspacePortalFilter; label: string }> = [
+    { value: "all", label: "All portal" },
+    { value: "enabled", label: "Portal on" },
+    { value: "disabled", label: "Portal off" },
+];
+
+function normalizeRole(value: string | undefined): WorkspaceRoleFilter {
+    return roleFilters.some((item) => item.value === value)
+        ? (value as WorkspaceRoleFilter)
+        : "all";
+}
+
+function normalizePortal(value: string | undefined): WorkspacePortalFilter {
+    return portalFilters.some((item) => item.value === value)
+        ? (value as WorkspacePortalFilter)
+        : "all";
+}
+
+function filterHref(params: {
+    role?: WorkspaceRoleFilter;
+    portal?: WorkspacePortalFilter;
+    q?: string;
+}) {
+    const query = new URLSearchParams();
+    if (params.role && params.role !== "all") query.set("role", params.role);
+    if (params.portal && params.portal !== "all") query.set("portal", params.portal);
+    if (params.q) query.set("q", params.q);
+    const suffix = query.toString();
+    return `/companies${suffix ? `?${suffix}` : ""}`;
 }
 
 export default async function CompaniesPage({ searchParams }: PageProps) {
     await requireAdmin();
     const sp = await searchParams;
-    const page = Number(sp.page ?? 1);
+    const page = Math.max(1, Number(sp.page ?? 1) || 1);
+    const role = normalizeRole(sp.role);
+    const portal = normalizePortal(sp.portal);
+    const q = sp.q?.trim() ?? "";
 
-    const result = await listWorkspaces(page, 20);
+    const result = await listWorkspaces(page, 20, { q, role, portal });
 
     return (
         <div className="space-y-6">
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-foreground">Công ty</h1>
+                    <h1 className="text-2xl font-bold text-foreground">Company Workspace</h1>
                     <p className="mt-1 text-sm text-muted">
                         {result.total > 0
-                            ? `${result.total} công ty trong hệ thống`
-                            : "Chưa có công ty nào. Chạy backfill hoặc tạo workspace mới."}
+                            ? `${result.total} workspace trong hệ thống`
+                            : "Chưa có workspace nào khớp bộ lọc hiện tại."}
                     </p>
                 </div>
             </div>
+
+            {sp.missing ? (
+                <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                    Không tìm thấy Company Workspace cho legacy record: {sp.missing}. Hãy kiểm tra lại backfill/link workspace.
+                </div>
+            ) : null}
+
+            <form className="rounded-xl border border-border bg-surface p-4 shadow-sm">
+                <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_180px_180px_auto]">
+                    <input
+                        name="q"
+                        defaultValue={q}
+                        placeholder="Tìm theo tên công ty, slug, Employer hoặc Client"
+                        className="h-10 rounded-md border border-border bg-background px-3 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                    />
+                    <select
+                        name="role"
+                        defaultValue={role}
+                        className="h-10 rounded-md border border-border bg-background px-3 text-sm outline-none focus:border-primary"
+                    >
+                        {roleFilters.map((item) => (
+                            <option key={item.value} value={item.value}>
+                                {item.label}
+                            </option>
+                        ))}
+                    </select>
+                    <select
+                        name="portal"
+                        defaultValue={portal}
+                        className="h-10 rounded-md border border-border bg-background px-3 text-sm outline-none focus:border-primary"
+                    >
+                        {portalFilters.map((item) => (
+                            <option key={item.value} value={item.value}>
+                                {item.label}
+                            </option>
+                        ))}
+                    </select>
+                    <button
+                        type="submit"
+                        className="h-10 rounded-md bg-primary px-4 text-sm font-medium text-white transition hover:bg-primary-hover"
+                    >
+                        Lọc
+                    </button>
+                </div>
+                <div className="mt-3 flex flex-wrap gap-2">
+                    {roleFilters.map((item) => (
+                        <Link
+                            key={item.value}
+                            href={filterHref({ role: item.value, portal, q })}
+                            className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${
+                                role === item.value
+                                    ? "border-primary bg-primary text-white"
+                                    : "border-border text-muted hover:text-foreground"
+                            }`}
+                        >
+                            {item.label}
+                        </Link>
+                    ))}
+                </div>
+            </form>
 
             {/* Company List */}
             <div className="overflow-hidden rounded-xl border border-border bg-surface shadow-sm">

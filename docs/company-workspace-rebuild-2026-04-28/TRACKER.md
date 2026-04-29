@@ -47,7 +47,7 @@ After every implementation slice:
 | P2-04 | Add duplicate detection | [x] | Mapping selects disable entities already assigned to another workspace and show the workspace name |
 | P2-05 | Add mapping server actions | [x] | link/unlink employer/client, toggle portal — all with ActivityLog |
 | P2-06 | Add ActivityLog events | [x] | All mapping actions logged |
-| P2-07 | Link old Employer/Client pages to workspace | [~] | Employer detail now routes mapping changes to Company Workspace; Client detail cross-link still pending |
+| P2-07 | Link old Employer/Client pages to workspace | [x] | Employer and Client detail pages now route admins to Company Workspace mapping |
 
 ## Phase 3: Company Portal
 
@@ -119,6 +119,16 @@ Result:
 Changed files:
 Remaining risk:
 Next task:
+```
+
+```text
+Date: 2026-04-29
+Task: Phase 2 P2-07 link old Client page to workspace
+Commands: GitNexus impact ClientDetailPage -> LOW; npx tsc --noEmit -> pass; targeted eslint for src/app/(dashboard)/clients/[id]/page.tsx -> pass; npm run build -> pass; GitNexus detect_changes staged -> HIGH due ClientDetailPage process fanout; GitNexus context ClientDetailPage reviewed
+Result: CRM Client detail now shows an admin-only Company Workspace panel with current workspace, portal/employer status, and a direct link to the workspace mapping tab.
+Changed files: src/app/(dashboard)/clients/[id]/page.tsx, docs/company-workspace-rebuild-2026-04-28/TRACKER.md
+Remaining risk: GitNexus flags the page as HIGH because it participates in several client/revenue/options read flows. The change is still scoped to an admin-only presentation panel and does not alter client access, revenue, or form mutation logic.
+Next task: Commit Phase 2 P2-07 if staged diff remains scoped.
 ```
 
 ```text

@@ -7,6 +7,7 @@ import {
   Briefcase,
   Building2,
   CreditCard,
+  Link2,
   TrendingUp,
 } from "lucide-react";
 import { requireViewerScope } from "@/lib/authz";
@@ -18,6 +19,7 @@ import { ClientForm } from "@/components/clients/client-form";
 import { ClientContacts } from "@/components/clients/client-contacts";
 import { DeleteClientButton } from "@/components/clients/delete-client-button";
 import { getClientRevenueSummary } from "@/lib/revenue";
+import { getWorkspaceForClient } from "@/lib/workspace";
 import { formatDate, formatVnd } from "@/lib/utils";
 
 export const metadata = { title: "Chi tiết Doanh nghiệp — Headhunt Manager" };
@@ -59,13 +61,22 @@ export default async function ClientDetailPage({ params }: PageProps) {
 
   const client = await getClientById(id, scope);
   if (!client) notFound();
-  const [revenueSummary, industryOptions, companySizeOptions, locationOptions, industrialZoneOptions, statusOptions] = await Promise.all([
+  const [
+    revenueSummary,
+    industryOptions,
+    companySizeOptions,
+    locationOptions,
+    industrialZoneOptions,
+    statusOptions,
+    workspace,
+  ] = await Promise.all([
     getClientRevenueSummary(id, new Date(), scope),
     getOptionsForSelect(OPTION_GROUPS.industry, { currentValue: client.industry }),
     getOptionsForSelect(OPTION_GROUPS.companySize, { currentValue: client.companySize }),
     getOptionsForSelect(OPTION_GROUPS.location, { currentValue: client.location }),
     getOptionsForSelect(OPTION_GROUPS.industrialZone, { currentValue: client.industrialZone }),
     getOptionsForSelect(OPTION_GROUPS.clientStatus, { currentValue: client.status }),
+    scope.isAdmin ? getWorkspaceForClient(id) : Promise.resolve(null),
   ]);
 
   return (
@@ -175,6 +186,61 @@ export default async function ClientDetailPage({ params }: PageProps) {
             {formatDate(revenueSummary.linkedSubscription.endDate)} • Giá trị{" "}
             {formatVnd(revenueSummary.linkedSubscription.price)}
           </p>
+        </div>
+      ) : null}
+
+      {scope.isAdmin ? (
+        <div className="rounded-xl border border-border bg-surface p-5 shadow-sm">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <Link2 className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wider text-muted">
+                    Company Workspace
+                  </p>
+                  <h2 className="text-lg font-semibold text-foreground">
+                    {workspace ? workspace.displayName : "Chưa liên kết workspace"}
+                  </h2>
+                </div>
+              </div>
+
+              <p className="max-w-3xl text-sm text-muted">
+                Mapping Client/Employer được quản lý tập trung trong Company Workspace để tránh lệch dữ liệu giữa CRM và portal công ty.
+              </p>
+
+              {workspace ? (
+                <div className="flex flex-wrap gap-2 text-xs">
+                  <span className="inline-flex items-center rounded-full bg-background px-3 py-1 font-medium text-muted">
+                    Workspace #{workspace.id}
+                  </span>
+                  <span className="inline-flex items-center rounded-full bg-background px-3 py-1 font-medium text-muted">
+                    Status: {workspace.status}
+                  </span>
+                  <span className="inline-flex items-center rounded-full bg-background px-3 py-1 font-medium text-muted">
+                    Portal: {workspace.portalEnabled ? "bật" : "tắt"}
+                  </span>
+                  <span className="inline-flex items-center rounded-full bg-background px-3 py-1 font-medium text-muted">
+                    Employer: {workspace.employer?.companyName ?? "chưa gắn"}
+                  </span>
+                </div>
+              ) : (
+                <p className="text-sm text-muted">
+                  Client này chưa được gắn vào workspace nào. Hãy mở danh sách Company Workspace và chọn tab Mapping để thiết lập liên kết.
+                </p>
+              )}
+            </div>
+
+            <Link
+              href={workspace ? `/companies/${workspace.id}?tab=mapping` : "/companies"}
+              className="inline-flex shrink-0 items-center gap-2 rounded-lg border border-primary/20 bg-primary/10 px-4 py-2 text-sm font-medium text-primary transition hover:bg-primary/15"
+            >
+              {workspace ? "Mở mapping workspace" : "Mở Company Workspace"}
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
         </div>
       ) : null}
 

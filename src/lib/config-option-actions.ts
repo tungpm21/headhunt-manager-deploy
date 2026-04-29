@@ -5,9 +5,11 @@ import { Prisma } from "@prisma/client";
 import { requireAdmin } from "@/lib/authz";
 import {
   CONFIG_OPTIONS_CACHE_TAG,
+  getOptionUsageCount,
   normalizeOptionText,
   syncDefaultConfigOptions,
 } from "@/lib/config-options";
+import type { OptionGroupKey } from "@/lib/config-option-definitions";
 import { prisma } from "@/lib/prisma";
 
 type ActionState = { error?: string; success?: boolean } | undefined;
@@ -198,4 +200,43 @@ export async function updateOptionItemFormAction(
   formData: FormData
 ): Promise<void> {
   await updateOptionItemAction(id, undefined, formData);
+}
+
+export async function deleteOptionItemAction(id: number): Promise<ActionState> {
+  try {
+    await requireAdmin();
+
+    const item = await prisma.optionItem.findUnique({
+      where: { id },
+      include: { aliases: true, set: true },
+    });
+
+    if (!item) return { error: "Không tìm thấy option." };
+    if (item.isSystem || item.set.valueType === "ENUM" || !item.set.allowCustomValues) {
+      return { error: "Option hệ thống/enum không thể xóa. Hãy tắt Active nếu cần ẩn." };
+    }
+
+    const usageCount = await getOptionUsageCount(item.setKey as OptionGroupKey, {
+      value: item.value,
+      label: item.label,
+      aliases: item.aliases.map((alias) => alias.alias),
+    });
+
+    if (usageCount > 0) {
+      return {
+        error: `Option đang được dùng ${usageCount} lần. Hãy tắt Active để giữ dữ liệu cũ an toàn.`,
+      };
+    }
+
+    await prisma.$transaction([
+      prisma.optionAlias.deleteMany({ where: { itemId: id } }),
+      prisma.optionItem.delete({ where: { id } }),
+    ]);
+
+    revalidateConfigOptionRoutes();
+    return { success: true };
+  } catch (error) {
+    console.error("deleteOptionItemAction error:", error);
+    return { error: "Không thể xóa option lúc này." };
+  }
 }

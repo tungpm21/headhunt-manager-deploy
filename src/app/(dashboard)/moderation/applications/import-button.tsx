@@ -1,14 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
+import { CheckCircle2, ChevronDown, Download, Loader2, SendHorizonal } from "lucide-react";
 import {
   importApplicationToCRM,
   importAndSubmitApplication,
 } from "@/lib/moderation-actions";
-import { Download, Loader2, CheckCircle2, ChevronDown, SendHorizonal } from "lucide-react";
-import Link from "next/link";
 
-type ImportState = "idle" | "menu" | "confirming-import" | "confirming-submit" | "loading" | "done";
+type ImportState = "idle" | "menu" | "loading" | "done";
 
 export function ImportButton({
   applicationId,
@@ -57,59 +57,24 @@ export function ImportButton({
           <CheckCircle2 className="h-3.5 w-3.5" />
           Đã lưu Talent Pool
         </span>
-        {result.candidateId && (
+        {result.candidateId ? (
           <Link
             href={`/candidates/${result.candidateId}`}
             className="text-xs text-primary hover:underline"
           >
             Xem UV #{result.candidateId}
           </Link>
-        )}
-      </div>
-    );
-  }
-
-  if (state === "confirming-import") {
-    return (
-      <div className="flex items-center gap-2">
-        <button
-          onClick={handleImport}
-          className="inline-flex items-center gap-1 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-700 transition-colors"
-        >
-          Xác nhận Import
-        </button>
-        <button
-          onClick={() => setState("idle")}
-          className="inline-flex items-center gap-1 rounded-lg bg-surface px-3 py-1.5 text-xs font-medium text-muted border border-border hover:bg-background transition-colors"
-        >
-          Hủy
-        </button>
-      </div>
-    );
-  }
-
-  if (state === "confirming-submit") {
-    return (
-      <div className="flex items-center gap-2">
-        <button
-          onClick={handleImportAndSubmit}
-          className="inline-flex items-center gap-1 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 transition-colors"
-        >
-          Xác nhận Import & Submit
-        </button>
-        <button
-          onClick={() => setState("idle")}
-          className="inline-flex items-center gap-1 rounded-lg bg-surface px-3 py-1.5 text-xs font-medium text-muted border border-border hover:bg-background transition-colors"
-        >
-          Hủy
-        </button>
+        ) : null}
       </div>
     );
   }
 
   if (state === "loading") {
     return (
-      <button disabled className="inline-flex items-center gap-1.5 rounded-lg bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary">
+      <button
+        disabled
+        className="inline-flex items-center gap-1.5 rounded-lg bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary"
+      >
         <Loader2 className="h-3.5 w-3.5 animate-spin" />
         Đang import...
       </button>
@@ -119,17 +84,10 @@ export function ImportButton({
   if (state === "menu") {
     return (
       <div className="relative flex flex-col gap-1">
-        <button
-          onClick={() => setState("confirming-import")}
-          className="inline-flex w-full items-center gap-1.5 rounded-lg bg-surface px-3 py-1.5 text-xs font-medium text-foreground border border-border hover:bg-background transition-colors text-left"
-        >
-          <Download className="h-3.5 w-3.5 text-muted" />
-          Import Talent Pool
-        </button>
         {jobOrderId ? (
           <button
-            onClick={() => setState("confirming-submit")}
-            className="inline-flex w-full items-center gap-1.5 rounded-lg bg-surface px-3 py-1.5 text-xs font-medium text-foreground border border-border hover:bg-background transition-colors text-left"
+            onClick={handleImportAndSubmit}
+            className="inline-flex w-full items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-1.5 text-left text-xs font-medium text-foreground transition-colors hover:bg-background"
           >
             <SendHorizonal className="h-3.5 w-3.5 text-blue-500" />
             Import & Submit
@@ -137,7 +95,7 @@ export function ImportButton({
         ) : null}
         <button
           onClick={() => setState("idle")}
-          className="text-xs text-muted hover:text-foreground transition-colors mt-0.5"
+          className="mt-0.5 text-xs text-muted transition-colors hover:text-foreground"
         >
           Đóng
         </button>
@@ -146,13 +104,24 @@ export function ImportButton({
   }
 
   return (
-    <button
-      onClick={() => setState("menu")}
-      className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-white hover:bg-primary/90 transition-colors shadow-sm"
-    >
-      <Download className="h-3.5 w-3.5" />
-      Import Talent Pool
-      <ChevronDown className="h-3 w-3 opacity-70" />
-    </button>
+    <div className="inline-flex items-center overflow-hidden rounded-lg shadow-sm">
+      <button
+        onClick={handleImport}
+        className="inline-flex items-center gap-1.5 bg-primary px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-primary/90"
+      >
+        <Download className="h-3.5 w-3.5" />
+        Import Talent Pool
+      </button>
+      {jobOrderId ? (
+        <button
+          type="button"
+          aria-label="Mở tùy chọn import"
+          onClick={() => setState("menu")}
+          className="inline-flex min-h-[30px] items-center border-l border-white/20 bg-primary px-2 text-white transition-colors hover:bg-primary/90"
+        >
+          <ChevronDown className="h-3.5 w-3.5 opacity-80" />
+        </button>
+      ) : null}
+    </div>
   );
 }

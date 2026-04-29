@@ -1,9 +1,11 @@
 "use client";
 
-import { useActionState } from "react";
-import { AlertCircle, CheckCircle2, Plus, RefreshCw, Save } from "lucide-react";
+import { useActionState, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { AlertCircle, CheckCircle2, Plus, RefreshCw, Save, Trash2 } from "lucide-react";
 import {
   createOptionItemAction,
+  deleteOptionItemAction,
   syncDefaultConfigOptionsAction,
   updateOptionItemAction,
 } from "@/lib/config-option-actions";
@@ -15,7 +17,7 @@ const inputClass =
   "min-h-10 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted/60 transition focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25";
 
 const optionRowGridClass =
-  "grid gap-3 border-t border-border px-4 py-3 md:grid-cols-2 xl:grid-cols-[minmax(180px,1fr)_minmax(190px,1fr)_minmax(260px,1.25fr)_84px_144px_120px] xl:items-end";
+  "grid gap-3 border-t border-border px-4 py-3 md:grid-cols-2 xl:grid-cols-[minmax(180px,1fr)_minmax(190px,1fr)_minmax(260px,1.25fr)_84px_144px_184px] xl:items-end";
 
 function ActionFeedback({ state }: { state: ActionState }) {
   if (!state?.success && !state?.error) return null;
@@ -69,9 +71,38 @@ export function OptionItemRowForm({
   item: ConfigOptionItem;
   usageCount: number;
 }) {
+  const router = useRouter();
   const updateAction = updateOptionItemAction.bind(null, item.id ?? 0);
   const [state, formAction, pending] = useActionState(updateAction, undefined);
+  const [deleteState, setDeleteState] = useState<ActionState>(undefined);
+  const [isDeleting, startDeleteTransition] = useTransition();
   const valueLocked = set.valueType === "ENUM" || item.isSystem || !set.allowCustomValues;
+  const canDelete =
+    Boolean(item.id) &&
+    !item.isSystem &&
+    set.valueType === "STRING" &&
+    set.allowCustomValues &&
+    usageCount === 0;
+
+  function handleDelete() {
+    if (!item.id) return;
+
+    if (!canDelete) {
+      setDeleteState({
+        error: usageCount > 0 ? "Option đang được dùng. Hãy tắt Active nếu cần ẩn." : "Option này không thể xóa.",
+      });
+      return;
+    }
+
+    if (!window.confirm(`Xóa option "${item.label}"? Thao tác này không thể hoàn tác.`)) return;
+
+    startDeleteTransition(() => {
+      void deleteOptionItemAction(item.id!).then((nextState) => {
+        setDeleteState(nextState);
+        if (nextState?.success) router.refresh();
+      });
+    });
+  }
 
   return (
     <form
@@ -140,7 +171,22 @@ export function OptionItemRowForm({
             <Save className="h-4 w-4" />
             {pending ? "Đang lưu..." : "Lưu"}
           </button>
+          <button
+            type="button"
+            onClick={handleDelete}
+            disabled={isDeleting}
+            title={canDelete ? "Xóa option" : "Chỉ xóa được option custom chưa có usage"}
+            className={`inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-lg border px-3 text-sm font-semibold transition active:translate-y-px disabled:cursor-not-allowed disabled:opacity-60 ${
+              canDelete
+                ? "border-red-200 bg-red-50 text-red-600 hover:bg-red-100"
+                : "border-border bg-background text-muted"
+            }`}
+          >
+            <Trash2 className="h-4 w-4" />
+            {isDeleting ? "Đang xóa..." : "Xóa"}
+          </button>
           <ActionFeedback state={state} />
+          <ActionFeedback state={deleteState} />
         </div>
       </div>
     </form>

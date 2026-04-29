@@ -35,6 +35,14 @@ export type JobOrderWithRelations = JobOrder & {
   client: Pick<Client, "id" | "companyName">;
   _count?: { candidates: number };
   candidates?: JobCandidateWithRelations[];
+  jobPostings?: Array<{
+    id: number;
+    title: string;
+    slug: string;
+    status: JobPostingStatus;
+    publishedAt: Date | null;
+    expiresAt: Date | null;
+  }>;
 };
 
 export type SerializedJobCandidateWithRelations = Omit<
@@ -165,4 +173,4 @@ export interface CreateJobInput {
   notes?: string;
 }
 
-export interface UpdateJobInput extends Partial<CreateJobInput> {}
+export type UpdateJobInput = Partial<CreateJobInput>;

@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import {
   Briefcase,
   Building,
-  FileDown,
   FileText,
   LayoutDashboard,
   type LucideIcon,
@@ -13,7 +12,6 @@ import {
   Package,
   SendHorizonal,
   Settings,
-  ShieldCheck,
   UploadCloud,
   Users,
 } from "lucide-react";
@@ -21,41 +19,100 @@ import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
 import type { NotificationCounts } from "@/lib/notifications";
 
-const navigation = [
-  { name: "Tổng quan", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Talent Pool", href: "/candidates", icon: Users },
-  { name: "Công ty", href: "/companies", icon: Building },
-  { name: "Yêu cầu tuyển dụng", href: "/jobs", icon: Briefcase },
-  { name: "Hồ sơ gửi khách", href: "/submissions", icon: SendHorizonal },
-  { name: "Nhập dữ liệu", href: "/import", icon: UploadCloud },
-];
-
-type BadgeKey = "pendingJobs" | "newApplications" | "pendingEmployers";
+type BadgeKey = keyof Pick<NotificationCounts, "pendingJobs" | "newApplications">;
 
 type SidebarNavItem = {
   name: string;
   href: string;
   icon: LucideIcon;
-  badgeKey?: BadgeKey;
+  activePrefixes?: string[];
+  adminBadgeKeys?: BadgeKey[];
 };
 
+const navigation: SidebarNavItem[] = [
+  { name: "Tổng quan", href: "/dashboard", icon: LayoutDashboard },
+  { name: "Talent Pool", href: "/candidates", icon: Users },
+  { name: "Công ty", href: "/companies", icon: Building },
+  {
+    name: "Tuyển dụng",
+    href: "/jobs",
+    icon: Briefcase,
+    activePrefixes: ["/jobs", "/moderation"],
+    adminBadgeKeys: ["pendingJobs", "newApplications"],
+  },
+  { name: "Hồ sơ gửi khách", href: "/submissions", icon: SendHorizonal },
+  { name: "Nhập dữ liệu", href: "/import", icon: UploadCloud },
+];
+
 const fdiworkNav: SidebarNavItem[] = [
-  {
-    name: "Bài đăng",
-    href: "/moderation",
-    icon: ShieldCheck,
-    badgeKey: "pendingJobs",
-  },
-  {
-    name: "Ứng viên FDIWork",
-    href: "/moderation/applications",
-    icon: FileDown,
-    badgeKey: "newApplications",
-  },
   { name: "Gói dịch vụ", href: "/packages", icon: Package },
   { name: "Cấu hình", href: "/settings/options", icon: Settings },
   { name: "Bài viết", href: "/blog", icon: FileText },
 ];
+
+function isItemActive(pathname: string, item: SidebarNavItem) {
+  if (item.href === "/dashboard") {
+    return pathname === "/dashboard";
+  }
+
+  if (item.activePrefixes) {
+    return item.activePrefixes.some((prefix) => pathname.startsWith(prefix));
+  }
+
+  return pathname.startsWith(item.href);
+}
+
+function getBadgeCount(
+  item: SidebarNavItem,
+  isAdmin: boolean,
+  counts?: NotificationCounts
+) {
+  if (!isAdmin || !item.adminBadgeKeys || !counts) {
+    return 0;
+  }
+
+  return item.adminBadgeKeys.reduce((total, key) => total + (counts[key] ?? 0), 0);
+}
+
+function SidebarLink({
+  item,
+  isAdmin,
+  counts,
+}: {
+  item: SidebarNavItem;
+  isAdmin: boolean;
+  counts?: NotificationCounts;
+}) {
+  const pathname = usePathname();
+  const isActive = isItemActive(pathname, item);
+  const badgeCount = getBadgeCount(item, isAdmin, counts);
+
+  return (
+    <Link
+      href={item.href}
+      className={cn(
+        "group flex items-center rounded-md px-3 py-2.5 text-sm font-medium transition-colors",
+        isActive
+          ? "bg-primary text-white shadow-sm"
+          : "text-muted hover:bg-border/50 hover:text-foreground"
+      )}
+    >
+      <item.icon
+        className={cn(
+          "mr-3 h-5 w-5 flex-shrink-0 transition-colors",
+          isActive ? "text-white" : "text-muted group-hover:text-foreground"
+        )}
+        aria-hidden="true"
+      />
+      <span className="truncate">{item.name}</span>
+      {badgeCount > 0 ? (
+        <span className="ml-auto inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-danger px-1.5 text-[10px] font-bold text-white">
+          {badgeCount}
+        </span>
+      ) : null}
+    </Link>
+  );
+}
 
 export function Sidebar({
   isAdmin,
@@ -66,8 +123,6 @@ export function Sidebar({
   className?: string;
   counts?: NotificationCounts;
 }) {
-  const pathname = usePathname();
-
   return (
     <aside
       className={cn(
@@ -86,74 +141,23 @@ export function Sidebar({
         <p className="px-3 pb-2 text-xs font-semibold uppercase tracking-wider text-muted">
           Menu chính
         </p>
-        {navigation.map((item) => {
-          const isActive =
-            item.href === "/dashboard"
-              ? pathname === "/dashboard"
-              : pathname.startsWith(item.href);
-
-          return (
-            <Link
-              key={item.name}
-              href={item.href}
-              className={cn(
-                "group flex items-center rounded-md px-3 py-2.5 text-sm font-medium transition-colors",
-                isActive
-                  ? "bg-primary text-white shadow-sm"
-                  : "text-muted hover:bg-border/50 hover:text-foreground"
-              )}
-            >
-              <item.icon
-                className={cn(
-                  "mr-3 h-5 w-5 flex-shrink-0 transition-colors",
-                  isActive ? "text-white" : "text-muted group-hover:text-foreground"
-                )}
-                aria-hidden="true"
-              />
-              {item.name}
-            </Link>
-          );
-        })}
+        {navigation.map((item) => (
+          <SidebarLink
+            key={item.name}
+            item={item}
+            isAdmin={isAdmin}
+            counts={counts}
+          />
+        ))}
 
         {isAdmin ? (
           <>
             <p className="px-3 pb-2 pt-6 text-xs font-semibold uppercase tracking-wider text-muted">
               FDIWork
             </p>
-            {fdiworkNav.map((item) => {
-              const isActive =
-                item.href === "/moderation"
-                  ? pathname === "/moderation"
-                  : pathname.startsWith(item.href);
-              const badgeCount = item.badgeKey ? counts?.[item.badgeKey] ?? 0 : 0;
-
-              return (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className={cn(
-                    "group flex items-center rounded-md px-3 py-2.5 text-sm font-medium transition-colors",
-                    isActive
-                      ? "bg-primary text-white shadow-sm"
-                      : "text-muted hover:bg-border/50 hover:text-foreground"
-                  )}
-                >
-                  <item.icon
-                    className={cn(
-                      "mr-3 h-5 w-5 flex-shrink-0 transition-colors",
-                      isActive ? "text-white" : "text-muted group-hover:text-foreground"
-                    )}
-                    aria-hidden="true"
-                  />
-                  <span>{item.name}</span>
-                  {badgeCount > 0 ? (
-                    <span className="ml-auto inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-danger px-1.5 text-[10px] font-bold text-white">
-                      {badgeCount}
-                    </span>
-                  ) : null}
-                </Link>
-              );
-            })}
+            {fdiworkNav.map((item) => (
+              <SidebarLink key={item.name} item={item} isAdmin={isAdmin} counts={counts} />
+            ))}
           </>
         ) : null}
       </nav>

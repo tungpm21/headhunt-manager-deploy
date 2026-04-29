@@ -21,6 +21,7 @@ import {
   normalizeContentBlocks,
   type ContentBlock,
 } from "@/lib/content-blocks";
+import { normalizeCompanyMediaSettings } from "@/lib/company-media-settings";
 
 const tierBadge: Record<string, { label: string; className: string }> = {
   VIP: { label: "VIP", className: "bg-amber-100 text-amber-700" },
@@ -75,6 +76,7 @@ export default async function CompanyProfilePage({ params }: PageProps) {
 
   const badge = company.subscription ? tierBadge[company.subscription.tier] : null;
   const theme = normalizeCompanyTheme(company.profileConfig?.theme ?? DEFAULT_COMPANY_THEME);
+  const mediaSettings = normalizeCompanyMediaSettings(company.profileConfig?.theme);
   const capabilities = normalizeCompanyCapabilities(company.profileConfig?.capabilities);
   const configuredSections = normalizeContentBlocks(company.profileConfig?.sections);
   const sections: ContentBlock[] = [
@@ -128,7 +130,10 @@ export default async function CompanyProfilePage({ params }: PageProps) {
       </nav>
 
       <section className="mx-auto max-w-7xl px-4 pt-4 sm:px-6 lg:px-8">
-        <div className="relative h-72 overflow-hidden rounded-3xl shadow-lg sm:h-80 lg:h-96">
+        <div
+          className="relative min-h-[220px] overflow-hidden rounded-3xl shadow-lg"
+          style={{ aspectRatio: mediaSettings.coverAspectRatio }}
+        >
           {company.coverImage ? (
             <Image
               src={company.coverImage}
@@ -157,16 +162,29 @@ export default async function CompanyProfilePage({ params }: PageProps) {
       <section className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="-mt-14 pl-6 sm:pl-10">
           <div
-            className="flex h-28 w-28 items-center justify-center overflow-hidden rounded-3xl bg-white shadow-lg"
-            style={{ color: theme.textColor }}
+            className="flex h-28 items-center justify-center overflow-hidden rounded-3xl bg-white shadow-lg"
+            style={{
+              aspectRatio: mediaSettings.logoAspectRatio === "auto" ? "1 / 1" : mediaSettings.logoAspectRatio,
+              color: theme.textColor,
+              maxWidth: "11rem",
+              minWidth: "7rem",
+            }}
           >
-            <LogoImage
-              src={company.logo}
-              alt={company.companyName}
-              size={112}
-              className="h-full w-full object-contain p-3"
-              iconSize="h-10 w-10"
-            />
+            <div
+              className="h-full w-full"
+              style={{ transform: `scale(${mediaSettings.logoZoom / 100})` }}
+            >
+              <LogoImage
+                src={company.logo}
+                alt={company.companyName}
+                size={112}
+                className={`h-full w-full p-3 ${
+                  mediaSettings.logoFit === "cover" ? "object-cover" : "object-contain"
+                }`}
+                iconSize="h-10 w-10"
+                sizes="176px"
+              />
+            </div>
           </div>
         </div>
 

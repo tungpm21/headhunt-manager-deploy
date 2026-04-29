@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { SubscriptionStatus, SubscriptionTier } from "@prisma/client";
 import { logActivity } from "@/lib/activity-log";
 import { requireAdmin } from "@/lib/authz";
 import {
@@ -35,6 +36,7 @@ import {
   upsertEmployerProfileConfig,
   upsertImportedApplicationJobLink,
 } from "@/lib/moderation";
+import type { JobPostingModerationFilters } from "@/lib/moderation";
 import { deleteFile, uploadFile } from "@/lib/storage";
 import { expireSubscriptionsIfNeeded } from "@/lib/subscriptions";
 import {
@@ -99,9 +101,43 @@ function parseNonNegativeNumber(value: FormDataEntryValue | null, fallback = 0) 
   return Number.isFinite(parsed) ? parsed : Number.NaN;
 }
 
-export async function getPendingJobPostings(status = "PENDING", page = 1) {
+const SUBSCRIPTION_TIERS = [
+  SubscriptionTier.BASIC,
+  SubscriptionTier.STANDARD,
+  SubscriptionTier.PREMIUM,
+  SubscriptionTier.VIP,
+] as const;
+
+const SUBSCRIPTION_STATUSES = [
+  SubscriptionStatus.ACTIVE,
+  SubscriptionStatus.EXPIRED,
+  SubscriptionStatus.CANCELLED,
+] as const;
+
+function parseSubscriptionTier(value: FormDataEntryValue | null) {
+  const normalized = value?.toString().trim() as SubscriptionTier | undefined;
+  return normalized && SUBSCRIPTION_TIERS.includes(normalized) ? normalized : null;
+}
+
+function parseSubscriptionStatus(value: FormDataEntryValue | null) {
+  const normalized = value?.toString().trim() as SubscriptionStatus | undefined;
+  return normalized && SUBSCRIPTION_STATUSES.includes(normalized) ? normalized : null;
+}
+
+function parseDateInput(value: FormDataEntryValue | null, fallback: Date) {
+  const normalized = value?.toString().trim();
+  if (!normalized) return fallback;
+
+  const parsed = new Date(`${normalized}T23:59:59.999`);
+  return Number.isNaN(parsed.getTime()) ? fallback : parsed;
+}
+
+export async function getPendingJobPostings(
+  statusOrFilters: string | JobPostingModerationFilters = "PENDING",
+  page = 1
+) {
   await requireAdmin();
-  return getPendingJobPostingsData(status, page);
+  return getPendingJobPostingsData(statusOrFilters, page);
 }
 
 export async function approveJobPosting(id: number) {
@@ -124,6 +160,7 @@ export async function approveJobPosting(id: number) {
   });
 
   revalidatePath("/moderation");
+  revalidatePath("/jobs");
   revalidatePath("/viec-lam");
   return { success: true, message: "Da duyet tin." };
 }
@@ -145,6 +182,7 @@ export async function rejectJobPosting(id: number, reason: string) {
   });
 
   revalidatePath("/moderation");
+  revalidatePath("/jobs");
   return { success: true, message: "Da tu choi tin." };
 }
 
@@ -448,6 +486,56 @@ export async function assignSubscription(formData: FormData) {
   };
 }
 
+export async function updateSubscriptionInline(formData: FormData) {
+  await requireAdmin();
+
+  const subscriptionId = parsePositiveInt(formData.get("subscriptionId"));
+  const employerId = parsePositiveInt(formData.get("employerId"));
+  const tier = parseSubscriptionTier(formData.get("tier"));
+  const status = parseSubscriptionStatus(formData.get("status"));
+  const jobQuota = parsePositiveInt(formData.get("jobQuota"));
+  const jobDuration = parsePositiveInt(formData.get("jobDuration"), 30);
+  const price = parseNonNegativeNumber(formData.get("price"), 0);
+
+  if (!Number.isFinite(subscriptionId) || !Number.isFinite(employerId)) {
+    return { success: false, message: "Goi dich vu khong hop le." };
+  }
+  if (!tier || !status || !Number.isFinite(jobQuota) || !Number.isFinite(jobDuration) || !Number.isFinite(price)) {
+    return { success: false, message: "Du lieu goi dich vu khong hop le." };
+  }
+
+  const existingSub = await getEmployerSubscriptionByEmployerId(employerId);
+  if (!existingSub || existingSub.id !== subscriptionId) {
+    return { success: false, message: "Khong tim thay goi dich vu cua cong ty." };
+  }
+  if (jobQuota < existingSub.jobsUsed) {
+    return {
+      success: false,
+      message: `Quota moi khong duoc thap hon so tin da dung (${existingSub.jobsUsed}).`,
+    };
+  }
+
+  const endDate = parseDateInput(formData.get("endDate"), existingSub.endDate);
+
+  await updateEmployerSubscription(subscriptionId, {
+    tier,
+    status,
+    jobQuota,
+    jobDuration,
+    price,
+    startDate: existingSub.startDate,
+    endDate,
+    showLogo: formData.get("showLogo") === "true",
+    showBanner: formData.get("showBanner") === "true",
+  });
+
+  revalidatePath("/packages");
+  revalidatePath("/companies");
+  revalidatePath(`/employers/${employerId}`);
+  revalidatePath("/viec-lam");
+  return { success: true, message: "Da cap nhat goi dich vu." };
+}
+
 export async function getApplicationsForImport(status = "NEW", page = 1) {
   await requireAdmin();
   return getApplicationsForImportData(status, page);
@@ -517,6 +605,7 @@ export async function importApplicationToCRM(applicationId: number) {
   });
 
   revalidatePath("/moderation/applications");
+  revalidatePath("/jobs");
   revalidatePath("/candidates");
   revalidatePath("/dashboard");
   return {

@@ -9,6 +9,7 @@ import {
 } from "@/lib/config-options";
 import { ViewerScope } from "@/lib/viewer-scope";
 import {
+  CandidateDuplicateMatch,
   CandidateFilters,
   PaginatedCandidates,
   CreateCandidateInput,
@@ -88,6 +89,10 @@ const CANDIDATE_DETAIL_INCLUDE = {
     orderBy: { createdAt: "desc" as const },
   },
 } satisfies Prisma.CandidateInclude;
+
+type CandidateListItem = Prisma.CandidateGetPayload<{
+  include: typeof CANDIDATE_LIST_INCLUDE;
+}>;
 
 async function buildWhere(filters: CandidateFilters): Promise<Prisma.CandidateWhereInput> {
   const where: Prisma.CandidateWhereInput = { isDeleted: false };
@@ -172,6 +177,107 @@ function buildTrashWhere(search?: string): Prisma.CandidateWhereInput {
   return where;
 }
 
+function normalizeContactEmail(value: string | null | undefined) {
+  return value?.trim().toLowerCase() || null;
+}
+
+function normalizeContactPhone(value: string | null | undefined) {
+  return value?.trim() || null;
+}
+
+async function buildCandidateDuplicateMap(
+  candidates: CandidateListItem[],
+  scope?: ViewerScope
+): Promise<Map<number, CandidateDuplicateMatch[]>> {
+  const contactRows = candidates
+    .map((candidate) => ({
+      id: candidate.id,
+      email: normalizeContactEmail(candidate.email),
+      phone: normalizeContactPhone(candidate.phone),
+    }))
+    .filter((candidate) => candidate.email || candidate.phone);
+
+  if (contactRows.length === 0) {
+    return new Map();
+  }
+
+  const emails = Array.from(
+    new Set(contactRows.map((candidate) => candidate.email).filter(Boolean))
+  ) as string[];
+  const phones = Array.from(
+    new Set(contactRows.map((candidate) => candidate.phone).filter(Boolean))
+  ) as string[];
+
+  const orConditions: Prisma.CandidateWhereInput[] = [
+    ...emails.map((email) => ({
+      email: { equals: email, mode: "insensitive" as const },
+    })),
+    ...phones.map((phone) => ({ phone })),
+  ];
+
+  if (orConditions.length === 0) {
+    return new Map();
+  }
+
+  const possibleMatches = await prisma.candidate.findMany({
+    where: withCandidateAccess(
+      {
+        isDeleted: false,
+        OR: orConditions,
+      },
+      scope
+    ),
+    select: {
+      id: true,
+      fullName: true,
+      email: true,
+      phone: true,
+    },
+  });
+
+  const result = new Map<number, CandidateDuplicateMatch[]>();
+
+  for (const candidate of contactRows) {
+    const matches: CandidateDuplicateMatch[] = [];
+
+    for (const possibleMatch of possibleMatches) {
+      if (possibleMatch.id === candidate.id) {
+        continue;
+      }
+
+      const matchBy: CandidateDuplicateMatch["matchBy"] = [];
+      if (
+        candidate.email &&
+        normalizeContactEmail(possibleMatch.email) === candidate.email
+      ) {
+        matchBy.push("email");
+      }
+      if (
+        candidate.phone &&
+        normalizeContactPhone(possibleMatch.phone) === candidate.phone
+      ) {
+        matchBy.push("phone");
+      }
+
+      if (matchBy.length > 0) {
+        matches.push({
+          id: possibleMatch.id,
+          fullName: possibleMatch.fullName,
+          email: possibleMatch.email,
+          phone: possibleMatch.phone,
+          matchBy,
+        });
+      }
+    }
+
+    if (matches.length > 0) {
+      result.set(candidate.id, matches);
+    }
+  }
+
+  return result;
+}
+
 export async function getCandidates(
   filters: CandidateFilters = {},
   scope?: ViewerScope
@@ -199,9 +305,13 @@ export async function getCandidates(
     }),
     prisma.candidate.count({ where }),
   ]);
+  const duplicateMap = await buildCandidateDuplicateMap(candidates, scope);
 
   return {
-    candidates,
+    candidates: candidates.map((candidate) => ({
+      ...candidate,
+      duplicateMatches: duplicateMap.get(candidate.id) ?? [],
+    })),
     total,
     page,
     pageSize,

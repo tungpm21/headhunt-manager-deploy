@@ -1,30 +1,157 @@
-import { EmployerStatus, Prisma } from "@prisma/client";
+import { EmployerStatus, JobPostingStatus, Prisma, SubscriptionStatus, SubscriptionTier } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 
-export async function getPendingJobPostingsData(status = "PENDING", page = 1) {
-  const take = 10;
-  const skip = (page - 1) * take;
-  const where: Record<string, unknown> = {};
+export type JobPostingLinkState = "ALL" | "LINKED" | "UNLINKED";
 
-  if (status !== "ALL") {
-    where.status = status;
+export type JobPostingModerationFilters = {
+  status?: string;
+  page?: number;
+  pageSize?: number;
+  search?: string;
+  linkState?: JobPostingLinkState;
+};
+
+const JOB_POSTING_STATUSES: JobPostingStatus[] = [
+  "PENDING",
+  "APPROVED",
+  "PAUSED",
+  "REJECTED",
+  "EXPIRED",
+  "DRAFT",
+];
+
+function normalizeJobPostingModerationFilters(
+  statusOrFilters: string | JobPostingModerationFilters = "PENDING",
+  page = 1
+): Required<Pick<JobPostingModerationFilters, "status" | "page" | "pageSize">> &
+  Pick<JobPostingModerationFilters, "search" | "linkState"> {
+  if (typeof statusOrFilters === "string") {
+    return {
+      status: statusOrFilters || "ALL",
+      page,
+      pageSize: 25,
+      search: "",
+      linkState: "ALL",
+    };
   }
 
-  const [jobs, total] = await Promise.all([
+  return {
+    status: statusOrFilters.status || "ALL",
+    page: statusOrFilters.page && statusOrFilters.page > 0 ? statusOrFilters.page : 1,
+    pageSize:
+      statusOrFilters.pageSize && statusOrFilters.pageSize > 0
+        ? statusOrFilters.pageSize
+        : 25,
+    search: statusOrFilters.search?.trim() ?? "",
+    linkState: statusOrFilters.linkState ?? "ALL",
+  };
+}
+
+function buildJobPostingModerationWhere(
+  filters: ReturnType<typeof normalizeJobPostingModerationFilters>,
+  includeStatus: boolean
+): Prisma.JobPostingWhereInput {
+  const where: Prisma.JobPostingWhereInput = {};
+
+  if (includeStatus && filters.status !== "ALL") {
+    where.status = filters.status as JobPostingStatus;
+  }
+
+  if (filters.search) {
+    where.OR = [
+      { title: { contains: filters.search, mode: "insensitive" } },
+      { slug: { contains: filters.search, mode: "insensitive" } },
+      { employer: { companyName: { contains: filters.search, mode: "insensitive" } } },
+      { employer: { email: { contains: filters.search, mode: "insensitive" } } },
+      { jobOrder: { title: { contains: filters.search, mode: "insensitive" } } },
+      { jobOrder: { client: { companyName: { contains: filters.search, mode: "insensitive" } } } },
+    ];
+  }
+
+  if (filters.linkState === "LINKED") {
+    where.jobOrderId = { not: null };
+  } else if (filters.linkState === "UNLINKED") {
+    where.jobOrderId = null;
+  }
+
+  return where;
+}
+
+export async function getPendingJobPostingsData(
+  statusOrFilters: string | JobPostingModerationFilters = "PENDING",
+  legacyPage = 1
+) {
+  const filters = normalizeJobPostingModerationFilters(statusOrFilters, legacyPage);
+  const take = filters.pageSize;
+  const skip = (filters.page - 1) * take;
+  const where = buildJobPostingModerationWhere(filters, true);
+  const statsWhere = buildJobPostingModerationWhere(filters, false);
+
+  const [jobs, total, totalMatching, statusGroups, aggregate] = await Promise.all([
     prisma.jobPosting.findMany({
       where,
       orderBy: { createdAt: "desc" },
       skip,
       take,
       include: {
-        employer: { select: { companyName: true, email: true, logo: true } },
+        employer: {
+          select: {
+            id: true,
+            slug: true,
+            companyName: true,
+            email: true,
+            logo: true,
+            workspace: { select: { id: true } },
+          },
+        },
+        jobOrder: {
+          select: {
+            id: true,
+            title: true,
+            client: { select: { companyName: true } },
+          },
+        },
         _count: { select: { applications: true } },
       },
     }),
     prisma.jobPosting.count({ where }),
+    prisma.jobPosting.count({ where: statsWhere }),
+    prisma.jobPosting.groupBy({
+      by: ["status"],
+      where: statsWhere,
+      _count: { _all: true },
+    }),
+    prisma.jobPosting.aggregate({
+      where: statsWhere,
+      _sum: {
+        viewCount: true,
+        applyCount: true,
+      },
+    }),
   ]);
 
-  return { jobs, total, page, totalPages: Math.ceil(total / take) };
+  const byStatus = JOB_POSTING_STATUSES.reduce<Record<string, number>>((acc, item) => {
+    acc[item] = 0;
+    return acc;
+  }, {});
+
+  statusGroups.forEach((item) => {
+    byStatus[item.status] = item._count._all;
+  });
+
+  return {
+    jobs,
+    total,
+    page: filters.page,
+    pageSize: take,
+    totalPages: Math.ceil(total / take),
+    stats: {
+      total: totalMatching,
+      byStatus,
+      views: aggregate._sum.viewCount ?? 0,
+      applications: aggregate._sum.applyCount ?? 0,
+    },
+  };
 }
 
 export async function getJobPostingForModeration(id: number) {
@@ -346,13 +473,13 @@ export async function getEmployerSubscriptionByEmployerId(employerId: number) {
 export async function updateEmployerSubscription(
   subscriptionId: number,
   data: {
-    tier: "BASIC" | "STANDARD" | "PREMIUM" | "VIP";
+    tier: SubscriptionTier;
     jobQuota: number;
     jobDuration: number;
     price: number;
     startDate: Date;
     endDate: Date;
-    status: "ACTIVE";
+    status: SubscriptionStatus;
     showLogo: boolean;
     showBanner: boolean;
   }
@@ -432,7 +559,65 @@ export async function getApplicationsForImportData(status = "NEW", page = 1) {
     prisma.application.count({ where }),
   ]);
 
-  return { applications, total, page, totalPages: Math.ceil(total / take) };
+  const emails = Array.from(
+    new Set(
+      applications
+        .map((application) => application.email?.trim().toLowerCase())
+        .filter((value): value is string => Boolean(value))
+    )
+  );
+  const phones = Array.from(
+    new Set(
+      applications
+        .map((application) => application.phone?.trim())
+        .filter((value): value is string => Boolean(value))
+    )
+  );
+  const duplicateWhere: Prisma.CandidateWhereInput[] = [
+    ...emails.map((email) => ({
+      email: { equals: email, mode: "insensitive" as const },
+    })),
+    ...phones.map((phone) => ({ phone })),
+  ];
+  const candidates =
+    duplicateWhere.length > 0
+      ? await prisma.candidate.findMany({
+          where: {
+            isDeleted: false,
+            OR: duplicateWhere,
+          },
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+            phone: true,
+          },
+        })
+      : [];
+  const applicationsWithDuplicates = applications.map((application) => {
+    const email = application.email?.trim().toLowerCase();
+    const phone = application.phone?.trim();
+    const duplicateMatches = candidates.flatMap((candidate) => {
+        const matchBy: Array<"email" | "phone"> = [];
+        if (email && candidate.email?.trim().toLowerCase() === email) {
+          matchBy.push("email");
+        }
+        if (phone && candidate.phone?.trim() === phone) {
+          matchBy.push("phone");
+        }
+
+        return matchBy.length > 0 ? [{ ...candidate, matchBy }] : [];
+      });
+
+    return { ...application, duplicateMatches };
+  });
+
+  return {
+    applications: applicationsWithDuplicates,
+    total,
+    page,
+    totalPages: Math.ceil(total / take),
+  };
 }
 
 export async function getApplicationForImportById(applicationId: number) {

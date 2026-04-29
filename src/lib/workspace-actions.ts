@@ -1,7 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { CompanyDraftStatus, CompanySize, Prisma } from "@prisma/client";
+import { CompanyDraftStatus, CompanyPortalRole, CompanySize, Prisma } from "@prisma/client";
+import { hash } from "bcrypt-ts";
 import { requireAdmin } from "@/lib/authz";
 import { logActivity } from "@/lib/activity-log";
 import { OPTION_GROUPS } from "@/lib/config-option-definitions";
@@ -15,6 +16,7 @@ import {
     normalizeContentBlocks,
     parseJson,
 } from "@/lib/content-blocks";
+import { normalizeCompanyMediaSettings } from "@/lib/company-media-settings";
 import {
     getMediaFileExtension,
     type MediaUploadKind,
@@ -28,6 +30,12 @@ import {
 } from "@/lib/validation/forms";
 
 const COMPANY_SIZE_VALUES = new Set<string>(Object.values(CompanySize));
+const COMPANY_PORTAL_ROLE_VALUES = new Set<string>(Object.values(CompanyPortalRole));
+
+export type AdminPortalUserActionState = {
+    success?: string;
+    error?: string;
+};
 
 function isRecord(value: unknown): value is Record<string, unknown> {
     return Boolean(value) && typeof value === "object" && !Array.isArray(value);
@@ -62,6 +70,21 @@ function boundedInt(value: FormDataEntryValue | null, fallback: number, min: num
     const parsed = Number(value?.toString());
     if (!Number.isFinite(parsed)) return fallback;
     return Math.min(max, Math.max(min, Math.trunc(parsed)));
+}
+
+function parsePortalRole(value: unknown) {
+    const role = typeof value === "string" ? value.trim() : "";
+    return COMPANY_PORTAL_ROLE_VALUES.has(role) ? (role as CompanyPortalRole) : null;
+}
+
+async function countActiveOwners(workspaceId: number) {
+    return prisma.companyPortalUser.count({
+        where: {
+            workspaceId,
+            role: CompanyPortalRole.OWNER,
+            isActive: true,
+        },
+    });
 }
 
 async function uploadAdminEmployerImageFile(
@@ -310,6 +333,171 @@ export async function toggleWorkspacePortal(
     return { success: true };
 }
 
+export async function createAdminCompanyPortalUserAction(
+    _prev: AdminPortalUserActionState | undefined,
+    formData: FormData
+): Promise<AdminPortalUserActionState> {
+    const { userId } = await requireAdmin();
+    const workspaceId = Number(formData.get("workspaceId"));
+    const email = formData.get("email")?.toString().trim().toLowerCase();
+    const name = stringOrNull(formData.get("name"));
+    const role = parsePortalRole(formData.get("role")) ?? CompanyPortalRole.MEMBER;
+    const password = formData.get("password")?.toString() ?? "";
+
+    if (!Number.isInteger(workspaceId) || workspaceId <= 0) {
+        return { error: "Workspace không hợp lệ." };
+    }
+    if (!email || !email.includes("@")) {
+        return { error: "Email đăng nhập không hợp lệ." };
+    }
+    if (password.length < 8) {
+        return { error: "Mật khẩu tạm phải có ít nhất 8 ký tự." };
+    }
+
+    const workspace = await prisma.companyWorkspace.findUnique({
+        where: { id: workspaceId },
+        select: { id: true },
+    });
+    if (!workspace) {
+        return { error: "Không tìm thấy workspace." };
+    }
+
+    const existing = await prisma.companyPortalUser.findUnique({
+        where: { workspaceId_email: { workspaceId, email } },
+        select: { id: true },
+    });
+    if (existing) {
+        return { error: "Email này đã có tài khoản trong workspace." };
+    }
+
+    await prisma.companyPortalUser.create({
+        data: {
+            workspaceId,
+            email,
+            name,
+            role,
+            password: await hash(password, 10),
+            isActive: true,
+        },
+    });
+
+    await logActivity("WORKSPACE_PORTAL_USER_CREATED", "CompanyWorkspace", workspaceId, userId, {
+        email,
+        role,
+    });
+
+    revalidatePath(`/companies/${workspaceId}`);
+    revalidatePath("/companies");
+    return { success: "Đã tạo portal user." };
+}
+
+export async function updateAdminCompanyPortalUserRoleAction(
+    userId: number,
+    roleValue: string
+): Promise<AdminPortalUserActionState> {
+    const { userId: adminUserId } = await requireAdmin();
+    const role = parsePortalRole(roleValue);
+    if (!role) {
+        return { error: "Role không hợp lệ." };
+    }
+
+    const targetUser = await prisma.companyPortalUser.findUnique({
+        where: { id: userId },
+        select: { id: true, workspaceId: true, role: true, isActive: true, email: true },
+    });
+    if (!targetUser) {
+        return { error: "Không tìm thấy portal user." };
+    }
+
+    if (
+        targetUser.role === CompanyPortalRole.OWNER &&
+        targetUser.isActive &&
+        role !== CompanyPortalRole.OWNER &&
+        (await countActiveOwners(targetUser.workspaceId)) <= 1
+    ) {
+        return { error: "Workspace cần giữ ít nhất một Owner đang hoạt động." };
+    }
+
+    await prisma.companyPortalUser.update({
+        where: { id: userId },
+        data: { role },
+    });
+
+    await logActivity("WORKSPACE_PORTAL_USER_ROLE_UPDATED", "CompanyWorkspace", targetUser.workspaceId, adminUserId, {
+        portalUserId: userId,
+        role,
+    });
+
+    revalidatePath(`/companies/${targetUser.workspaceId}`);
+    return { success: "Đã cập nhật role portal user." };
+}
+
+export async function toggleAdminCompanyPortalUserActiveAction(
+    userId: number,
+    isActive: boolean
+): Promise<AdminPortalUserActionState> {
+    const { userId: adminUserId } = await requireAdmin();
+    const targetUser = await prisma.companyPortalUser.findUnique({
+        where: { id: userId },
+        select: { id: true, workspaceId: true, role: true, isActive: true, email: true },
+    });
+    if (!targetUser) {
+        return { error: "Không tìm thấy portal user." };
+    }
+
+    if (
+        targetUser.role === CompanyPortalRole.OWNER &&
+        targetUser.isActive &&
+        !isActive &&
+        (await countActiveOwners(targetUser.workspaceId)) <= 1
+    ) {
+        return { error: "Không thể khóa Owner cuối cùng của workspace." };
+    }
+
+    await prisma.companyPortalUser.update({
+        where: { id: userId },
+        data: { isActive },
+    });
+
+    await logActivity("WORKSPACE_PORTAL_USER_STATUS_UPDATED", "CompanyWorkspace", targetUser.workspaceId, adminUserId, {
+        portalUserId: userId,
+        isActive,
+    });
+
+    revalidatePath(`/companies/${targetUser.workspaceId}`);
+    return { success: isActive ? "Đã mở khóa portal user." : "Đã khóa portal user." };
+}
+
+export async function resetAdminCompanyPortalUserPasswordAction(
+    userId: number,
+    password: string
+): Promise<AdminPortalUserActionState> {
+    const { userId: adminUserId } = await requireAdmin();
+    if (password.length < 8) {
+        return { error: "Mật khẩu mới phải có ít nhất 8 ký tự." };
+    }
+
+    const targetUser = await prisma.companyPortalUser.findUnique({
+        where: { id: userId },
+        select: { id: true, workspaceId: true, email: true },
+    });
+    if (!targetUser) {
+        return { error: "Không tìm thấy portal user." };
+    }
+
+    await prisma.companyPortalUser.update({
+        where: { id: userId },
+        data: { password: await hash(password, 10) },
+    });
+
+    await logActivity("WORKSPACE_PORTAL_USER_PASSWORD_RESET", "CompanyWorkspace", targetUser.workspaceId, adminUserId, {
+        portalUserId: userId,
+    });
+
+    revalidatePath(`/companies/${targetUser.workspaceId}`);
+    return { success: "Đã đặt lại mật khẩu portal user." };
+}
+
 export async function updateAdminCompanyProfileAction(
     workspaceId: number,
     formData: FormData
@@ -363,8 +551,10 @@ export async function updateAdminCompanyProfileAction(
     const currentCapabilities = normalizeCompanyCapabilities(
         employer.profileConfig?.capabilities ?? DEFAULT_COMPANY_CAPABILITIES
     );
-    const profileTheme = normalizeCompanyTheme(
-        parseJson(formData.get("profileTheme")?.toString() ?? "") || DEFAULT_COMPANY_THEME
+    const rawProfileTheme = parseJson(formData.get("profileTheme")?.toString() ?? "") || DEFAULT_COMPANY_THEME;
+    const profileTheme = normalizeCompanyTheme(rawProfileTheme);
+    const profileMediaSettings = normalizeCompanyMediaSettings(
+        parseJson(formData.get("profileMediaSettings")?.toString() ?? "") || rawProfileTheme
     );
     const profileSections = normalizeContentBlocks(
         formData.get("profileSections")?.toString() ?? "[]"
@@ -437,13 +627,13 @@ export async function updateAdminCompanyProfileAction(
                 where: { employerId: employer.id },
                 create: {
                     employerId: employer.id,
-                    theme: inputJson(profileTheme),
+                    theme: inputJson({ ...profileTheme, media: profileMediaSettings }),
                     capabilities: inputJson(currentCapabilities),
                     sections: inputJson(profileSections),
                     primaryVideoUrl,
                 },
                 update: {
-                    theme: inputJson(profileTheme),
+                    theme: inputJson({ ...profileTheme, media: profileMediaSettings }),
                     capabilities: inputJson(currentCapabilities),
                     sections: inputJson(profileSections),
                     primaryVideoUrl,

@@ -1,11 +1,13 @@
 "use server";
 
+import { JobPostingStatus } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/authz";
 import { prisma } from "@/lib/prisma";
 import {
   employerJobPostingSchema,
   getFirstZodErrorMessage,
+  moderationRejectJobSchema,
 } from "@/lib/validation/forms";
 
 function parseJobPostingSkills(value: FormDataEntryValue | null): string[] {
@@ -74,6 +76,7 @@ function revalidateJobPostingSurfaces(job: {
   employer: { id: number; slug: string };
 }) {
   revalidatePath("/moderation");
+  revalidatePath("/jobs");
   revalidatePath(`/moderation/${job.id}/edit`);
   revalidatePath("/employers");
   revalidatePath(`/employers/${job.employer.id}`);
@@ -86,9 +89,301 @@ function revalidateJobPostingSurfaces(job: {
   revalidatePath(`/employer/job-postings/${job.id}`);
 
   if (job.jobOrderId) {
-    revalidatePath("/jobs");
     revalidatePath(`/jobs/${job.jobOrderId}`);
   }
+}
+
+type BulkJobPostingModerationAction =
+  | "approve"
+  | "reject"
+  | "pause"
+  | "resume"
+  | "delete";
+
+const QUICK_EDIT_JOB_POSTING_STATUSES: JobPostingStatus[] = [
+  "DRAFT",
+  "PENDING",
+  "APPROVED",
+  "PAUSED",
+  "REJECTED",
+  "EXPIRED",
+];
+
+function normalizeBulkJobPostingIds(ids: number[]) {
+  return Array.from(
+    new Set(
+      ids
+        .map((id) => Number(id))
+        .filter((id) => Number.isInteger(id) && id > 0)
+    )
+  ).slice(0, 100);
+}
+
+export async function bulkAdminJobPostingModeration(
+  ids: number[],
+  action: BulkJobPostingModerationAction,
+  rejectReason?: string
+) {
+  await requireAdmin();
+
+  const safeIds = normalizeBulkJobPostingIds(ids);
+  if (safeIds.length === 0) {
+    return { success: false, message: "Chưa chọn bài đăng nào." };
+  }
+
+  if (action === "reject") {
+    const parsedReason = moderationRejectJobSchema.safeParse({
+      reason: rejectReason ?? "",
+    });
+
+    if (!parsedReason.success) {
+      return {
+        success: false,
+        message: getFirstZodErrorMessage(parsedReason.error),
+      };
+    }
+  }
+
+  const jobs = await prisma.jobPosting.findMany({
+    where: { id: { in: safeIds } },
+    select: {
+      id: true,
+      title: true,
+      slug: true,
+      status: true,
+      expiresAt: true,
+      jobOrderId: true,
+      employer: {
+        select: {
+          id: true,
+          slug: true,
+          subscription: { select: { jobDuration: true } },
+        },
+      },
+      _count: { select: { applications: true } },
+    },
+  });
+
+  let changed = 0;
+  const skipped: string[] = [];
+  const now = new Date();
+
+  for (const job of jobs) {
+    try {
+      if (action === "approve") {
+        if (!["PENDING", "REJECTED", "EXPIRED"].includes(job.status)) {
+          skipped.push(`#${job.id} không ở trạng thái có thể duyệt.`);
+          continue;
+        }
+
+        const duration = job.employer.subscription?.jobDuration ?? 30;
+        const expiresAt = new Date(now.getTime() + duration * 24 * 60 * 60 * 1000);
+        await prisma.jobPosting.update({
+          where: { id: job.id },
+          data: {
+            status: "APPROVED",
+            publishedAt: now,
+            expiresAt,
+            rejectReason: null,
+          },
+        });
+      } else if (action === "reject") {
+        if (job.status !== "PENDING") {
+          skipped.push(`#${job.id} chỉ có thể từ chối khi đang chờ duyệt.`);
+          continue;
+        }
+
+        await prisma.jobPosting.update({
+          where: { id: job.id },
+          data: {
+            status: "REJECTED",
+            rejectReason: rejectReason?.trim() ?? "",
+          },
+        });
+      } else if (action === "pause") {
+        if (job.status !== "APPROVED") {
+          skipped.push(`#${job.id} chưa public nên không thể tạm ẩn.`);
+          continue;
+        }
+
+        await prisma.jobPosting.update({
+          where: { id: job.id },
+          data: { status: "PAUSED" },
+        });
+      } else if (action === "resume") {
+        if (job.status !== "PAUSED") {
+          skipped.push(`#${job.id} không ở trạng thái tạm ẩn.`);
+          continue;
+        }
+        if (job.expiresAt && job.expiresAt < now) {
+          skipped.push(`#${job.id} đã hết hạn, không thể hiện lại.`);
+          continue;
+        }
+
+        await prisma.jobPosting.update({
+          where: { id: job.id },
+          data: { status: "APPROVED" },
+        });
+      } else if (action === "delete") {
+        if (job.jobOrderId) {
+          skipped.push(`#${job.id} đang link JobOrder.`);
+          continue;
+        }
+        if (job._count.applications > 0) {
+          skipped.push(`#${job.id} đã có ứng viên.`);
+          continue;
+        }
+
+        await prisma.jobPosting.delete({ where: { id: job.id } });
+      }
+
+      changed += 1;
+      revalidateJobPostingSurfaces(job);
+    } catch (error) {
+      console.error("bulkAdminJobPostingModeration error:", error);
+      skipped.push(`#${job.id} không thể cập nhật.`);
+    }
+  }
+
+  revalidatePath("/jobs");
+  revalidatePath("/moderation");
+  revalidatePath("/viec-lam");
+
+  const skippedSuffix =
+    skipped.length > 0 ? ` Bỏ qua ${skipped.length} bài: ${skipped.slice(0, 3).join(" ")}` : "";
+
+  return {
+    success: changed > 0,
+    message:
+      changed > 0
+        ? `Đã cập nhật ${changed}/${safeIds.length} bài đăng.${skippedSuffix}`
+        : `Không có bài đăng nào được cập nhật.${skippedSuffix}`,
+  };
+}
+
+export async function updateAdminJobPostingStatus(id: number, statusValue: string) {
+  await requireAdmin();
+
+  const status = statusValue as JobPostingStatus;
+  if (!QUICK_EDIT_JOB_POSTING_STATUSES.includes(status)) {
+    return { success: false, message: "Trạng thái bài đăng không hợp lệ." };
+  }
+
+  const job = await prisma.jobPosting.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      slug: true,
+      status: true,
+      rejectReason: true,
+      jobOrderId: true,
+      employer: {
+        select: {
+          id: true,
+          slug: true,
+          subscription: { select: { jobDuration: true } },
+        },
+      },
+    },
+  });
+
+  if (!job) {
+    return { success: false, message: "Không tìm thấy bài đăng." };
+  }
+
+  const now = new Date();
+  const data: {
+    status: JobPostingStatus;
+    publishedAt?: Date | null;
+    expiresAt?: Date | null;
+    rejectReason?: string | null;
+  } = { status };
+
+  if (status === "APPROVED") {
+    const duration = job.employer.subscription?.jobDuration ?? 30;
+    data.publishedAt = job.status === "APPROVED" ? undefined : now;
+    data.expiresAt = new Date(now.getTime() + duration * 24 * 60 * 60 * 1000);
+    data.rejectReason = null;
+  } else if (status === "REJECTED") {
+    data.rejectReason = job.rejectReason ?? "Từ chối nhanh từ Admin CRM.";
+  } else if (status === "EXPIRED") {
+    data.expiresAt = now;
+  } else if (status === "PENDING" || status === "DRAFT") {
+    data.rejectReason = null;
+  }
+
+  await prisma.jobPosting.update({
+    where: { id },
+    data,
+  });
+
+  revalidateJobPostingSurfaces(job);
+  return { success: true, message: "Đã cập nhật trạng thái bài đăng." };
+}
+
+export async function linkAdminJobPostingJobOrder(
+  jobPostingId: number,
+  jobOrderId: number | null
+) {
+  await requireAdmin();
+
+  const job = await prisma.jobPosting.findUnique({
+    where: { id: jobPostingId },
+    select: {
+      id: true,
+      slug: true,
+      jobOrderId: true,
+      employer: { select: { id: true, slug: true } },
+    },
+  });
+
+  if (!job) {
+    return { success: false, message: "Không tìm thấy bài đăng." };
+  }
+
+  if (jobOrderId) {
+    const jobOrder = await prisma.jobOrder.findUnique({
+      where: { id: jobOrderId },
+      select: { id: true },
+    });
+
+    if (!jobOrder) {
+      return { success: false, message: "Không tìm thấy JobOrder." };
+    }
+  }
+
+  await prisma.jobPosting.update({
+    where: { id: jobPostingId },
+    data: { jobOrderId },
+  });
+
+  revalidateJobPostingSurfaces({ ...job, jobOrderId });
+  if (job.jobOrderId) {
+    revalidatePath(`/jobs/${job.jobOrderId}`);
+  }
+  if (jobOrderId) {
+    revalidatePath(`/jobs/${jobOrderId}`);
+  }
+
+  return {
+    success: true,
+    message: jobOrderId ? "Đã link JobOrder." : "Đã bỏ link JobOrder.",
+  };
+}
+
+export async function getAdminJobOrderLinkOptions() {
+  await requireAdmin();
+
+  return prisma.jobOrder.findMany({
+    orderBy: [{ updatedAt: "desc" }, { id: "desc" }],
+    take: 200,
+    select: {
+      id: true,
+      title: true,
+      status: true,
+      client: { select: { companyName: true } },
+    },
+  });
 }
 
 export async function getAdminJobPostingById(id: number) {
@@ -491,6 +786,7 @@ export async function createAdminJobPosting(formData: FormData) {
   ]);
 
   revalidatePath("/moderation");
+  revalidatePath("/jobs");
   revalidatePath("/moderation/new");
   revalidatePath("/employers");
   revalidatePath(`/employers/${employer.id}`);

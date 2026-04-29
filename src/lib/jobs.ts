@@ -19,6 +19,17 @@ import { ViewerScope } from "@/lib/viewer-scope";
 const JOB_LIST_INCLUDE = {
   client: { select: { id: true, companyName: true } },
   _count: { select: { candidates: true } },
+  jobPostings: {
+    orderBy: { createdAt: "desc" as const },
+    select: {
+      id: true,
+      title: true,
+      slug: true,
+      status: true,
+      publishedAt: true,
+      expiresAt: true,
+    },
+  },
 } satisfies Prisma.JobOrderInclude;
 
 const JOB_DETAIL_INCLUDE = {

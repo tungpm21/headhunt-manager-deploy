@@ -30,6 +30,10 @@ import {
     type MappingEmployerOption,
 } from "@/components/dashboard/CompanyWorkspaceMappingPanel";
 import { AdminCompanyProfileEditor } from "@/components/dashboard/AdminCompanyProfileEditor";
+import {
+    AdminPortalUsersManager,
+    type AdminPortalUserRow,
+} from "@/components/company/AdminPortalUsersManager";
 import { OPTION_GROUPS } from "@/lib/config-option-definitions";
 import { getOptionsForSelect } from "@/lib/config-options";
 import { prisma } from "@/lib/prisma";
@@ -640,7 +644,7 @@ async function JobPostingsTab({ employerId }: { employerId: number }) {
                         {jobs.map((job) => (
                             <tr key={job.id} className="transition-colors hover:bg-muted/20">
                                 <td className="px-4 py-3">
-                                    <Link href={`/jobs/${job.id}`} className="font-medium text-foreground hover:text-primary">
+                                            <Link href={`/moderation/${job.id}/edit`} className="font-medium text-foreground hover:text-primary">
                                         {job.title}
                                     </Link>
                                     <p className="mt-0.5 text-xs text-muted">
@@ -758,7 +762,7 @@ async function ApplicationsTab({ employerId }: { employerId: number }) {
                                     )}
                                 </td>
                                 <td className="px-4 py-3">
-                                    <Link href={`/jobs/${application.jobPosting.id}`} className="font-medium text-primary hover:underline">
+                                                <Link href={`/moderation/${application.jobPosting.id}/edit`} className="font-medium text-primary hover:underline">
                                         {application.jobPosting.title}
                                     </Link>
                                 </td>
@@ -886,6 +890,16 @@ async function PortalUsersTab({ workspaceId }: { workspaceId: number }) {
             updatedAt: true,
         },
     });
+
+    const serializedUsers: AdminPortalUserRow[] = users.map((user) => ({
+        ...user,
+        role: user.role as AdminPortalUserRow["role"],
+        lastLoginAt: user.lastLoginAt?.toISOString() ?? null,
+        createdAt: user.createdAt.toISOString(),
+        updatedAt: user.updatedAt.toISOString(),
+    }));
+
+    return <AdminPortalUsersManager workspaceId={workspaceId} users={serializedUsers} />;
 
     return (
         <div className="overflow-hidden rounded-xl border border-border bg-surface shadow-sm">

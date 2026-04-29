@@ -4,6 +4,7 @@ import { Fragment, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
+  AlertTriangle,
   Briefcase,
   ChevronDown,
   ChevronRight,
@@ -27,6 +28,17 @@ interface CandidateTableProps {
 function formatSalary(amount: number | null) {
   if (!amount) return "—";
   return `${amount.toLocaleString("vi-VN")} tr`;
+}
+
+function formatCandidateCode(id: number) {
+  return `UV-${String(id).padStart(6, "0")}`;
+}
+
+function formatDuplicateReason(matchBy: Array<"email" | "phone">) {
+  if (matchBy.includes("email") && matchBy.includes("phone")) {
+    return "email + SĐT";
+  }
+  return matchBy.includes("email") ? "email" : "SĐT";
 }
 
 export function CandidateTable({
@@ -85,6 +97,8 @@ export function CandidateTable({
           <tbody className="divide-y divide-border">
             {candidates.map((candidate) => {
               const isExpanded = expandedId === candidate.id;
+              const duplicateMatches = candidate.duplicateMatches ?? [];
+              const duplicateCount = duplicateMatches.length;
 
               return (
                 <Fragment key={candidate.id}>
@@ -141,6 +155,17 @@ export function CandidateTable({
                           >
                             {candidate.fullName}
                           </Link>
+                          <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                            <span className="rounded-md bg-surface px-1.5 py-0.5 text-[11px] font-semibold text-muted">
+                              {formatCandidateCode(candidate.id)}
+                            </span>
+                            {duplicateCount > 0 ? (
+                              <span className="inline-flex items-center gap-1 rounded-md border border-amber-200 bg-amber-50 px-1.5 py-0.5 text-[11px] font-semibold text-amber-700">
+                                <AlertTriangle className="h-3 w-3" />
+                                Trùng {duplicateCount}
+                              </span>
+                            ) : null}
+                          </div>
                           {candidate.location ? (
                             <div className="mt-0.5 hidden items-center gap-1 text-xs text-muted lg:flex">
                               <MapPin className="h-3 w-3" />
@@ -162,6 +187,25 @@ export function CandidateTable({
                           <div className="flex max-w-[160px] items-center gap-1.5 truncate text-xs">
                             <Mail className="h-3 w-3" />
                             {candidate.email}
+                          </div>
+                        ) : null}
+                        {duplicateCount > 0 ? (
+                          <div className="mt-2 rounded-md border border-amber-200 bg-amber-50 px-2 py-1.5 text-[11px] text-amber-800">
+                            <div className="flex items-center gap-1 font-semibold">
+                              <AlertTriangle className="h-3 w-3" />
+                              Có hồ sơ trùng
+                            </div>
+                            <div className="mt-1 space-y-0.5">
+                              {duplicateMatches.slice(0, 2).map((match) => (
+                                <Link
+                                  key={match.id}
+                                  href={`/candidates/${match.id}`}
+                                  className="block truncate hover:underline"
+                                >
+                                  {formatCandidateCode(match.id)} · {formatDuplicateReason(match.matchBy)}
+                                </Link>
+                              ))}
+                            </div>
                           </div>
                         ) : null}
                       </div>
@@ -234,6 +278,8 @@ export function CandidateTable({
       <div className="divide-y divide-border md:hidden">
         {candidates.map((candidate) => {
           const isExpanded = expandedId === candidate.id;
+          const duplicateMatches = candidate.duplicateMatches ?? [];
+          const duplicateCount = duplicateMatches.length;
 
           return (
             <div key={candidate.id}>
@@ -286,6 +332,17 @@ export function CandidateTable({
                       <div className="flex items-center justify-between gap-2">
                         <p className="truncate font-medium text-foreground">{candidate.fullName}</p>
                         <StatusBadge status={candidate.status} />
+                      </div>
+                      <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                        <span className="rounded-md bg-surface px-1.5 py-0.5 text-[11px] font-semibold text-muted">
+                          {formatCandidateCode(candidate.id)}
+                        </span>
+                        {duplicateCount > 0 ? (
+                          <span className="inline-flex items-center gap-1 rounded-md border border-amber-200 bg-amber-50 px-1.5 py-0.5 text-[11px] font-semibold text-amber-700">
+                            <AlertTriangle className="h-3 w-3" />
+                            Trùng {duplicateCount}
+                          </span>
+                        ) : null}
                       </div>
                       {candidate.currentPosition ? (
                         <p className="mt-0.5 truncate text-sm text-muted">

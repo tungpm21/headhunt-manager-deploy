@@ -52,6 +52,15 @@ export type CandidateWithTags = Candidate & {
   tags: { tag: Tag }[];
   cvFiles: Pick<CandidateCV, "id" | "fileName" | "fileUrl" | "label">[];
   languages: Pick<CandidateLanguage, "id" | "language" | "level">[];
+  duplicateMatches?: CandidateDuplicateMatch[];
+};
+
+export type CandidateDuplicateMatch = {
+  id: number;
+  fullName: string;
+  email: string | null;
+  phone: string | null;
+  matchBy: Array<"email" | "phone">;
 };
 
 // ============================================================

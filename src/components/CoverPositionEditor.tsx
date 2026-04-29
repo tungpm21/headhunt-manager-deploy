@@ -8,6 +8,7 @@ type CoverPositionEditorProps = {
     positionX: number; // 0-100
     positionY: number; // 0-100
     zoom: number; // 100-200
+    aspectRatio?: string;
     onChange: (pos: { positionX: number; positionY: number; zoom: number }) => void;
 };
 
@@ -16,6 +17,7 @@ export function CoverPositionEditor({
     positionX: initX,
     positionY: initY,
     zoom: initZoom,
+    aspectRatio = "2 / 1",
     onChange,
 }: CoverPositionEditorProps) {
     const [posX, setPosX] = useState(initX);
@@ -24,13 +26,6 @@ export function CoverPositionEditor({
     const [isDragging, setIsDragging] = useState(false);
     const dragRef = useRef<{ startX: number; startY: number; origPosX: number; origPosY: number } | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
-
-    // Sync initial values
-    useEffect(() => {
-        setPosX(initX);
-        setPosY(initY);
-        setZoom(initZoom);
-    }, [initX, initY, initZoom]);
 
     const emitChange = useCallback(
         (x: number, y: number, z: number) => {
@@ -150,8 +145,9 @@ export function CoverPositionEditor({
             {/* Preview area */}
             <div
                 ref={containerRef}
-                className={`relative w-full h-40 rounded-xl border-2 border-dashed overflow-hidden select-none ${isDragging ? "border-primary cursor-grabbing" : "border-border cursor-grab"
+                className={`relative w-full min-h-40 rounded-xl border-2 border-dashed overflow-hidden select-none ${isDragging ? "border-primary cursor-grabbing" : "border-border cursor-grab"
                     }`}
+                style={{ aspectRatio }}
                 onMouseDown={handleMouseDown}
                 onTouchStart={handleTouchStart}
             >

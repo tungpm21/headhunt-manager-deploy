@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import Link from "next/link";
 import { AlertCircle, CheckCircle2, ExternalLink, Loader2, Save } from "lucide-react";
 import { CoverPositionEditor } from "@/components/CoverPositionEditor";
@@ -14,6 +14,13 @@ import {
   normalizeCompanyTheme,
   type CompanyProfileTheme,
 } from "@/lib/content-blocks";
+import {
+  COVER_ASPECT_RATIO_OPTIONS,
+  LOGO_ASPECT_RATIO_OPTIONS,
+  normalizeCompanyMediaSettings,
+  type CompanyMediaSettings,
+  type CompanyLogoFit,
+} from "@/lib/company-media-settings";
 import type { OptionChoice } from "@/lib/config-options";
 
 type AdminEmployerProfile = {
@@ -78,6 +85,9 @@ export function AdminCompanyProfileEditor({
   const [theme, setTheme] = useState(
     normalizeCompanyTheme(employer.profileConfig?.theme ?? DEFAULT_COMPANY_THEME)
   );
+  const [mediaSettings, setMediaSettings] = useState(
+    normalizeCompanyMediaSettings(employer.profileConfig?.theme)
+  );
   const [primaryVideoUrl, setPrimaryVideoUrl] = useState(
     employer.profileConfig?.primaryVideoUrl ?? ""
   );
@@ -95,10 +105,15 @@ export function AdminCompanyProfileEditor({
     setTheme((current) => ({ ...current, [key]: value }));
   }
 
+  function updateMediaSettings(next: Partial<CompanyMediaSettings>) {
+    setMediaSettings((current) => ({ ...current, ...next }));
+  }
+
   async function handleSubmit(formData: FormData) {
     setSaving(true);
     setMessage(null);
     formData.set("profileTheme", JSON.stringify(theme));
+    formData.set("profileMediaSettings", JSON.stringify(mediaSettings));
     formData.set("primaryVideoUrl", primaryVideoUrl);
     formData.set("logoUrl", logoUrl);
     formData.set("coverImageUrl", coverImageUrl);
@@ -151,13 +166,61 @@ export function AdminCompanyProfileEditor({
       <section className="grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)]">
         <div className="rounded-xl border border-border bg-surface p-5">
           <p className="text-sm font-semibold text-foreground">Logo</p>
-          <div className="mt-4 flex h-28 w-28 items-center justify-center overflow-hidden rounded-2xl border border-border bg-background">
+          <div
+            className="mt-4 flex h-28 items-center justify-center overflow-hidden rounded-2xl border border-border bg-background"
+            style={{
+              aspectRatio: mediaSettings.logoAspectRatio === "auto" ? "1 / 1" : mediaSettings.logoAspectRatio,
+              width: mediaSettings.logoAspectRatio === "auto" ? "7rem" : undefined,
+              maxWidth: "11rem",
+            }}
+          >
             {logoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={logoUrl} alt={employer.companyName} className="h-full w-full object-contain p-2" />
+              <img
+                src={logoUrl}
+                alt={employer.companyName}
+                className="h-full w-full p-2"
+                style={{
+                  objectFit: mediaSettings.logoFit,
+                  transform: `scale(${mediaSettings.logoZoom / 100})`,
+                }}
+              />
             ) : (
               <span className="text-xs text-muted">No logo</span>
             )}
+          </div>
+          <div className="mt-4 space-y-3 rounded-xl border border-border bg-background p-3">
+            <ControlLabel>Tỷ lệ logo</ControlLabel>
+            <RatioButtonGroup
+              options={LOGO_ASPECT_RATIO_OPTIONS}
+              value={mediaSettings.logoAspectRatio}
+              onChange={(value) => updateMediaSettings({ logoAspectRatio: value })}
+            />
+            <div className="grid gap-3 sm:grid-cols-2">
+              <label className="block text-xs font-medium text-muted">
+                Kiểu hiển thị
+                <select
+                  value={mediaSettings.logoFit}
+                  onChange={(event) => updateMediaSettings({ logoFit: event.target.value as CompanyLogoFit })}
+                  className="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground"
+                >
+                  <option value="contain">Vừa khung</option>
+                  <option value="cover">Crop đầy khung</option>
+                </select>
+              </label>
+              <label className="block text-xs font-medium text-muted">
+                Zoom {mediaSettings.logoZoom}%
+                <input
+                  type="range"
+                  min={60}
+                  max={200}
+                  step={5}
+                  value={mediaSettings.logoZoom}
+                  onChange={(event) => updateMediaSettings({ logoZoom: Number(event.target.value) })}
+                  className="mt-3 w-full accent-primary"
+                />
+              </label>
+            </div>
           </div>
           <div className="mt-4 space-y-3">
             <input
@@ -174,6 +237,14 @@ export function AdminCompanyProfileEditor({
         <div className="rounded-xl border border-border bg-surface p-5">
           <p className="text-sm font-semibold text-foreground">Ảnh bìa</p>
           <p className="mt-1 text-xs text-muted">Có thể nhập URL hoặc upload file mới.</p>
+          <div className="mt-4 rounded-xl border border-border bg-background p-3">
+            <ControlLabel>Tỷ lệ ảnh bìa public</ControlLabel>
+            <RatioButtonGroup
+              options={COVER_ASPECT_RATIO_OPTIONS}
+              value={mediaSettings.coverAspectRatio}
+              onChange={(value) => updateMediaSettings({ coverAspectRatio: value })}
+            />
+          </div>
           <div className="mt-4">
             {coverImageUrl ? (
               <CoverPositionEditor
@@ -181,12 +252,16 @@ export function AdminCompanyProfileEditor({
                 positionX={coverPos.positionX}
                 positionY={coverPos.positionY}
                 zoom={coverPos.zoom}
+                aspectRatio={mediaSettings.coverAspectRatio}
                 onChange={setCoverPos}
               />
             ) : (
               <div
-                className="flex h-44 items-center justify-center rounded-xl border border-dashed border-border text-sm text-white/80"
-                style={{ background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.accentColor})` }}
+                className="flex min-h-44 items-center justify-center rounded-xl border border-dashed border-border text-sm text-white/80"
+                style={{
+                  aspectRatio: mediaSettings.coverAspectRatio,
+                  background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.accentColor})`,
+                }}
               >
                 Chưa có ảnh bìa - dùng màu theme.
               </div>
@@ -345,6 +420,42 @@ export function AdminCompanyProfileEditor({
         </button>
       </div>
     </form>
+  );
+}
+
+function ControlLabel({ children }: { children: ReactNode }) {
+  return <p className="mb-2 text-xs font-semibold uppercase text-muted">{children}</p>;
+}
+
+function RatioButtonGroup<T extends string>({
+  options,
+  value,
+  onChange,
+}: {
+  options: Array<{ value: T; label: string }>;
+  value: T;
+  onChange: (value: T) => void;
+}) {
+  return (
+    <div className="flex flex-wrap gap-2">
+      {options.map((option) => {
+        const active = option.value === value;
+        return (
+          <button
+            key={option.value}
+            type="button"
+            onClick={() => onChange(option.value)}
+            className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition ${
+              active
+                ? "border-primary bg-primary text-white"
+                : "border-border bg-surface text-muted hover:border-primary/50 hover:text-foreground"
+            }`}
+          >
+            {option.label}
+          </button>
+        );
+      })}
+    </div>
   );
 }
 

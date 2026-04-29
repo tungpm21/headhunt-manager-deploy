@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import {
+  AlertTriangle,
   Download,
   FileText,
   Mail,
@@ -22,9 +23,41 @@ function formatSalary(amount: number | null) {
   return `${amount.toLocaleString("vi-VN")} triệu/tháng`;
 }
 
+function formatCandidateCode(id: number) {
+  return `UV-${String(id).padStart(6, "0")}`;
+}
+
+function formatDuplicateReason(matchBy: Array<"email" | "phone">) {
+  if (matchBy.includes("email") && matchBy.includes("phone")) {
+    return "email + SĐT";
+  }
+  return matchBy.includes("email") ? "email" : "SĐT";
+}
+
 export function CandidateQuickView({ candidate }: { candidate: CandidateWithTags }) {
+  const duplicateMatches = candidate.duplicateMatches ?? [];
+
   return (
     <div className="rounded-xl border border-border bg-background px-4 py-4">
+      {duplicateMatches.length > 0 ? (
+        <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+          <div className="flex items-center gap-2 font-semibold">
+            <AlertTriangle className="h-4 w-4" />
+            Có hồ sơ trùng trong Talent Pool
+          </div>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {duplicateMatches.map((match) => (
+              <Link
+                key={match.id}
+                href={`/candidates/${match.id}`}
+                className="inline-flex items-center gap-1 rounded-md border border-amber-200 bg-white px-2 py-1 text-xs font-semibold text-amber-800 transition hover:border-amber-300 hover:bg-amber-100"
+              >
+                {formatCandidateCode(match.id)} · {match.fullName} · {formatDuplicateReason(match.matchBy)}
+              </Link>
+            ))}
+          </div>
+        </div>
+      ) : null}
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
         <div className="space-y-3">
           <h4 className="text-xs font-semibold uppercase tracking-wide text-muted">

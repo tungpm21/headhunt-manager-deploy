@@ -3,13 +3,19 @@
 import { ApplicationStatus, CompanyDraftStatus, Prisma } from "@prisma/client";
 import { compareSync, hashSync } from "bcrypt-ts";
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import {
   clearEmployerCookie,
+  getEmployerSession,
   requireEmployerSession,
   setEmployerCookie,
   signEmployerToken,
 } from "@/lib/employer-auth";
+import {
+  getCompanyPortalSession,
+  requireCompanyPortalSession,
+} from "@/lib/company-portal-auth";
 import {
   createEmployerAccount,
   createEmployerJobPostingAndIncrementQuota,
@@ -345,8 +351,15 @@ export async function getEmployerDashboardData() {
 }
 
 export async function updateCompanyProfileAction(formData: FormData) {
-  const session = await requireEmployerSession();
-  const employer = await getEmployerProfileForPortalById(session.employerId);
+  const access = await resolveEmployerProfileAccess();
+  if (!access) {
+    return {
+      success: false,
+      message: "Workspace chưa liên kết Employer.",
+    };
+  }
+
+  const employer = await getEmployerProfileForPortalById(access.employerId);
 
   if (!employer) {
     return { success: false, message: "Không tìm thấy tài khoản công ty." };
@@ -413,7 +426,7 @@ export async function updateCompanyProfileAction(formData: FormData) {
     };
   }
 
-  const workspace = await getWorkspaceForEmployer(session.employerId);
+  const workspace = await getWorkspaceForEmployer(access.employerId);
   if (!workspace) {
     return {
       success: false,
@@ -428,7 +441,7 @@ export async function updateCompanyProfileAction(formData: FormData) {
   if (nextLogo) {
     const result = await uploadEmployerImageFile(
       "logos",
-      `employer-logo-${session.employerId}`,
+      `employer-logo-${access.employerId}`,
       nextLogo,
       "profileLogo"
     );
@@ -445,7 +458,7 @@ export async function updateCompanyProfileAction(formData: FormData) {
   if (nextCover) {
     const result = await uploadEmployerImageFile(
       "covers",
-      `employer-cover-${session.employerId}`,
+      `employer-cover-${access.employerId}`,
       nextCover,
       "profileCover"
     );
@@ -517,6 +530,7 @@ export async function updateCompanyProfileAction(formData: FormData) {
     }
 
     revalidatePath("/employer/company");
+    revalidatePath("/company/profile");
     revalidatePath("/companies");
     revalidatePath(`/companies/${workspace.id}`);
 
@@ -539,13 +553,15 @@ export async function updateCompanyProfileAction(formData: FormData) {
 }
 
 export async function getCompanyProfile() {
-  const session = await requireEmployerSession();
-  return getEmployerProfileForPortalById(session.employerId);
+  const access = await resolveEmployerProfileAccess();
+  if (!access) return null;
+  return getEmployerProfileForPortalById(access.employerId);
 }
 
 export async function getCompanyProfileDraftStatus() {
-  const session = await requireEmployerSession();
-  const workspace = await getWorkspaceForEmployer(session.employerId);
+  const access = await resolveEmployerProfileAccess();
+  if (!access) return null;
+  const workspace = await getWorkspaceForEmployer(access.employerId);
 
   if (!workspace) return null;
 
@@ -578,8 +594,16 @@ export async function getCompanyProfileDraftStatus() {
 }
 
 export async function getCompanyProfileOptions() {
-  const session = await requireEmployerSession();
-  const employer = await getEmployerProfileById(session.employerId);
+  const access = await resolveEmployerProfileAccess();
+  if (!access) {
+    return {
+      industryOptions: [],
+      companySizeOptions: [],
+      locationOptions: [],
+      industrialZoneOptions: [],
+    };
+  }
+  const employer = await getEmployerProfileById(access.employerId);
 
   const [industryOptions, companySizeOptions, locationOptions, industrialZoneOptions] = await Promise.all([
     getOptionsForSelect(OPTION_GROUPS.industry, { currentValue: employer?.industry }),
@@ -939,4 +963,51 @@ export async function updateApplicationPipelineStatusAction(
   revalidatePath(`/employer/job-postings/${application.jobPosting.id}`);
 
   return { success: true, application };
+}
+
+async function resolveEmployerProfileAccess() {
+  const headerStore = await headers();
+  const referer = headerStore.get("referer") ?? "";
+  const nextUrl = headerStore.get("next-url") ?? "";
+  const preferCompanyPortal =
+    referer.includes("/company/profile") || nextUrl.includes("/company/profile");
+
+  if (preferCompanyPortal) {
+    const companyCookieSession = await getCompanyPortalSession();
+    if (companyCookieSession) {
+      const session = await requireCompanyPortalSession();
+      if (!session.capabilities.employer) return null;
+
+      const workspace = await prisma.companyWorkspace.findUnique({
+        where: { id: session.workspaceId },
+        select: { employerId: true },
+      });
+
+      if (!workspace?.employerId) return null;
+      return { employerId: workspace.employerId };
+    }
+  }
+
+  const employerCookieSession = await getEmployerSession();
+  if (employerCookieSession) {
+    const session = await requireEmployerSession();
+    return { employerId: session.employerId };
+  }
+
+  const companyCookieSession = await getCompanyPortalSession();
+  if (companyCookieSession) {
+    const session = await requireCompanyPortalSession();
+    if (!session.capabilities.employer) return null;
+
+    const workspace = await prisma.companyWorkspace.findUnique({
+      where: { id: session.workspaceId },
+      select: { employerId: true },
+    });
+
+    if (!workspace?.employerId) return null;
+    return { employerId: workspace.employerId };
+  }
+
+  const session = await requireEmployerSession();
+  return { employerId: session.employerId };
 }

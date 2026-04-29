@@ -108,7 +108,7 @@ After every implementation slice:
 | P7-06 | Redirect legacy employer pages | [!] | Blocked until Company Portal job-postings/profile pages are feature-complete; redirecting now would send users to stubs |
 | P7-06a | Replace `/company/job-postings` stub | [x] | Portal now renders a workspace-scoped job postings list with status filters, counts, application links, and public preview links |
 | P7-06b | Add `/company/job-postings` detail/create/edit actions | [ ] | Needed before redirecting legacy employer job-postings routes |
-| P7-06c | Replace `/company/profile` stub with profile builder | [ ] | Needed before redirecting legacy employer company/profile route |
+| P7-06c | Replace `/company/profile` stub with profile builder | [x] | Company Portal profile now reuses the full employer profile builder through workspace-scoped profile actions |
 
 ## Verification Log
 
@@ -122,6 +122,16 @@ Result:
 Changed files:
 Remaining risk:
 Next task:
+```
+
+```text
+Date: 2026-04-29
+Task: Phase 7 P7-06c company portal profile builder
+Commands: GitNexus impact getCompanyProfile/updateCompanyProfileAction/getCompanyProfileOptions -> LOW; GitNexus could not resolve getCompanyProfileDraftStatus in the current index; npx tsc --noEmit -> pass; npx eslint "src/lib/employer-actions.ts" "src/app/(company)/company/(portal)/profile/page.tsx" -> pass; npm run build -> pass with existing Postgres SSL mode warning; GitNexus detect_changes staged -> CRITICAL due employer-actions line-map fanout, diff reviewed
+Result: `/company/profile` now uses the real profile builder instead of a stub. Profile read, draft status, option loading, and submit-for-review actions can resolve the linked Employer from an active Company Portal workspace while preserving legacy `/employer/company` behavior.
+Changed files: src/app/(company)/company/(portal)/profile/page.tsx, src/lib/employer-actions.ts, docs/company-workspace-rebuild-2026-04-28/TRACKER.md
+Remaining risk: The route currently imports the existing legacy profile client page to avoid duplicating a 600+ line builder. GitNexus reports CRITICAL because the helper change in `employer-actions.ts` shifts indexed ranges into job-posting symbols, but the staged diff changes only profile access/read/update behavior. P7-06b still blocks full legacy redirect because company job detail/create/edit actions are not native yet.
+Next task: Implement `/company/job-postings` detail/create/edit actions.
 ```
 
 ```text

@@ -131,6 +131,16 @@ Next task:
 
 ```text
 Date: 2026-04-29
+Task: Phase 7 portal smoke hardening
+Commands: GitNexus query for proxy/company auth; GitNexus impact middleware/handleEmployerRoute -> LOW; GitNexus analyze refresh; GitNexus impact CompanyPipelinePage -> LOW; npx tsc --noEmit -> pass after removing corrupted generated .next/dev types; targeted eslint for proxy and company pipeline -> pass; npm run build -> pass with existing Postgres SSL mode warning; Playwright smoke admin `/companies` filters/legacy redirects/detail tabs -> pass; Playwright smoke Employer-only portal -> pass; temporary Client-only portal user smoke -> pass and cleanup restored workspace portalEnabled=false
+Result: `/company/login` now bypasses CRM NextAuth middleware and is reachable without a CRM session. Client-only portal users see only Client navigation. Direct `/company/pipeline` now shows an Employer capability empty state instead of rendering pipeline content.
+Changed files: src/proxy.ts, src/app/(company)/company/(portal)/pipeline/page.tsx, docs/company-workspace-rebuild-2026-04-28/TRACKER.md
+Remaining risk: Both-capability smoke could not run because current DB has no workspace linked to both Employer and Client. Existing `AUTH_TRUST_HOST=true` was used only for local production smoke.
+Next task: Commit smoke hardening fix, then optionally create a controlled Both-capability staging fixture for full portal acceptance.
+```
+
+```text
+Date: 2026-04-29
 Task: Phase 7 P7-07/P7-08 admin Company Workspace consolidation and portal readonly surfaces
 Commands: GitNexus impact Sidebar/CompaniesPage/listWorkspaces/CompanyDetailPage/legacy Employer and Client routes/CompanyBillingPage/CompanyJobOrdersPage -> LOW; npx tsc --noEmit -> pass; targeted eslint for changed routes/helpers -> pass; npm run build -> pass with existing Postgres SSL mode warning; GitNexus detect_changes staged -> LOW
 Result: Admin CRM navigation now uses Company Workspace as the only Employer/Client control center. `/companies` supports role and portal filters; legacy `/employers`, `/clients`, detail, edit, and new client routes redirect to the matching workspace or a missing-state filter. Company detail tabs now show real readonly panels for jobs, applications, job orders, portal users, billing, and activity. Company Portal billing is view-only from Employer subscription, and Client-capability Job Orders list/detail are readonly.

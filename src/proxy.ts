@@ -50,6 +50,10 @@ export async function middleware(request: NextRequest) {
     return handleEmployerRoute(request);
   }
 
+  if (pathname === "/company" || pathname.startsWith("/company/")) {
+    return NextResponse.next();
+  }
+
   return (nextAuthMiddleware as unknown as (
     request: NextRequest
   ) => Promise<NextResponse>)(request);

@@ -1,46 +1,42 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import NextAuth from "next-auth";
-import { jwtVerify } from "jose";
 import { authConfig } from "./auth.config";
-import { getEmployerJwtSecret } from "@/lib/employer-jwt";
 
 const EMPLOYER_COOKIE = "employer-token";
-const EMPLOYER_PUBLIC = ["/employer/login", "/employer/register"];
 const { auth: nextAuthMiddleware } = NextAuth(authConfig);
 
 async function handleEmployerRoute(
   request: NextRequest
 ): Promise<NextResponse> {
   const { pathname } = request.nextUrl;
+  const targetUrl = request.nextUrl.clone();
 
-  if (EMPLOYER_PUBLIC.some((prefix) => pathname.startsWith(prefix))) {
-    const token = request.cookies.get(EMPLOYER_COOKIE)?.value;
-    if (token) {
-      try {
-        await jwtVerify(token, getEmployerJwtSecret());
-        return NextResponse.redirect(new URL("/employer/dashboard", request.url));
-      } catch {
-        return NextResponse.next();
-      }
-    }
-
-    return NextResponse.next();
+  if (
+    pathname === "/employer" ||
+    pathname.startsWith("/employer/login") ||
+    pathname.startsWith("/employer/register")
+  ) {
+    targetUrl.pathname = "/company/login";
+    targetUrl.search = "";
+  } else if (pathname.startsWith("/employer/dashboard")) {
+    targetUrl.pathname = "/company/dashboard";
+  } else if (pathname.startsWith("/employer/company")) {
+    targetUrl.pathname = "/company/profile";
+  } else if (pathname.startsWith("/employer/job-postings")) {
+    targetUrl.pathname = pathname.replace("/employer/job-postings", "/company/job-postings");
+  } else if (pathname.startsWith("/employer/pipeline")) {
+    targetUrl.pathname = "/company/pipeline";
+  } else if (pathname.startsWith("/employer/subscription")) {
+    targetUrl.pathname = "/company/billing";
+  } else {
+    targetUrl.pathname = "/company/login";
+    targetUrl.search = "";
   }
 
-  const token = request.cookies.get(EMPLOYER_COOKIE)?.value;
-  if (!token) {
-    return NextResponse.redirect(new URL("/employer/login", request.url));
-  }
-
-  try {
-    await jwtVerify(token, getEmployerJwtSecret());
-    return NextResponse.next();
-  } catch {
-    const response = NextResponse.redirect(new URL("/employer/login", request.url));
-    response.cookies.delete(EMPLOYER_COOKIE);
-    return response;
-  }
+  const response = NextResponse.redirect(targetUrl);
+  response.cookies.delete(EMPLOYER_COOKIE);
+  return response;
 }
 
 export async function middleware(request: NextRequest) {

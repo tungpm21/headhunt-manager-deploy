@@ -275,10 +275,10 @@ export function PublicHeader() {
 
         {/* Desktop CTAs */}
         <div className="ml-auto hidden md:flex items-center gap-2 shrink-0">
-          <Link href="/employer/login" className={`flex min-h-11 items-center text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-accent-orange)]/40 cursor-pointer ${isHome ? "text-sky-100/85 hover:text-white" : "text-[var(--color-fdi-text-secondary)] hover:text-[var(--color-fdi-primary)]"}`}>
+          <Link href="/company/login" className={`flex min-h-11 items-center text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-accent-orange)]/40 cursor-pointer ${isHome ? "text-sky-100/85 hover:text-white" : "text-[var(--color-fdi-text-secondary)] hover:text-[var(--color-fdi-primary)]"}`}>
             Đăng nhập NTD
           </Link>
-          <Link href="/employer/register"
+          <Link href="/company/login"
             className={`group inline-flex min-h-11 items-center gap-2 rounded-full py-1.5 pl-3.5 pr-1.5 text-sm font-bold transition-[background-color,border-color,box-shadow,transform] duration-500 ease-[var(--ease-fdi)] hover:-translate-y-0.5 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-accent-orange)]/40 cursor-pointer whitespace-nowrap ${isHome ? "border border-white/16 bg-white/[0.08] text-white shadow-none hover:border-white/28 hover:bg-white/[0.13]" : "bg-[var(--color-fdi-accent-orange)] text-white shadow-[0_16px_34px_-20px_rgba(242,92,36,0.92)] hover:bg-[#D94F1D] hover:shadow-[0_20px_40px_-20px_rgba(242,92,36,0.98)]"}`}>
             <UserPlus className="h-4 w-4" aria-hidden="true" />
             <span className="hidden xl:inline">Đăng tin tuyển dụng</span>
@@ -341,11 +341,11 @@ export function PublicHeader() {
               </div>
             ))}
             <div className="pt-2 border-t border-gray-100 space-y-1">
-              <Link href="/employer/login" onClick={() => setMobileOpen(false)}
+              <Link href="/company/login" onClick={() => setMobileOpen(false)}
                 className="flex min-h-11 items-center rounded-lg px-3 py-2.5 text-sm font-medium text-[var(--color-fdi-text-secondary)] hover:text-[var(--color-fdi-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-accent-orange)]/40 cursor-pointer">
                 Đăng nhập NTD
               </Link>
-              <Link href="/employer/register" onClick={() => setMobileOpen(false)}
+              <Link href="/company/login" onClick={() => setMobileOpen(false)}
                 className="flex min-h-11 items-center rounded-lg px-3 py-2.5 text-sm font-semibold text-[var(--color-fdi-accent-orange)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-accent-orange)]/40 cursor-pointer">
                 Đăng tin tuyển dụng
               </Link>

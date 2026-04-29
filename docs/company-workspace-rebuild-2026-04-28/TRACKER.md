@@ -131,6 +131,16 @@ Next task:
 
 ```text
 Date: 2026-04-29
+Task: Phase 7 public employer login link fix
+Commands: GitNexus impact handleEmployerRoute/middleware/PublicHeader/PublicFooter -> LOW; npx tsc --noEmit -> pass; targeted eslint for proxy/public header/footer -> pass; npm run build -> pass with existing Postgres SSL mode warning; Playwright smoke homepage CTA links and legacy `/employer/*` redirects -> pass
+Result: Public homepage/header/footer employer CTAs now link directly to `/company/login`. Legacy `/employer/*` requests are redirected by proxy to Company Portal canonical routes and clear stale `employer-token`, preventing stale legacy auth from sending users to the old employer dashboard error page.
+Changed files: src/proxy.ts, src/components/public/PublicHeader.tsx, src/components/public/PublicFooter.tsx, docs/company-workspace-rebuild-2026-04-28/TRACKER.md
+Remaining risk: Local smoke still depends on Neon connectivity for homepage data. Existing Postgres SSL mode warning remains unrelated.
+Next task: Deploy or smoke on staging domain to confirm production env host/cookie settings.
+```
+
+```text
+Date: 2026-04-29
 Task: Phase 7 portal smoke hardening
 Commands: GitNexus query for proxy/company auth; GitNexus impact middleware/handleEmployerRoute -> LOW; GitNexus analyze refresh; GitNexus impact CompanyPipelinePage -> LOW; npx tsc --noEmit -> pass after removing corrupted generated .next/dev types; targeted eslint for proxy and company pipeline -> pass; npm run build -> pass with existing Postgres SSL mode warning; Playwright smoke admin `/companies` filters/legacy redirects/detail tabs -> pass; Playwright smoke Employer-only portal -> pass; temporary Client-only portal user smoke -> pass and cleanup restored workspace portalEnabled=false
 Result: `/company/login` now bypasses CRM NextAuth middleware and is reachable without a CRM session. Client-only portal users see only Client navigation. Direct `/company/pipeline` now shows an Employer capability empty state instead of rendering pipeline content.

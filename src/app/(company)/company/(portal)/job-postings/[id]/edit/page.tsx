@@ -1,10 +1,10 @@
-import EditJobPostingPage from "@/app/(employer)/employer/(portal)/job-postings/[id]/edit/page";
+import EditJobPostingRoute from "@/app/(employer)/employer/(portal)/job-postings/[id]/edit/EditJobPostingRoute";
 
 export default function CompanyEditJobPostingPage(props: {
   params: Promise<{ id: string }>;
 }) {
   return (
-    <EditJobPostingPage
+    <EditJobPostingRoute
       {...props}
       routeBase="/company/job-postings"
     />

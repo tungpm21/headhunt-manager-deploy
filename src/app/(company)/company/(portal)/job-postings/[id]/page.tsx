@@ -1,10 +1,10 @@
-import JobPostingDetailPage from "@/app/(employer)/employer/(portal)/job-postings/[id]/page";
+import JobPostingDetailRoute from "@/app/(employer)/employer/(portal)/job-postings/[id]/JobPostingDetailRoute";
 
 export default function CompanyJobPostingDetailPage(props: {
   params: Promise<{ id: string }>;
 }) {
   return (
-    <JobPostingDetailPage
+    <JobPostingDetailRoute
       {...props}
       routeBase="/company/job-postings"
     />

@@ -1,59 +1,11 @@
-import { notFound } from "next/navigation";
-import Link from "next/link";
-import { headers } from "next/headers";
-import { ArrowLeft } from "lucide-react";
-import { getJobPostingDetail } from "@/lib/employer-actions";
-import { EditJobPostingForm } from "./EditJobPostingForm";
+import { redirect } from "next/navigation";
 
 export default async function EditJobPostingPage({
   params,
-  routeBase,
 }: {
   params: Promise<{ id: string }>;
-  routeBase?: string;
 }) {
-  const activeRouteBase = routeBase ?? (await getJobPostingRouteBase());
   const { id } = await params;
-  const jobId = Number.parseInt(id, 10);
 
-  if (Number.isNaN(jobId)) {
-    notFound();
-  }
-
-  const job = await getJobPostingDetail(jobId);
-
-  if (!job) {
-    notFound();
-  }
-
-  return (
-    <div className="mx-auto max-w-5xl space-y-6">
-      <div className="flex items-center gap-4">
-        <Link
-          href={`${activeRouteBase}/${job.id}`}
-          className="h-9 w-9 rounded-lg border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors"
-        >
-          <ArrowLeft className="h-4 w-4 text-gray-500" />
-        </Link>
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800">Chỉnh sửa tin tuyển dụng</h1>
-          <p className="text-gray-500 mt-0.5 text-sm">
-            Cập nhật nội dung tin để phản ánh đúng nhu cầu tuyển dụng hiện tại.
-          </p>
-        </div>
-      </div>
-
-      <EditJobPostingForm job={job} />
-    </div>
-  );
-}
-
-async function getJobPostingRouteBase() {
-  const headerStore = await headers();
-  const referer = headerStore.get("referer") ?? "";
-  const nextUrl = headerStore.get("next-url") ?? "";
-  return referer.includes("/company/job-postings") ||
-    nextUrl.includes("/company/job-postings")
-    ? "/company/job-postings"
-    : "/employer/job-postings";
+  redirect(`/company/job-postings/${id}/edit`);
 }

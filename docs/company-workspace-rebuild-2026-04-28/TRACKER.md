@@ -105,12 +105,12 @@ After every implementation slice:
 | P7-03 | Add stage dropdown/buttons to selected card | [x] | Cards and preview panel both support explicit status updates without drag-and-drop |
 | P7-04 | Improve mobile fallback | [x] | Mobile uses stacked cards with select/buttons; drag-and-drop board is desktop-only |
 | P7-05 | Remove old inline Link Client UI | [x] | Employer detail now links to Company Workspace mapping instead of mutating legacy Employer.clientId inline |
-| P7-06 | Redirect legacy employer pages | [~] | Safe subset redirected: login, dashboard, job-postings list. Profile and job posting form/detail/edit wait for shared component extraction |
+| P7-06 | Redirect legacy employer pages | [~] | Safe subset redirected: login, dashboard, job-postings list/new/detail/edit. Profile/pipeline/subscription/register remain until canonical replacements are ready |
 | P7-06a | Replace `/company/job-postings` stub | [x] | Portal now renders a workspace-scoped job postings list with status filters, counts, application links, and public preview links |
 | P7-06b | Add `/company/job-postings` detail/create/edit actions | [x] | Company Portal now exposes job detail, create, edit, pause/resume, delete through route-aware legacy job builder/actions |
 | P7-06c | Replace `/company/profile` stub with profile builder | [x] | Company Portal profile now reuses the full employer profile builder through workspace-scoped profile actions |
 | P7-06d | Extract profile builder before `/employer/company` redirect | [ ] | Needed because `/company/profile` currently imports the legacy profile builder page |
-| P7-06e | Extract job posting form/detail before deeper job redirects | [ ] | Needed because `/company/job-postings/new`, detail, and edit currently reuse the legacy employer pages |
+| P7-06e | Extract job posting form/detail before deeper job redirects | [x] | Job form/detail/edit implementations moved to route implementation files so Company Portal no longer imports redirecting legacy pages |
 
 ## Verification Log
 
@@ -124,6 +124,16 @@ Result:
 Changed files:
 Remaining risk:
 Next task:
+```
+
+```text
+Date: 2026-04-29
+Task: Phase 7 P7-06e job posting route extraction and legacy redirects
+Commands: GitNexus impact NewJobPostingPage/JobPostingDetailPage/EditJobPostingPage -> LOW; npx tsc --noEmit -> pass; targeted eslint -> pass with existing no-img-element warnings; npm run build -> pass with existing Postgres SSL mode warning; GitNexus detect_changes staged -> LOW
+Result: Moved job posting new/detail/edit implementations to `NewJobPostingRoute.tsx`, `JobPostingDetailRoute.tsx`, and `EditJobPostingRoute.tsx`. Company Portal imports those route implementation files directly. Legacy employer new/detail/edit pages now redirect to canonical Company Portal URLs.
+Changed files: src/app/(company)/company/(portal)/job-postings/new/page.tsx, src/app/(company)/company/(portal)/job-postings/[id]/page.tsx, src/app/(company)/company/(portal)/job-postings/[id]/edit/page.tsx, src/app/(employer)/employer/(portal)/job-postings/new/page.tsx, src/app/(employer)/employer/(portal)/job-postings/new/NewJobPostingRoute.tsx, src/app/(employer)/employer/(portal)/job-postings/[id]/page.tsx, src/app/(employer)/employer/(portal)/job-postings/[id]/JobPostingDetailRoute.tsx, src/app/(employer)/employer/(portal)/job-postings/[id]/edit/page.tsx, src/app/(employer)/employer/(portal)/job-postings/[id]/edit/EditJobPostingRoute.tsx, docs/company-workspace-rebuild-2026-04-28/TRACKER.md
+Remaining risk: `/employer/company` still cannot redirect until the profile builder is extracted from the legacy page. Pipeline/subscription/register are still legacy routes until canonical Company Portal equivalents exist.
+Next task: Extract the profile builder into a route implementation file, update `/company/profile` to import it, then redirect `/employer/company` to `/company/profile`.
 ```
 
 ```text

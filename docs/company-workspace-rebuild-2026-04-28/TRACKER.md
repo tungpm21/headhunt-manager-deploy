@@ -105,10 +105,12 @@ After every implementation slice:
 | P7-03 | Add stage dropdown/buttons to selected card | [x] | Cards and preview panel both support explicit status updates without drag-and-drop |
 | P7-04 | Improve mobile fallback | [x] | Mobile uses stacked cards with select/buttons; drag-and-drop board is desktop-only |
 | P7-05 | Remove old inline Link Client UI | [x] | Employer detail now links to Company Workspace mapping instead of mutating legacy Employer.clientId inline |
-| P7-06 | Redirect legacy employer pages | [ ] | Unblocked by P7-06b/P7-06c; compatibility redirects still pending |
+| P7-06 | Redirect legacy employer pages | [~] | Safe subset redirected: login, dashboard, job-postings list. Profile and job posting form/detail/edit wait for shared component extraction |
 | P7-06a | Replace `/company/job-postings` stub | [x] | Portal now renders a workspace-scoped job postings list with status filters, counts, application links, and public preview links |
 | P7-06b | Add `/company/job-postings` detail/create/edit actions | [x] | Company Portal now exposes job detail, create, edit, pause/resume, delete through route-aware legacy job builder/actions |
 | P7-06c | Replace `/company/profile` stub with profile builder | [x] | Company Portal profile now reuses the full employer profile builder through workspace-scoped profile actions |
+| P7-06d | Extract profile builder before `/employer/company` redirect | [ ] | Needed because `/company/profile` currently imports the legacy profile builder page |
+| P7-06e | Extract job posting form/detail before deeper job redirects | [ ] | Needed because `/company/job-postings/new`, detail, and edit currently reuse the legacy employer pages |
 
 ## Verification Log
 
@@ -122,6 +124,16 @@ Result:
 Changed files:
 Remaining risk:
 Next task:
+```
+
+```text
+Date: 2026-04-29
+Task: Phase 7 P7-06 safe legacy employer redirects
+Commands: GitNexus impact EmployerLoginPage/EmployerDashboardPage/JobPostingsPage/NewJobPostingPage/JobPostingDetailPage/EditJobPostingPage -> LOW; attempted impact for employer CompanyProfilePage but GitNexus resolved the public company page, so `/employer/company` was left unchanged; initial typecheck caught that company new/detail/edit still import legacy pages, so those deeper redirects were rolled back; npx tsc --noEmit -> pass; targeted eslint -> pass; npm run build -> pass with existing Postgres SSL mode warning
+Result: Legacy `/employer/login`, `/employer/dashboard`, and `/employer/job-postings` now redirect to canonical Company Portal routes. Query params are preserved for the job-postings list.
+Changed files: src/app/(employer)/employer/(auth)/login/page.tsx, src/app/(employer)/employer/(portal)/dashboard/page.tsx, src/app/(employer)/employer/(portal)/job-postings/page.tsx, docs/company-workspace-rebuild-2026-04-28/TRACKER.md
+Remaining risk: `/employer/company`, `/employer/job-postings/new`, `/employer/job-postings/[id]`, and `/employer/job-postings/[id]/edit` are intentionally not redirected yet because Company Portal currently imports those legacy implementations. Redirecting them now would create loops or break company routes. Pipeline/subscription/register are also left unchanged until canonical replacements are ready.
+Next task: Extract profile and job posting route implementations into shared components, then finish the remaining legacy redirects.
 ```
 
 ```text

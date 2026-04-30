@@ -1,5 +1,7 @@
 import { LoginForm } from "@/components/login-form";
 
+export const dynamic = "force-dynamic";
+
 export default function LoginPage() {
   return (
     <div className="w-full max-w-md rounded-lg bg-background p-8 shadow-md border border-border">

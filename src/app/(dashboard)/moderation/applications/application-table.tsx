@@ -199,7 +199,11 @@ export function ApplicationTable({ applications }: { applications: ApplicationIt
                             {formatCandidateCode(duplicateMatches[0].id)}
                           </Link>
                           {app.status !== "REJECTED" ? (
-                            <ImportButton applicationId={app.id} jobOrderId={app.jobPosting.jobOrderId} />
+                            <ImportButton
+                              applicationId={app.id}
+                              jobOrderId={app.jobPosting.jobOrderId}
+                              mode="merge"
+                            />
                           ) : null}
                         </div>
                       ) : app.status !== "REJECTED" ? (
@@ -211,35 +215,56 @@ export function ApplicationTable({ applications }: { applications: ApplicationIt
                   {isExpanded ? (
                     <tr className="bg-primary/[0.03]">
                       <td colSpan={7} className="p-0">
-                        <div className="relative px-6 py-5 animate-in slide-in-from-top-1 duration-200">
-                          <Link
-                            href={`/viec-lam/${app.jobPosting.slug}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={(event) => event.stopPropagation()}
-                            className="absolute right-6 top-4 inline-flex items-center gap-1.5 rounded-lg border border-primary/20 bg-primary/5 px-3 py-1.5 text-xs font-medium text-primary transition hover:bg-primary/10"
-                          >
-                            <ExternalLink className="h-3.5 w-3.5" />
-                            Xem trên FDIWork
-                          </Link>
+                        <div className="px-6 py-5 animate-in slide-in-from-top-1 duration-200">
+                          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                            <div>
+                              <p className="text-xs font-semibold uppercase tracking-wide text-muted">
+                                Chi tiết ứng tuyển
+                              </p>
+                              <p className="mt-1 text-sm text-muted">
+                                {formatApplicationCode(app.id)} · {app.fullName}
+                              </p>
+                            </div>
+                            <Link
+                              href={`/viec-lam/${app.jobPosting.slug}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(event) => event.stopPropagation()}
+                              className="inline-flex w-fit items-center gap-1.5 rounded-lg border border-primary/20 bg-primary/5 px-3 py-1.5 text-xs font-medium text-primary transition hover:bg-primary/10"
+                            >
+                              <ExternalLink className="h-3.5 w-3.5" />
+                              Xem trên FDIWork
+                            </Link>
+                          </div>
 
                           {duplicateCount > 0 ? (
-                            <div className="mb-5 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
-                              <div className="flex items-center gap-2 font-semibold">
-                                <AlertTriangle className="h-4 w-4" />
-                                Có hồ sơ trùng trong Talent Pool
+                            <div className="mb-5 grid gap-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900 lg:grid-cols-[1fr_auto] lg:items-center">
+                              <div>
+                                <div className="flex items-center gap-2 font-semibold">
+                                  <AlertTriangle className="h-4 w-4" />
+                                  Có hồ sơ trùng trong Talent Pool
+                                </div>
+                                <div className="mt-2 flex flex-wrap gap-2">
+                                  {duplicateMatches.map((match) => (
+                                    <Link
+                                      key={match.id}
+                                      href={`/candidates/${match.id}`}
+                                      className="inline-flex max-w-full items-center gap-1 rounded-md border border-amber-200 bg-white px-2 py-1 text-xs font-semibold text-amber-800 transition hover:border-amber-300 hover:bg-amber-100"
+                                    >
+                                      <span className="truncate">
+                                        {formatCandidateCode(match.id)} · {match.fullName} · {formatDuplicateReason(match.matchBy)}
+                                      </span>
+                                    </Link>
+                                  ))}
+                                </div>
                               </div>
-                              <div className="mt-2 flex flex-wrap gap-2">
-                                {duplicateMatches.map((match) => (
-                                  <Link
-                                    key={match.id}
-                                    href={`/candidates/${match.id}`}
-                                    className="inline-flex items-center gap-1 rounded-md border border-amber-200 bg-white px-2 py-1 text-xs font-semibold text-amber-800 transition hover:border-amber-300 hover:bg-amber-100"
-                                  >
-                                    {formatCandidateCode(match.id)} · {match.fullName} · {formatDuplicateReason(match.matchBy)}
-                                  </Link>
-                                ))}
-                              </div>
+                              {app.status !== "REJECTED" ? (
+                                <ImportButton
+                                  applicationId={app.id}
+                                  jobOrderId={app.jobPosting.jobOrderId}
+                                  mode="merge"
+                                />
+                              ) : null}
                             </div>
                           ) : null}
 

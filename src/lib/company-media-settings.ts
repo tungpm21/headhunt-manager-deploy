@@ -7,6 +7,10 @@ export type CompanyMediaSettings = {
   logoAspectRatio: CompanyLogoAspectRatio;
   logoFit: CompanyLogoFit;
   logoZoom: number;
+  bannerImageUrl: string | null;
+  bannerPositionX: number;
+  bannerPositionY: number;
+  bannerZoom: number;
 };
 
 export const COVER_ASPECT_RATIO_OPTIONS: Array<{
@@ -36,7 +40,13 @@ export const DEFAULT_COMPANY_MEDIA_SETTINGS: CompanyMediaSettings = {
   logoAspectRatio: "1 / 1",
   logoFit: "contain",
   logoZoom: 100,
+  bannerImageUrl: null,
+  bannerPositionX: 50,
+  bannerPositionY: 50,
+  bannerZoom: 100,
 };
+
+export const HOMEPAGE_BANNER_ASPECT_RATIO = "16 / 5";
 
 const coverRatios = new Set<CompanyCoverAspectRatio>(
   COVER_ASPECT_RATIO_OPTIONS.map((option) => option.value)
@@ -61,6 +71,11 @@ function boundedNumber(value: unknown, fallback: number, min: number, max: numbe
   return Math.min(max, Math.max(min, Math.round(parsed)));
 }
 
+function stringOrNull(value: unknown) {
+  const normalized = typeof value === "string" ? value.trim() : "";
+  return normalized || null;
+}
+
 export function normalizeCompanyMediaSettings(value: unknown): CompanyMediaSettings {
   const source = getSource(value);
   const coverAspectRatio = String(source.coverAspectRatio || "");
@@ -81,6 +96,25 @@ export function normalizeCompanyMediaSettings(value: unknown): CompanyMediaSetti
       source.logoZoom,
       DEFAULT_COMPANY_MEDIA_SETTINGS.logoZoom,
       60,
+      200
+    ),
+    bannerImageUrl: stringOrNull(source.bannerImageUrl),
+    bannerPositionX: boundedNumber(
+      source.bannerPositionX,
+      DEFAULT_COMPANY_MEDIA_SETTINGS.bannerPositionX,
+      0,
+      100
+    ),
+    bannerPositionY: boundedNumber(
+      source.bannerPositionY,
+      DEFAULT_COMPANY_MEDIA_SETTINGS.bannerPositionY,
+      0,
+      100
+    ),
+    bannerZoom: boundedNumber(
+      source.bannerZoom,
+      DEFAULT_COMPANY_MEDIA_SETTINGS.bannerZoom,
+      100,
       200
     ),
   };

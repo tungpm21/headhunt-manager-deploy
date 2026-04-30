@@ -1,21 +1,26 @@
 "use client";
 
-import { Fragment, useState } from "react";
+import { Fragment, useState, useTransition } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   AlertTriangle,
   Briefcase,
   ChevronDown,
   ChevronRight,
   FileText,
+  Loader2,
   Mail,
   MapPin,
   Phone,
+  Trash2,
 } from "lucide-react";
 import type { CandidateWithTags } from "@/types/candidate-ui";
+import type { CandidateStatus } from "@/types/candidate";
+import { quickDeleteCandidateAction, updateCandidateStatusAction } from "@/lib/actions";
 import { CandidateQuickView } from "@/components/candidates/candidate-quick-view";
-import { StatusBadge } from "@/components/candidates/status-badge";
+import { STATUS_OPTIONS } from "@/components/candidates/status-badge";
 
 interface CandidateTableProps {
   candidates: CandidateWithTags[];
@@ -39,6 +44,68 @@ function formatDuplicateReason(matchBy: Array<"email" | "phone">) {
     return "email + SĐT";
   }
   return matchBy.includes("email") ? "email" : "SĐT";
+}
+
+function CandidateStatusInline({ candidate }: { candidate: CandidateWithTags }) {
+  const router = useRouter();
+  const [status, setStatus] = useState(candidate.status);
+  const [isPending, startTransition] = useTransition();
+
+  return (
+    <select
+      value={status}
+      disabled={isPending}
+      onChange={(event) => {
+        const nextStatus = event.target.value as CandidateStatus;
+        const previousStatus = status;
+        setStatus(nextStatus);
+        startTransition(async () => {
+          const result = await updateCandidateStatusAction(candidate.id, nextStatus);
+          if (result?.error) {
+            setStatus(previousStatus);
+            window.alert(result.error);
+            return;
+          }
+          router.refresh();
+        });
+      }}
+      className="min-h-9 rounded-lg border border-border bg-background px-2 text-xs font-semibold text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:opacity-60"
+      aria-label={`Đổi trạng thái ứng viên ${candidate.fullName}`}
+    >
+      {STATUS_OPTIONS.map((option) => (
+        <option key={option.value} value={option.value}>
+          {option.label}
+        </option>
+      ))}
+    </select>
+  );
+}
+
+function CandidateDeleteButton({ candidate }: { candidate: CandidateWithTags }) {
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+
+  return (
+    <button
+      type="button"
+      disabled={isPending}
+      onClick={() => {
+        if (!window.confirm(`Đẩy "${candidate.fullName}" vào thùng rác?`)) return;
+        startTransition(async () => {
+          const result = await quickDeleteCandidateAction(candidate.id);
+          if (result?.error) {
+            window.alert(result.error);
+            return;
+          }
+          router.refresh();
+        });
+      }}
+      className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-red-200 bg-red-50 text-red-600 transition hover:bg-red-100 disabled:opacity-60"
+      title="Xóa mềm ứng viên"
+    >
+      {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+    </button>
+  );
 }
 
 export function CandidateTable({
@@ -92,6 +159,7 @@ export function CandidateTable({
               <th className="px-4 py-3">Lương kỳ vọng</th>
               <th className="hidden px-4 py-3 lg:table-cell">Tags</th>
               <th className="px-4 py-3">Trạng thái</th>
+              <th className="w-16 px-4 py-3 text-right">Thao tác</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
@@ -257,13 +325,16 @@ export function CandidateTable({
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      <StatusBadge status={candidate.status} />
+                      <CandidateStatusInline candidate={candidate} />
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <CandidateDeleteButton candidate={candidate} />
                     </td>
                   </tr>
 
                   {isExpanded ? (
                     <tr className="bg-primary/[0.03]">
-                      <td colSpan={8} className="px-4 py-4">
+                      <td colSpan={9} className="px-4 py-4">
                         <CandidateQuickView candidate={candidate} />
                       </td>
                     </tr>
@@ -331,7 +402,6 @@ export function CandidateTable({
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between gap-2">
                         <p className="truncate font-medium text-foreground">{candidate.fullName}</p>
-                        <StatusBadge status={candidate.status} />
                       </div>
                       <div className="mt-1 flex flex-wrap items-center gap-1.5">
                         <span className="rounded-md bg-surface px-1.5 py-0.5 text-[11px] font-semibold text-muted">
@@ -371,6 +441,10 @@ export function CandidateTable({
                       </div>
                     </div>
                   </Link>
+                </div>
+                <div className="flex flex-col items-end gap-2">
+                  <CandidateStatusInline candidate={candidate} />
+                  <CandidateDeleteButton candidate={candidate} />
                 </div>
               </div>
 

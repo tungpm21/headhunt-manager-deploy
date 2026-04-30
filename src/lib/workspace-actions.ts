@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { CompanyDraftStatus, CompanyPortalRole, CompanySize, Prisma } from "@prisma/client";
 import { hash } from "bcrypt-ts";
 import { requireAdmin } from "@/lib/authz";
@@ -23,6 +23,10 @@ import {
     validateMediaImageFile,
 } from "@/lib/media-validation";
 import { prisma } from "@/lib/prisma";
+import {
+    PUBLIC_COMPANY_PROFILE_CACHE_TAG,
+    PUBLIC_HOMEPAGE_CACHE_TAG,
+} from "@/lib/public-cache-tags";
 import { deleteFile, uploadFile } from "@/lib/storage";
 import {
     employerProfileSchema,
@@ -53,6 +57,11 @@ function numberOrDefault(value: unknown, fallback: number) {
 
 function inputJson(value: unknown): Prisma.InputJsonValue {
     return JSON.parse(JSON.stringify(value ?? null)) as Prisma.InputJsonValue;
+}
+
+function revalidatePublicCompanyCache() {
+    revalidateTag(PUBLIC_HOMEPAGE_CACHE_TAG, { expire: 0 });
+    revalidateTag(PUBLIC_COMPANY_PROFILE_CACHE_TAG, { expire: 0 });
 }
 
 function normalizeWebsite(value: string | null) {
@@ -102,9 +111,13 @@ async function uploadAdminEmployerImageFile(
     return { url: result.url };
 }
 
-function parseProfileDraftPayload(payload: Prisma.JsonValue) {
+function parseProfileDraftPayload(payload: Prisma.JsonValue, currentTheme?: Prisma.JsonValue | null) {
     const source = isRecord(payload) ? payload : {};
     const profileConfig = isRecord(source.profileConfig) ? source.profileConfig : {};
+    const draftTheme = isRecord(profileConfig.theme) ? profileConfig.theme : {};
+    const mediaSettings = isRecord(draftTheme.media)
+        ? normalizeCompanyMediaSettings(draftTheme)
+        : normalizeCompanyMediaSettings(currentTheme);
     const companySize = stringOrNull(source.companySize);
 
     return {
@@ -128,7 +141,7 @@ function parseProfileDraftPayload(payload: Prisma.JsonValue) {
             coverZoom: numberOrDefault(source.coverZoom, 100),
         },
         profileConfig: {
-            theme: inputJson(profileConfig.theme ?? {}),
+            theme: inputJson({ ...draftTheme, media: mediaSettings }),
             capabilities: inputJson(profileConfig.capabilities ?? {}),
             sections: inputJson(profileConfig.sections ?? []),
             primaryVideoUrl: stringOrNull(profileConfig.primaryVideoUrl),
@@ -601,6 +614,25 @@ export async function updateAdminCompanyProfileAction(
         uploadedCoverUrl = result.url;
     }
 
+    const bannerFile = formData.get("bannerImage");
+    const nextBanner = bannerFile instanceof File && bannerFile.size > 0 ? bannerFile : null;
+    let uploadedBannerUrl: string | null = null;
+
+    if (nextBanner) {
+        const result = await uploadAdminEmployerImageFile(
+            "banners",
+            `employer-homepage-banner-${employer.id}`,
+            nextBanner,
+            "profileCover"
+        );
+        if ("error" in result) {
+            if (uploadedLogoUrl) await deleteFile(uploadedLogoUrl);
+            if (uploadedCoverUrl) await deleteFile(uploadedCoverUrl);
+            return { success: false, message: result.error };
+        }
+        uploadedBannerUrl = result.url;
+    }
+
     const logoUrlInput =
         typeof formData.get("logoUrl") === "string"
             ? stringOrNull(formData.get("logoUrl"))
@@ -609,6 +641,9 @@ export async function updateAdminCompanyProfileAction(
         typeof formData.get("coverImageUrl") === "string"
             ? stringOrNull(formData.get("coverImageUrl"))
             : employer.coverImage;
+    const nextProfileMediaSettings = uploadedBannerUrl
+        ? { ...profileMediaSettings, bannerImageUrl: uploadedBannerUrl }
+        : profileMediaSettings;
 
     try {
         await prisma.$transaction([
@@ -627,13 +662,13 @@ export async function updateAdminCompanyProfileAction(
                 where: { employerId: employer.id },
                 create: {
                     employerId: employer.id,
-                    theme: inputJson({ ...profileTheme, media: profileMediaSettings }),
+                    theme: inputJson({ ...profileTheme, media: nextProfileMediaSettings }),
                     capabilities: inputJson(currentCapabilities),
                     sections: inputJson(profileSections),
                     primaryVideoUrl,
                 },
                 update: {
-                    theme: inputJson({ ...profileTheme, media: profileMediaSettings }),
+                    theme: inputJson({ ...profileTheme, media: nextProfileMediaSettings }),
                     capabilities: inputJson(currentCapabilities),
                     sections: inputJson(profileSections),
                     primaryVideoUrl,
@@ -652,6 +687,7 @@ export async function updateAdminCompanyProfileAction(
         revalidatePath("/cong-ty");
         revalidatePath(`/cong-ty/${employer.slug}`);
         revalidatePath("/viec-lam");
+        revalidatePublicCompanyCache();
         employer.jobPostings.forEach((job) => {
             revalidatePath(`/viec-lam/${job.slug}`);
         });
@@ -660,6 +696,7 @@ export async function updateAdminCompanyProfileAction(
     } catch (error) {
         if (uploadedLogoUrl) await deleteFile(uploadedLogoUrl);
         if (uploadedCoverUrl) await deleteFile(uploadedCoverUrl);
+        if (uploadedBannerUrl) await deleteFile(uploadedBannerUrl);
         console.error("updateAdminCompanyProfileAction error:", error);
         return { success: false, message: "Không thể cập nhật profile công ty." };
     }
@@ -685,6 +722,11 @@ export async function approveCompanyProfileDraftAction(
                         select: {
                             id: true,
                             slug: true,
+                            profileConfig: {
+                                select: {
+                                    theme: true,
+                                },
+                            },
                             jobPostings: { select: { slug: true } },
                         },
                     },
@@ -701,7 +743,10 @@ export async function approveCompanyProfileDraftAction(
         return;
     }
 
-    const parsed = parseProfileDraftPayload(draft.payload);
+    const parsed = parseProfileDraftPayload(
+        draft.payload,
+        draft.workspace.employer.profileConfig?.theme ?? null
+    );
 
     await prisma.$transaction([
         prisma.employer.update({
@@ -737,6 +782,7 @@ export async function approveCompanyProfileDraftAction(
     revalidatePath("/cong-ty");
     revalidatePath(`/cong-ty/${draft.workspace.employer.slug}`);
     revalidatePath("/viec-lam");
+    revalidatePublicCompanyCache();
     draft.workspace.employer.jobPostings.forEach((job) => {
         revalidatePath(`/viec-lam/${job.slug}`);
     });

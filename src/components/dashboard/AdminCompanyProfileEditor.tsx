@@ -16,6 +16,7 @@ import {
 } from "@/lib/content-blocks";
 import {
   COVER_ASPECT_RATIO_OPTIONS,
+  HOMEPAGE_BANNER_ASPECT_RATIO,
   LOGO_ASPECT_RATIO_OPTIONS,
   normalizeCompanyMediaSettings,
   type CompanyMediaSettings,
@@ -277,6 +278,71 @@ export function AdminCompanyProfileEditor({
             />
             <input name="coverImage" type="file" accept="image/*" className="block w-full text-xs text-muted" />
           </div>
+        </div>
+      </section>
+
+      <section className="rounded-xl border border-border bg-surface p-5">
+        <div className="flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between">
+          <div>
+            <p className="text-sm font-semibold text-foreground">Banner homepage</p>
+            <p className="mt-1 text-xs text-muted">
+              Dùng cho công ty có quyền hiển thị banner. Để trống sẽ lấy ảnh bìa public.
+            </p>
+          </div>
+          <span className="rounded-full border border-border bg-background px-3 py-1 text-xs font-semibold text-muted">
+            Tỷ lệ {HOMEPAGE_BANNER_ASPECT_RATIO.replace(" / ", ":")}
+          </span>
+        </div>
+        <div className="mt-4">
+          {mediaSettings.bannerImageUrl || coverImageUrl ? (
+            <CoverPositionEditor
+              imageUrl={mediaSettings.bannerImageUrl || coverImageUrl}
+              positionX={mediaSettings.bannerPositionX}
+              positionY={mediaSettings.bannerPositionY}
+              zoom={mediaSettings.bannerZoom}
+              aspectRatio={HOMEPAGE_BANNER_ASPECT_RATIO}
+              onChange={(position) =>
+                updateMediaSettings({
+                  bannerPositionX: position.positionX,
+                  bannerPositionY: position.positionY,
+                  bannerZoom: position.zoom,
+                })
+              }
+            />
+          ) : (
+            <div
+              className="flex min-h-44 items-center justify-center rounded-xl border border-dashed border-border text-sm text-white/80"
+              style={{
+                aspectRatio: HOMEPAGE_BANNER_ASPECT_RATIO,
+                background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.accentColor})`,
+              }}
+            >
+              Chưa có ảnh banner - sẽ dùng màu theme.
+            </div>
+          )}
+        </div>
+        <div className="mt-4 grid gap-3 lg:grid-cols-[1fr_220px_auto]">
+          <input
+            value={mediaSettings.bannerImageUrl ?? ""}
+            onChange={(event) => updateMediaSettings({ bannerImageUrl: event.target.value.trim() || null })}
+            placeholder="Banner URL riêng (bỏ trống để dùng ảnh bìa)"
+            className={inputClassName}
+          />
+          <input name="bannerImage" type="file" accept="image/*" className="block w-full text-xs text-muted" />
+          <button
+            type="button"
+            onClick={() =>
+              updateMediaSettings({
+                bannerImageUrl: null,
+                bannerPositionX: 50,
+                bannerPositionY: 50,
+                bannerZoom: 100,
+              })
+            }
+            className="inline-flex min-h-10 items-center justify-center rounded-xl border border-border bg-background px-4 text-sm font-semibold text-muted transition hover:text-foreground"
+          >
+            Dùng ảnh bìa
+          </button>
         </div>
       </section>
 

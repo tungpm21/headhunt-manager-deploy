@@ -278,6 +278,41 @@ async function buildCandidateDuplicateMap(
   return result;
 }
 
+async function getDuplicateCandidateIds(scope?: ViewerScope) {
+  const candidates = await prisma.candidate.findMany({
+    where: withCandidateAccess(
+      {
+        isDeleted: false,
+        OR: [{ email: { not: null } }, { phone: { not: null } }],
+      },
+      scope
+    ),
+    select: {
+      id: true,
+      email: true,
+      phone: true,
+    },
+  });
+
+  const emailMap = new Map<string, number[]>();
+  const phoneMap = new Map<string, number[]>();
+
+  for (const candidate of candidates) {
+    const email = normalizeContactEmail(candidate.email);
+    const phone = normalizeContactPhone(candidate.phone);
+    if (email) emailMap.set(email, [...(emailMap.get(email) ?? []), candidate.id]);
+    if (phone) phoneMap.set(phone, [...(phoneMap.get(phone) ?? []), candidate.id]);
+  }
+
+  const duplicateIds = new Set<number>();
+  for (const ids of [...emailMap.values(), ...phoneMap.values()]) {
+    if (ids.length <= 1) continue;
+    ids.forEach((id) => duplicateIds.add(id));
+  }
+
+  return [...duplicateIds];
+}
+
 export async function getCandidates(
   filters: CandidateFilters = {},
   scope?: ViewerScope
@@ -285,7 +320,17 @@ export async function getCandidates(
   const page = filters.page ?? 1;
   const pageSize = filters.pageSize ?? 20;
   const skip = (page - 1) * pageSize;
-  const where = withCandidateAccess(await buildWhere(filters), scope);
+  const baseWhere = await buildWhere(filters);
+
+  if (filters.duplicatesOnly) {
+    const duplicateIds = await getDuplicateCandidateIds(scope);
+    baseWhere.AND = [
+      ...(Array.isArray(baseWhere.AND) ? baseWhere.AND : baseWhere.AND ? [baseWhere.AND] : []),
+      { id: { in: duplicateIds } },
+    ];
+  }
+
+  const where = withCandidateAccess(baseWhere, scope);
 
   const sortBy = filters.sortBy ?? "createdAt";
   const sortOrder = filters.sortOrder ?? "desc";
@@ -564,6 +609,25 @@ export async function restoreCandidate(id: number) {
     where: { id },
     data: { isDeleted: false },
   });
+}
+
+export async function permanentlyDeleteCandidate(id: number) {
+  const jobCandidateIds = await prisma.jobCandidate.findMany({
+    where: { candidateId: id },
+    select: { id: true },
+  });
+
+  return prisma.$transaction([
+    prisma.application.updateMany({
+      where: { candidateId: id },
+      data: { candidateId: null },
+    }),
+    prisma.submissionFeedback.deleteMany({
+      where: { jobCandidateId: { in: jobCandidateIds.map((row) => row.id) } },
+    }),
+    prisma.jobCandidate.deleteMany({ where: { candidateId: id } }),
+    prisma.candidate.delete({ where: { id } }),
+  ]);
 }
 
 export async function addCandidateNote(

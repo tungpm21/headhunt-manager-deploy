@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { SubscriptionStatus, SubscriptionTier } from "@prisma/client";
 import { logActivity } from "@/lib/activity-log";
 import { requireAdmin } from "@/lib/authz";
@@ -52,6 +52,10 @@ import {
   type MediaUploadKind,
   validateMediaImageFile,
 } from "@/lib/media-validation";
+import {
+  PUBLIC_COMPANY_PROFILE_CACHE_TAG,
+  PUBLIC_HOMEPAGE_CACHE_TAG,
+} from "@/lib/public-cache-tags";
 import {
   employerClientLinkSchema,
   getFirstZodErrorMessage,
@@ -480,6 +484,10 @@ export async function assignSubscription(formData: FormData) {
   revalidatePath("/packages");
   revalidatePath("/employers");
   revalidatePath(`/employers/${parsedInput.data.employerId}`);
+  revalidatePath("/cong-ty");
+  revalidatePath("/viec-lam");
+  revalidateTag(PUBLIC_HOMEPAGE_CACHE_TAG, { expire: 0 });
+  revalidateTag(PUBLIC_COMPANY_PROFILE_CACHE_TAG, { expire: 0 });
   return {
     success: true,
     message: `Da cap goi ${parsedInput.data.tier} cho ${employer.companyName}.`,
@@ -533,6 +541,9 @@ export async function updateSubscriptionInline(formData: FormData) {
   revalidatePath("/companies");
   revalidatePath(`/employers/${employerId}`);
   revalidatePath("/viec-lam");
+  revalidatePath("/cong-ty");
+  revalidateTag(PUBLIC_HOMEPAGE_CACHE_TAG, { expire: 0 });
+  revalidateTag(PUBLIC_COMPANY_PROFILE_CACHE_TAG, { expire: 0 });
   return { success: true, message: "Da cap nhat goi dich vu." };
 }
 
@@ -561,11 +572,12 @@ export async function importApplicationToCRM(applicationId: number) {
 
   if (existingCandidate) {
     candidateId = existingCandidate.id;
-    if (!existingCandidate.cvFileUrl && application.cvFileUrl) {
+    if (application.cvFileUrl) {
       await updateCandidateCvIfMissing(
         candidateId,
         application.cvFileUrl,
-        application.cvFileName
+        application.cvFileName,
+        userId
       );
     }
   } else {

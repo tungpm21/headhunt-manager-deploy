@@ -66,6 +66,7 @@ import {
   type MediaUploadKind,
   validateMediaImageFile,
 } from "@/lib/media-validation";
+import { normalizeCompanyMediaSettings } from "@/lib/company-media-settings";
 import { prisma } from "@/lib/prisma";
 import {
   employerJobPostingSchema,
@@ -411,6 +412,10 @@ export async function updateCompanyProfileAction(formData: FormData) {
   const profileTheme = currentCapabilities.theme
     ? normalizeCompanyTheme(parseJson(formData.get("profileTheme")?.toString() ?? ""))
     : currentTheme;
+  const profileThemeWithMedia = {
+    ...profileTheme,
+    media: normalizeCompanyMediaSettings(employer.profileConfig?.theme),
+  };
   const profileSections = filterProfileBlocksByCapabilities(
     normalizeContentBlocks(formData.get("profileSections")?.toString() ?? "[]"),
     currentCapabilities
@@ -501,7 +506,7 @@ export async function updateCompanyProfileAction(formData: FormData) {
       coverPositionY: parseInt(formData.get("coverPositionY")?.toString() || "50") || 50,
       coverZoom: parseInt(formData.get("coverZoom")?.toString() || "100") || 100,
       profileConfig: {
-        theme: profileTheme,
+        theme: profileThemeWithMedia,
         capabilities: currentCapabilities,
         sections: profileSections,
         primaryVideoUrl,

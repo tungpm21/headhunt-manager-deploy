@@ -20,6 +20,7 @@ import {
   checkDuplicate,
   createCandidate,
   getCandidateById,
+  permanentlyDeleteCandidate,
   removeTagFromCandidate,
   restoreCandidate,
   softDeleteCandidate,
@@ -218,6 +219,22 @@ export async function deleteCandidateAction(id: number): Promise<void> {
   redirect("/candidates");
 }
 
+export async function quickDeleteCandidateAction(id: number) {
+  try {
+    const scope = await requireViewerScope();
+    await softDeleteCandidate(id, scope);
+    await logActivity("DELETE", "CANDIDATE", id, scope.userId, {
+      action: "soft-delete-from-list",
+    });
+    revalidatePath("/candidates");
+    revalidatePath("/candidates/trash");
+    return { success: true };
+  } catch (error) {
+    console.error("quickDeleteCandidateAction error:", error);
+    return { error: "Khong the xoa ung vien." };
+  }
+}
+
 export async function restoreCandidateAction(id: number) {
   try {
     await requireAdmin();
@@ -228,6 +245,19 @@ export async function restoreCandidateAction(id: number) {
   } catch (error) {
     console.error("restoreCandidateAction error:", error);
     return { error: "Khong the khoi phuc ung vien." };
+  }
+}
+
+export async function permanentlyDeleteCandidateAction(id: number) {
+  try {
+    await requireAdmin();
+    await permanentlyDeleteCandidate(id);
+    revalidatePath("/candidates");
+    revalidatePath("/candidates/trash");
+    return { success: true };
+  } catch (error) {
+    console.error("permanentlyDeleteCandidateAction error:", error);
+    return { error: "Khong the xoa triet de ung vien." };
   }
 }
 

@@ -664,14 +664,48 @@ export async function findCandidateForImportedApplication(
 export async function updateCandidateCvIfMissing(
   candidateId: number,
   cvFileUrl: string | null,
-  cvFileName: string | null
+  cvFileName: string | null,
+  uploadedById?: number
 ) {
+  const currentCandidate = await prisma.candidate.findUnique({
+    where: { id: candidateId },
+    select: { id: true, cvFileUrl: true },
+  });
+
+  if (!currentCandidate || !cvFileUrl) {
+    return currentCandidate;
+  }
+
+  const existingCvFile = await prisma.candidateCV.findFirst({
+    where: { candidateId, fileUrl: cvFileUrl },
+    select: { id: true },
+  });
+
+  const data: Prisma.CandidateUpdateInput = {};
+  if (!currentCandidate.cvFileUrl) {
+    data.cvFileUrl = cvFileUrl;
+    data.cvFileName = cvFileName;
+  }
+
+  if (!existingCvFile && uploadedById) {
+    data.cvFiles = {
+      create: {
+        fileUrl: cvFileUrl,
+        fileName: cvFileName || `FDIWork-CV-${candidateId}`,
+        label: "FDIWork apply",
+        isPrimary: !currentCandidate.cvFileUrl,
+        uploadedById,
+      },
+    };
+  }
+
+  if (Object.keys(data).length === 0) {
+    return currentCandidate;
+  }
+
   return prisma.candidate.update({
     where: { id: candidateId },
-    data: {
-      cvFileUrl,
-      cvFileName,
-    },
+    data,
   });
 }
 
@@ -699,6 +733,19 @@ export async function createCandidateFromImportedApplication(data: {
       location: data.location,
       status: "AVAILABLE",
       createdById: data.createdById,
+      ...(data.cvFileUrl
+        ? {
+            cvFiles: {
+              create: {
+                fileUrl: data.cvFileUrl,
+                fileName: data.cvFileName || `FDIWork-CV-${Date.now()}`,
+                label: "FDIWork apply",
+                isPrimary: true,
+                uploadedById: data.createdById,
+              },
+            },
+          }
+        : {}),
     },
   });
 }

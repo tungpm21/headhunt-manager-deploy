@@ -88,6 +88,7 @@ export interface CandidateFilters {
   minSalary?: number;
   maxSalary?: number;
   tagIds?: number[];
+  duplicatesOnly?: boolean;
   sortBy?: CandidateSortBy;
   sortOrder?: SortOrder;
   page?: number;

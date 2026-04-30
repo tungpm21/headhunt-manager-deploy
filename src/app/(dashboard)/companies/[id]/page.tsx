@@ -752,7 +752,13 @@ async function ApplicationsTab({ employerId }: { employerId: number }) {
                         {applications.map((application) => (
                             <tr key={application.id} className="transition-colors hover:bg-muted/20">
                                 <td className="px-4 py-3">
-                                    <p className="font-medium text-foreground">{application.fullName}</p>
+                                    {application.candidate ? (
+                                        <Link href={`/candidates/${application.candidate.id}`} className="font-medium text-primary hover:underline">
+                                            {application.fullName}
+                                        </Link>
+                                    ) : (
+                                        <p className="font-medium text-foreground">{application.fullName}</p>
+                                    )}
                                     <p className="mt-0.5 text-xs text-muted">
                                         {application.email}
                                         {application.phone ? ` · ${application.phone}` : ""}

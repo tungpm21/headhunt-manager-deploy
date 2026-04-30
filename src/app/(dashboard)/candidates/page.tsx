@@ -25,6 +25,7 @@ interface PageProps {
     tagId?: string;
     sortBy?: string;
     sortOrder?: string;
+    duplicates?: string;
     page?: string;
   }>;
 }
@@ -57,6 +58,7 @@ export default async function CandidatesPage({ searchParams }: PageProps) {
       minSalary: sp.minSalary ? Number(sp.minSalary) : undefined,
       maxSalary: sp.maxSalary ? Number(sp.maxSalary) : undefined,
       tagIds: sp.tagId ? [Number(sp.tagId)] : undefined,
+      duplicatesOnly: sp.duplicates === "1",
       sortBy: sp.sortBy as CandidateSortBy | undefined,
       sortOrder: sp.sortOrder as "asc" | "desc" | undefined,
       page,

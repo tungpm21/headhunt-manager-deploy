@@ -36,6 +36,19 @@ function formatDuplicateReason(matchBy: Array<"email" | "phone">) {
 
 export function CandidateQuickView({ candidate }: { candidate: CandidateWithTags }) {
   const duplicateMatches = candidate.duplicateMatches ?? [];
+  const cvFiles =
+    candidate.cvFiles.length > 0
+      ? candidate.cvFiles
+      : candidate.cvFileUrl
+        ? [
+            {
+              id: 0,
+              fileName: candidate.cvFileName || "CV ứng viên",
+              fileUrl: candidate.cvFileUrl,
+              label: null,
+            },
+          ]
+        : [];
 
   return (
     <div className="rounded-xl border border-border bg-background px-4 py-4">
@@ -132,10 +145,10 @@ export function CandidateQuickView({ candidate }: { candidate: CandidateWithTags
         <div className="space-y-3">
           <h4 className="text-xs font-semibold uppercase tracking-wide text-muted">CV</h4>
           <div className="space-y-2">
-            {candidate.cvFiles.length > 0 ? (
-              candidate.cvFiles.map((cv) => (
+            {cvFiles.length > 0 ? (
+              cvFiles.map((cv) => (
                 <a
-                  key={cv.id}
+                  key={`${cv.id}-${cv.fileUrl}`}
                   href={cv.fileUrl}
                   target="_blank"
                   rel="noopener noreferrer"

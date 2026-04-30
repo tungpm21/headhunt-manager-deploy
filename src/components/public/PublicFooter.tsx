@@ -117,7 +117,7 @@ export function PublicFooter() {
             </h3>
             <ul className="space-y-2.5">
               {footerLinks.employer.map((link) => (
-                <li key={link.href}>
+                <li key={`${link.href}-${link.label}`}>
                   <Link
                     href={link.href}
                     className="flex min-h-[44px] items-center text-sm text-sky-200/70 transition-colors hover:text-white cursor-pointer"

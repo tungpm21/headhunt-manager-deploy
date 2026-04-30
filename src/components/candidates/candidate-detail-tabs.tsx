@@ -12,6 +12,8 @@ type TabKey = "cv" | "languages" | "experience";
 interface CandidateDetailTabsProps {
   candidateId: number;
   cvFiles: CandidateWithRelations["cvFiles"];
+  legacyCvFileUrl?: string | null;
+  legacyCvFileName?: string | null;
   languages: CandidateWithRelations["languages"];
   workHistory: CandidateWithRelations["workHistory"];
 }
@@ -29,6 +31,8 @@ const TABS: {
 export function CandidateDetailTabs({
   candidateId,
   cvFiles,
+  legacyCvFileUrl,
+  legacyCvFileName,
   languages,
   workHistory,
 }: CandidateDetailTabsProps) {
@@ -63,7 +67,12 @@ export function CandidateDetailTabs({
 
       <div className="p-5">
         {activeTab === "cv" && (
-          <CvList candidateId={candidateId} cvFiles={cvFiles} />
+          <CvList
+            candidateId={candidateId}
+            cvFiles={cvFiles}
+            legacyCvFileUrl={legacyCvFileUrl}
+            legacyCvFileName={legacyCvFileName}
+          />
         )}
         {activeTab === "languages" && (
           <LanguageList candidateId={candidateId} languages={languages} />

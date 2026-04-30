@@ -91,6 +91,8 @@ export type CandidateWithTags = {
   phone: string | null;
   email: string | null;
   avatarUrl: string | null;
+  cvFileUrl: string | null;
+  cvFileName: string | null;
   currentPosition: string | null;
   currentCompany: string | null;
   industry: string | null;

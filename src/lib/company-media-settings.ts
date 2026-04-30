@@ -46,7 +46,7 @@ export const DEFAULT_COMPANY_MEDIA_SETTINGS: CompanyMediaSettings = {
   bannerZoom: 100,
 };
 
-export const HOMEPAGE_BANNER_ASPECT_RATIO = "16 / 5";
+export const HOMEPAGE_BANNER_ASPECT_RATIO = "2.72 / 1";
 
 const coverRatios = new Set<CompanyCoverAspectRatio>(
   COVER_ASPECT_RATIO_OPTIONS.map((option) => option.value)

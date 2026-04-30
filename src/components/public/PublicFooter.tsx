@@ -8,7 +8,6 @@ const footerLinks = {
   ],
   employer: [
     { href: "/company/login", label: "Đăng tin tuyển dụng" },
-    { href: "/company/login", label: "Đăng nhập NTD" },
     { href: "/lien-he", label: "Liên hệ tư vấn" },
   ],
   blog: [

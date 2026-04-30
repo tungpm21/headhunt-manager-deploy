@@ -80,10 +80,9 @@ export function EmployerBannerCarousel({ employers }: EmployerBannerCarouselProp
               Nhà tuyển dụng nổi bật
             </div>
             <div className="absolute bottom-6 left-5 hidden max-w-2xl sm:block lg:bottom-8 lg:left-8">
-              <p className="text-xs font-bold uppercase text-sky-100/74">Vị trí quảng cáo</p>
               <h2
                 aria-hidden="true"
-                className="mt-2 text-3xl font-black leading-tight text-white lg:text-5xl"
+                className="text-3xl font-black leading-tight text-white lg:text-5xl"
                 style={{ fontFamily: "var(--font-heading)" }}
               >
                 {employer.companyName}

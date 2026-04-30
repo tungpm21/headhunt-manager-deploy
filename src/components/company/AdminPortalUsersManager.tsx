@@ -30,6 +30,14 @@ const ROLE_OPTIONS: Array<{ value: PortalRole; label: string }> = [
   { value: "VIEWER", label: "Viewer" },
 ];
 
+function generateTemporaryPassword() {
+  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
+  const symbols = "!@#$%";
+  const chars = Array.from({ length: 10 }, () => alphabet[Math.floor(Math.random() * alphabet.length)]);
+  chars.push(symbols[Math.floor(Math.random() * symbols.length)], String(Math.floor(Math.random() * 10)));
+  return chars.sort(() => Math.random() - 0.5).join("");
+}
+
 function formatDateTime(value: string | null) {
   if (!value) return "Chưa đăng nhập";
   return new Date(value).toLocaleString("vi-VN");
@@ -69,6 +77,8 @@ export function AdminPortalUsersManager({
   );
   const [rowMessage, setRowMessage] = useState<AdminPortalUserActionState>();
   const [pendingKey, setPendingKey] = useState<string | null>(null);
+  const [createPassword, setCreatePassword] = useState(generateTemporaryPassword);
+  const [resetPasswords, setResetPasswords] = useState<Record<number, string>>({});
   const [, startTransition] = useTransition();
 
   function runRowAction(key: string, action: () => Promise<AdminPortalUserActionState>) {
@@ -94,7 +104,7 @@ export function AdminPortalUsersManager({
           <UserPlus className="h-5 w-5 text-primary" />
           <h3 className="text-base font-semibold text-foreground">Tạo portal user từ Admin CRM</h3>
         </div>
-        <form action={createAction} className="grid gap-3 lg:grid-cols-[1fr_1fr_140px_1fr_auto]">
+        <form action={createAction} className="grid gap-3 lg:grid-cols-[1fr_1fr_140px_1.15fr_auto_auto]">
           <input type="hidden" name="workspaceId" value={workspaceId} />
           <input
             name="name"
@@ -122,12 +132,22 @@ export function AdminPortalUsersManager({
           </select>
           <input
             name="password"
-            type="password"
+            type="text"
             minLength={8}
             required
+            value={createPassword}
+            onChange={(event) => setCreatePassword(event.target.value)}
             placeholder="Mật khẩu tạm"
             className="rounded-md border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary"
           />
+          <button
+            type="button"
+            onClick={() => setCreatePassword(generateTemporaryPassword())}
+            className="inline-flex items-center justify-center gap-2 rounded-md border border-border bg-background px-3 py-2 text-sm font-semibold text-foreground transition hover:bg-muted/40"
+          >
+            <KeyRound className="h-4 w-4" />
+            Tạo mật khẩu
+          </button>
           <button
             type="submit"
             disabled={isCreating}
@@ -229,19 +249,39 @@ export function AdminPortalUsersManager({
                         const password = new FormData(form).get("password")?.toString() ?? "";
                         runRowAction(passwordKey, async () => {
                           const result = await resetAdminCompanyPortalUserPasswordAction(user.id, password);
-                          if (result.success) form.reset();
+                          if (result.success) {
+                            form.reset();
+                            setResetPasswords((current) => ({ ...current, [user.id]: "" }));
+                          }
                           return result;
                         });
                       }}
                     >
                       <input
                         name="password"
-                        type="password"
+                        type="text"
                         minLength={8}
                         disabled={isBusy}
+                        value={resetPasswords[user.id] ?? ""}
+                        onChange={(event) =>
+                          setResetPasswords((current) => ({ ...current, [user.id]: event.target.value }))
+                        }
                         placeholder="Mật khẩu mới"
                         className="h-9 w-44 rounded-md border border-border bg-background px-2 text-xs outline-none focus:border-primary"
                       />
+                      <button
+                        type="button"
+                        disabled={isBusy}
+                        onClick={() =>
+                          setResetPasswords((current) => ({
+                            ...current,
+                            [user.id]: generateTemporaryPassword(),
+                          }))
+                        }
+                        className="inline-flex h-9 items-center gap-1 rounded-md border border-border bg-background px-2 text-xs font-semibold text-foreground disabled:opacity-60"
+                      >
+                        Tạo
+                      </button>
                       <button
                         type="submit"
                         disabled={isBusy}

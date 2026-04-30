@@ -13,9 +13,11 @@ type ImportState = "idle" | "menu" | "loading" | "done";
 export function ImportButton({
   applicationId,
   jobOrderId,
+  mode = "import",
 }: {
   applicationId: number;
   jobOrderId?: number | null;
+  mode?: "import" | "merge";
 }) {
   const [state, setState] = useState<ImportState>("idle");
   const [result, setResult] = useState<{ message: string; candidateId?: number } | null>(null);
@@ -55,7 +57,7 @@ export function ImportButton({
       <div className="flex items-center gap-2">
         <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-600">
           <CheckCircle2 className="h-3.5 w-3.5" />
-          Đã lưu Talent Pool
+          {mode === "merge" ? "Đã merge Talent Pool" : "Đã lưu Talent Pool"}
         </span>
         {result.candidateId ? (
           <Link
@@ -90,7 +92,7 @@ export function ImportButton({
             className="inline-flex w-full items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-1.5 text-left text-xs font-medium text-foreground transition-colors hover:bg-background"
           >
             <SendHorizonal className="h-3.5 w-3.5 text-blue-500" />
-            Import & Submit
+            {mode === "merge" ? "Merge & Submit" : "Import & Submit"}
           </button>
         ) : null}
         <button
@@ -110,7 +112,7 @@ export function ImportButton({
         className="inline-flex items-center gap-1.5 bg-primary px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-primary/90"
       >
         <Download className="h-3.5 w-3.5" />
-        Import Talent Pool
+        {mode === "merge" ? "Merge Talent Pool" : "Import Talent Pool"}
       </button>
       {jobOrderId ? (
         <button

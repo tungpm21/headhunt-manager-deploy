@@ -203,6 +203,13 @@ export async function updateOptionItemFormAction(
 }
 
 export async function deleteOptionItemAction(id: number): Promise<ActionState> {
+  return deleteOptionItemWithUsageAction(id, false);
+}
+
+export async function deleteOptionItemWithUsageAction(
+  id: number,
+  forceDeleteUsed = false
+): Promise<ActionState> {
   try {
     await requireAdmin();
 
@@ -222,21 +229,42 @@ export async function deleteOptionItemAction(id: number): Promise<ActionState> {
       aliases: item.aliases.map((alias) => alias.alias),
     });
 
-    if (usageCount > 0) {
+    if (usageCount > 0 && !forceDeleteUsed) {
       return {
         error: `Option đang được dùng ${usageCount} lần. Hãy tắt Active để giữ dữ liệu cũ an toàn.`,
       };
     }
 
-    await prisma.$transaction([
-      prisma.optionAlias.deleteMany({ where: { itemId: id } }),
-      prisma.optionItem.delete({ where: { id } }),
-    ]);
+    if (usageCount > 0) {
+      const metadata =
+        item.metadata && typeof item.metadata === "object" && !Array.isArray(item.metadata)
+          ? (item.metadata as Prisma.JsonObject)
+          : {};
+
+      await prisma.optionItem.update({
+        where: { id },
+        data: {
+          isActive: false,
+          showInPublic: false,
+          metadata: {
+            ...metadata,
+            deletedAt: new Date().toISOString(),
+            deletedReason: "admin-force-delete-used-option",
+            deletedUsageCount: usageCount,
+          },
+        },
+      });
+    } else {
+      await prisma.$transaction([
+        prisma.optionAlias.deleteMany({ where: { itemId: id } }),
+        prisma.optionItem.delete({ where: { id } }),
+      ]);
+    }
 
     revalidateConfigOptionRoutes();
     return { success: true };
   } catch (error) {
-    console.error("deleteOptionItemAction error:", error);
+    console.error("deleteOptionItemWithUsageAction error:", error);
     return { error: "Không thể xóa option lúc này." };
   }
 }

@@ -34,6 +34,8 @@ export type OptionChoice = {
   label: string;
 };
 
+type OptionMetadataRecord = Record<string, unknown>;
+
 const activeOptionSetKeys = new Set(
   OPTION_SET_DEFINITIONS.map((definition) => definition.key)
 );
@@ -80,6 +82,15 @@ function uniqueValues(values: Array<string | null | undefined>) {
   return result;
 }
 
+function metadataRecord(value: Prisma.JsonValue | null | undefined): OptionMetadataRecord {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+  return value as OptionMetadataRecord;
+}
+
+export function isDeletedOptionMetadata(value: Prisma.JsonValue | null | undefined) {
+  return Boolean(metadataRecord(value).deletedAt);
+}
+
 function definitionToItem(
   setKey: OptionGroupKey,
   item: DefaultOptionItem,
@@ -110,19 +121,21 @@ function rowToSet(row: OptionSetRow): ConfigOptionSet {
     allowCustomValues: row.allowCustomValues,
     isSystem: row.isSystem,
     sortOrder: row.sortOrder,
-    items: row.items.map((item) => ({
-      id: item.id,
-      setKey: typedSetKey(item.setKey),
-      value: item.value,
-      label: item.label,
-      aliases: uniqueValues(item.aliases.map((alias) => alias.alias)),
-      description: item.description,
-      isActive: item.isActive,
-      showInPublic: item.showInPublic,
-      isSystem: item.isSystem,
-      sortOrder: item.sortOrder,
-      metadata: item.metadata,
-    })),
+    items: row.items
+      .filter((item) => !isDeletedOptionMetadata(item.metadata))
+      .map((item) => ({
+        id: item.id,
+        setKey: typedSetKey(item.setKey),
+        value: item.value,
+        label: item.label,
+        aliases: uniqueValues(item.aliases.map((alias) => alias.alias)),
+        description: item.description,
+        isActive: item.isActive,
+        showInPublic: item.showInPublic,
+        isSystem: item.isSystem,
+        sortOrder: item.sortOrder,
+        metadata: item.metadata,
+      })),
   };
 }
 
@@ -637,4 +650,136 @@ export async function getOptionUsageCount(
   };
 
   return countByEnum[setKey]?.() ?? 0;
+}
+
+export type OptionUsageReference = {
+  type: "candidate" | "client" | "jobOrder" | "employer" | "jobPosting" | "subscription" | "application";
+  id: number;
+  label: string;
+  href: string;
+};
+
+function textValueWhere(field: string, values: string[]) {
+  return { [field]: { in: values } } as Record<string, unknown>;
+}
+
+export async function getOptionUsageReferences(
+  setKey: OptionGroupKey,
+  item: Pick<ConfigOptionItem, "value" | "label" | "aliases">,
+  take = 5
+): Promise<OptionUsageReference[]> {
+  const textValues = uniqueValues([item.value, item.label, ...item.aliases]);
+  const canonicalValues = uniqueValues([item.value]);
+  if (textValues.length === 0) return [];
+
+  if (setKey === OPTION_GROUPS.industry || setKey === OPTION_GROUPS.location) {
+    const field = setKey === OPTION_GROUPS.industry ? "industry" : "location";
+    const [jobs, postings, employers, clients, candidates] = await Promise.all([
+      prisma.jobOrder.findMany({
+        where: textValueWhere(field, textValues),
+        take,
+        select: { id: true, title: true },
+        orderBy: { updatedAt: "desc" },
+      }),
+      prisma.jobPosting.findMany({
+        where: textValueWhere(field, textValues),
+        take,
+        select: { id: true, title: true },
+        orderBy: { updatedAt: "desc" },
+      }),
+      prisma.employer.findMany({
+        where: textValueWhere(field, textValues),
+        take,
+        select: { id: true, companyName: true },
+        orderBy: { updatedAt: "desc" },
+      }),
+      prisma.client.findMany({
+        where: { ...textValueWhere(field, textValues), isDeleted: false },
+        take,
+        select: { id: true, companyName: true },
+        orderBy: { updatedAt: "desc" },
+      }),
+      prisma.candidate.findMany({
+        where: { ...textValueWhere(field, textValues), isDeleted: false },
+        take,
+        select: { id: true, fullName: true },
+        orderBy: { updatedAt: "desc" },
+      }),
+    ]);
+
+    return [
+      ...jobs.map((row) => ({ type: "jobOrder" as const, id: row.id, label: row.title, href: `/jobs/${row.id}` })),
+      ...postings.map((row) => ({ type: "jobPosting" as const, id: row.id, label: row.title, href: `/moderation/${row.id}/edit` })),
+      ...employers.map((row) => ({ type: "employer" as const, id: row.id, label: row.companyName, href: `/companies?role=employer&q=${encodeURIComponent(row.companyName)}` })),
+      ...clients.map((row) => ({ type: "client" as const, id: row.id, label: row.companyName, href: `/companies?role=client&q=${encodeURIComponent(row.companyName)}` })),
+      ...candidates.map((row) => ({ type: "candidate" as const, id: row.id, label: row.fullName, href: `/candidates/${row.id}` })),
+    ].slice(0, take);
+  }
+
+  if (setKey === OPTION_GROUPS.workType) {
+    const rows = await prisma.jobPosting.findMany({
+      where: { workType: { in: textValues } },
+      take,
+      select: { id: true, title: true },
+      orderBy: { updatedAt: "desc" },
+    });
+    return rows.map((row) => ({ type: "jobPosting", id: row.id, label: row.title, href: `/moderation/${row.id}/edit` }));
+  }
+
+  if (setKey === OPTION_GROUPS.industrialZone) {
+    const [jobs, postings, employers, clients] = await Promise.all([
+      prisma.jobOrder.findMany({ where: { industrialZone: { in: textValues } }, take, select: { id: true, title: true }, orderBy: { updatedAt: "desc" } }),
+      prisma.jobPosting.findMany({ where: { industrialZone: { in: textValues } }, take, select: { id: true, title: true }, orderBy: { updatedAt: "desc" } }),
+      prisma.employer.findMany({ where: { industrialZone: { in: textValues } }, take, select: { id: true, companyName: true }, orderBy: { updatedAt: "desc" } }),
+      prisma.client.findMany({ where: { industrialZone: { in: textValues }, isDeleted: false }, take, select: { id: true, companyName: true }, orderBy: { updatedAt: "desc" } }),
+    ]);
+    return [
+      ...jobs.map((row) => ({ type: "jobOrder" as const, id: row.id, label: row.title, href: `/jobs/${row.id}` })),
+      ...postings.map((row) => ({ type: "jobPosting" as const, id: row.id, label: row.title, href: `/moderation/${row.id}/edit` })),
+      ...employers.map((row) => ({ type: "employer" as const, id: row.id, label: row.companyName, href: `/companies?role=employer&q=${encodeURIComponent(row.companyName)}` })),
+      ...clients.map((row) => ({ type: "client" as const, id: row.id, label: row.companyName, href: `/companies?role=client&q=${encodeURIComponent(row.companyName)}` })),
+    ].slice(0, take);
+  }
+
+  if (setKey === OPTION_GROUPS.requiredLanguage) {
+    const rows = await prisma.jobPosting.findMany({
+      where: { requiredLanguages: { hasSome: textValues } },
+      take,
+      select: { id: true, title: true },
+      orderBy: { updatedAt: "desc" },
+    });
+    return rows.map((row) => ({ type: "jobPosting", id: row.id, label: row.title, href: `/moderation/${row.id}/edit` }));
+  }
+
+  if (setKey === OPTION_GROUPS.languageProficiency || setKey === OPTION_GROUPS.shiftType) {
+    const field = setKey === OPTION_GROUPS.languageProficiency ? "languageProficiency" : "shiftType";
+    const rows = await prisma.jobPosting.findMany({
+      where: textValueWhere(field, textValues),
+      take,
+      select: { id: true, title: true },
+      orderBy: { updatedAt: "desc" },
+    });
+    return rows.map((row) => ({ type: "jobPosting", id: row.id, label: row.title, href: `/moderation/${row.id}/edit` }));
+  }
+
+  const enumValues = canonicalValues as never[];
+  if (setKey === OPTION_GROUPS.jobStatus) {
+    const rows = await prisma.jobOrder.findMany({ where: { status: { in: enumValues } }, take, select: { id: true, title: true }, orderBy: { updatedAt: "desc" } });
+    return rows.map((row) => ({ type: "jobOrder", id: row.id, label: row.title, href: `/jobs/${row.id}` }));
+  }
+  if (setKey === OPTION_GROUPS.jobPostingStatus) {
+    const rows = await prisma.jobPosting.findMany({ where: { status: { in: enumValues } }, take, select: { id: true, title: true }, orderBy: { updatedAt: "desc" } });
+    return rows.map((row) => ({ type: "jobPosting", id: row.id, label: row.title, href: `/moderation/${row.id}/edit` }));
+  }
+  if (setKey === OPTION_GROUPS.applicationStatus) {
+    const rows = await prisma.application.findMany({ where: { status: { in: enumValues } }, take, select: { id: true, fullName: true }, orderBy: { updatedAt: "desc" } });
+    return rows.map((row) => ({ type: "application", id: row.id, label: row.fullName, href: `/jobs?tab=applications&applicationStatus=${item.value}` }));
+  }
+  if (setKey === OPTION_GROUPS.candidateStatus || setKey === OPTION_GROUPS.candidateSource || setKey === OPTION_GROUPS.candidateSeniority) {
+    const field = setKey === OPTION_GROUPS.candidateStatus ? "status" : setKey === OPTION_GROUPS.candidateSource ? "source" : "level";
+    const rows = await prisma.candidate.findMany({ where: { [field]: { in: enumValues }, isDeleted: false }, take, select: { id: true, fullName: true }, orderBy: { updatedAt: "desc" } });
+    return rows.map((row) => ({ type: "candidate", id: row.id, label: row.fullName, href: `/candidates/${row.id}` }));
+  }
+
+  return [];
 }

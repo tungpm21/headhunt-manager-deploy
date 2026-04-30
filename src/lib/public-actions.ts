@@ -23,6 +23,11 @@ import {
   normalizeCompanyTheme,
   normalizeContentBlocks,
 } from "@/lib/content-blocks";
+import { normalizeCompanyMediaSettings } from "@/lib/company-media-settings";
+import {
+  PUBLIC_COMPANY_PROFILE_CACHE_TAG,
+  PUBLIC_HOMEPAGE_CACHE_TAG,
+} from "@/lib/public-cache-tags";
 
 export type HomepageJob = {
   id: number;
@@ -47,6 +52,10 @@ export type HomepageEmployer = {
   companyName: string;
   logo: string | null;
   coverImage: string | null;
+  bannerImage?: string | null;
+  bannerPositionX?: number;
+  bannerPositionY?: number;
+  bannerZoom?: number;
   slug: string;
   industry: string | null;
   subscription: {
@@ -131,8 +140,16 @@ export const getHomepageData = unstable_cache(
             companyName: true,
             logo: true,
             coverImage: true,
+            coverPositionX: true,
+            coverPositionY: true,
+            coverZoom: true,
             slug: true,
             industry: true,
+            profileConfig: {
+              select: {
+                theme: true,
+              },
+            },
             subscription: {
               select: { tier: true },
             },
@@ -229,17 +246,36 @@ export const getHomepageData = unstable_cache(
         return a.companyName.localeCompare(b.companyName);
       })
       .slice(0, 24);
+    const bannerEmployersWithMedia: HomepageEmployer[] = bannerEmployers.map((employer) => {
+      const media = normalizeCompanyMediaSettings(employer.profileConfig?.theme);
+      const usesCustomBanner = Boolean(media.bannerImageUrl);
+
+      return {
+        id: employer.id,
+        companyName: employer.companyName,
+        logo: employer.logo,
+        coverImage: employer.coverImage,
+        bannerImage: media.bannerImageUrl ?? employer.coverImage,
+        bannerPositionX: usesCustomBanner ? media.bannerPositionX : employer.coverPositionX,
+        bannerPositionY: usesCustomBanner ? media.bannerPositionY : employer.coverPositionY,
+        bannerZoom: usesCustomBanner ? media.bannerZoom : employer.coverZoom,
+        slug: employer.slug,
+        industry: employer.industry,
+        subscription: employer.subscription,
+        _count: employer._count,
+      };
+    });
 
     return {
       featuredJobs,
-      bannerEmployers,
+      bannerEmployers: bannerEmployersWithMedia,
       topEmployers,
       industries,
       stats: { totalJobs, totalEmployers },
     };
   },
   ["homepage-data"],
-  { revalidate: 60 }
+  { revalidate: 60, tags: [PUBLIC_HOMEPAGE_CACHE_TAG, CONFIG_OPTIONS_CACHE_TAG] }
 );
 
 // ==================== JOB LISTING ====================
@@ -926,7 +962,7 @@ const getCachedPublicCompanies = unstable_cache(
     };
   },
   ["public-companies"],
-  { revalidate: 60, tags: [CONFIG_OPTIONS_CACHE_TAG] }
+  { revalidate: 60, tags: [PUBLIC_COMPANY_PROFILE_CACHE_TAG, CONFIG_OPTIONS_CACHE_TAG] }
 );
 
 function normalizeCompanySort(sort: CompanySort | undefined): CompanySort {
@@ -1061,7 +1097,7 @@ const getCachedCompanyBySlug = unstable_cache(
     };
   },
   ["company-profile"],
-  { revalidate: 60 }
+  { revalidate: 60, tags: [PUBLIC_COMPANY_PROFILE_CACHE_TAG, CONFIG_OPTIONS_CACHE_TAG] }
 );
 
 export async function getCompanyBySlug(slug: string): Promise<CompanyProfile | null> {

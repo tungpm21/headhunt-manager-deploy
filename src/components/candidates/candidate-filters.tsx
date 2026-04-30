@@ -2,7 +2,7 @@
 
 import { useCallback, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Search, SlidersHorizontal, X } from "lucide-react";
+import { AlertTriangle, Search, SlidersHorizontal, X } from "lucide-react";
 import type { OptionChoice } from "@/lib/config-options";
 import type { Tag } from "@/types";
 
@@ -28,6 +28,7 @@ const FILTER_PARAM_KEYS = [
   "tagId",
   "sortBy",
   "sortOrder",
+  "duplicates",
 ] as const;
 
 export function CandidateFiltersPanel({
@@ -70,6 +71,7 @@ export function CandidateFiltersPanel({
   };
 
   const hasActiveFilters = FILTER_PARAM_KEYS.some((key) => searchParams.has(key));
+  const duplicatesOnly = searchParams.get("duplicates") === "1";
 
   const clearAll = () => {
     const params = new URLSearchParams(searchParams.toString());
@@ -111,6 +113,19 @@ export function CandidateFiltersPanel({
           <option value="expectedSalary_desc">Lương cao nhất</option>
           <option value="expectedSalary_asc">Lương thấp nhất</option>
         </select>
+
+        <button
+          type="button"
+          onClick={() => update({ duplicates: duplicatesOnly ? null : "1" })}
+          className={`hidden items-center gap-2 rounded-lg border px-3 py-2.5 text-sm font-medium transition sm:flex ${
+            duplicatesOnly
+              ? "border-amber-300 bg-amber-50 text-amber-700"
+              : "border-border bg-background text-foreground hover:bg-surface"
+          }`}
+        >
+          <AlertTriangle className="h-4 w-4" />
+          Trùng hồ sơ
+        </button>
 
         <button
           type="button"

@@ -10,10 +10,24 @@ interface CvViewerProps {
 
 type CvType = "pdf" | "word";
 
-function detectCvType(cvUrl?: string | null, fileName?: string | null): CvType {
-  const source = (fileName || cvUrl || "").toLowerCase();
+function getCvExtension(value?: string | null) {
+  if (!value) return "";
 
-  if (source.endsWith(".doc") || source.endsWith(".docx")) {
+  try {
+    const url = /^https?:\/\//i.test(value) ? new URL(value) : null;
+    const pathname = url?.pathname ?? value;
+    const match = pathname.toLowerCase().match(/\.([a-z0-9]+)(?:$|[?#])/);
+    return match?.[1] ?? "";
+  } catch {
+    const match = value.toLowerCase().split(/[?#]/)[0]?.match(/\.([a-z0-9]+)$/);
+    return match?.[1] ?? "";
+  }
+}
+
+function detectCvType(cvUrl?: string | null, fileName?: string | null): CvType {
+  const extension = getCvExtension(fileName) || getCvExtension(cvUrl);
+
+  if (extension === "doc" || extension === "docx") {
     return "word";
   }
 

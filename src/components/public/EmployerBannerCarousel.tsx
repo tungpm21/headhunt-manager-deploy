@@ -37,6 +37,10 @@ export function EmployerBannerCarousel({ employers }: EmployerBannerCarouselProp
   const employer = employers[safeIndex];
 
   if (!employer) return null;
+  const bannerImage = employer.bannerImage ?? employer.coverImage;
+  const bannerPositionX = employer.bannerPositionX ?? 50;
+  const bannerPositionY = employer.bannerPositionY ?? 50;
+  const bannerZoom = employer.bannerZoom ?? 100;
 
   return (
     <section
@@ -54,14 +58,19 @@ export function EmployerBannerCarousel({ employers }: EmployerBannerCarouselProp
           <div className="relative overflow-hidden rounded-[calc(2rem-0.375rem)] bg-[#061D38] ring-1 ring-white/14">
           {/* Image area — aspect ratio controlled */}
           <div className="relative h-[250px] w-full sm:h-[350px] lg:h-[420px] xl:h-[470px]">
-            {employer.coverImage ? (
+            {bannerImage ? (
               <Image
-                src={employer.coverImage}
+                src={bannerImage}
                 alt={employer.companyName}
                 fill
                 priority
                 sizes="(max-width: 640px) 100vw, (max-width: 1280px) 90vw, 1280px"
                 className="object-cover"
+                style={{
+                  objectPosition: `${bannerPositionX}% ${bannerPositionY}%`,
+                  transform: `scale(${bannerZoom / 100})`,
+                  transformOrigin: `${bannerPositionX}% ${bannerPositionY}%`,
+                }}
               />
             ) : (
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_72%_30%,rgba(125,211,252,0.35),transparent_34%),linear-gradient(135deg,#DDF3FF_0%,#F8FDFF_46%,#B9E7FF_100%)]" />

@@ -13,6 +13,8 @@ import {
 interface CvListProps {
   candidateId: number;
   cvFiles: CandidateWithRelations["cvFiles"];
+  legacyCvFileUrl?: string | null;
+  legacyCvFileName?: string | null;
 }
 
 type ActionState = { error?: string; success?: boolean } | undefined;
@@ -21,7 +23,14 @@ function formatDate(date: Date | string) {
   return new Date(date).toLocaleString("vi-VN");
 }
 
-export function CvList({ candidateId, cvFiles }: CvListProps) {
+type DisplayCv = CandidateWithRelations["cvFiles"][number] & { isLegacy?: boolean };
+
+export function CvList({
+  candidateId,
+  cvFiles,
+  legacyCvFileUrl,
+  legacyCvFileName,
+}: CvListProps) {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
   const [state, formAction, isPending] = useActionState<ActionState, FormData>(
@@ -63,6 +72,24 @@ export function CvList({ candidateId, cvFiles }: CvListProps) {
       setActiveCvId(null);
     });
   };
+
+  const displayCvFiles: DisplayCv[] =
+    cvFiles.length > 0
+      ? cvFiles
+      : legacyCvFileUrl
+        ? [
+            {
+              id: 0,
+              fileUrl: legacyCvFileUrl,
+              fileName: legacyCvFileName || "CV ứng viên",
+              label: "CV legacy",
+              isPrimary: true,
+              uploadedAt: new Date(0),
+              uploadedBy: { id: 0, name: "Dữ liệu cũ" },
+              isLegacy: true,
+            },
+          ]
+        : [];
 
   return (
     <div className="space-y-5">
@@ -129,7 +156,7 @@ export function CvList({ candidateId, cvFiles }: CvListProps) {
         </p>
       )}
 
-      {cvFiles.length === 0 ? (
+      {displayCvFiles.length === 0 ? (
         <div className="rounded-xl border border-dashed border-border px-4 py-10 text-center">
           <FileText className="mx-auto h-10 w-10 text-muted/30" />
           <p className="mt-3 text-sm font-medium text-foreground">Chưa có CV nào</p>
@@ -137,11 +164,11 @@ export function CvList({ candidateId, cvFiles }: CvListProps) {
         </div>
       ) : (
         <div className="space-y-3">
-          {cvFiles.map((cv) => {
+          {displayCvFiles.map((cv) => {
             const busy = isMutating && activeCvId === cv.id;
 
             return (
-              <div key={cv.id} className="rounded-xl border border-border bg-background p-4">
+              <div key={`${cv.id}-${cv.fileUrl}`} className="rounded-xl border border-border bg-background p-4">
                 <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
@@ -179,7 +206,7 @@ export function CvList({ candidateId, cvFiles }: CvListProps) {
                       <Download className="h-4 w-4" />
                       Tải
                     </a>
-                    {!cv.isPrimary && (
+                    {!cv.isPrimary && !cv.isLegacy && (
                       <button
                         type="button"
                         disabled={busy}
@@ -190,6 +217,7 @@ export function CvList({ candidateId, cvFiles }: CvListProps) {
                         Đặt primary
                       </button>
                     )}
+                    {!cv.isLegacy ? (
                     <button
                       type="button"
                       disabled={busy}
@@ -205,6 +233,7 @@ export function CvList({ candidateId, cvFiles }: CvListProps) {
                       {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
                       Xóa
                     </button>
+                    ) : null}
                   </div>
                 </div>
               </div>

@@ -10,7 +10,7 @@ import {
 import { requireCompanyPortalSession } from "@/lib/company-portal-auth";
 import { prisma } from "@/lib/prisma";
 
-export const metadata = { title: "Billing - Company Portal" };
+export const metadata = { title: "Thanh toán - Company Portal" };
 
 const tierMeta: Record<string, { label: string; className: string }> = {
   BASIC: { label: "Basic", className: "bg-slate-100 text-slate-700" },
@@ -20,9 +20,9 @@ const tierMeta: Record<string, { label: string; className: string }> = {
 };
 
 const statusMeta: Record<string, { label: string; className: string }> = {
-  ACTIVE: { label: "Dang hoat dong", className: "bg-emerald-100 text-emerald-700" },
-  EXPIRED: { label: "Het han", className: "bg-red-100 text-red-700" },
-  CANCELLED: { label: "Da huy", className: "bg-slate-100 text-slate-700" },
+  ACTIVE: { label: "Đang hoạt động", className: "bg-emerald-100 text-emerald-700" },
+  EXPIRED: { label: "Hết hạn", className: "bg-red-100 text-red-700" },
+  CANCELLED: { label: "Đã hủy", className: "bg-slate-100 text-slate-700" },
 };
 
 function formatDate(value: Date) {
@@ -40,9 +40,9 @@ export default async function CompanyBillingPage() {
     return (
       <div className="rounded-xl border border-border bg-surface p-12 text-center text-muted">
         <CreditCard className="mx-auto mb-3 h-10 w-10 opacity-40" />
-        <p className="text-lg font-medium text-foreground">Workspace chua co billing</p>
+        <p className="text-lg font-medium text-foreground">Workspace chưa có thanh toán</p>
         <p className="mt-1 text-sm">
-          Billing chi kha dung khi Company Workspace duoc lien ket voi Employer.
+          Thanh toán chỉ khả dụng khi Company Workspace được liên kết với Employer.
         </p>
       </div>
     );
@@ -68,19 +68,19 @@ export default async function CompanyBillingPage() {
         <div>
           <h1 className="flex items-center gap-3 text-2xl font-bold text-foreground">
             <CreditCard className="h-7 w-7 text-primary" />
-            Billing & quota
+            Thanh toán & quota
           </h1>
           <p className="mt-1 text-sm text-muted">
-            Thong tin goi dich vu cua {workspace?.displayName ?? "workspace"}.
+            Thông tin gói dịch vụ của {workspace?.displayName ?? "workspace"}.
           </p>
         </div>
         <div className="rounded-xl border border-amber-200 bg-amber-50 p-8 text-amber-800">
           <div className="flex items-start gap-3">
             <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" />
             <div>
-              <p className="font-semibold">Chua co goi dich vu</p>
+              <p className="font-semibold">Chưa có gói dịch vụ</p>
               <p className="mt-1 text-sm">
-                Vui long lien he admin FDIWork de kich hoat hoac gia han goi.
+                Vui lòng liên hệ admin FDIWork để kích hoạt hoặc gia hạn gói.
               </p>
             </div>
           </div>
@@ -106,10 +106,10 @@ export default async function CompanyBillingPage() {
       <div>
         <h1 className="flex items-center gap-3 text-2xl font-bold text-foreground">
           <CreditCard className="h-7 w-7 text-primary" />
-          Billing & quota
+          Thanh toán & quota
         </h1>
         <p className="mt-1 text-sm text-muted">
-          View-only subscription snapshot for {workspace?.employer?.companyName ?? workspace?.displayName}.
+          Snapshot gói dịch vụ chỉ đọc cho {workspace?.employer?.companyName ?? workspace?.displayName}.
         </p>
       </div>
 
@@ -117,7 +117,7 @@ export default async function CompanyBillingPage() {
         <div className="border-b border-border bg-primary px-6 py-5 text-white">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-sm text-white/75">Current plan</p>
+              <p className="text-sm text-white/75">Gói hiện tại</p>
               <div className="mt-1 flex items-center gap-2">
                 <h2 className="text-3xl font-bold">{tier.label}</h2>
                 {subscription.tier === "VIP" ? (
@@ -136,23 +136,27 @@ export default async function CompanyBillingPage() {
             <div className="flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4 text-red-700">
               <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" />
               <div>
-                <p className="text-sm font-semibold">Goi da het han</p>
-                <p className="mt-1 text-xs">Lien he admin de gia han truoc khi dang tin moi.</p>
+                <p className="text-sm font-semibold">Gói đã hết hạn</p>
+                <p className="mt-1 text-xs">Liên hệ admin để gia hạn trước khi đăng tin mới.</p>
               </div>
             </div>
           ) : null}
 
           <div className="grid gap-4 md:grid-cols-3">
-            <InfoCard icon={Calendar} label="Start date" value={formatDate(subscription.startDate)} />
-            <InfoCard icon={Calendar} label="End date" value={formatDate(subscription.endDate)} />
-            <InfoCard icon={Package} label="Job duration" value={`${subscription.jobDuration} ngay/tin`} />
+            <InfoCard icon={Calendar} label="Ngày bắt đầu" value={formatDate(subscription.startDate)} />
+            <InfoCard icon={Calendar} label="Ngày hết hạn" value={formatDate(subscription.endDate)} />
+            <InfoCard
+              icon={Package}
+              label="Thời gian hiển thị mỗi tin"
+              value={`${subscription.jobDuration} ngày`}
+            />
           </div>
 
           <div className="rounded-xl border border-border bg-background p-5">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <BarChart3 className="h-5 w-5 text-primary" />
-                <p className="font-semibold text-foreground">Quota dang tin</p>
+                <p className="font-semibold text-foreground">Quota đăng tin</p>
               </div>
               <p className="text-sm font-semibold text-foreground">
                 {subscription.jobsUsed}/{subscription.jobQuota}
@@ -170,19 +174,19 @@ export default async function CompanyBillingPage() {
                 style={{ width: `${quotaPercent}%` }}
               />
             </div>
-            <p className="mt-2 text-sm text-muted">Con lai {remaining} tin.</p>
+            <p className="mt-2 text-sm text-muted">Còn lại {remaining} tin.</p>
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2">
-            <Feature label="Hien logo tren trang chu" active={subscription.showLogo} />
+            <Feature label="Hiển thị logo trên trang chủ" active={subscription.showLogo} />
             <Feature label="Banner slide VIP" active={subscription.showBanner} />
-            <Feature label={`${subscription.jobQuota} tin tuyen dung`} active />
-            <Feature label={`Moi tin hien thi ${subscription.jobDuration} ngay`} active />
+            <Feature label={`${subscription.jobQuota} tin tuyển dụng`} active />
+            <Feature label={`${subscription.jobDuration} ngày hiển thị cho mỗi tin`} active />
           </div>
 
           <div className="rounded-lg border border-border bg-background px-4 py-3 text-sm text-muted">
-            Goi dich vu duoc quan ly boi admin FDIWork. Vui long lien he admin de nang cap,
-            gia han hoac dieu chinh quota.
+            Gói dịch vụ được quản lý bởi admin FDIWork. Vui lòng liên hệ admin để nâng cấp,
+            gia hạn hoặc điều chỉnh quota.
           </div>
         </div>
       </section>

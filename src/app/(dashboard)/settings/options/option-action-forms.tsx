@@ -2,14 +2,14 @@
 
 import { useActionState, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { AlertCircle, CheckCircle2, Plus, RefreshCw, Save, Trash2 } from "lucide-react";
+import { AlertCircle, CheckCircle2, ExternalLink, Plus, RefreshCw, Save, Trash2 } from "lucide-react";
 import {
   createOptionItemAction,
-  deleteOptionItemAction,
+  deleteOptionItemWithUsageAction,
   syncDefaultConfigOptionsAction,
   updateOptionItemAction,
 } from "@/lib/config-option-actions";
-import type { ConfigOptionItem, ConfigOptionSet } from "@/lib/config-options";
+import type { ConfigOptionItem, ConfigOptionSet, OptionUsageReference } from "@/lib/config-options";
 
 type ActionState = { error?: string; success?: boolean } | undefined;
 
@@ -66,10 +66,12 @@ export function OptionItemRowForm({
   set,
   item,
   usageCount,
+  usageReferences,
 }: {
   set: Omit<ConfigOptionSet, "items">;
   item: ConfigOptionItem;
   usageCount: number;
+  usageReferences: OptionUsageReference[];
 }) {
   const router = useRouter();
   const updateAction = updateOptionItemAction.bind(null, item.id ?? 0);
@@ -81,8 +83,7 @@ export function OptionItemRowForm({
     Boolean(item.id) &&
     !item.isSystem &&
     set.valueType === "STRING" &&
-    set.allowCustomValues &&
-    usageCount === 0;
+    set.allowCustomValues;
 
   function handleDelete() {
     if (!item.id) return;
@@ -94,10 +95,17 @@ export function OptionItemRowForm({
       return;
     }
 
+    if (usageCount > 0) {
+      const confirmedUsedDelete = window.confirm(
+        `Option "${item.label}" đang được dùng ${usageCount} lần. Xóa tiếp sẽ ẩn option khỏi cấu hình và ngăn đồng bộ lại, nhưng vẫn giữ dữ liệu cũ trên job/hồ sơ. Tiếp tục?`
+      );
+      if (!confirmedUsedDelete) return;
+    }
+
     if (!window.confirm(`Xóa option "${item.label}"? Thao tác này không thể hoàn tác.`)) return;
 
     startDeleteTransition(() => {
-      void deleteOptionItemAction(item.id!).then((nextState) => {
+      void deleteOptionItemWithUsageAction(item.id!, usageCount > 0).then((nextState) => {
         setDeleteState(nextState);
         if (nextState?.success) router.refresh();
       });
@@ -161,6 +169,26 @@ export function OptionItemRowForm({
             {usageCount} dùng
           </span>
         </div>
+        {usageReferences.length > 0 ? (
+          <div className="max-w-full space-y-1 rounded-lg bg-background p-2 text-xs text-muted ring-1 ring-border">
+            <p className="font-semibold text-foreground">Đang dùng ở</p>
+            {usageReferences.map((reference) => (
+              <a
+                key={`${reference.type}-${reference.id}`}
+                href={reference.href}
+                className="flex min-w-0 items-center gap-1.5 rounded-md px-1.5 py-1 transition hover:bg-surface hover:text-primary"
+              >
+                <ExternalLink className="h-3 w-3 shrink-0" />
+                <span className="truncate">{reference.label}</span>
+              </a>
+            ))}
+            {usageCount > usageReferences.length ? (
+              <p className="px-1.5 text-[11px] text-muted/80">
+                +{usageCount - usageReferences.length} bản ghi khác
+              </p>
+            ) : null}
+          </div>
+        ) : null}
         <div className="space-y-2">
           <button
             type="submit"
@@ -175,7 +203,7 @@ export function OptionItemRowForm({
             type="button"
             onClick={handleDelete}
             disabled={isDeleting}
-            title={canDelete ? "Xóa option" : "Chỉ xóa được option custom chưa có usage"}
+            title={canDelete ? "Xóa option custom" : "Chỉ xóa được option custom"}
             className={`inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-lg border px-3 text-sm font-semibold transition active:translate-y-px disabled:cursor-not-allowed disabled:opacity-60 ${
               canDelete
                 ? "border-red-200 bg-red-50 text-red-600 hover:bg-red-100"

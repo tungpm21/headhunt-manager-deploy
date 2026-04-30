@@ -4,7 +4,9 @@ import { ArrowLeft } from "lucide-react";
 import { requireViewerScope } from "@/lib/authz";
 import { getAllTags } from "@/lib/tags";
 import { getCandidateById } from "@/lib/candidates";
+import { getCandidateApplicationHistory } from "@/lib/candidate-application-history";
 import { CandidateInfo } from "@/components/candidates/candidate-info";
+import { CandidateApplicationHistory } from "@/components/candidates/candidate-application-history";
 import { CandidateTags } from "@/components/candidates/candidate-tags";
 import { CandidateNotes } from "@/components/candidates/candidate-notes";
 import { CandidatePipelines } from "@/components/candidates/candidate-pipelines";
@@ -35,6 +37,8 @@ export default async function CandidateDetailPage({ params }: PageProps) {
   if (!candidate) {
     notFound();
   }
+
+  const applicationHistory = await getCandidateApplicationHistory(candidate.id);
 
   const previewCvUrl =
     candidate.cvFiles.find(
@@ -81,6 +85,7 @@ export default async function CandidateDetailPage({ params }: PageProps) {
         <div className="space-y-6 lg:h-[calc(100vh-140px)] lg:overflow-y-auto lg:pr-2">
           <CandidateInfo candidate={candidate} />
           <CandidatePipelines jobLinks={candidate.jobLinks} />
+          <CandidateApplicationHistory history={applicationHistory} />
           <CandidateReminders
             candidateId={candidate.id}
             reminders={candidate.reminders}
@@ -89,6 +94,8 @@ export default async function CandidateDetailPage({ params }: PageProps) {
           <CandidateDetailTabs
             candidateId={candidate.id}
             cvFiles={candidate.cvFiles}
+            legacyCvFileUrl={candidate.cvFileUrl}
+            legacyCvFileName={candidate.cvFileName}
             languages={candidate.languages}
             workHistory={candidate.workHistory}
           />

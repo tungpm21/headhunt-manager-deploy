@@ -2,10 +2,12 @@ import { Database, Search, SlidersHorizontal } from "lucide-react";
 import { requireAdmin } from "@/lib/authz";
 import {
   getConfigOptionSets,
+  getOptionUsageReferences,
   getOptionUsageCount,
   normalizeOptionText,
   type ConfigOptionItem,
   type ConfigOptionSet,
+  type OptionUsageReference,
 } from "@/lib/config-options";
 import {
   AddOptionFormClient,
@@ -37,7 +39,7 @@ function matchesSearch(set: ConfigOptionSet, item: ConfigOptionItem, query: stri
 }
 
 type OptionSetWithUsage = Omit<ConfigOptionSet, "items"> & {
-  items: { item: ConfigOptionItem; usageCount: number }[];
+  items: { item: ConfigOptionItem; usageCount: number; usageReferences: OptionUsageReference[] }[];
 };
 
 async function withUsageCounts(
@@ -51,15 +53,31 @@ async function withUsageCounts(
         return {
           item,
           usageCount: await getOptionUsageCount(set.key, item),
+          usageReferences: [],
         };
       } catch (error) {
         console.warn(`Cannot calculate usage for ${set.key}:${item.value}`, error);
-        return { item, usageCount: 0 };
+        return { item, usageCount: 0, usageReferences: [] };
       }
     })
   );
 
-  return { ...set, items };
+  const itemsWithReferences = await Promise.all(
+    items.map(async (entry) => {
+      if (entry.usageCount === 0) return entry;
+      try {
+        return {
+          ...entry,
+          usageReferences: await getOptionUsageReferences(set.key, entry.item, 4),
+        };
+      } catch (error) {
+        console.warn(`Cannot load usage references for ${set.key}:${entry.item.value}`, error);
+        return entry;
+      }
+    })
+  );
+
+  return { ...set, items: itemsWithReferences };
 }
 
 export default async function AdminOptionsPage({ searchParams }: PageProps) {
@@ -163,12 +181,13 @@ export default async function AdminOptionsPage({ searchParams }: PageProps) {
             </div>
 
             {set.items.length > 0 ? (
-              set.items.map(({ item, usageCount }) => (
+              set.items.map(({ item, usageCount, usageReferences }) => (
                 <OptionItemRowForm
                   key={item.id ?? `${set.key}-${item.value}`}
                   set={set}
                   item={item}
                   usageCount={usageCount}
+                  usageReferences={usageReferences}
                 />
               ))
             ) : (

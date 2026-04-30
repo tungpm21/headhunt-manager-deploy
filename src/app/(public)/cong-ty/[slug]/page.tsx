@@ -144,7 +144,7 @@ export default async function CompanyProfilePage({ params, searchParams }: PageP
 
       <section className="mx-auto max-w-7xl px-4 pt-4 sm:px-6 lg:px-8">
         <div
-          className="relative min-h-[220px] overflow-hidden rounded-3xl shadow-lg"
+          className="relative min-h-[220px] overflow-hidden rounded-xl shadow-lg"
           style={{ aspectRatio: mediaSettings.coverAspectRatio }}
         >
           {company.coverImage ? (
@@ -175,7 +175,7 @@ export default async function CompanyProfilePage({ params, searchParams }: PageP
       <section className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="-mt-14 pl-6 sm:pl-10">
           <div
-            className="flex h-28 items-center justify-center overflow-hidden rounded-3xl bg-white shadow-lg"
+            className="flex h-28 items-center justify-center overflow-hidden rounded-xl bg-white shadow-lg"
             style={{
               aspectRatio: mediaSettings.logoAspectRatio === "auto" ? "1 / 1" : mediaSettings.logoAspectRatio,
               color: theme.textColor,
@@ -251,7 +251,7 @@ export default async function CompanyProfilePage({ params, searchParams }: PageP
                 >
                   Vị trí đang tuyển ({company.jobPostings.length})
                 </h2>
-                <div className="rounded-2xl border p-3 shadow-sm sm:p-4" style={panelStyle}>
+                <div className="rounded-xl border p-3 shadow-sm sm:p-4" style={panelStyle}>
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:gap-5">
                     {visibleJobPostings.map((job: HomepageJob) => (
                       <div key={job.id} className="min-w-0">
@@ -306,7 +306,7 @@ export default async function CompanyProfilePage({ params, searchParams }: PageP
 
           <aside className="lg:w-80 lg:shrink-0">
             <div className="space-y-4 lg:sticky lg:top-24">
-              <div className="rounded-2xl border p-6 shadow-sm" style={panelStyle}>
+              <div className="rounded-xl border p-6 shadow-sm" style={panelStyle}>
                 <h3
                   className="text-sm font-semibold uppercase tracking-wider"
                   style={{ fontFamily: "var(--font-heading)" }}

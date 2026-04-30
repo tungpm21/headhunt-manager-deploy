@@ -96,14 +96,14 @@ export function HeroSection() {
       <h1 className="sr-only">
         Tìm việc làm FDI tại Việt Nam - Kết nối ứng viên với doanh nghiệp nước ngoài
       </h1>
-      <div className="relative mx-auto max-w-7xl px-4 pb-2 pt-24 sm:px-6 lg:px-8 lg:pt-28">
+      <div className="relative mx-auto max-w-7xl px-4 pb-3 pt-14 sm:px-6 lg:px-8 lg:pt-16">
         <div
           ref={searchContainerRef}
           className="relative z-30 mx-auto max-w-5xl"
         >
           <form
             onSubmit={handleSearch}
-            className="flex flex-col items-stretch gap-1 rounded-[1.75rem] border border-white/80 bg-[var(--color-fdi-paper)] p-1.5 shadow-[0_18px_46px_-34px_rgba(0,0,0,0.82),inset_0_1px_1px_rgba(255,255,255,0.95)] transition-[border-color,box-shadow] duration-500 ease-[var(--ease-fdi)] focus-within:border-[var(--color-fdi-accent-orange)]/80 focus-within:shadow-[0_22px_54px_-36px_rgba(0,0,0,0.88),inset_0_1px_1px_rgba(255,255,255,0.95)] sm:min-h-[56px] sm:flex-row sm:items-center sm:rounded-full"
+            className="flex flex-col items-stretch gap-1 rounded-xl border border-[#D7E4E8] bg-[var(--color-fdi-paper)] p-1.5 shadow-[0_18px_46px_-34px_rgba(7,26,47,0.45),inset_0_1px_1px_rgba(255,255,255,0.95)] transition-[border-color,box-shadow] duration-300 ease-[var(--ease-fdi)] focus-within:border-[var(--color-fdi-accent-orange)]/80 focus-within:shadow-[0_22px_54px_-36px_rgba(7,26,47,0.5),inset_0_1px_1px_rgba(255,255,255,0.95)] sm:min-h-[56px] sm:flex-row sm:items-center"
           >
             {/* Keyword input */}
             <div className="flex min-h-11 flex-1 items-center gap-2 px-3 sm:px-4">
@@ -163,7 +163,7 @@ export function HeroSection() {
                     setSearchPanelOpen(false);
                     search.setIsOpen(false);
                   }}
-                  className="inline-flex min-h-11 max-w-[156px] items-center gap-2 rounded-full bg-[#F2F4F6] px-3 text-sm font-semibold text-[var(--color-fdi-text)] transition-colors hover:bg-[#E9EEF1] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-accent-orange)]/35 sm:max-w-[190px]"
+                  className="inline-flex min-h-11 max-w-[156px] items-center gap-2 rounded-lg bg-[#F2F4F6] px-3 text-sm font-semibold text-[var(--color-fdi-text)] transition-colors hover:bg-[#E9EEF1] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-accent-orange)]/35 sm:max-w-[190px]"
                 >
                   <MapPin className="h-4 w-4 shrink-0 text-[#7A8794]" aria-hidden="true" />
                   <span className="truncate">{location || "Tất cả địa điểm"}</span>
@@ -173,7 +173,7 @@ export function HeroSection() {
                 {locationOpen && (
                   <div
                     id="hero-location-listbox"
-                    className="absolute right-0 top-full z-50 mt-3 w-[360px] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[1.5rem] border border-[#E2EAEC] bg-white p-4 text-[var(--color-fdi-text)] shadow-[0_30px_80px_-50px_rgba(7,26,47,0.7)]"
+                    className="absolute right-0 top-full z-50 mt-3 w-[360px] max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-[#E2EAEC] bg-white p-4 text-[var(--color-fdi-text)] shadow-[0_30px_80px_-50px_rgba(7,26,47,0.7)]"
                   >
                     <p className="text-base font-black text-[var(--color-fdi-ink)]">Địa điểm</p>
                     <div className="mt-4 flex min-h-11 items-center gap-2 rounded-xl border border-[#D7E4E8] bg-[#F6FAFB] px-3 focus-within:border-[#1B75BC] focus-within:ring-2 focus-within:ring-[#1B75BC]/12">
@@ -231,10 +231,10 @@ export function HeroSection() {
                 type="submit"
                 aria-label="Tìm kiếm việc làm"
                 style={{ touchAction: "manipulation" }}
-                className="group inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full bg-[var(--color-fdi-accent-orange)] py-1 pl-4 pr-1 text-sm font-bold text-white shadow-[0_14px_30px_-20px_rgba(242,92,36,0.95)] transition-[background-color,box-shadow,transform] duration-500 ease-[var(--ease-fdi)] hover:-translate-y-0.5 hover:bg-[#D94F1D] hover:shadow-[0_18px_34px_-20px_rgba(242,92,36,0.98)] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-accent-orange)]/45 cursor-pointer sm:mr-1"
+                className="group inline-flex min-h-11 shrink-0 items-center gap-2 rounded-lg border border-[#A83007] bg-[var(--color-fdi-accent-orange)] py-1 pl-4 pr-1 text-sm font-bold text-white shadow-[0_14px_30px_-20px_rgba(194,65,12,0.95)] transition-[background-color,border-color,box-shadow,transform] duration-300 ease-[var(--ease-fdi)] hover:-translate-y-0.5 hover:border-[#7C2504] hover:bg-[#9F3108] hover:shadow-[0_18px_34px_-20px_rgba(194,65,12,1)] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-accent-orange)]/45 cursor-pointer sm:mr-1"
               >
                 Tìm kiếm
-                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/18 transition-transform duration-500 ease-[var(--ease-fdi)] group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
+                <span className="flex h-8 w-8 items-center justify-center rounded-md bg-white/18 transition-transform duration-300 ease-[var(--ease-fdi)] group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
                   <Search className="h-4 w-4" aria-hidden="true" />
                 </span>
               </button>
@@ -246,7 +246,7 @@ export function HeroSection() {
               id="hero-search-listbox"
               role="listbox"
               aria-label="Gợi ý tìm kiếm"
-              className="absolute left-0 right-0 top-full z-40 mt-3 overflow-hidden rounded-[1.75rem] border border-[#E2EAEC] bg-white text-[var(--color-fdi-text)] shadow-[0_34px_90px_-56px_rgba(7,26,47,0.76)]"
+              className="absolute left-0 right-0 top-full z-40 mt-3 overflow-hidden rounded-xl border border-[#E2EAEC] bg-white text-[var(--color-fdi-text)] shadow-[0_34px_90px_-56px_rgba(7,26,47,0.76)]"
             >
               {search.isLoading && !suggestions ? (
                 <div className="flex items-center gap-2 px-6 py-5 text-sm text-[#7A8794]" aria-live="polite">

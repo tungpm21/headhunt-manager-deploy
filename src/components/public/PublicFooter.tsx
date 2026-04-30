@@ -34,12 +34,12 @@ export function PublicFooter() {
     <footer className="relative overflow-hidden bg-[linear-gradient(180deg,#052A4D_0%,#031D38_100%)] text-sky-100">
       <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.035)_1px,transparent_1px),linear-gradient(180deg,rgba(255,255,255,0.025)_1px,transparent_1px)] bg-[size:92px_92px] opacity-35" />
       <div className="relative mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8 lg:py-20">
-        <div className="rounded-[2rem] border border-white/10 bg-white/[0.045] p-5 shadow-[0_34px_90px_-60px_rgba(0,0,0,0.95)] sm:p-7 lg:p-8">
+      <div className="rounded-xl border border-white/10 bg-white/[0.045] p-5 shadow-[0_34px_90px_-60px_rgba(0,0,0,0.95)] sm:p-7 lg:p-8">
         <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 lg:gap-8">
           {/* About */}
           <div className="sm:col-span-2 md:col-span-1">
             <Link href="/" className="mb-4 flex min-h-[44px] items-center gap-2 cursor-pointer">
-              <div className="h-8 w-8 rounded-full bg-[var(--color-fdi-primary)] flex items-center justify-center">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--color-fdi-primary)]">
                 <Briefcase className="h-4 w-4 text-white" />
               </div>
               <span
@@ -73,7 +73,7 @@ export function PublicFooter() {
                 href="https://zalo.me/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex min-h-[44px] items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-xs font-semibold text-white transition-[background-color,transform] duration-500 ease-[var(--ease-fdi)] hover:-translate-y-0.5 hover:bg-white/16 cursor-pointer"
+                    className="inline-flex min-h-[44px] items-center gap-2 rounded-lg bg-white/10 px-3 py-1.5 text-xs font-semibold text-white transition-[background-color,transform] duration-300 ease-[var(--ease-fdi)] hover:-translate-y-0.5 hover:bg-white/16 cursor-pointer"
               >
                 <svg className="h-4 w-4" viewBox="0 0 48 48" fill="currentColor">
                   <path d="M24 2C11.8 2 2 11.8 2 24s9.8 22 22 22 22-9.8 22-22S36.2 2 24 2zm0 40c-9.9 0-18-8.1-18-18S14.1 6 24 6s18 8.1 18 18-8.1 18-18 18z" />

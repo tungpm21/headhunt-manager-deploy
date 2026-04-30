@@ -52,7 +52,7 @@ export default function PublicLayout({
         Chuyển đến nội dung chính
       </a>
       <PublicHeader />
-      <main className="flex-1 pt-20">
+      <main className="flex-1 pt-16">
         {children}
       </main>
       <PublicFooter />

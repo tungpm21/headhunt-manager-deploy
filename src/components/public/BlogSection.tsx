@@ -40,7 +40,7 @@ export async function BlogSection() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-8 flex items-end justify-between">
           <div>
-            <p className="mb-2 inline-flex rounded-full border border-[#BFDCE4] bg-[#EAF7FA] px-3 py-1 text-[10px] font-bold uppercase text-[var(--color-fdi-primary)] shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
+            <p className="mb-2 inline-flex rounded-md border border-[#BFDCE4] bg-[#EAF7FA] px-3 py-1 text-[10px] font-bold uppercase text-[var(--color-fdi-primary)] shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
               Insights
             </p>
             <h2
@@ -55,7 +55,7 @@ export async function BlogSection() {
           </div>
           <Link
             href="/chia-se"
-            className="hidden min-h-11 items-center gap-1 rounded-full px-2 text-sm font-bold uppercase text-[var(--color-fdi-primary)] transition-colors hover:text-[var(--color-fdi-primary-hover)] sm:flex cursor-pointer"
+            className="hidden min-h-11 items-center gap-1 rounded-lg px-2 text-sm font-bold uppercase text-[var(--color-fdi-primary)] transition-colors hover:bg-[#EEF7FA] hover:text-[var(--color-fdi-primary-hover)] sm:flex cursor-pointer"
           >
             Xem tất cả <ArrowRight className="h-4 w-4" />
           </Link>
@@ -69,19 +69,19 @@ export async function BlogSection() {
               <Link
                 key={post.id}
                 href={`/chia-se/${post.slug}`}
-                className="group overflow-hidden rounded-2xl border border-[#D8E7EA] bg-white shadow-[0_20px_46px_-38px_rgba(7,26,47,0.46)] transition-[background-color,border-color,box-shadow,transform] duration-500 ease-[var(--ease-fdi)] hover:-translate-y-1 hover:border-[#A9CED8] hover:bg-white hover:shadow-[0_30px_58px_-40px_rgba(7,26,47,0.56)] cursor-pointer"
+                className="group overflow-hidden rounded-xl border border-[#D8E7EA] bg-white shadow-[0_20px_46px_-38px_rgba(7,26,47,0.46)] transition-[background-color,border-color,box-shadow,transform] duration-300 ease-[var(--ease-fdi)] hover:-translate-y-1 hover:border-[#A9CED8] hover:bg-white hover:shadow-[0_30px_58px_-40px_rgba(7,26,47,0.56)] cursor-pointer"
               >
                 <div className="relative flex aspect-[16/8.5] items-center justify-center overflow-hidden bg-[linear-gradient(135deg,#F7FCFD_0%,#EAF7FA_58%,#FFFFFF_100%)]">
-                  <div className="absolute left-5 top-5 rounded-full border border-white/70 bg-white/[0.82] px-3 py-1 text-[11px] font-semibold uppercase text-[var(--color-fdi-primary)] shadow-sm">
+                  <div className="absolute left-5 top-5 rounded-md border border-white/70 bg-white/[0.82] px-3 py-1 text-[11px] font-semibold uppercase text-[var(--color-fdi-primary)] shadow-sm">
                     {post.category}
                   </div>
-                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-white/90 bg-white shadow-[0_18px_36px_-24px_rgba(7,26,47,0.5)]">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-xl border border-white/90 bg-white shadow-[0_18px_36px_-24px_rgba(7,26,47,0.5)]">
                     <PostIcon className="h-7 w-7 text-[var(--color-fdi-primary)]" aria-hidden="true" />
                   </div>
                 </div>
                 <div className="p-5">
                   <div className="mb-2 flex items-center gap-2">
-                    <span className="rounded-full bg-[#EAF7FA] px-2 py-0.5 text-[10px] font-bold uppercase text-[var(--color-fdi-primary)]">
+                    <span className="rounded-md bg-[#EAF7FA] px-2 py-0.5 text-[10px] font-bold uppercase text-[var(--color-fdi-primary)]">
                       {post.category}
                     </span>
                     <span className="text-xs text-[var(--color-fdi-text-secondary)]">
@@ -107,7 +107,7 @@ export async function BlogSection() {
         <div className="mt-6 text-center sm:hidden">
           <Link
             href="/chia-se"
-            className="inline-flex min-h-11 items-center gap-1 rounded-full px-3 text-sm font-semibold text-[var(--color-fdi-primary)] cursor-pointer"
+            className="inline-flex min-h-11 items-center gap-1 rounded-lg px-3 text-sm font-semibold text-[var(--color-fdi-primary)] transition-colors hover:bg-[#EEF7FA] cursor-pointer"
           >
             Xem tất cả bài viết <ArrowRight className="h-4 w-4" />
           </Link>

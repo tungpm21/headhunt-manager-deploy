@@ -59,7 +59,7 @@ export default async function JobListingPage({ searchParams }: PageProps) {
               </p>
             </div>
           </div>
-            <form action="/viec-lam" className="flex w-full max-w-2xl items-center gap-2 rounded-2xl border border-[var(--color-fdi-mist)] bg-[var(--color-fdi-mist)] p-1.5 lg:bg-white" role="search" aria-label="Tìm việc làm">
+            <form action="/viec-lam" className="flex w-full max-w-2xl items-center gap-2 rounded-xl border border-[var(--color-fdi-mist)] bg-[var(--color-fdi-mist)] p-1.5 lg:bg-white" role="search" aria-label="Tìm việc làm">
               <Search className="ml-3 h-4 w-4 shrink-0 text-gray-400" aria-hidden="true" />
               <input
                 type="text"
@@ -91,7 +91,7 @@ export default async function JobListingPage({ searchParams }: PageProps) {
       {/* Content */}
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-5 lg:hidden">
-          <details className="rounded-2xl border border-[var(--color-fdi-mist)] bg-white shadow-sm">
+          <details className="rounded-xl border border-[var(--color-fdi-mist)] bg-white shadow-sm">
             <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between px-4 py-3 text-sm font-semibold text-[var(--color-fdi-text)]">
               <span className="inline-flex items-center gap-2">
                 <SlidersHorizontal className="h-4 w-4 text-[var(--color-fdi-primary)]" aria-hidden="true" />
@@ -117,7 +117,7 @@ export default async function JobListingPage({ searchParams }: PageProps) {
         <div className="flex flex-col gap-8 lg:flex-row">
           {/* Sidebar Filters */}
           <div className="hidden shrink-0 lg:block lg:w-64">
-            <div className="lg:sticky lg:top-24 rounded-2xl border border-[var(--color-fdi-mist)] bg-white p-5 shadow-sm">
+            <div className="rounded-xl border border-[var(--color-fdi-mist)] bg-white p-5 shadow-sm lg:sticky lg:top-24">
               <Suspense>
                 <JobFilters
                   industries={result.filters.industries}

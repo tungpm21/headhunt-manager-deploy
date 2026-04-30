@@ -68,7 +68,7 @@ export default async function CompanyListingPage({ searchParams }: PageProps) {
         <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
           <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-end">
             <div>
-              <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-[var(--color-fdi-surface)] px-3 py-1 text-xs font-bold uppercase tracking-wide text-[var(--color-fdi-primary)]">
+              <div className="mb-4 inline-flex items-center gap-2 rounded-md bg-[var(--color-fdi-surface)] px-3 py-1 text-xs font-bold uppercase tracking-wide text-[var(--color-fdi-primary)]">
                 <Building2 className="h-3.5 w-3.5" aria-hidden="true" />
                 Danh bạ doanh nghiệp FDI
               </div>
@@ -83,7 +83,7 @@ export default async function CompanyListingPage({ searchParams }: PageProps) {
               </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 rounded-2xl border border-[var(--color-fdi-border)] bg-[var(--color-fdi-paper)] p-4 shadow-[0_18px_44px_-36px_rgba(7,26,47,0.5)]">
+            <div className="grid grid-cols-2 gap-3 rounded-xl border border-[var(--color-fdi-border)] bg-[var(--color-fdi-paper)] p-4 shadow-[0_18px_44px_-36px_rgba(7,26,47,0.5)]">
               <div>
                 <p className="text-2xl font-bold tabular-nums text-[var(--color-fdi-text)]">{result.total}</p>
                 <p className="mt-1 text-xs font-medium text-[var(--color-fdi-text-secondary)]">doanh nghiệp phù hợp</p>
@@ -97,7 +97,7 @@ export default async function CompanyListingPage({ searchParams }: PageProps) {
             </div>
           </div>
 
-          <form action="/cong-ty" className="mt-8 rounded-2xl border border-[var(--color-fdi-border)] bg-white p-4 shadow-[0_18px_44px_-38px_rgba(7,26,47,0.55)]">
+          <form action="/cong-ty" className="mt-8 rounded-xl border border-[var(--color-fdi-border)] bg-white p-4 shadow-[0_18px_44px_-38px_rgba(7,26,47,0.55)]">
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(260px,1.35fr)_repeat(6,minmax(135px,1fr))]">
               <div className="sm:col-span-2 lg:col-span-1">
                 <label htmlFor="company-search" className="mb-1.5 block text-xs font-bold text-[var(--color-fdi-text)]">
@@ -223,7 +223,7 @@ export default async function CompanyListingPage({ searchParams }: PageProps) {
             <div className="mt-4 flex flex-wrap items-center gap-3">
               <button
                 type="submit"
-                className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full bg-[var(--color-fdi-primary)] px-5 py-2.5 text-sm font-bold text-white transition-[background-color,transform] duration-200 hover:-translate-y-0.5 hover:bg-[var(--color-fdi-primary-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-primary)]/35"
+                className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-lg bg-[var(--color-fdi-primary)] px-5 py-2.5 text-sm font-bold text-white transition-[background-color,transform] duration-200 hover:-translate-y-0.5 hover:bg-[var(--color-fdi-primary-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-primary)]/35"
               >
                 <Filter className="h-4 w-4" aria-hidden="true" />
                 Áp dụng
@@ -231,7 +231,7 @@ export default async function CompanyListingPage({ searchParams }: PageProps) {
               {hasActiveFilters && (
                 <Link
                   href="/cong-ty"
-                  className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full border border-[var(--color-fdi-border)] bg-white px-4 py-2.5 text-sm font-bold text-[var(--color-fdi-text)] transition-colors hover:border-[var(--color-fdi-primary)]/30 hover:bg-[var(--color-fdi-surface)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-primary)]/25"
+                  className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-lg border border-[var(--color-fdi-border)] bg-white px-4 py-2.5 text-sm font-bold text-[var(--color-fdi-text)] transition-colors hover:border-[var(--color-fdi-primary)]/30 hover:bg-[var(--color-fdi-surface)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-primary)]/25"
                 >
                   <X className="h-4 w-4" aria-hidden="true" />
                   Xóa lọc
@@ -244,7 +244,7 @@ export default async function CompanyListingPage({ searchParams }: PageProps) {
 
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
         {result.companies.length === 0 ? (
-          <div className="rounded-2xl border border-[var(--color-fdi-border)] bg-white px-6 py-16 text-center shadow-[0_18px_44px_-38px_rgba(7,26,47,0.55)]">
+          <div className="rounded-xl border border-[var(--color-fdi-border)] bg-white px-6 py-16 text-center shadow-[0_18px_44px_-38px_rgba(7,26,47,0.55)]">
             <SearchX className="mx-auto mb-4 h-12 w-12 text-[var(--color-fdi-text-secondary)]/45" aria-hidden="true" />
             <p
               className="text-lg font-bold text-[var(--color-fdi-text)]"
@@ -270,7 +270,7 @@ export default async function CompanyListingPage({ searchParams }: PageProps) {
                   Hiển thị {result.companies.length} trong {result.total} doanh nghiệp phù hợp.
                 </p>
               </div>
-              <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5 text-xs font-bold text-[var(--color-fdi-primary)] shadow-[0_12px_28px_-24px_rgba(7,26,47,0.6)]">
+              <span className="inline-flex items-center gap-2 rounded-md bg-white px-3 py-1.5 text-xs font-bold text-[var(--color-fdi-primary)] shadow-[0_12px_28px_-24px_rgba(7,26,47,0.6)]">
                 <SlidersHorizontal className="h-3.5 w-3.5" aria-hidden="true" />
                 {SORT_LABELS[sort]}
               </span>

@@ -47,11 +47,11 @@ export function TopEmployers({ employers }: TopEmployersProps) {
   return (
     <section className="relative z-10 -mt-8 bg-[linear-gradient(180deg,rgba(243,247,248,0)_0%,#F8FBFA_22%,#FFFFFB_100%)] py-10 sm:py-12 lg:py-14">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col rounded-[2rem] border border-[#D8E7EA] bg-[linear-gradient(180deg,#FFFFFF_0%,#F8FCFC_100%)] p-5 shadow-[0_34px_86px_-58px_rgba(7,26,47,0.46)] sm:p-6 lg:p-7">
+        <div className="flex flex-col rounded-xl border border-[#D8E7EA] bg-[linear-gradient(180deg,#FFFFFF_0%,#F8FCFC_100%)] p-5 shadow-[0_34px_86px_-58px_rgba(7,26,47,0.46)] sm:p-6 lg:p-7">
         {/* Heading + nav arrows */}
         <div className="mb-5 flex items-end justify-between gap-4 sm:mb-6 lg:mb-7">
           <div>
-            <p className="mb-2 inline-flex rounded-full border border-[#BFDCE4] bg-[#EAF7FA] px-3 py-1 text-[10px] font-bold uppercase text-[var(--color-fdi-primary)] shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
+            <p className="mb-2 inline-flex rounded-md border border-[#BFDCE4] bg-[#EAF7FA] px-3 py-1 text-[10px] font-bold uppercase text-[var(--color-fdi-primary)] shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
               Hiring partners
             </p>
             <h2
@@ -74,7 +74,7 @@ export function TopEmployers({ employers }: TopEmployersProps) {
               onClick={() => scroll("left")}
               disabled={!canScrollLeft}
               aria-label="Cuộn trái"
-              className="flex h-11 w-11 items-center justify-center rounded-full border border-[#BFDCE4] bg-[#EAF7FA] text-[var(--color-fdi-primary)] shadow-[0_12px_24px_-20px_rgba(7,26,47,0.5)] transition-[background-color,border-color,transform] duration-500 ease-[var(--ease-fdi)] hover:-translate-y-0.5 hover:border-[#91BFCD] hover:bg-white cursor-pointer disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:translate-y-0"
+              className="flex h-11 w-11 items-center justify-center rounded-lg border border-[#BFDCE4] bg-[#EAF7FA] text-[var(--color-fdi-primary)] shadow-[0_12px_24px_-20px_rgba(7,26,47,0.5)] transition-[background-color,border-color,transform] duration-300 ease-[var(--ease-fdi)] hover:-translate-y-0.5 hover:border-[#91BFCD] hover:bg-white cursor-pointer disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:translate-y-0"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
@@ -82,7 +82,7 @@ export function TopEmployers({ employers }: TopEmployersProps) {
               onClick={() => scroll("right")}
               disabled={!canScrollRight}
               aria-label="Cuộn phải"
-              className="flex h-11 w-11 items-center justify-center rounded-full border border-[#BFDCE4] bg-[#EAF7FA] text-[var(--color-fdi-primary)] shadow-[0_12px_24px_-20px_rgba(7,26,47,0.5)] transition-[background-color,border-color,transform] duration-500 ease-[var(--ease-fdi)] hover:-translate-y-0.5 hover:border-[#91BFCD] hover:bg-white cursor-pointer disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:translate-y-0"
+              className="flex h-11 w-11 items-center justify-center rounded-lg border border-[#BFDCE4] bg-[#EAF7FA] text-[var(--color-fdi-primary)] shadow-[0_12px_24px_-20px_rgba(7,26,47,0.5)] transition-[background-color,border-color,transform] duration-300 ease-[var(--ease-fdi)] hover:-translate-y-0.5 hover:border-[#91BFCD] hover:bg-white cursor-pointer disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:translate-y-0"
             >
               <ChevronRight className="h-4 w-4" />
             </button>
@@ -107,11 +107,11 @@ export function TopEmployers({ employers }: TopEmployersProps) {
                 href={`/cong-ty/${employer.slug}`}
                 className="group block cursor-pointer snap-start"
               >
-                <div className="flex min-h-[324px] flex-col overflow-hidden rounded-2xl border border-[#D6E5E9] bg-white shadow-[0_22px_48px_-34px_rgba(7,26,47,0.5)] transition-[border-color,box-shadow,transform] duration-500 ease-[var(--ease-fdi)] hover:-translate-y-1.5 hover:border-[#A9CED8] hover:shadow-[0_34px_68px_-38px_rgba(7,26,47,0.62)]">
+                <div className="flex min-h-[324px] flex-col overflow-hidden rounded-xl border border-[#D6E5E9] bg-white shadow-[0_22px_48px_-34px_rgba(7,26,47,0.5)] transition-[border-color,box-shadow,transform] duration-300 ease-[var(--ease-fdi)] hover:-translate-y-1 hover:border-[#A9CED8] hover:shadow-[0_34px_68px_-38px_rgba(7,26,47,0.62)]">
                   <div className="h-1 bg-[linear-gradient(90deg,#0A6F9D_0%,#5CC3D9_100%)]" />
                   {/* Logo zone — full bleed */}
                   <div className="flex h-[150px] items-center justify-center border-b border-[#E3ECEF] bg-[linear-gradient(180deg,#F7FCFD_0%,#FFFFFF_100%)] p-4 sm:h-[158px] lg:h-[154px]">
-                    <div className="flex h-24 w-full items-center justify-center rounded-2xl bg-white shadow-[inset_0_0_0_1px_rgba(216,231,234,0.72)] sm:h-28">
+                    <div className="flex h-24 w-full items-center justify-center rounded-lg bg-white shadow-[inset_0_0_0_1px_rgba(216,231,234,0.72)] sm:h-28">
                       <LogoImage
                         src={employer.logo}
                         alt={employer.companyName}
@@ -146,7 +146,7 @@ export function TopEmployers({ employers }: TopEmployersProps) {
         <div className="mt-5 text-center sm:mt-6">
           <Link
             href="/cong-ty"
-            className="inline-flex min-h-11 items-center gap-1 rounded-full border border-[var(--color-fdi-primary)] bg-[var(--color-fdi-primary)] px-5 text-sm font-bold text-white shadow-[0_18px_34px_-26px_rgba(10,111,157,0.72)] transition-[background-color,border-color,transform] duration-500 ease-[var(--ease-fdi)] hover:-translate-y-0.5 hover:border-[var(--color-fdi-primary-hover)] hover:bg-[var(--color-fdi-primary-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-primary)]/25 cursor-pointer"
+            className="inline-flex min-h-11 items-center gap-1 rounded-lg border border-[var(--color-fdi-primary)] bg-[var(--color-fdi-primary)] px-5 text-sm font-bold text-white shadow-[0_18px_34px_-26px_rgba(10,111,157,0.72)] transition-[background-color,border-color,transform] duration-300 ease-[var(--ease-fdi)] hover:-translate-y-0.5 hover:border-[var(--color-fdi-primary-hover)] hover:bg-[var(--color-fdi-primary-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-primary)]/25 cursor-pointer"
           >
             Khám phá thêm
             <ArrowRight className="h-4 w-4" aria-hidden="true" />

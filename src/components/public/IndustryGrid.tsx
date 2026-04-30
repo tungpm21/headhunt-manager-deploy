@@ -83,9 +83,9 @@ export function IndustryGrid({ industries, stats }: IndustryGridProps) {
   return (
     <section className="bg-[linear-gradient(180deg,#F5F8FA_0%,#FFFFFB_100%)] py-10 lg:py-10">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-7 grid gap-4 rounded-[2rem] border border-[#D8E7EA] bg-[linear-gradient(180deg,#FFFFFF_0%,#F8FCFC_100%)] p-5 shadow-[0_28px_72px_-56px_rgba(7,26,47,0.42)] sm:p-6 lg:grid-cols-[1.15fr_0.85fr_0.85fr_0.85fr] lg:p-7">
+      <div className="mb-7 grid gap-4 rounded-xl border border-[#D8E7EA] bg-[linear-gradient(180deg,#FFFFFF_0%,#F8FCFC_100%)] p-5 shadow-[0_28px_72px_-56px_rgba(7,26,47,0.42)] sm:p-6 lg:grid-cols-[1.15fr_0.85fr_0.85fr_0.85fr] lg:p-7">
           <div className="lg:pr-6">
-            <p className="inline-flex rounded-full border border-[#BFDCE4] bg-[#EAF7FA] px-3 py-1 text-xs font-bold uppercase text-[var(--color-fdi-primary)] shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
+        <p className="inline-flex rounded-md border border-[#BFDCE4] bg-[#EAF7FA] px-3 py-1 text-xs font-bold uppercase text-[var(--color-fdi-primary)] shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
               Market signal
             </p>
             <h2
@@ -117,7 +117,7 @@ export function IndustryGrid({ industries, stats }: IndustryGridProps) {
 
         <div className="mb-6 flex items-end justify-between gap-4">
           <div className="text-center sm:text-left">
-            <p className="mb-2 inline-flex rounded-full border border-[#BFDCE4] bg-[#EAF7FA] px-3 py-1 text-[10px] font-bold uppercase text-[var(--color-fdi-primary)] shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
+          <p className="mb-2 inline-flex rounded-md border border-[#BFDCE4] bg-[#EAF7FA] px-3 py-1 text-[10px] font-bold uppercase text-[var(--color-fdi-primary)] shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
               Career fields
             </p>
             <h2
@@ -140,7 +140,7 @@ export function IndustryGrid({ industries, stats }: IndustryGridProps) {
                 onClick={() => scroll("left")}
                 disabled={!canScrollLeft}
                 aria-label="Cuộn ngành nghề sang trái"
-                className="flex h-11 w-11 items-center justify-center rounded-full border border-[#BFDCE4] bg-[#EAF7FA] text-[var(--color-fdi-primary)] shadow-[0_12px_24px_-20px_rgba(7,26,47,0.5)] transition-[background-color,border-color,transform] duration-500 ease-[var(--ease-fdi)] hover:-translate-y-0.5 hover:border-[#91BFCD] hover:bg-white disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:translate-y-0"
+              className="flex h-11 w-11 items-center justify-center rounded-lg border border-[#BFDCE4] bg-[#EAF7FA] text-[var(--color-fdi-primary)] shadow-[0_12px_24px_-20px_rgba(7,26,47,0.5)] transition-[background-color,border-color,transform] duration-300 ease-[var(--ease-fdi)] hover:-translate-y-0.5 hover:border-[#91BFCD] hover:bg-white disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:translate-y-0"
               >
                 <ChevronLeft className="h-4 w-4" />
               </button>
@@ -148,7 +148,7 @@ export function IndustryGrid({ industries, stats }: IndustryGridProps) {
                 onClick={() => scroll("right")}
                 disabled={!canScrollRight}
                 aria-label="Cuộn ngành nghề sang phải"
-                className="flex h-11 w-11 items-center justify-center rounded-full border border-[#BFDCE4] bg-[#EAF7FA] text-[var(--color-fdi-primary)] shadow-[0_12px_24px_-20px_rgba(7,26,47,0.5)] transition-[background-color,border-color,transform] duration-500 ease-[var(--ease-fdi)] hover:-translate-y-0.5 hover:border-[#91BFCD] hover:bg-white disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:translate-y-0"
+              className="flex h-11 w-11 items-center justify-center rounded-lg border border-[#BFDCE4] bg-[#EAF7FA] text-[var(--color-fdi-primary)] shadow-[0_12px_24px_-20px_rgba(7,26,47,0.5)] transition-[background-color,border-color,transform] duration-300 ease-[var(--ease-fdi)] hover:-translate-y-0.5 hover:border-[#91BFCD] hover:bg-white disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:translate-y-0"
               >
                 <ChevronRight className="h-4 w-4" />
               </button>
@@ -158,7 +158,7 @@ export function IndustryGrid({ industries, stats }: IndustryGridProps) {
 
         <div
           ref={scrollRef}
-          className="flex gap-4 overflow-x-auto rounded-[24px] border border-[#D8E7EA] bg-[linear-gradient(180deg,#FFFFFF_0%,#F8FCFC_100%)] px-4 py-6 shadow-[0_28px_70px_-52px_rgba(7,26,47,0.46)] scrollbar-hide sm:gap-5 sm:px-5 sm:py-7"
+        className="flex gap-4 overflow-x-auto rounded-xl border border-[#D8E7EA] bg-[linear-gradient(180deg,#FFFFFF_0%,#F8FCFC_100%)] px-4 py-6 shadow-[0_28px_70px_-52px_rgba(7,26,47,0.46)] scrollbar-hide sm:gap-5 sm:px-5 sm:py-7"
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
           {industries.map((item) => {
@@ -192,7 +192,7 @@ export function IndustryGrid({ industries, stats }: IndustryGridProps) {
         <div className="mt-5 text-center">
           <Link
             href="/viec-lam"
-            className="inline-flex min-h-11 cursor-pointer items-center gap-1 rounded-full border border-[var(--color-fdi-primary)] bg-[var(--color-fdi-primary)] px-5 text-sm font-bold text-white shadow-[0_18px_34px_-26px_rgba(10,111,157,0.72)] transition-[background-color,border-color,transform] duration-500 ease-[var(--ease-fdi)] hover:-translate-y-0.5 hover:border-[var(--color-fdi-primary-hover)] hover:bg-[var(--color-fdi-primary-hover)]"
+          className="inline-flex min-h-11 cursor-pointer items-center gap-1 rounded-lg border border-[var(--color-fdi-primary)] bg-[var(--color-fdi-primary)] px-5 text-sm font-bold text-white shadow-[0_18px_34px_-26px_rgba(10,111,157,0.72)] transition-[background-color,border-color,transform] duration-300 ease-[var(--ease-fdi)] hover:-translate-y-0.5 hover:border-[var(--color-fdi-primary-hover)] hover:bg-[var(--color-fdi-primary-hover)]"
           >
             Khám phá thêm
             <ArrowRight className="h-4 w-4" />

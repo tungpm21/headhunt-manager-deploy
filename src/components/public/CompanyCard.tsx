@@ -71,10 +71,10 @@ export function CompanyCard({ company, imagePriority = false, variant = "standar
     return (
       <Link
         href={`/cong-ty/${company.slug}`}
-        className="group block h-full cursor-pointer rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-primary)]/40"
+        className="group block h-full cursor-pointer rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-primary)]/40"
         style={{ touchAction: "manipulation" }}
       >
-        <article className="grid h-full overflow-hidden rounded-2xl border border-[var(--color-fdi-primary)]/25 bg-white shadow-[0_26px_70px_-48px_rgba(7,26,47,0.75)] transition-[border-color,box-shadow,transform] duration-200 ease-out group-hover:-translate-y-0.5 group-hover:border-[var(--color-fdi-primary)]/45 group-hover:shadow-[0_34px_86px_-52px_rgba(7,26,47,0.9)] lg:grid-cols-[1.08fr_0.92fr]">
+        <article className="grid h-full overflow-hidden rounded-xl border border-[var(--color-fdi-primary)]/25 bg-white shadow-[0_26px_70px_-48px_rgba(7,26,47,0.75)] transition-[border-color,box-shadow,transform] duration-200 ease-out group-hover:-translate-y-0.5 group-hover:border-[var(--color-fdi-primary)]/45 group-hover:shadow-[0_34px_86px_-52px_rgba(7,26,47,0.9)] lg:grid-cols-[1.08fr_0.92fr]">
           <div className="relative min-h-[224px] overflow-hidden bg-[var(--color-fdi-dark)] sm:min-h-[280px] lg:min-h-full">
             <CoverImage
               company={company}
@@ -83,7 +83,7 @@ export function CompanyCard({ company, imagePriority = false, variant = "standar
               className="opacity-95"
             />
             <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-[var(--color-fdi-ink)]/70 to-transparent" aria-hidden="true" />
-            <div className="absolute bottom-5 left-5 flex h-20 w-20 items-center justify-center overflow-hidden rounded-2xl border border-white/70 bg-white shadow-[0_18px_36px_-24px_rgba(7,26,47,0.8)]">
+            <div className="absolute bottom-5 left-5 flex h-20 w-20 items-center justify-center overflow-hidden rounded-xl border border-white/70 bg-white shadow-[0_18px_36px_-24px_rgba(7,26,47,0.8)]">
               <LogoImage
                 src={company.logo}
                 alt={company.companyName}
@@ -155,7 +155,7 @@ export function CompanyCard({ company, imagePriority = false, variant = "standar
             </div>
 
             <div className="mt-auto pt-6">
-              <span className="inline-flex min-h-11 items-center gap-2 rounded-full bg-[var(--color-fdi-primary)] px-5 py-2.5 text-sm font-bold text-white transition-[background-color,transform] duration-200 group-hover:bg-[var(--color-fdi-primary-hover)]">
+              <span className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-[var(--color-fdi-primary)] px-5 py-2.5 text-sm font-bold text-white transition-[background-color,transform] duration-200 group-hover:bg-[var(--color-fdi-primary-hover)]">
                 Xem hồ sơ công ty
                 <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
               </span>

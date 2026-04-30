@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { CoverPositionEditor } from "@/components/CoverPositionEditor";
 import { BlockBuilder } from "@/components/content/BlockBuilder";
@@ -23,6 +23,14 @@ import {
   type MediaUploadKind,
   validateMediaImageFile,
 } from "@/lib/media-validation";
+import {
+  COVER_ASPECT_RATIO_OPTIONS,
+  HOMEPAGE_BANNER_ASPECT_RATIO,
+  LOGO_ASPECT_RATIO_OPTIONS,
+  normalizeCompanyMediaSettings,
+  type CompanyLogoFit,
+  type CompanyMediaSettings,
+} from "@/lib/company-media-settings";
 import {
   AlertCircle,
   Building2,
@@ -204,6 +212,9 @@ function CompanyProfileForm({
   const [theme, setTheme] = useState(
     normalizeCompanyTheme(employer.profileConfig?.theme ?? DEFAULT_COMPANY_THEME)
   );
+  const [mediaSettings, setMediaSettings] = useState(
+    normalizeCompanyMediaSettings(employer.profileConfig?.theme)
+  );
   const [primaryVideoUrl, setPrimaryVideoUrl] = useState(
     employer.profileConfig?.primaryVideoUrl ?? ""
   );
@@ -228,14 +239,30 @@ function CompanyProfileForm({
     handleFileChange: handleCoverFileChange,
     handleReset: handleCoverReset,
   } = useImageUpload(employer.coverImage, "profileCover");
+  const {
+    previewUrl: bannerPreviewUrl,
+    selectedName: bannerSelectedName,
+    error: bannerError,
+    fileInputRef: bannerFileInputRef,
+    handleFileChange: handleBannerFileChange,
+    handleReset: handleBannerReset,
+  } = useImageUpload(mediaSettings.bannerImageUrl, "profileCover");
+  const effectiveBannerImageUrl = bannerSelectedName
+    ? bannerPreviewUrl
+    : mediaSettings.bannerImageUrl || coverPreviewUrl;
 
   const updateThemeValue = (key: keyof CompanyProfileTheme, value: string) => {
     setTheme((current) => ({ ...current, [key]: value }));
   };
 
+  function updateMediaSettings(next: Partial<CompanyMediaSettings>) {
+    setMediaSettings((current) => ({ ...current, ...next }));
+  }
+
   async function handleSubmit(formData: FormData) {
     if ((logoError && logoFileInputRef.current?.files?.length) ||
-      (coverError && coverFileInputRef.current?.files?.length)) {
+      (coverError && coverFileInputRef.current?.files?.length) ||
+      (bannerError && bannerFileInputRef.current?.files?.length)) {
       setMessage({ type: "error", text: logoError || coverError || "Lỗi file ảnh." });
       return;
     }
@@ -243,6 +270,7 @@ function CompanyProfileForm({
     setSaving(true);
     setMessage(null);
     formData.set("profileTheme", JSON.stringify(theme));
+    formData.set("profileMediaSettings", JSON.stringify(mediaSettings));
     formData.set("primaryVideoUrl", primaryVideoUrl);
 
     try {
@@ -255,6 +283,7 @@ function CompanyProfileForm({
       if (result.success) {
         handleLogoReset();
         handleCoverReset();
+        handleBannerReset();
         const [updated, draft] = await Promise.all([
           getCompanyProfile(),
           getCompanyProfileDraftStatus(),
@@ -341,12 +370,61 @@ function CompanyProfileForm({
               <p className="text-sm font-semibold text-gray-800">Logo công ty</p>
               <p className="mt-1 text-xs text-gray-500">JPG, PNG, WebP. Tối đa 2MB.</p>
               <div className="mt-4 flex flex-col items-center gap-3">
-                <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-2xl border border-teal-100 bg-white">
+                <div
+                  className="flex min-h-24 items-center justify-center overflow-hidden rounded-2xl border border-teal-100 bg-white"
+                  style={{
+                    aspectRatio: mediaSettings.logoAspectRatio === "auto" ? "1 / 1" : mediaSettings.logoAspectRatio,
+                    width: mediaSettings.logoAspectRatio === "auto" ? "6rem" : undefined,
+                    maxWidth: "11rem",
+                  }}
+                >
                   {logoPreviewUrl ? (
-                    <img src={logoPreviewUrl} alt={employer.companyName} className="h-full w-full object-contain p-2" />
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={logoPreviewUrl}
+                      alt={employer.companyName}
+                      className="h-full w-full p-2"
+                      style={{
+                        objectFit: mediaSettings.logoFit,
+                        transform: `scale(${mediaSettings.logoZoom / 100})`,
+                      }}
+                    />
                   ) : (
                     <Building2 className="h-9 w-9 text-teal-600" />
                   )}
+                </div>
+                <div className="w-full space-y-3 rounded-xl border border-gray-200 bg-white p-3">
+                  <ControlLabel>Tỷ lệ logo</ControlLabel>
+                  <RatioButtonGroup
+                    options={LOGO_ASPECT_RATIO_OPTIONS}
+                    value={mediaSettings.logoAspectRatio}
+                    onChange={(value) => updateMediaSettings({ logoAspectRatio: value })}
+                  />
+                  <div className="grid gap-3">
+                    <label className="block text-xs font-medium text-gray-500">
+                      Kiểu hiển thị
+                      <select
+                        value={mediaSettings.logoFit}
+                        onChange={(event) => updateMediaSettings({ logoFit: event.target.value as CompanyLogoFit })}
+                        className="mt-1 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800"
+                      >
+                        <option value="contain">Vừa khung</option>
+                        <option value="cover">Crop đầy khung</option>
+                      </select>
+                    </label>
+                    <label className="block text-xs font-medium text-gray-500">
+                      Zoom {mediaSettings.logoZoom}%
+                      <input
+                        type="range"
+                        min={60}
+                        max={200}
+                        step={5}
+                        value={mediaSettings.logoZoom}
+                        onChange={(event) => updateMediaSettings({ logoZoom: Number(event.target.value) })}
+                        className="mt-3 w-full accent-teal-600"
+                      />
+                    </label>
+                  </div>
                 </div>
                 <input
                   ref={logoFileInputRef}
@@ -387,19 +465,32 @@ function CompanyProfileForm({
             <div className="rounded-xl border border-gray-100 bg-gray-50 p-4">
               <p className="text-sm font-semibold text-gray-800">Ảnh bìa công ty</p>
               <p className="mt-1 text-xs text-gray-500">JPG, PNG, WebP. Tối đa 5MB. Khuyến nghị 1200x400px.</p>
+              <div className="mt-4 rounded-xl border border-gray-200 bg-white p-3">
+                <ControlLabel>Tỷ lệ ảnh bìa public</ControlLabel>
+                <RatioButtonGroup
+                  options={COVER_ASPECT_RATIO_OPTIONS}
+                  value={mediaSettings.coverAspectRatio}
+                  onChange={(value) => updateMediaSettings({ coverAspectRatio: value })}
+                />
+              </div>
               <div className="mt-4 space-y-3">
                 {coverPreviewUrl ? (
                   <CoverPositionEditor
+                    key={`${coverPreviewUrl}-${mediaSettings.coverAspectRatio}`}
                     imageUrl={coverPreviewUrl}
                     positionX={coverPos.positionX}
                     positionY={coverPos.positionY}
                     zoom={coverPos.zoom}
+                    aspectRatio={mediaSettings.coverAspectRatio}
                     onChange={setCoverPos}
                   />
                 ) : (
                   <div
-                    className="flex h-40 items-center justify-center rounded-xl border border-dashed border-gray-200 text-sm text-white/80"
-                    style={{ background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.accentColor})` }}
+                    className="flex min-h-40 items-center justify-center rounded-xl border border-dashed border-gray-200 text-sm text-white/80"
+                    style={{
+                      aspectRatio: mediaSettings.coverAspectRatio,
+                      background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.accentColor})`,
+                    }}
                   >
                     Chưa có ảnh bìa - sẽ dùng màu theme.
                   </div>
@@ -447,6 +538,97 @@ function CompanyProfileForm({
           <input type="hidden" name="coverPositionX" value={coverPos.positionX} />
           <input type="hidden" name="coverPositionY" value={coverPos.positionY} />
           <input type="hidden" name="coverZoom" value={coverPos.zoom} />
+        </section>
+
+        <section className="rounded-xl border border-gray-100 bg-white p-6">
+          <div className="flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between">
+            <div>
+              <p className="text-sm font-semibold text-gray-800">Banner homepage</p>
+              <p className="mt-1 text-xs text-gray-500">
+                Dành cho gói có quyền hiển thị banner. Bỏ trống sẽ dùng ảnh bìa public.
+              </p>
+            </div>
+            <span className="rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-xs font-semibold text-gray-500">
+              Tỷ lệ {HOMEPAGE_BANNER_ASPECT_RATIO.replace(" / ", ":")}
+            </span>
+          </div>
+          <div className="mt-4">
+            {effectiveBannerImageUrl ? (
+              <CoverPositionEditor
+                key={`${effectiveBannerImageUrl}-${HOMEPAGE_BANNER_ASPECT_RATIO}`}
+                imageUrl={effectiveBannerImageUrl}
+                positionX={mediaSettings.bannerPositionX}
+                positionY={mediaSettings.bannerPositionY}
+                zoom={mediaSettings.bannerZoom}
+                aspectRatio={HOMEPAGE_BANNER_ASPECT_RATIO}
+                onChange={(position) =>
+                  updateMediaSettings({
+                    bannerPositionX: position.positionX,
+                    bannerPositionY: position.positionY,
+                    bannerZoom: position.zoom,
+                  })
+                }
+              />
+            ) : (
+              <div
+                className="flex min-h-44 items-center justify-center rounded-xl border border-dashed border-gray-200 text-sm text-white/80"
+                style={{
+                  aspectRatio: HOMEPAGE_BANNER_ASPECT_RATIO,
+                  background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.accentColor})`,
+                }}
+              >
+                Chưa có ảnh banner - sẽ dùng màu theme.
+              </div>
+            )}
+          </div>
+          <div className="mt-4 grid gap-3 lg:grid-cols-[1fr_220px_auto]">
+            <input
+              value={mediaSettings.bannerImageUrl ?? ""}
+              onChange={(event) => {
+                const value = event.target.value.trim();
+                updateMediaSettings({ bannerImageUrl: value || null });
+              }}
+              placeholder="Banner URL riêng (bỏ trống để dùng ảnh bìa)"
+              className={inputClassName}
+            />
+            <input
+              ref={bannerFileInputRef}
+              name="bannerImage"
+              type="file"
+              accept={MEDIA_IMAGE_ACCEPT}
+              onChange={handleBannerFileChange}
+              className="hidden"
+            />
+            <button
+              type="button"
+              onClick={() => bannerFileInputRef.current?.click()}
+              className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
+            >
+              <ImagePlus className="h-4 w-4" />
+              {effectiveBannerImageUrl ? "Đổi banner" : "Tải banner lên"}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                updateMediaSettings({
+                  bannerImageUrl: null,
+                  bannerPositionX: 50,
+                  bannerPositionY: 50,
+                  bannerZoom: 100,
+                });
+                handleBannerReset();
+              }}
+              className="inline-flex min-h-10 items-center justify-center rounded-xl border border-gray-200 bg-white px-4 text-sm font-semibold text-gray-500 transition hover:bg-gray-50 hover:text-gray-800"
+            >
+              Dùng ảnh bìa
+            </button>
+          </div>
+          {bannerSelectedName ? (
+            <p className="mt-3 truncate rounded-lg bg-teal-50 px-3 py-1.5 text-xs text-teal-700">
+              {bannerSelectedName}
+            </p>
+          ) : null}
+          {bannerError ? <p className="mt-2 text-xs text-red-600">{bannerError}</p> : null}
         </section>
 
         <section className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(340px,0.85fr)]">
@@ -637,6 +819,42 @@ function CompanyProfileForm({
           </button>
         </div>
       </form>
+    </div>
+  );
+}
+
+function ControlLabel({ children }: { children: ReactNode }) {
+  return <p className="mb-2 text-xs font-semibold uppercase text-gray-500">{children}</p>;
+}
+
+function RatioButtonGroup<T extends string>({
+  options,
+  value,
+  onChange,
+}: {
+  options: Array<{ value: T; label: string }>;
+  value: T;
+  onChange: (value: T) => void;
+}) {
+  return (
+    <div className="flex flex-wrap gap-2">
+      {options.map((option) => {
+        const active = option.value === value;
+        return (
+          <button
+            key={option.value}
+            type="button"
+            onClick={() => onChange(option.value)}
+            className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition ${
+              active
+                ? "border-teal-600 bg-teal-600 text-white"
+                : "border-gray-200 bg-white text-gray-500 hover:border-teal-300 hover:text-gray-800"
+            }`}
+          >
+            {option.label}
+          </button>
+        );
+      })}
     </div>
   );
 }

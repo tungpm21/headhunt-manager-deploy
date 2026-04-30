@@ -414,7 +414,10 @@ export async function updateCompanyProfileAction(formData: FormData) {
     : currentTheme;
   const profileThemeWithMedia = {
     ...profileTheme,
-    media: normalizeCompanyMediaSettings(employer.profileConfig?.theme),
+    media: normalizeCompanyMediaSettings(
+      parseJson(formData.get("profileMediaSettings")?.toString() ?? "") ||
+        employer.profileConfig?.theme
+    ),
   };
   const profileSections = filterProfileBlocksByCapabilities(
     normalizeContentBlocks(formData.get("profileSections")?.toString() ?? "[]"),
@@ -474,6 +477,35 @@ export async function updateCompanyProfileAction(formData: FormData) {
     uploadedCoverUrl = result.url;
   }
 
+  const bannerFile = formData.get("bannerImage");
+  const nextBanner = bannerFile instanceof File && bannerFile.size > 0 ? bannerFile : null;
+  let uploadedBannerUrl: string | null = null;
+
+  if (nextBanner) {
+    const result = await uploadEmployerImageFile(
+      "banners",
+      `employer-homepage-banner-${access.employerId}`,
+      nextBanner,
+      "profileCover"
+    );
+    if ("error" in result) {
+      if (uploadedLogoUrl) await deleteFile(uploadedLogoUrl);
+      if (uploadedCoverUrl) await deleteFile(uploadedCoverUrl);
+      return { success: false, message: result.error };
+    }
+    uploadedBannerUrl = result.url;
+  }
+
+  const nextProfileThemeWithMedia = uploadedBannerUrl
+    ? {
+        ...profileThemeWithMedia,
+        media: {
+          ...profileThemeWithMedia.media,
+          bannerImageUrl: uploadedBannerUrl,
+        },
+      }
+    : profileThemeWithMedia;
+
   try {
     const existingDraft = await prisma.companyProfileDraft.findFirst({
       where: {
@@ -506,7 +538,7 @@ export async function updateCompanyProfileAction(formData: FormData) {
       coverPositionY: parseInt(formData.get("coverPositionY")?.toString() || "50") || 50,
       coverZoom: parseInt(formData.get("coverZoom")?.toString() || "100") || 100,
       profileConfig: {
-        theme: profileThemeWithMedia,
+        theme: nextProfileThemeWithMedia,
         capabilities: currentCapabilities,
         sections: profileSections,
         primaryVideoUrl,
@@ -546,6 +578,7 @@ export async function updateCompanyProfileAction(formData: FormData) {
   } catch (error) {
     if (uploadedLogoUrl) await deleteFile(uploadedLogoUrl);
     if (uploadedCoverUrl) await deleteFile(uploadedCoverUrl);
+    if (uploadedBannerUrl) await deleteFile(uploadedBannerUrl);
     console.error("updateCompanyProfileAction error:", error);
     return {
       success: false,

@@ -59,7 +59,7 @@ export function EmployerBannerCarousel({ employers }: EmployerBannerCarouselProp
         <div className="relative rounded-xl border border-[#CFE0EA] bg-white p-1.5 shadow-[0_36px_90px_-60px_rgba(7,26,47,0.72)]">
           <div className="relative overflow-hidden rounded-lg bg-[#F7FBFC] ring-1 ring-[#D8E7EA]/80">
           {/* Image area — aspect ratio controlled */}
-          <div className="relative h-[280px] w-full sm:h-[370px] lg:h-[450px] xl:h-[500px]">
+          <div className="relative h-[280px] w-full sm:h-[360px] lg:h-[430px] xl:h-[470px]">
             {bannerImage ? (
               <Image
                 src={bannerImage}

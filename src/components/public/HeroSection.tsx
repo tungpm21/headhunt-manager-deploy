@@ -96,12 +96,12 @@ export function HeroSection() {
       <h1 className="sr-only">
         Tìm việc làm FDI tại Việt Nam - Kết nối ứng viên với doanh nghiệp nước ngoài
       </h1>
-      <div className="relative mx-auto max-w-7xl px-4 pb-2 pt-10 sm:px-6 lg:px-8 lg:pt-12">
+      <div className="relative mx-auto max-w-7xl px-4 pb-2 pt-8 sm:px-6 lg:px-8 lg:pt-10">
         <div
           ref={searchContainerRef}
           className="relative z-30 mx-auto max-w-[1040px]"
         >
-          <div className="mb-4 flex justify-center">
+          <div className="mb-3 flex justify-center">
             <span className="inline-flex items-center rounded-md border border-[#CFE0EA] bg-white/80 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.12em] text-[var(--color-fdi-primary)] shadow-[0_12px_26px_-24px_rgba(7,26,47,0.5)] backdrop-blur">
               Nền tảng việc làm dành cho doanh nghiệp FDI
             </span>

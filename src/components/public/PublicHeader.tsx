@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import {
   Menu,
@@ -99,9 +100,18 @@ export function PublicHeader() {
     <header className="fixed left-0 right-0 top-0 z-50 border-b border-[rgba(15,78,120,0.08)] bg-white/[0.92] shadow-[0_14px_34px_-30px_rgba(7,26,47,0.56)] backdrop-blur-xl">
       <div className="mx-auto flex h-[68px] max-w-7xl items-center gap-2 px-4 text-[var(--color-fdi-text)] sm:px-6 lg:gap-3 lg:px-8">
         {/* Logo */}
-        <Link href="/" aria-label="FDIWork - Trang chủ" className="flex min-h-11 shrink-0 items-center gap-2 cursor-pointer">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--color-fdi-primary)] shadow-[0_12px_24px_-18px_rgba(10,111,157,0.8)]" aria-hidden="true">
-            <Briefcase className="h-[18px] w-[18px] text-white" />
+        <Link href="/" aria-label="FDIWork - Trang chủ" className="flex min-h-11 shrink-0 items-center gap-2.5 cursor-pointer">
+          <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-lg bg-white shadow-[0_12px_24px_-18px_rgba(7,26,47,0.75)] ring-1 ring-[#D8E7EA]" aria-hidden="true">
+            <Image
+              src="/brand/logo-fdiwork.png"
+              alt=""
+              width={88}
+              height={82}
+              priority
+              unoptimized
+              className="h-10 w-10 object-contain"
+              sizes="44px"
+            />
           </div>
           <span className="inline text-[22px] font-black text-[var(--color-fdi-text)]" style={{ fontFamily: "var(--font-heading)" }}>
             FDI<span className="text-[var(--color-fdi-primary)]">Work</span>

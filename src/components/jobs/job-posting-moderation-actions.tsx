@@ -46,6 +46,21 @@ export function JobPostingModerationActions({
   const canToggle = status === "APPROVED" || status === "PAUSED";
   const canPreviewPublic = ["APPROVED", "PAUSED", "EXPIRED"].includes(status);
   const previewHref = canPreviewPublic ? `/viec-lam/${slug}` : `/moderation/${jobId}/edit`;
+  const previewLabel = canPreviewPublic
+    ? `Preview job posting ${jobTitle}`
+    : `Open job posting editor for ${jobTitle}`;
+  const editLabel = `Edit job posting ${jobTitle}`;
+  const menuLabel = `Open job posting actions for ${jobTitle}`;
+  const approveLabel =
+    status === "REJECTED"
+      ? `Approve job posting again ${jobTitle}`
+      : status === "EXPIRED"
+        ? `Republish job posting ${jobTitle}`
+        : `Approve job posting ${jobTitle}`;
+  const toggleLabel =
+    status === "APPROVED" ? `Pause public job posting ${jobTitle}` : `Show public job posting ${jobTitle}`;
+  const rejectLabel = `Reject job posting ${jobTitle}`;
+  const deleteLabel = `Delete job posting ${jobTitle}`;
   const disabled = isPending || activeAction !== null;
   const neutralButton =
     compact
@@ -115,8 +130,8 @@ export function JobPostingModerationActions({
           target={canPreviewPublic ? "_blank" : undefined}
           rel={canPreviewPublic ? "noopener noreferrer" : undefined}
           className={neutralButton}
-          title="Preview"
-          aria-label="Preview bài đăng"
+          title={previewLabel}
+          aria-label={previewLabel}
         >
           <Eye className="h-3.5 w-3.5" />
         </Link>
@@ -124,13 +139,14 @@ export function JobPostingModerationActions({
         <details className="group relative">
           <summary
             className="inline-flex h-8 w-8 cursor-pointer list-none items-center justify-center rounded-md border border-border bg-white text-foreground transition hover:border-primary/40 hover:text-primary [&::-webkit-details-marker]:hidden"
-            title="Thao tác"
-            aria-label="Mở menu thao tác"
+            title={menuLabel}
+            aria-label={menuLabel}
           >
             <MoreHorizontal className="h-3.5 w-3.5" />
+            <span className="sr-only">{menuLabel}</span>
           </summary>
           <div className="absolute right-0 top-9 z-30 w-44 overflow-hidden rounded-lg border border-border bg-white py-1 text-left shadow-lg">
-            <Link href={`/moderation/${jobId}/edit`} className={menuItemClass}>
+            <Link href={`/moderation/${jobId}/edit`} className={menuItemClass} aria-label={editLabel}>
               <Pencil className="h-3.5 w-3.5" />
               Sửa bài
             </Link>
@@ -141,6 +157,7 @@ export function JobPostingModerationActions({
                 onClick={() => runAction("approve", () => approveJobPosting(jobId))}
                 disabled={disabled}
                 className={menuItemClass}
+                aria-label={approveLabel}
               >
                 {activeAction === "approve" ? (
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -157,6 +174,7 @@ export function JobPostingModerationActions({
                 onClick={() => runAction("toggle", () => toggleAdminJobPostingVisibility(jobId))}
                 disabled={disabled}
                 className={menuItemClass}
+                aria-label={toggleLabel}
               >
                 {activeAction === "toggle" ? (
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -175,6 +193,7 @@ export function JobPostingModerationActions({
                 onClick={handleCompactReject}
                 disabled={disabled}
                 className={dangerMenuItemClass}
+                aria-label={rejectLabel}
               >
                 <XCircle className="h-3.5 w-3.5" />
                 Từ chối
@@ -186,6 +205,7 @@ export function JobPostingModerationActions({
               onClick={handleDelete}
               disabled={disabled}
               className={dangerMenuItemClass}
+              aria-label={deleteLabel}
             >
               {activeAction === "delete" ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -208,8 +228,8 @@ export function JobPostingModerationActions({
           target={canPreviewPublic ? "_blank" : undefined}
           rel={canPreviewPublic ? "noopener noreferrer" : undefined}
           className={neutralButton}
-          title="Preview"
-          aria-label="Preview bài đăng"
+          title={previewLabel}
+          aria-label={previewLabel}
         >
           <Eye className="h-3.5 w-3.5" />
           {compact ? null : "Preview"}
@@ -218,8 +238,8 @@ export function JobPostingModerationActions({
         <Link
           href={`/moderation/${jobId}/edit`}
           className={neutralButton}
-          title="Sửa"
-          aria-label="Sửa bài đăng"
+          title={editLabel}
+          aria-label={editLabel}
         >
           <Pencil className="h-3.5 w-3.5" />
           {compact ? null : "Sửa"}
@@ -235,8 +255,8 @@ export function JobPostingModerationActions({
                 ? "inline-flex h-8 w-8 items-center justify-center rounded-md border border-emerald-600 bg-emerald-600 text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
                 : "inline-flex h-8 items-center gap-1.5 rounded-md border border-emerald-600 bg-emerald-600 px-2.5 text-xs font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
             }
-            title={status === "REJECTED" ? "Duyệt lại" : status === "EXPIRED" ? "Đăng lại" : "Duyệt"}
-            aria-label={status === "REJECTED" ? "Duyệt lại" : status === "EXPIRED" ? "Đăng lại" : "Duyệt"}
+            title={approveLabel}
+            aria-label={approveLabel}
           >
             {activeAction === "approve" ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -261,8 +281,8 @@ export function JobPostingModerationActions({
                   ? "inline-flex h-8 w-8 items-center justify-center rounded-md border border-emerald-200 bg-emerald-50 text-emerald-700 transition hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-50"
                   : "inline-flex h-8 items-center gap-1.5 rounded-md border border-emerald-200 bg-emerald-50 px-2.5 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-50"
             }
-            title={status === "APPROVED" ? "Tạm ẩn" : "Hiện lại"}
-            aria-label={status === "APPROVED" ? "Tạm ẩn" : "Hiện lại"}
+            title={toggleLabel}
+            aria-label={toggleLabel}
           >
             {activeAction === "toggle" ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -281,8 +301,8 @@ export function JobPostingModerationActions({
             onClick={() => setRejectMode(true)}
             disabled={disabled}
             className={dangerButton}
-            title="Từ chối"
-            aria-label="Từ chối bài đăng"
+            title={rejectLabel}
+            aria-label={rejectLabel}
           >
             <XCircle className="h-3.5 w-3.5" />
             {compact ? null : "Từ chối"}
@@ -294,8 +314,8 @@ export function JobPostingModerationActions({
           onClick={handleDelete}
           disabled={disabled}
           className={dangerButton}
-          title="Xóa"
-          aria-label="Xóa bài đăng"
+          title={deleteLabel}
+          aria-label={deleteLabel}
         >
           {activeAction === "delete" ? (
             <Loader2 className="h-3.5 w-3.5 animate-spin" />

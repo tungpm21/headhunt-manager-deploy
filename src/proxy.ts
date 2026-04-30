@@ -42,6 +42,12 @@ async function handleEmployerRoute(
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  if (pathname === "/talent-pool" || pathname.startsWith("/talent-pool/")) {
+    const targetUrl = request.nextUrl.clone();
+    targetUrl.pathname = pathname.replace("/talent-pool", "/candidates");
+    return NextResponse.redirect(targetUrl);
+  }
+
   if (pathname === "/employer" || pathname.startsWith("/employer/")) {
     return handleEmployerRoute(request);
   }

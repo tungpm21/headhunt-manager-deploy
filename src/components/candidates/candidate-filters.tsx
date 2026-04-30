@@ -114,6 +114,17 @@ export function CandidateFiltersPanel({
           <option value="expectedSalary_asc">Lương thấp nhất</option>
         </select>
 
+        <select
+          value={searchParams.get("pageSize") ?? "20"}
+          onChange={(event) => update({ pageSize: event.target.value })}
+          className="rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
+          aria-label="Số ứng viên mỗi trang"
+        >
+          <option value="20">20/trang</option>
+          <option value="50">50/trang</option>
+          <option value="100">100/trang</option>
+        </select>
+
         <button
           type="button"
           onClick={() => update({ duplicates: duplicatesOnly ? null : "1" })}

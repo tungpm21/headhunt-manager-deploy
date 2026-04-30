@@ -9,9 +9,10 @@ interface PaginationProps {
   totalPages: number;
   total: number;
   pageSize: number;
+  itemLabel?: string;
 }
 
-export function Pagination({ currentPage, totalPages, total, pageSize }: PaginationProps) {
+export function Pagination({ currentPage, totalPages, total, pageSize, itemLabel = "ứng viên" }: PaginationProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -40,7 +41,7 @@ export function Pagination({ currentPage, totalPages, total, pageSize }: Paginat
   return (
     <div className="flex items-center justify-between border-t border-border pt-4">
       <p className="text-sm text-muted">
-        Hiển thị <span className="font-medium text-foreground">{from}–{to}</span> / <span className="font-medium text-foreground">{total}</span> ứng viên
+        Hiển thị <span className="font-medium text-foreground">{from}–{to}</span> / <span className="font-medium text-foreground">{total}</span> {itemLabel}
       </p>
       <div className="flex items-center gap-1">
         <button

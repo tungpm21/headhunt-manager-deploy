@@ -22,12 +22,18 @@ export default async function JobPostingEditPage({
     notFound();
   }
 
-  const locationOptions = await getOptionsForSelect(OPTION_GROUPS.location, {
-    currentValue: job.location,
-  });
+  const [industryOptions, locationOptions] = await Promise.all([
+    getOptionsForSelect(OPTION_GROUPS.industry, {
+      currentValue: job.industry,
+    }),
+    getOptionsForSelect(OPTION_GROUPS.location, {
+      currentValue: job.location,
+    }),
+  ]);
 
   return (
     <JobPostingEditForm
+      industryOptions={industryOptions}
       locationOptions={locationOptions}
       job={{
         id: job.id,

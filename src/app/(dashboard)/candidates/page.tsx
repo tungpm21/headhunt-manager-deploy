@@ -27,6 +27,7 @@ interface PageProps {
     sortOrder?: string;
     duplicates?: string;
     page?: string;
+    pageSize?: string;
   }>;
 }
 
@@ -34,10 +35,18 @@ export const metadata = {
   title: "Ứng viên — Headhunt Manager",
 };
 
+const CANDIDATE_PAGE_SIZES = [20, 50, 100] as const;
+
+function normalizeCandidatePageSize(value: string | undefined) {
+  const pageSize = Number.parseInt(value ?? "20", 10);
+  return CANDIDATE_PAGE_SIZES.includes(pageSize as (typeof CANDIDATE_PAGE_SIZES)[number]) ? pageSize : 20;
+}
+
 export default async function CandidatesPage({ searchParams }: PageProps) {
   const scope = await requireViewerScope();
   const sp = await searchParams;
   const page = Number(sp.page ?? 1);
+  const pageSize = normalizeCandidatePageSize(sp.pageSize);
 
   const [
     result,
@@ -62,7 +71,7 @@ export default async function CandidatesPage({ searchParams }: PageProps) {
       sortBy: sp.sortBy as CandidateSortBy | undefined,
       sortOrder: sp.sortOrder as "asc" | "desc" | undefined,
       page,
-      pageSize: 20,
+      pageSize,
     }, scope),
     getAllTags(),
     getCandidateFilterOptions(scope),

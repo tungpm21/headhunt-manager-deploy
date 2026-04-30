@@ -86,9 +86,11 @@ const inputClassName =
 
 export function NewJobPostingForm({
   employers,
+  industryOptions,
   locationOptions,
 }: {
   employers: EmployerOption[];
+  industryOptions: OptionChoice[];
   locationOptions: OptionChoice[];
 }) {
   const router = useRouter();
@@ -380,7 +382,14 @@ export function NewJobPostingForm({
                 >
                   Ngành nghề
                 </label>
-                <input id="industry" name="industry" type="text" className={inputClassName} />
+                <select id="industry" name="industry" defaultValue="" className={inputClassName}>
+                  <option value="">Chọn ngành nghề</option>
+                  {industryOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div>

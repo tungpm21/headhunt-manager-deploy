@@ -72,9 +72,11 @@ const STATUS_LABELS: Record<string, string> = {
 
 export function JobPostingEditForm({
   job,
+  industryOptions,
   locationOptions,
 }: {
   job: EditableJobPosting;
+  industryOptions: OptionChoice[];
   locationOptions: OptionChoice[];
 }) {
   const router = useRouter();
@@ -394,13 +396,19 @@ export function JobPostingEditForm({
               >
                 Ngành nghề
               </label>
-              <input
+              <select
                 id="industry"
                 name="industry"
-                type="text"
                 defaultValue={job.industry ?? ""}
                 className={inputClassName}
-              />
+              >
+                <option value="">Chọn ngành nghề</option>
+                {industryOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div>

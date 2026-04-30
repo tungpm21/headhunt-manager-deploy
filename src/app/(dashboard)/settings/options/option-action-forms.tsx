@@ -2,7 +2,7 @@
 
 import { useActionState, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { AlertCircle, CheckCircle2, ExternalLink, Plus, RefreshCw, Save, Trash2 } from "lucide-react";
+import { AlertCircle, CheckCircle2, ChevronDown, ExternalLink, Plus, RefreshCw, Save, Trash2 } from "lucide-react";
 import {
   createOptionItemAction,
   deleteOptionItemWithUsageAction,
@@ -170,24 +170,29 @@ export function OptionItemRowForm({
           </span>
         </div>
         {usageReferences.length > 0 ? (
-          <div className="max-w-full space-y-1 rounded-lg bg-background p-2 text-xs text-muted ring-1 ring-border">
-            <p className="font-semibold text-foreground">Đang dùng ở</p>
-            {usageReferences.map((reference) => (
-              <a
-                key={`${reference.type}-${reference.id}`}
-                href={reference.href}
-                className="flex min-w-0 items-center gap-1.5 rounded-md px-1.5 py-1 transition hover:bg-surface hover:text-primary"
-              >
-                <ExternalLink className="h-3 w-3 shrink-0" />
-                <span className="truncate">{reference.label}</span>
-              </a>
-            ))}
-            {usageCount > usageReferences.length ? (
-              <p className="px-1.5 text-[11px] text-muted/80">
-                +{usageCount - usageReferences.length} bản ghi khác
-              </p>
-            ) : null}
-          </div>
+          <details className="group max-w-full rounded-lg bg-background text-xs text-muted ring-1 ring-border">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-2 rounded-lg px-2.5 py-2 font-semibold text-foreground transition hover:bg-surface">
+              <span className="truncate">Đang dùng ở</span>
+              <ChevronDown className="h-3.5 w-3.5 shrink-0 text-muted transition group-open:rotate-180" />
+            </summary>
+            <div className="max-h-44 space-y-1 overflow-y-auto border-t border-border p-2">
+              {usageReferences.map((reference) => (
+                <a
+                  key={`${reference.type}-${reference.id}`}
+                  href={reference.href}
+                  className="flex min-w-0 items-center gap-1.5 rounded-md px-1.5 py-1 transition hover:bg-surface hover:text-primary"
+                >
+                  <ExternalLink className="h-3 w-3 shrink-0" />
+                  <span className="truncate">{reference.label}</span>
+                </a>
+              ))}
+              {usageCount > usageReferences.length ? (
+                <p className="px-1.5 text-[11px] text-muted/80">
+                  +{usageCount - usageReferences.length} bản ghi khác
+                </p>
+              ) : null}
+            </div>
+          </details>
         ) : null}
         <div className="space-y-2">
           <button

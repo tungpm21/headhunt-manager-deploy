@@ -23,7 +23,7 @@ import {
   normalizeCompanyTheme,
   normalizeContentBlocks,
 } from "@/lib/content-blocks";
-import { normalizeCompanyMediaSettings } from "@/lib/company-media-settings";
+import { normalizeCompanyMediaSettings, type CompanyMediaSettings } from "@/lib/company-media-settings";
 import {
   PUBLIC_COMPANY_PROFILE_CACHE_TAG,
   PUBLIC_HOMEPAGE_CACHE_TAG,
@@ -289,6 +289,7 @@ export type JobFilters = {
   language?: string;
   industrialZone?: string;
   shiftType?: string;
+  company?: string;
   sort?: "newest" | "oldest" | "salary_high" | "salary_low";
   page?: number;
 };
@@ -388,6 +389,7 @@ export async function getPublicJobs(filters: JobFilters = {}): Promise<JobListRe
     });
   }
   if (shiftTypeValues.length > 0) where.shiftType = { in: shiftTypeValues };
+  if (filters.company) where.employer = { slug: filters.company };
   if (andFilters.length > 0) where.AND = andFilters;
 
   // Build orderBy
@@ -1006,7 +1008,7 @@ export type CompanyProfile = {
   phone: string | null;
   subscription: { tier: string } | null;
   profileConfig: {
-    theme: CompanyProfileTheme | null;
+    theme: (CompanyProfileTheme & { media?: CompanyMediaSettings }) | null;
     capabilities: CompanyProfileCapabilities | null;
     sections: ContentBlock[] | null;
     primaryVideoUrl: string | null;
@@ -1088,7 +1090,10 @@ const getCachedCompanyBySlug = unstable_cache(
       industrialZone: industrialZoneLabel || employer.industrialZone,
       profileConfig: employer.profileConfig
         ? {
-            theme: normalizeCompanyTheme(employer.profileConfig.theme),
+            theme: {
+              ...normalizeCompanyTheme(employer.profileConfig.theme),
+              media: normalizeCompanyMediaSettings(employer.profileConfig.theme),
+            },
             capabilities: normalizeCompanyCapabilities(employer.profileConfig.capabilities),
             sections: normalizeContentBlocks(employer.profileConfig.sections),
             primaryVideoUrl: employer.profileConfig.primaryVideoUrl,

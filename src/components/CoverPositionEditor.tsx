@@ -59,8 +59,11 @@ export function CoverPositionEditor({
             const dy = ((e.clientY - dragRef.current.startY) / rect.height) * -100;
             const newX = Math.min(100, Math.max(0, dragRef.current.origPosX + dx));
             const newY = Math.min(100, Math.max(0, dragRef.current.origPosY + dy));
-            setPosX(Math.round(newX));
-            setPosY(Math.round(newY));
+            const roundedX = Math.round(newX);
+            const roundedY = Math.round(newY);
+            setPosX(roundedX);
+            setPosY(roundedY);
+            emitChange(roundedX, roundedY, zoom);
         }
 
         function onUp() {
@@ -109,8 +112,11 @@ export function CoverPositionEditor({
             const dy = ((touch.clientY - dragRef.current.startY) / rect.height) * -100;
             const newX = Math.min(100, Math.max(0, dragRef.current.origPosX + dx));
             const newY = Math.min(100, Math.max(0, dragRef.current.origPosY + dy));
-            setPosX(Math.round(newX));
-            setPosY(Math.round(newY));
+            const roundedX = Math.round(newX);
+            const roundedY = Math.round(newY);
+            setPosX(roundedX);
+            setPosY(roundedY);
+            emitChange(roundedX, roundedY, zoom);
         }
 
         function onTouchEnd() {

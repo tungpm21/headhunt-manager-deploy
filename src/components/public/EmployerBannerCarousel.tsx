@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
 import type { HomepageEmployer } from "@/lib/public-actions";
 import { LogoImage } from "@/components/public/LogoImage";
+import { HOMEPAGE_BANNER_ASPECT_RATIO } from "@/lib/company-media-settings";
 
 type EmployerBannerCarouselProps = {
   employers: HomepageEmployer[];
@@ -57,7 +58,7 @@ export function EmployerBannerCarousel({ employers }: EmployerBannerCarouselProp
         <div className="relative rounded-[2rem] border border-white/16 bg-white/[0.08] p-1.5 shadow-[0_28px_74px_-58px_rgba(0,0,0,0.72)]">
           <div className="relative overflow-hidden rounded-[calc(2rem-0.375rem)] bg-[#061D38] ring-1 ring-white/14">
           {/* Image area — aspect ratio controlled */}
-          <div className="relative h-[250px] w-full sm:h-[350px] lg:h-[420px] xl:h-[470px]">
+          <div className="relative w-full" style={{ aspectRatio: HOMEPAGE_BANNER_ASPECT_RATIO }}>
             {bannerImage ? (
               <Image
                 src={bannerImage}

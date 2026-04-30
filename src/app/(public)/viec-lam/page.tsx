@@ -29,6 +29,7 @@ export default async function JobListingPage({ searchParams }: PageProps) {
     language: typeof params.language === "string" ? params.language : undefined,
     industrialZone: typeof params.industrialZone === "string" ? params.industrialZone : undefined,
     shiftType: typeof params.shiftType === "string" ? params.shiftType : undefined,
+    company: typeof params.company === "string" ? params.company : undefined,
     sort: (params.sort as JobFiltersType["sort"]) || "newest",
     page: params.page ? Number(params.page) : 1,
   };
@@ -74,6 +75,7 @@ export default async function JobListingPage({ searchParams }: PageProps) {
               {filters.language && <input type="hidden" name="language" value={filters.language} />}
               {filters.industrialZone && <input type="hidden" name="industrialZone" value={filters.industrialZone} />}
               {filters.shiftType && <input type="hidden" name="shiftType" value={filters.shiftType} />}
+              {filters.company && <input type="hidden" name="company" value={filters.company} />}
               {filters.sort && <input type="hidden" name="sort" value={filters.sort} />}
               <button
                 type="submit"

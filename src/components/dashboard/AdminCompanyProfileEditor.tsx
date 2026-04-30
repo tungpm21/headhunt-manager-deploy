@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useRef, useState, type ChangeEvent, type ReactNode } from "react";
 import Link from "next/link";
-import { AlertCircle, CheckCircle2, ExternalLink, Loader2, Save } from "lucide-react";
+import { AlertCircle, CheckCircle2, ExternalLink, ImagePlus, Loader2, Save } from "lucide-react";
 import { CoverPositionEditor } from "@/components/CoverPositionEditor";
 import { BlockBuilder } from "@/components/content/BlockBuilder";
 import { updateAdminCompanyProfileAction } from "@/lib/workspace-actions";
@@ -94,6 +94,9 @@ export function AdminCompanyProfileEditor({
   );
   const [logoUrl, setLogoUrl] = useState(employer.logo ?? "");
   const [coverImageUrl, setCoverImageUrl] = useState(employer.coverImage ?? "");
+  const [logoPreviewUrl, setLogoPreviewUrl] = useState(employer.logo ?? "");
+  const [coverPreviewUrl, setCoverPreviewUrl] = useState(employer.coverImage ?? "");
+  const [bannerPreviewUrl, setBannerPreviewUrl] = useState(mediaSettings.bannerImageUrl ?? "");
   const [coverPos, setCoverPos] = useState({
     positionX: employer.coverPositionX ?? 50,
     positionY: employer.coverPositionY ?? 50,
@@ -101,6 +104,13 @@ export function AdminCompanyProfileEditor({
   });
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<MessageState>(null);
+  const messageRef = useRef<HTMLDivElement>(null);
+  const logoInputRef = useRef<HTMLInputElement>(null);
+  const coverInputRef = useRef<HTMLInputElement>(null);
+  const bannerInputRef = useRef<HTMLInputElement>(null);
+  const effectiveLogoUrl = logoPreviewUrl || logoUrl;
+  const effectiveCoverImageUrl = coverPreviewUrl || coverImageUrl;
+  const effectiveBannerImageUrl = bannerPreviewUrl || mediaSettings.bannerImageUrl || effectiveCoverImageUrl;
 
   function updateThemeValue(key: keyof CompanyProfileTheme, value: string) {
     setTheme((current) => ({ ...current, [key]: value }));
@@ -108,6 +118,12 @@ export function AdminCompanyProfileEditor({
 
   function updateMediaSettings(next: Partial<CompanyMediaSettings>) {
     setMediaSettings((current) => ({ ...current, ...next }));
+  }
+
+  function handlePreviewFile(event: ChangeEvent<HTMLInputElement>, setter: (value: string) => void) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    setter(URL.createObjectURL(file));
   }
 
   async function handleSubmit(formData: FormData) {
@@ -125,6 +141,9 @@ export function AdminCompanyProfileEditor({
       text: result.message,
     });
     setSaving(false);
+    requestAnimationFrame(() => {
+      messageRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
   }
 
   return (
@@ -149,6 +168,7 @@ export function AdminCompanyProfileEditor({
 
       {message ? (
         <div
+          ref={messageRef}
           className={`flex items-start gap-3 rounded-xl border p-4 ${
             message.type === "success"
               ? "border-emerald-200 bg-emerald-50 text-emerald-700"
@@ -175,10 +195,10 @@ export function AdminCompanyProfileEditor({
               maxWidth: "11rem",
             }}
           >
-            {logoUrl ? (
+            {effectiveLogoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
-                src={logoUrl}
+                src={effectiveLogoUrl}
                 alt={employer.companyName}
                 className="h-full w-full p-2"
                 style={{
@@ -227,11 +247,22 @@ export function AdminCompanyProfileEditor({
             <input
               name="logoUrl"
               value={logoUrl}
-              onChange={(event) => setLogoUrl(event.target.value)}
+              onChange={(event) => {
+                setLogoUrl(event.target.value);
+                setLogoPreviewUrl(event.target.value);
+              }}
               placeholder="Logo URL"
               className={inputClassName}
             />
-            <input name="logo" type="file" accept="image/*" className="block w-full text-xs text-muted" />
+            <input
+              ref={logoInputRef}
+              name="logo"
+              type="file"
+              accept="image/*"
+              className="sr-only"
+              onChange={(event) => handlePreviewFile(event, setLogoPreviewUrl)}
+            />
+            <UploadButton onClick={() => logoInputRef.current?.click()}>Chọn ảnh logo</UploadButton>
           </div>
         </div>
 
@@ -247,9 +278,10 @@ export function AdminCompanyProfileEditor({
             />
           </div>
           <div className="mt-4">
-            {coverImageUrl ? (
+            {effectiveCoverImageUrl ? (
               <CoverPositionEditor
-                imageUrl={coverImageUrl}
+                key={`${effectiveCoverImageUrl}-${mediaSettings.coverAspectRatio}`}
+                imageUrl={effectiveCoverImageUrl}
                 positionX={coverPos.positionX}
                 positionY={coverPos.positionY}
                 zoom={coverPos.zoom}
@@ -272,11 +304,22 @@ export function AdminCompanyProfileEditor({
             <input
               name="coverImageUrl"
               value={coverImageUrl}
-              onChange={(event) => setCoverImageUrl(event.target.value)}
+              onChange={(event) => {
+                setCoverImageUrl(event.target.value);
+                setCoverPreviewUrl(event.target.value);
+              }}
               placeholder="Cover URL"
               className={inputClassName}
             />
-            <input name="coverImage" type="file" accept="image/*" className="block w-full text-xs text-muted" />
+            <input
+              ref={coverInputRef}
+              name="coverImage"
+              type="file"
+              accept="image/*"
+              className="sr-only"
+              onChange={(event) => handlePreviewFile(event, setCoverPreviewUrl)}
+            />
+            <UploadButton onClick={() => coverInputRef.current?.click()}>Chọn ảnh bìa</UploadButton>
           </div>
         </div>
       </section>
@@ -294,9 +337,10 @@ export function AdminCompanyProfileEditor({
           </span>
         </div>
         <div className="mt-4">
-          {mediaSettings.bannerImageUrl || coverImageUrl ? (
+          {effectiveBannerImageUrl ? (
             <CoverPositionEditor
-              imageUrl={mediaSettings.bannerImageUrl || coverImageUrl}
+              key={`${effectiveBannerImageUrl}-${HOMEPAGE_BANNER_ASPECT_RATIO}`}
+              imageUrl={effectiveBannerImageUrl}
               positionX={mediaSettings.bannerPositionX}
               positionY={mediaSettings.bannerPositionY}
               zoom={mediaSettings.bannerZoom}
@@ -324,21 +368,34 @@ export function AdminCompanyProfileEditor({
         <div className="mt-4 grid gap-3 lg:grid-cols-[1fr_220px_auto]">
           <input
             value={mediaSettings.bannerImageUrl ?? ""}
-            onChange={(event) => updateMediaSettings({ bannerImageUrl: event.target.value.trim() || null })}
+            onChange={(event) => {
+              const value = event.target.value.trim();
+              updateMediaSettings({ bannerImageUrl: value || null });
+              setBannerPreviewUrl(value);
+            }}
             placeholder="Banner URL riêng (bỏ trống để dùng ảnh bìa)"
             className={inputClassName}
           />
-          <input name="bannerImage" type="file" accept="image/*" className="block w-full text-xs text-muted" />
+          <input
+            ref={bannerInputRef}
+            name="bannerImage"
+            type="file"
+            accept="image/*"
+            className="sr-only"
+            onChange={(event) => handlePreviewFile(event, setBannerPreviewUrl)}
+          />
+          <UploadButton onClick={() => bannerInputRef.current?.click()}>Chọn ảnh banner</UploadButton>
           <button
             type="button"
-            onClick={() =>
+            onClick={() => {
+              setBannerPreviewUrl("");
               updateMediaSettings({
                 bannerImageUrl: null,
                 bannerPositionX: 50,
                 bannerPositionY: 50,
                 bannerZoom: 100,
-              })
-            }
+              });
+            }}
             className="inline-flex min-h-10 items-center justify-center rounded-xl border border-border bg-background px-4 text-sm font-semibold text-muted transition hover:text-foreground"
           >
             Dùng ảnh bìa
@@ -475,6 +532,7 @@ export function AdminCompanyProfileEditor({
       <div className="flex flex-col gap-3 border-t border-border pt-4 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-xs text-muted">
           Lưu ở đây sẽ cập nhật public ngay và revalidate trang công ty / việc làm liên quan.
+          {saving ? <span className="ml-2 font-semibold text-primary">Đang lưu, vui lòng chờ...</span> : null}
         </p>
         <button
           type="submit"
@@ -491,6 +549,25 @@ export function AdminCompanyProfileEditor({
 
 function ControlLabel({ children }: { children: ReactNode }) {
   return <p className="mb-2 text-xs font-semibold uppercase text-muted">{children}</p>;
+}
+
+function UploadButton({
+  children,
+  onClick,
+}: {
+  children: ReactNode;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-xl border border-border bg-background px-4 text-sm font-semibold text-foreground transition hover:border-primary/35 hover:bg-surface hover:text-primary"
+    >
+      <ImagePlus className="h-4 w-4" />
+      {children}
+    </button>
+  );
 }
 
 function RatioButtonGroup<T extends string>({

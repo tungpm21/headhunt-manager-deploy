@@ -6,6 +6,7 @@ import {
   Briefcase,
   Building2,
   ChevronLeft,
+  ChevronRight,
   Globe,
   MapPin,
   Users,
@@ -32,7 +33,10 @@ const tierBadge: Record<string, { label: string; className: string }> = {
 
 type PageProps = {
   params: Promise<{ slug: string }>;
+  searchParams?: Promise<{ jobsPage?: string }>;
 };
+
+const COMPANY_JOBS_PER_PAGE = 6;
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
@@ -69,8 +73,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-export default async function CompanyProfilePage({ params }: PageProps) {
+export default async function CompanyProfilePage({ params, searchParams }: PageProps) {
   const { slug } = await params;
+  const query = await searchParams;
   const company = await getCompanyBySlug(slug);
   if (!company) notFound();
 
@@ -106,6 +111,14 @@ export default async function CompanyProfilePage({ params }: PageProps) {
     color: theme.textColor,
   };
   const mutedTextStyle = { color: `${theme.textColor}B3` };
+  const jobsPage = Math.max(1, Number(query?.jobsPage ?? 1) || 1);
+  const jobsTotalPages = Math.max(1, Math.ceil(company.jobPostings.length / COMPANY_JOBS_PER_PAGE));
+  const safeJobsPage = Math.min(jobsPage, jobsTotalPages);
+  const visibleJobPostings = company.jobPostings.slice(
+    (safeJobsPage - 1) * COMPANY_JOBS_PER_PAGE,
+    safeJobsPage * COMPANY_JOBS_PER_PAGE
+  );
+  const companyJobsHref = `/viec-lam?company=${encodeURIComponent(company.slug)}`;
 
   return (
     <div id="main-content" className="min-h-screen" style={pageStyle}>
@@ -240,12 +253,45 @@ export default async function CompanyProfilePage({ params }: PageProps) {
                 </h2>
                 <div className="rounded-2xl border p-3 shadow-sm sm:p-4" style={panelStyle}>
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:gap-5">
-                    {company.jobPostings.map((job: HomepageJob) => (
+                    {visibleJobPostings.map((job: HomepageJob) => (
                       <div key={job.id} className="min-w-0">
                         <JobCard job={job} />
                       </div>
                     ))}
                   </div>
+                  {jobsTotalPages > 1 ? (
+                    <div className="mt-4 flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center sm:justify-between" style={{ borderColor: theme.borderColor }}>
+                      <p className="text-sm" style={mutedTextStyle}>
+                        Hiển thị {(safeJobsPage - 1) * COMPANY_JOBS_PER_PAGE + 1}-
+                        {Math.min(safeJobsPage * COMPANY_JOBS_PER_PAGE, company.jobPostings.length)} / {company.jobPostings.length} vị trí
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <Link
+                          href={`/cong-ty/${company.slug}?jobsPage=${Math.max(1, safeJobsPage - 1)}#jobs`}
+                          aria-disabled={safeJobsPage === 1}
+                          className={`inline-flex h-9 w-9 items-center justify-center rounded-lg border transition ${
+                            safeJobsPage === 1 ? "pointer-events-none opacity-40" : "hover:-translate-y-0.5"
+                          }`}
+                          style={{ borderColor: theme.borderColor, color: theme.textColor }}
+                        >
+                          <ChevronLeft className="h-4 w-4" />
+                        </Link>
+                        <span className="rounded-lg border px-3 py-2 text-sm font-semibold" style={{ borderColor: theme.borderColor }}>
+                          {safeJobsPage}/{jobsTotalPages}
+                        </span>
+                        <Link
+                          href={`/cong-ty/${company.slug}?jobsPage=${Math.min(jobsTotalPages, safeJobsPage + 1)}#jobs`}
+                          aria-disabled={safeJobsPage === jobsTotalPages}
+                          className={`inline-flex h-9 w-9 items-center justify-center rounded-lg border transition ${
+                            safeJobsPage === jobsTotalPages ? "pointer-events-none opacity-40" : "hover:-translate-y-0.5"
+                          }`}
+                          style={{ borderColor: theme.borderColor, color: theme.textColor }}
+                        >
+                          <ChevronRight className="h-4 w-4" />
+                        </Link>
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
               </section>
             ) : null}
@@ -305,7 +351,7 @@ export default async function CompanyProfilePage({ params }: PageProps) {
               </div>
 
               <Link
-                href="#jobs"
+                href={companyJobsHref}
                 className="flex min-h-11 items-center justify-center rounded-xl px-4 py-2 text-center text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5"
                 style={{ backgroundColor: theme.accentColor }}
               >

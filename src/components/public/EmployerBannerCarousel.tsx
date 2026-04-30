@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, ArrowRight, Briefcase, Building2, BadgeCheck } from "lucide-react";
 import type { HomepageEmployer } from "@/lib/public-actions";
 import { LogoImage } from "@/components/public/LogoImage";
 
@@ -41,10 +41,12 @@ export function EmployerBannerCarousel({ employers }: EmployerBannerCarouselProp
   const bannerPositionX = employer.bannerPositionX ?? 50;
   const bannerPositionY = employer.bannerPositionY ?? 50;
   const bannerZoom = employer.bannerZoom ?? 100;
+  const openJobs = employer._count?.jobPostings ?? 0;
+  const tierLabel = employer.subscription?.tier ?? "VERIFIED";
 
   return (
     <section
-      className="w-full pb-2 pt-2 sm:pb-3 sm:pt-3 lg:pb-4 lg:pt-4"
+      className="w-full pb-2 pt-0 sm:pb-3 sm:pt-1 lg:pb-4 lg:pt-1"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       onFocus={() => setPaused(true)}
@@ -54,10 +56,10 @@ export function EmployerBannerCarousel({ employers }: EmployerBannerCarouselProp
       {/* Centered container — equal padding on both sides */}
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Banner card — rounded, overflow hidden */}
-        <div className="relative rounded-xl border border-[#D8E7EA] bg-white p-1.5 shadow-[0_28px_74px_-58px_rgba(7,26,47,0.58)]">
+        <div className="relative rounded-xl border border-[#CFE0EA] bg-white p-1.5 shadow-[0_36px_90px_-60px_rgba(7,26,47,0.72)]">
           <div className="relative overflow-hidden rounded-lg bg-[#F7FBFC] ring-1 ring-[#D8E7EA]/80">
           {/* Image area — aspect ratio controlled */}
-          <div className="relative h-[250px] w-full sm:h-[350px] lg:h-[420px] xl:h-[470px]">
+          <div className="relative h-[280px] w-full sm:h-[370px] lg:h-[450px] xl:h-[500px]">
             {bannerImage ? (
               <Image
                 src={bannerImage}
@@ -75,14 +77,14 @@ export function EmployerBannerCarousel({ employers }: EmployerBannerCarouselProp
             ) : (
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_72%_30%,rgba(125,211,252,0.35),transparent_34%),linear-gradient(135deg,#DDF3FF_0%,#F8FDFF_46%,#B9E7FF_100%)]" />
             )}
-            <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,26,47,0.58)_0%,rgba(7,26,47,0.22)_46%,rgba(7,26,47,0.04)_100%),linear-gradient(180deg,rgba(7,26,47,0.02)_0%,rgba(7,26,47,0.52)_100%)]" />
+            <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(4,38,72,0.88)_0%,rgba(4,38,72,0.62)_38%,rgba(4,38,72,0.12)_72%,rgba(4,38,72,0.04)_100%),linear-gradient(180deg,rgba(4,38,72,0.02)_0%,rgba(4,38,72,0.34)_100%)]" />
             <div className="absolute left-4 top-4 rounded-lg border border-white/26 bg-white/14 px-3 py-1.5 text-[10px] font-bold uppercase text-white/90 backdrop-blur-md sm:left-6 sm:top-6">
               Nhà tuyển dụng nổi bật
             </div>
-            <div className="absolute bottom-6 left-5 hidden max-w-2xl sm:block lg:bottom-8 lg:left-8">
+            <div className="absolute bottom-7 left-5 hidden max-w-3xl sm:block lg:bottom-10 lg:left-8">
               <h2
                 aria-hidden="true"
-                className="text-3xl font-black leading-tight text-white lg:text-5xl"
+                className="max-w-2xl text-3xl font-black leading-tight text-white lg:text-5xl"
                 style={{ fontFamily: "var(--font-heading)" }}
               >
                 {employer.companyName}
@@ -90,6 +92,23 @@ export function EmployerBannerCarousel({ employers }: EmployerBannerCarouselProp
               <p className="mt-3 max-w-xl text-base font-medium text-sky-100/82">
                 {employer.industry ? `${employer.industry} đang mở cơ hội cho ứng viên FDI chất lượng cao.` : "Doanh nghiệp FDI nổi bật đang tuyển dụng trên FDIWork."}
               </p>
+              <div className="mt-5 grid max-w-xl grid-cols-3 gap-3">
+                <div className="rounded-lg border border-white/22 bg-white/12 px-3 py-2.5 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.16)] backdrop-blur-md">
+                  <Briefcase className="mb-1 h-4 w-4 text-sky-100" aria-hidden="true" />
+                  <p className="text-base font-black">{openJobs > 0 ? openJobs : "Mở"}</p>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-sky-100/80">Vị trí</p>
+                </div>
+                <div className="rounded-lg border border-white/22 bg-white/12 px-3 py-2.5 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.16)] backdrop-blur-md">
+                  <Building2 className="mb-1 h-4 w-4 text-sky-100" aria-hidden="true" />
+                  <p className="truncate text-base font-black">{employer.industry ?? "FDI"}</p>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-sky-100/80">Lĩnh vực</p>
+                </div>
+                <div className="rounded-lg border border-white/22 bg-white/12 px-3 py-2.5 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.16)] backdrop-blur-md">
+                  <BadgeCheck className="mb-1 h-4 w-4 text-sky-100" aria-hidden="true" />
+                  <p className="truncate text-base font-black uppercase">{tierLabel}</p>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-sky-100/80">Đối tác</p>
+                </div>
+              </div>
             </div>
 
             {/* Prev / Next arrows */}
@@ -98,14 +117,14 @@ export function EmployerBannerCarousel({ employers }: EmployerBannerCarouselProp
                 <button
                   onClick={goPrev}
                   aria-label="Banner trước"
-                  className="absolute left-3 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-lg border border-white/30 bg-white/16 text-white backdrop-blur-md transition-[background-color,border-color,transform] duration-300 ease-[var(--ease-fdi)] hover:-translate-y-[calc(50%+2px)] hover:border-white/50 hover:bg-white/24 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 cursor-pointer"
+                  className="absolute left-3 top-[37%] flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-lg border border-white/30 bg-white/16 text-white backdrop-blur-md transition-[background-color,border-color,transform] duration-300 ease-[var(--ease-fdi)] hover:-translate-y-[calc(50%+2px)] hover:border-white/50 hover:bg-white/24 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 cursor-pointer"
                 >
                   <ChevronLeft className="h-5 w-5" />
                 </button>
                 <button
                   onClick={goNext}
                   aria-label="Banner tiếp theo"
-                  className="absolute right-3 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-lg border border-white/30 bg-white/16 text-white backdrop-blur-md transition-[background-color,border-color,transform] duration-300 ease-[var(--ease-fdi)] hover:-translate-y-[calc(50%+2px)] hover:border-white/50 hover:bg-white/24 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 cursor-pointer"
+                  className="absolute right-3 top-[37%] flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-lg border border-white/30 bg-white/16 text-white backdrop-blur-md transition-[background-color,border-color,transform] duration-300 ease-[var(--ease-fdi)] hover:-translate-y-[calc(50%+2px)] hover:border-white/50 hover:bg-white/24 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 cursor-pointer"
                 >
                   <ChevronRight className="h-5 w-5" />
                 </button>
@@ -114,7 +133,7 @@ export function EmployerBannerCarousel({ employers }: EmployerBannerCarouselProp
           </div>
 
           {/* Info bar — below image, inside the card */}
-          <div className="flex flex-col gap-4 border-t border-[#D8E7EA] bg-white px-5 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.92)] sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-5">
+          <div className="flex flex-col gap-4 border-t border-white/70 bg-white/[0.92] px-5 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.92)] backdrop-blur-xl sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-5">
             {/* Logo + Company info */}
             <div className="flex items-end gap-4 min-w-0 relative">
               <div className="relative z-10 -mt-10 flex h-[72px] w-[72px] shrink-0 items-center justify-center overflow-hidden rounded-xl border border-white bg-[#FFFFFB] shadow-[0_18px_34px_-24px_rgba(0,0,0,0.75)] sm:-mt-14 sm:h-24 sm:w-24">
@@ -147,7 +166,7 @@ export function EmployerBannerCarousel({ employers }: EmployerBannerCarouselProp
               href={`/cong-ty/${employer.slug}`}
               className="group inline-flex min-h-11 shrink-0 items-center justify-center gap-3 rounded-lg border border-[var(--color-fdi-primary)] bg-[var(--color-fdi-primary)] py-1.5 pl-5 pr-1.5 text-sm font-bold text-white transition-[background-color,border-color,box-shadow,transform] duration-300 ease-[var(--ease-fdi)] hover:-translate-y-0.5 hover:border-[var(--color-fdi-primary-hover)] hover:bg-[var(--color-fdi-primary-hover)] hover:shadow-[0_16px_34px_-24px_rgba(10,111,157,0.8)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-primary)]/35 cursor-pointer"
             >
-              <span className="hidden sm:inline">Khám phá ngay</span>
+              <span className="hidden sm:inline">Xem vị trí đang tuyển</span>
               <span className="sm:hidden">Xem</span>
               <span className="flex h-8 w-8 items-center justify-center rounded-md bg-white/16 transition-transform duration-300 ease-[var(--ease-fdi)] group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
                 <ArrowRight className="h-4 w-4" />

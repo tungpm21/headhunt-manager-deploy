@@ -96,14 +96,19 @@ export function HeroSection() {
       <h1 className="sr-only">
         Tìm việc làm FDI tại Việt Nam - Kết nối ứng viên với doanh nghiệp nước ngoài
       </h1>
-      <div className="relative mx-auto max-w-7xl px-4 pb-3 pt-14 sm:px-6 lg:px-8 lg:pt-16">
+      <div className="relative mx-auto max-w-7xl px-4 pb-2 pt-10 sm:px-6 lg:px-8 lg:pt-12">
         <div
           ref={searchContainerRef}
-          className="relative z-30 mx-auto max-w-5xl"
+          className="relative z-30 mx-auto max-w-[1040px]"
         >
+          <div className="mb-4 flex justify-center">
+            <span className="inline-flex items-center rounded-md border border-[#CFE0EA] bg-white/80 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.12em] text-[var(--color-fdi-primary)] shadow-[0_12px_26px_-24px_rgba(7,26,47,0.5)] backdrop-blur">
+              Nền tảng việc làm dành cho doanh nghiệp FDI
+            </span>
+          </div>
           <form
             onSubmit={handleSearch}
-            className="flex flex-col items-stretch gap-1 rounded-xl border border-[#D7E4E8] bg-[var(--color-fdi-paper)] p-1.5 shadow-[0_18px_46px_-34px_rgba(7,26,47,0.45),inset_0_1px_1px_rgba(255,255,255,0.95)] transition-[border-color,box-shadow] duration-300 ease-[var(--ease-fdi)] focus-within:border-[var(--color-fdi-accent-orange)]/80 focus-within:shadow-[0_22px_54px_-36px_rgba(7,26,47,0.5),inset_0_1px_1px_rgba(255,255,255,0.95)] sm:min-h-[56px] sm:flex-row sm:items-center"
+            className="flex flex-col items-stretch gap-1 rounded-[18px] border border-[rgba(15,78,120,0.10)] bg-[var(--color-fdi-paper)] p-1.5 shadow-[0_18px_48px_-28px_rgba(15,78,120,0.24),inset_0_1px_1px_rgba(255,255,255,0.95)] transition-[border-color,box-shadow] duration-300 ease-[var(--ease-fdi)] focus-within:border-[var(--color-fdi-primary)]/70 focus-within:shadow-[0_22px_58px_-30px_rgba(15,78,120,0.34),inset_0_1px_1px_rgba(255,255,255,0.95)] sm:min-h-[58px] sm:flex-row sm:items-center"
           >
             {/* Keyword input */}
             <div className="flex min-h-11 flex-1 items-center gap-2 px-3 sm:px-4">
@@ -163,7 +168,7 @@ export function HeroSection() {
                     setSearchPanelOpen(false);
                     search.setIsOpen(false);
                   }}
-                  className="inline-flex min-h-11 max-w-[156px] items-center gap-2 rounded-lg bg-[#F2F4F6] px-3 text-sm font-semibold text-[var(--color-fdi-text)] transition-colors hover:bg-[#E9EEF1] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-accent-orange)]/35 sm:max-w-[190px]"
+                  className="inline-flex min-h-11 max-w-[156px] items-center gap-2 rounded-lg bg-[#F2F6F9] px-3 text-sm font-semibold text-[var(--color-fdi-text)] transition-colors hover:bg-[#E7F0F6] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-primary)]/30 sm:max-w-[190px]"
                 >
                   <MapPin className="h-4 w-4 shrink-0 text-[#7A8794]" aria-hidden="true" />
                   <span className="truncate">{location || "Tất cả địa điểm"}</span>
@@ -231,7 +236,7 @@ export function HeroSection() {
                 type="submit"
                 aria-label="Tìm kiếm việc làm"
                 style={{ touchAction: "manipulation" }}
-                className="group inline-flex min-h-11 shrink-0 items-center gap-2 rounded-lg border border-[#A83007] bg-[var(--color-fdi-accent-orange)] py-1 pl-4 pr-1 text-sm font-bold text-white shadow-[0_14px_30px_-20px_rgba(194,65,12,0.95)] transition-[background-color,border-color,box-shadow,transform] duration-300 ease-[var(--ease-fdi)] hover:-translate-y-0.5 hover:border-[#7C2504] hover:bg-[#9F3108] hover:shadow-[0_18px_34px_-20px_rgba(194,65,12,1)] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-accent-orange)]/45 cursor-pointer sm:mr-1"
+                className="group inline-flex min-h-11 shrink-0 items-center gap-2 rounded-lg border border-[var(--color-fdi-primary)] bg-[var(--color-fdi-primary)] py-1 pl-4 pr-1 text-sm font-bold text-white shadow-[0_14px_30px_-20px_rgba(10,111,157,0.95)] transition-[background-color,border-color,box-shadow,transform] duration-300 ease-[var(--ease-fdi)] hover:-translate-y-0.5 hover:border-[var(--color-fdi-primary-hover)] hover:bg-[var(--color-fdi-primary-hover)] hover:shadow-[0_18px_34px_-20px_rgba(10,111,157,1)] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-primary)]/35 cursor-pointer sm:mr-1"
               >
                 Tìm kiếm
                 <span className="flex h-8 w-8 items-center justify-center rounded-md bg-white/18 transition-transform duration-300 ease-[var(--ease-fdi)] group-hover:translate-x-0.5 group-hover:-translate-y-0.5">

@@ -22,11 +22,10 @@ export default async function HomePage() {
     <div id="main-content" className="w-full max-w-full overflow-x-hidden bg-[var(--color-fdi-mist)]">
       <HomepageSectionDots sections={homepageSections} />
 
-      <section id="home-hero" className="relative scroll-mt-24 overflow-hidden bg-[linear-gradient(180deg,#FFFFFF_0%,#F6FAFB_48%,#EEF6F8_100%)] pb-4 text-[var(--color-fdi-text)] sm:pb-5 lg:pb-6">
-        <div className="absolute inset-0 opacity-[0.42] [background-image:radial-gradient(circle_at_88%_18%,rgba(10,111,157,0.10)_0,rgba(10,111,157,0.10)_1px,transparent_1.5px),radial-gradient(circle_at_12%_20%,rgba(10,111,157,0.08)_0,rgba(10,111,157,0.08)_1px,transparent_1.5px)] [background-size:22px_22px,26px_26px]" />
-        <div className="pointer-events-none absolute -left-32 top-0 h-96 w-96 rounded-full border border-[#D8E7EA]/65 opacity-55" />
-        <div className="pointer-events-none absolute -left-44 top-10 h-[34rem] w-[34rem] rounded-full border border-[#D8E7EA]/45 opacity-50" />
-        <div className="pointer-events-none absolute -right-40 top-44 h-[32rem] w-[32rem] rounded-full border border-[#D8E7EA]/45 opacity-45" />
+      <section id="home-hero" className="relative scroll-mt-24 overflow-hidden bg-[radial-gradient(circle_at_50%_20%,rgba(14,116,190,0.11),transparent_36%),linear-gradient(180deg,#F7FBFF_0%,#FFFFFF_42%,#F3F8FC_100%)] pb-5 text-[var(--color-fdi-text)] sm:pb-6 lg:pb-8">
+        <div className="pointer-events-none absolute left-0 top-0 h-72 w-72 opacity-45 [background-image:radial-gradient(rgba(14,116,190,0.18)_1px,transparent_1px)] [background-size:28px_28px] [mask-image:radial-gradient(circle_at_0%_0%,black_0%,transparent_72%)]" />
+        <div className="pointer-events-none absolute right-0 top-24 h-80 w-80 opacity-35 [background-image:radial-gradient(rgba(14,116,190,0.16)_1px,transparent_1px)] [background-size:30px_30px] [mask-image:radial-gradient(circle_at_100%_18%,black_0%,transparent_70%)]" />
+        <div className="pointer-events-none absolute left-1/2 top-24 h-[26rem] w-[56rem] -translate-x-1/2 rounded-[999px] bg-[radial-gradient(circle,rgba(14,116,190,0.10)_0%,rgba(14,116,190,0.045)_38%,transparent_72%)] blur-2xl" />
         <div className="absolute inset-x-0 bottom-0 h-40 bg-[linear-gradient(180deg,rgba(243,247,248,0)_0%,#F3F7F8_100%)]" />
         <div className="relative">
           <HeroSection />

@@ -1,5 +1,4 @@
 import { getHomepageData } from "@/lib/public-actions";
-import Link from "next/link";
 import { HeroSection } from "@/components/public/HeroSection";
 import { EmployerBannerCarousel } from "@/components/public/EmployerBannerCarousel";
 import { TopEmployers } from "@/components/public/TopEmployers";
@@ -7,7 +6,6 @@ import { FeaturedJobs } from "@/components/public/FeaturedJobs";
 import { IndustryGrid } from "@/components/public/IndustryGrid";
 import { BlogSection } from "@/components/public/BlogSection";
 import { HomepageSectionDots } from "@/components/public/HomepageSectionDots";
-import { LogoImage } from "@/components/public/LogoImage";
 
 const homepageSections = [
   { id: "home-hero", label: "Spotlight" },
@@ -41,31 +39,6 @@ export default async function HomePage() {
         <div className="relative">
           <HeroSection />
           <EmployerBannerCarousel employers={data.bannerEmployers} />
-          {data.topEmployers.length > 0 && (
-            <div className="mx-auto mt-4 flex max-w-7xl flex-col gap-4 px-4 pb-2 sm:px-6 lg:flex-row lg:items-center lg:px-8">
-              <div className="shrink-0 text-base font-black leading-tight text-[var(--color-fdi-ink)]" style={{ fontFamily: "var(--font-heading)" }}>
-                Doanh nghiệp hàng đầu
-                <span className="block text-[var(--color-fdi-primary)]">tin tưởng FDIWork</span>
-              </div>
-              <div className="grid flex-1 grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-8">
-                {data.topEmployers.slice(0, 8).map((employer) => (
-                  <Link
-                    key={employer.id}
-                    href={`/cong-ty/${employer.slug}`}
-                    className="flex h-14 items-center justify-center rounded-lg border border-[#D8E7EA] bg-white/86 px-3 shadow-[0_16px_32px_-28px_rgba(7,26,47,0.55)] backdrop-blur transition-[border-color,box-shadow,transform] duration-300 hover:-translate-y-0.5 hover:border-[var(--color-fdi-primary)]/35 hover:shadow-[0_18px_38px_-26px_rgba(7,26,47,0.62)]"
-                    aria-label={`Xem công ty ${employer.companyName}`}
-                  >
-                    <LogoImage
-                      src={employer.logo}
-                      alt={employer.companyName}
-                      className="h-full max-h-9 w-full object-contain"
-                      iconSize="h-6 w-6"
-                    />
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       </section>
 

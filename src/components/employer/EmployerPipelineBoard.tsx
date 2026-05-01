@@ -4,12 +4,15 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   DndContext,
+  DragOverlay,
   PointerSensor,
   closestCenter,
   useDroppable,
   useSensor,
   useSensors,
   type DragEndEvent,
+  type DragOverEvent,
+  type DragStartEvent,
 } from "@dnd-kit/core";
 import {
   SortableContext,
@@ -19,12 +22,15 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import {
   AlertCircle,
+  ArrowRight,
   Briefcase,
   CheckCircle2,
+  Columns3,
   Eye,
   FileText,
   GripVertical,
   Inbox,
+  ListChecks,
   Loader2,
   Mail,
   Phone,
@@ -71,6 +77,8 @@ type PipelineJob = {
   status: string;
   applicationsCount: number;
 };
+
+type PipelineView = "list" | "kanban";
 
 const STAGES: Array<{
   value: ApplicationStatusValue;
@@ -148,6 +156,12 @@ function getStageMeta(status: ApplicationStatusValue) {
   return STAGES.find((stage) => stage.value === status) ?? STAGES[0];
 }
 
+function getNextStatus(status: ApplicationStatusValue) {
+  const currentIndex = STAGES.findIndex((stage) => stage.value === status);
+  if (currentIndex < 0 || currentIndex >= STAGES.length - 1) return null;
+  return STAGES[currentIndex + 1].value;
+}
+
 function StatusBadge({ status }: { status: ApplicationStatusValue }) {
   const meta = getStageMeta(status);
   const Icon = meta.icon;
@@ -176,7 +190,7 @@ function StatusSelect({
       value={value}
       disabled={disabled}
       onChange={(event) => onChange(event.target.value as ApplicationStatusValue)}
-      className="h-9 rounded-lg border border-gray-200 bg-white px-2 text-xs font-medium text-gray-700 outline-none transition focus:border-teal-500 disabled:cursor-wait disabled:opacity-60"
+      className="h-9 max-w-full rounded-lg border border-gray-200 bg-white px-2 text-xs font-medium text-gray-700 outline-none transition focus:border-teal-500 disabled:cursor-wait disabled:opacity-60"
       aria-label="Cập nhật trạng thái hồ sơ"
     >
       {STAGES.map((stage) => (
@@ -330,7 +344,7 @@ function SortableApplicationCard({
         transform: CSS.Transform.toString(transform),
         transition,
       }}
-      className={isDragging ? "opacity-70" : undefined}
+      className={isDragging ? "scale-[0.98] opacity-25 blur-[1px]" : undefined}
     >
       <ApplicationCard
         application={application}
@@ -356,9 +370,39 @@ function SortableApplicationCard({
   );
 }
 
+function ApplicationDragPreview({
+  application,
+}: {
+  application: PipelineApplication;
+}) {
+  const meta = getStageMeta(application.status);
+
+  return (
+    <div className="w-[276px] rounded-2xl border border-teal-300 bg-white p-4 text-left shadow-2xl ring-4 ring-teal-100">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="truncate text-sm font-semibold text-gray-900">
+            {application.fullName}
+          </p>
+          <p className="mt-1 line-clamp-2 text-xs text-gray-500">
+            {application.jobPosting.title}
+          </p>
+        </div>
+        <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${meta.badgeClassName}`}>
+          {meta.shortLabel}
+        </span>
+      </div>
+      <div className="mt-3 rounded-xl border border-dashed border-teal-300 bg-teal-50 px-3 py-2 text-xs font-semibold text-teal-700">
+        Kéo sang cột mới để chuyển trạng thái
+      </div>
+    </div>
+  );
+}
+
 function StageColumn({
   stage,
   applications,
+  isDragTarget,
   pendingApplicationIds,
   selectedApplicationId,
   onSelect,
@@ -367,20 +411,24 @@ function StageColumn({
 }: {
   stage: (typeof STAGES)[number];
   applications: PipelineApplication[];
+  isDragTarget: boolean;
   pendingApplicationIds: Set<number>;
   selectedApplicationId: number | null;
   onSelect: (applicationId: number) => void;
   onStatusChange: (applicationId: number, status: ApplicationStatusValue) => void;
   jobPostingBase: string;
 }) {
-  const { setNodeRef } = useDroppable({ id: stage.value });
+  const { setNodeRef, isOver } = useDroppable({ id: stage.value });
+  const showDropHint = isDragTarget || isOver;
 
   return (
     <section
       ref={setNodeRef}
-      className={`flex min-h-[520px] min-w-[310px] flex-col rounded-xl border p-4 ${stage.columnClassName}`}
+      className={`flex min-h-[420px] max-h-[580px] w-[236px] shrink-0 flex-col overflow-hidden rounded-2xl border transition ${
+        showDropHint ? "scale-[1.01] ring-2 ring-teal-300" : ""
+      } ${stage.columnClassName}`}
     >
-      <div className="flex items-center justify-between gap-3">
+      <div className="sticky top-0 z-10 flex items-center justify-between gap-3 rounded-t-2xl border-b border-gray-200/70 bg-inherit px-4 py-3 backdrop-blur">
         <div>
           <h2 className="text-sm font-semibold text-gray-900">{stage.label}</h2>
           <p className="text-xs text-gray-500">{applications.length} ứng viên</p>
@@ -390,7 +438,12 @@ function StageColumn({
         </span>
       </div>
 
-      <div className="mt-4 flex-1 space-y-3">
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
+        {showDropHint ? (
+          <div className="mb-3 rounded-xl border border-dashed border-teal-300 bg-teal-50 px-3 py-2 text-center text-xs font-semibold text-teal-700 shadow-sm animate-pulse">
+            Chuyển sang đây
+          </div>
+        ) : null}
         <SortableContext
           items={applications.map((application) => `app-${application.id}`)}
           strategy={verticalListSortingStrategy}
@@ -400,21 +453,133 @@ function StageColumn({
               Chưa có hồ sơ
             </div>
           ) : (
-            applications.map((application) => (
-              <SortableApplicationCard
-                key={application.id}
-                application={application}
-                isPending={pendingApplicationIds.has(application.id)}
-                isSelected={selectedApplicationId === application.id}
-                onSelect={onSelect}
-                onStatusChange={onStatusChange}
-                jobPostingBase={jobPostingBase}
-              />
-            ))
+            <div className="space-y-3">
+              {applications.map((application) => (
+                <SortableApplicationCard
+                  key={application.id}
+                  application={application}
+                  isPending={pendingApplicationIds.has(application.id)}
+                  isSelected={selectedApplicationId === application.id}
+                  onSelect={onSelect}
+                  onStatusChange={onStatusChange}
+                  jobPostingBase={jobPostingBase}
+                />
+              ))}
+            </div>
           )}
         </SortableContext>
       </div>
     </section>
+  );
+}
+
+function PipelineList({
+  applications,
+  pendingApplicationIds,
+  selectedApplicationId,
+  onSelect,
+  onStatusChange,
+  jobPostingBase,
+}: {
+  applications: PipelineApplication[];
+  pendingApplicationIds: Set<number>;
+  selectedApplicationId: number | null;
+  onSelect: (applicationId: number) => void;
+  onStatusChange: (applicationId: number, status: ApplicationStatusValue) => void;
+  jobPostingBase: string;
+}) {
+  return (
+    <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[760px] text-sm">
+          <thead className="border-b border-gray-100 bg-gray-50 text-xs uppercase text-gray-500">
+            <tr>
+              <th className="px-3 py-3 text-left font-semibold">Ứng viên</th>
+              <th className="px-3 py-3 text-left font-semibold">Công việc & liên hệ</th>
+              <th className="px-3 py-3 text-left font-semibold">Trạng thái</th>
+              <th className="px-3 py-3 text-left font-semibold">Ngày</th>
+              <th className="px-3 py-3 text-right font-semibold">Thao tác</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100">
+            {applications.map((application) => {
+              const isPending = pendingApplicationIds.has(application.id);
+              const nextStatus = getNextStatus(application.status);
+
+              return (
+                <tr
+                  key={application.id}
+                  onClick={() => onSelect(application.id)}
+                  className={`cursor-pointer transition hover:bg-gray-50 ${
+                    selectedApplicationId === application.id ? "bg-teal-50/60" : ""
+                  }`}
+                >
+                  <td className="px-3 py-3">
+                    <p className="font-semibold text-gray-900">{application.fullName}</p>
+                    <p className="mt-1 max-w-[190px] truncate text-xs text-gray-500">
+                      {application.cvFileName ?? "Chưa có tên file CV"}
+                    </p>
+                  </td>
+                  <td className="px-3 py-3">
+                    <Link
+                      href={`${jobPostingBase}/${application.jobPosting.id}`}
+                      onClick={(event) => event.stopPropagation()}
+                      className="line-clamp-2 max-w-[230px] font-medium text-teal-700 transition hover:text-teal-800"
+                    >
+                      {application.jobPosting.title}
+                    </Link>
+                    <p className="mt-1 max-w-[230px] truncate text-xs text-gray-500">
+                      {application.email}
+                    </p>
+                    {application.phone ? <p className="mt-1">{application.phone}</p> : null}
+                  </td>
+                  <td className="px-3 py-3">
+                    <StatusSelect
+                      value={application.status}
+                      disabled={isPending}
+                      onChange={(status) => onStatusChange(application.id, status)}
+                    />
+                  </td>
+                  <td className="px-3 py-3 text-xs text-gray-500">
+                    {formatDate(application.createdAt)}
+                  </td>
+                  <td className="px-3 py-3">
+                    <div className="flex flex-wrap justify-end gap-2">
+                      {nextStatus ? (
+                        <button
+                          type="button"
+                          disabled={isPending}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            onStatusChange(application.id, nextStatus);
+                          }}
+                          className="inline-flex h-8 items-center gap-1 rounded-lg border border-gray-200 bg-white px-2 text-xs font-semibold text-gray-700 transition hover:border-teal-200 hover:bg-teal-50 hover:text-teal-700 disabled:cursor-wait disabled:opacity-60"
+                        >
+                          <ArrowRight className="h-3.5 w-3.5" />
+                          {getStageMeta(nextStatus).shortLabel}
+                        </button>
+                      ) : null}
+                      <button
+                        type="button"
+                        disabled={isPending || application.status === "REJECTED"}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          onStatusChange(application.id, "REJECTED");
+                        }}
+                        className="inline-flex h-8 items-center gap-1 rounded-lg border border-red-200 bg-red-50 px-2 text-xs font-semibold text-red-600 transition hover:bg-red-100 disabled:cursor-wait disabled:opacity-60"
+                      >
+                        <XCircle className="h-3.5 w-3.5" />
+                        Từ chối
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
   );
 }
 
@@ -541,7 +706,7 @@ export function EmployerPipelineBoard({
 }) {
   const router = useRouter();
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 10 } })
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
   );
   const [applications, setApplications] = useState(initialApplications);
   const [pendingApplicationIds, setPendingApplicationIds] = useState<Set<number>>(
@@ -551,6 +716,9 @@ export function EmployerPipelineBoard({
     initialApplications[0]?.id ?? null
   );
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [view, setView] = useState<PipelineView>("list");
+  const [activeDragId, setActiveDragId] = useState<number | null>(null);
+  const [overStage, setOverStage] = useState<ApplicationStatusValue | null>(null);
 
   const grouped = useMemo(
     () =>
@@ -566,6 +734,8 @@ export function EmployerPipelineBoard({
     applications.find((application) => application.id === selectedApplicationId) ??
     applications[0] ??
     null;
+  const activeDragApplication =
+    applications.find((application) => application.id === activeDragId) ?? null;
 
   function handleJobChange(jobId: string) {
     if (!jobId) {
@@ -627,15 +797,40 @@ export function EmployerPipelineBoard({
     });
   }
 
+  function handleDragStart(event: DragStartEvent) {
+    const applicationId = Number(String(event.active.id).replace("app-", ""));
+    setActiveDragId(Number.isFinite(applicationId) ? applicationId : null);
+  }
+
+  function handleDragOver(event: DragOverEvent) {
+    if (!event.over) {
+      setOverStage(null);
+      return;
+    }
+
+    setOverStage(resolveStage(String(event.over.id), applications));
+  }
+
   async function handleDragEnd(event: DragEndEvent) {
+    setActiveDragId(null);
+    setOverStage(null);
+
     if (!event.over) return;
 
     const activeId = String(event.active.id);
     const overId = String(event.over.id);
     const applicationId = Number(activeId.replace("app-", ""));
     const nextStatus = resolveStage(overId, applications);
+    const currentApplication = applications.find(
+      (application) => application.id === applicationId
+    );
 
-    if (!Number.isInteger(applicationId) || !nextStatus) {
+    if (
+      !Number.isInteger(applicationId) ||
+      !nextStatus ||
+      !currentApplication ||
+      currentApplication.status === nextStatus
+    ) {
       return;
     }
 
@@ -724,7 +919,13 @@ export function EmployerPipelineBoard({
           </p>
         </div>
       ) : (
-        <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
+        <div
+          className={
+            view === "kanban"
+              ? "grid gap-5"
+              : "grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]"
+          }
+        >
           <div className="space-y-4">
             <div className="rounded-xl border border-gray-100 bg-white px-4 py-3">
               <div className="flex flex-wrap items-center justify-between gap-3">
@@ -736,33 +937,55 @@ export function EmployerPipelineBoard({
                     {applications.length} hồ sơ trong tin này
                   </p>
                 </div>
-                <span className="rounded-lg border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-600">
-                  Kanban theo tin
-                </span>
+                <div className="inline-flex rounded-xl border border-gray-200 bg-gray-50 p-1">
+                  <button
+                    type="button"
+                    onClick={() => setView("list")}
+                    className={`inline-flex h-9 items-center gap-2 rounded-lg px-3 text-sm font-semibold transition ${
+                      view === "list"
+                        ? "bg-teal-600 text-white shadow-sm"
+                        : "text-gray-500 hover:text-gray-900"
+                    }`}
+                  >
+                    <ListChecks className="h-4 w-4" />
+                    List
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setView("kanban")}
+                    className={`inline-flex h-9 items-center gap-2 rounded-lg px-3 text-sm font-semibold transition ${
+                      view === "kanban"
+                        ? "bg-teal-600 text-white shadow-sm"
+                        : "text-gray-500 hover:text-gray-900"
+                    }`}
+                  >
+                    <Columns3 className="h-4 w-4" />
+                    Kanban
+                  </button>
+                </div>
               </div>
             </div>
 
-            <div className="lg:hidden">
-              <div className="space-y-3">
-                {applications.map((application) => (
-                  <ApplicationCard
-                    key={application.id}
-                    application={application}
-                    isPending={pendingApplicationIds.has(application.id)}
-                    isSelected={selectedApplicationId === application.id}
-                    onSelect={setSelectedApplicationId}
-                    onStatusChange={commitStatusChange}
-                    jobPostingBase={jobPostingBase}
-                  />
-                ))}
-              </div>
-            </div>
-
-            <div className="hidden lg:block">
+            {view === "list" ? (
+              <PipelineList
+                applications={applications}
+                pendingApplicationIds={pendingApplicationIds}
+                selectedApplicationId={selectedApplicationId}
+                onSelect={setSelectedApplicationId}
+                onStatusChange={commitStatusChange}
+                jobPostingBase={jobPostingBase}
+              />
+            ) : (
               <DndContext
                 sensors={sensors}
                 collisionDetection={closestCenter}
+                onDragStart={handleDragStart}
+                onDragOver={handleDragOver}
                 onDragEnd={handleDragEnd}
+                onDragCancel={() => {
+                  setActiveDragId(null);
+                  setOverStage(null);
+                }}
               >
                 <div className="overflow-x-auto pb-2">
                   <div className="flex min-w-max gap-4">
@@ -771,6 +994,7 @@ export function EmployerPipelineBoard({
                         key={stage.value}
                         stage={stage}
                         applications={stageApplications}
+                        isDragTarget={overStage === stage.value && activeDragId !== null}
                         pendingApplicationIds={pendingApplicationIds}
                         selectedApplicationId={selectedApplicationId}
                         onSelect={setSelectedApplicationId}
@@ -780,11 +1004,22 @@ export function EmployerPipelineBoard({
                     ))}
                   </div>
                 </div>
+                <DragOverlay dropAnimation={{ duration: 180, easing: "cubic-bezier(0.2, 0, 0, 1)" }}>
+                  {activeDragApplication ? (
+                    <ApplicationDragPreview application={activeDragApplication} />
+                  ) : null}
+                </DragOverlay>
               </DndContext>
-            </div>
+            )}
           </div>
 
-          <div className="xl:sticky xl:top-24 xl:self-start">
+          <div
+            className={
+              view === "kanban"
+                ? "max-w-xl"
+                : "xl:sticky xl:top-24 xl:self-start"
+            }
+          >
             <ApplicationDetailPanel
               application={selectedApplication}
               isPending={

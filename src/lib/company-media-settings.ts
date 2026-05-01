@@ -1,4 +1,4 @@
-export type CompanyCoverAspectRatio = "2 / 1" | "16 / 9" | "3 / 2" | "4 / 3" | "5 / 4";
+export type CompanyCoverAspectRatio = "2 / 1" | "16 / 9" | "5 / 3" | "3 / 2";
 export type CompanyLogoAspectRatio = "auto" | "1 / 1" | "3 / 2" | "4 / 3" | "5 / 4";
 export type CompanyLogoFit = "contain" | "cover";
 
@@ -17,11 +17,10 @@ export const COVER_ASPECT_RATIO_OPTIONS: Array<{
   value: CompanyCoverAspectRatio;
   label: string;
 }> = [
-  { value: "2 / 1", label: "2:1" },
+  { value: "2 / 1", label: "2:1 - rộng tối đa" },
   { value: "16 / 9", label: "16:9" },
+  { value: "5 / 3", label: "5:3" },
   { value: "3 / 2", label: "3:2" },
-  { value: "4 / 3", label: "4:3" },
-  { value: "5 / 4", label: "5:4" },
 ];
 
 export const LOGO_ASPECT_RATIO_OPTIONS: Array<{
@@ -51,6 +50,10 @@ export const HOMEPAGE_BANNER_ASPECT_RATIO = "2.72 / 1";
 const coverRatios = new Set<CompanyCoverAspectRatio>(
   COVER_ASPECT_RATIO_OPTIONS.map((option) => option.value)
 );
+const legacyTallCoverRatioMap: Record<string, CompanyCoverAspectRatio> = {
+  "4 / 3": "3 / 2",
+  "5 / 4": "3 / 2",
+};
 const logoRatios = new Set<CompanyLogoAspectRatio>(
   LOGO_ASPECT_RATIO_OPTIONS.map((option) => option.value)
 );
@@ -85,7 +88,7 @@ export function normalizeCompanyMediaSettings(value: unknown): CompanyMediaSetti
   return {
     coverAspectRatio: coverRatios.has(coverAspectRatio as CompanyCoverAspectRatio)
       ? (coverAspectRatio as CompanyCoverAspectRatio)
-      : DEFAULT_COMPANY_MEDIA_SETTINGS.coverAspectRatio,
+      : legacyTallCoverRatioMap[coverAspectRatio] ?? DEFAULT_COMPANY_MEDIA_SETTINGS.coverAspectRatio,
     logoAspectRatio: logoRatios.has(logoAspectRatio as CompanyLogoAspectRatio)
       ? (logoAspectRatio as CompanyLogoAspectRatio)
       : DEFAULT_COMPANY_MEDIA_SETTINGS.logoAspectRatio,

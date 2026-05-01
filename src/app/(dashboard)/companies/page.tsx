@@ -1,6 +1,7 @@
 import { requireAdmin } from "@/lib/authz";
 import {
     listWorkspaces,
+    type WorkspaceProfileDraftFilter,
     type WorkspacePortalFilter,
     type WorkspaceRoleFilter,
 } from "@/lib/workspace";
@@ -27,6 +28,7 @@ interface PageProps {
         q?: string;
         role?: string;
         portal?: string;
+        profileDrafts?: string;
         missing?: string;
     }>;
 }
@@ -45,6 +47,11 @@ const portalFilters: Array<{ value: WorkspacePortalFilter; label: string }> = [
     { value: "disabled", label: "Chưa bật portal" },
 ];
 
+const profileDraftFilters: Array<{ value: WorkspaceProfileDraftFilter; label: string }> = [
+    { value: "all", label: "Tất cả hồ sơ" },
+    { value: "pending", label: "Có hồ sơ chờ duyệt" },
+];
+
 function normalizeRole(value: string | undefined): WorkspaceRoleFilter {
     return roleFilters.some((item) => item.value === value)
         ? (value as WorkspaceRoleFilter)
@@ -57,14 +64,24 @@ function normalizePortal(value: string | undefined): WorkspacePortalFilter {
         : "all";
 }
 
+function normalizeProfileDrafts(value: string | undefined): WorkspaceProfileDraftFilter {
+    return profileDraftFilters.some((item) => item.value === value)
+        ? (value as WorkspaceProfileDraftFilter)
+        : "all";
+}
+
 function filterHref(params: {
     role?: WorkspaceRoleFilter;
     portal?: WorkspacePortalFilter;
+    profileDrafts?: WorkspaceProfileDraftFilter;
     q?: string;
 }) {
     const query = new URLSearchParams();
     if (params.role && params.role !== "all") query.set("role", params.role);
     if (params.portal && params.portal !== "all") query.set("portal", params.portal);
+    if (params.profileDrafts && params.profileDrafts !== "all") {
+        query.set("profileDrafts", params.profileDrafts);
+    }
     if (params.q) query.set("q", params.q);
     const suffix = query.toString();
     return `/companies${suffix ? `?${suffix}` : ""}`;
@@ -76,9 +93,10 @@ export default async function CompaniesPage({ searchParams }: PageProps) {
     const page = Math.max(1, Number(sp.page ?? 1) || 1);
     const role = normalizeRole(sp.role);
     const portal = normalizePortal(sp.portal);
+    const profileDrafts = normalizeProfileDrafts(sp.profileDrafts);
     const q = sp.q?.trim() ?? "";
 
-    const result = await listWorkspaces(page, 20, { q, role, portal });
+    const result = await listWorkspaces(page, 20, { q, role, portal, profileDrafts });
 
     return (
         <div className="space-y-6">
@@ -106,7 +124,7 @@ export default async function CompaniesPage({ searchParams }: PageProps) {
             ) : null}
 
             <form className="rounded-xl border border-border bg-surface p-4 shadow-sm">
-                <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_180px_180px_auto]">
+                <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_180px_180px_220px_auto]">
                     <input
                         name="q"
                         defaultValue={q}
@@ -135,6 +153,17 @@ export default async function CompaniesPage({ searchParams }: PageProps) {
                             </option>
                         ))}
                     </select>
+                    <select
+                        name="profileDrafts"
+                        defaultValue={profileDrafts}
+                        className="h-10 rounded-md border border-border bg-background px-3 text-sm outline-none focus:border-primary"
+                    >
+                        {profileDraftFilters.map((item) => (
+                            <option key={item.value} value={item.value}>
+                                {item.label}
+                            </option>
+                        ))}
+                    </select>
                     <button
                         type="submit"
                         className="h-10 rounded-md bg-primary px-4 text-sm font-medium text-white transition hover:bg-primary-hover"
@@ -146,9 +175,22 @@ export default async function CompaniesPage({ searchParams }: PageProps) {
                     {roleFilters.map((item) => (
                         <Link
                             key={item.value}
-                            href={filterHref({ role: item.value, portal, q })}
+                            href={filterHref({ role: item.value, portal, profileDrafts, q })}
                             className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${
                                 role === item.value
+                                    ? "border-primary bg-primary text-white"
+                                    : "border-border text-muted hover:text-foreground"
+                            }`}
+                        >
+                            {item.label}
+                        </Link>
+                    ))}
+                    {profileDraftFilters.map((item) => (
+                        <Link
+                            key={`draft-${item.value}`}
+                            href={filterHref({ role, portal, profileDrafts: item.value, q })}
+                            className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${
+                                profileDrafts === item.value
                                     ? "border-primary bg-primary text-white"
                                     : "border-border text-muted hover:text-foreground"
                             }`}
@@ -168,6 +210,7 @@ export default async function CompaniesPage({ searchParams }: PageProps) {
                             <th className="px-4 py-3 text-left font-medium text-muted">Trạng thái</th>
                             <th className="px-4 py-3 text-left font-medium text-muted">Loại</th>
                             <th className="px-4 py-3 text-left font-medium text-muted">Portal</th>
+                            <th className="px-4 py-3 text-left font-medium text-muted">Hồ sơ</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-border">
@@ -218,12 +261,24 @@ export default async function CompaniesPage({ searchParams }: PageProps) {
                                             <span className="text-xs text-muted">Tắt</span>
                                         )}
                                     </td>
+                                    <td className="px-4 py-3">
+                                        {ws._count.profileDrafts > 0 ? (
+                                            <Link
+                                                href={`/companies/${ws.id}?tab=profile-drafts`}
+                                                className="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-700 transition hover:bg-amber-200"
+                                            >
+                                                {ws._count.profileDrafts} chờ duyệt
+                                            </Link>
+                                        ) : (
+                                            <span className="text-xs text-muted">Không có</span>
+                                        )}
+                                    </td>
                                 </tr>
                             );
                         })}
                         {result.items.length === 0 && (
                             <tr>
-                                <td colSpan={4} className="px-4 py-12 text-center text-muted">
+                                <td colSpan={5} className="px-4 py-12 text-center text-muted">
                                     <Building className="mx-auto h-10 w-10 mb-2 opacity-40" />
                                     Chưa có công ty nào. Chạy backfill script để tạo workspace từ dữ liệu cũ.
                                 </td>

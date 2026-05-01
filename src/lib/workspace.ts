@@ -1,11 +1,16 @@
 import { prisma } from "@/lib/prisma";
-import { Prisma } from "@prisma/client";
+import { CompanyDraftStatus, Prisma } from "@prisma/client";
 
 // ==================== WORKSPACE LOOKUPS ====================
 
 const workspaceInclude = {
     employer: { select: { id: true, companyName: true, slug: true, status: true, email: true } },
     client: { select: { id: true, companyName: true, status: true, isDeleted: true } },
+    _count: {
+        select: {
+            profileDrafts: { where: { status: CompanyDraftStatus.SUBMITTED } },
+        },
+    },
 } satisfies Prisma.CompanyWorkspaceInclude;
 
 export async function getCompanyWorkspaceById(id: number) {
@@ -104,6 +109,7 @@ export function withWorkspaceSubmissionAccess(workspaceId: number) {
  */
 export type WorkspaceRoleFilter = "all" | "employer" | "client" | "both" | "unlinked";
 export type WorkspacePortalFilter = "all" | "enabled" | "disabled";
+export type WorkspaceProfileDraftFilter = "all" | "pending";
 
 export async function listWorkspaces(
     page = 1,
@@ -112,12 +118,14 @@ export async function listWorkspaces(
         q?: string;
         role?: WorkspaceRoleFilter;
         portal?: WorkspacePortalFilter;
+        profileDrafts?: WorkspaceProfileDraftFilter;
     } = {}
 ) {
     const skip = (page - 1) * pageSize;
     const q = filters.q?.trim();
     const role = filters.role ?? "all";
     const portal = filters.portal ?? "all";
+    const profileDrafts = filters.profileDrafts ?? "all";
     const where: Prisma.CompanyWorkspaceWhereInput = {
         ...(q
             ? {
@@ -134,6 +142,9 @@ export async function listWorkspaces(
             : portal === "disabled"
               ? { portalEnabled: false }
               : {}),
+        ...(profileDrafts === "pending"
+            ? { profileDrafts: { some: { status: CompanyDraftStatus.SUBMITTED } } }
+            : {}),
         ...(role === "employer"
             ? { employerId: { not: null }, clientId: null }
             : role === "client"

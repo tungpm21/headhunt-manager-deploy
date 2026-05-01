@@ -145,7 +145,7 @@ export default async function CompanyProfilePage({ params, searchParams }: PageP
       <section className="mx-auto max-w-7xl px-4 pt-4 sm:px-6 lg:px-8">
         <div
           className="relative min-h-[220px] overflow-hidden rounded-xl shadow-lg"
-          style={{ aspectRatio: mediaSettings.coverAspectRatio }}
+          style={{ aspectRatio: mediaSettings.coverAspectRatio, maxHeight: "560px" }}
         >
           {company.coverImage ? (
             <Image

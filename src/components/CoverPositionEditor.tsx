@@ -9,6 +9,7 @@ type CoverPositionEditorProps = {
     positionY: number; // 0-100
     zoom: number; // 100-200
     aspectRatio?: string;
+    maxPreviewHeight?: number;
     onChange: (pos: { positionX: number; positionY: number; zoom: number }) => void;
 };
 
@@ -18,6 +19,7 @@ export function CoverPositionEditor({
     positionY: initY,
     zoom: initZoom,
     aspectRatio = "2 / 1",
+    maxPreviewHeight = 520,
     onChange,
 }: CoverPositionEditorProps) {
     const [posX, setPosX] = useState(initX);
@@ -153,7 +155,7 @@ export function CoverPositionEditor({
                 ref={containerRef}
                 className={`relative w-full min-h-40 rounded-xl border-2 border-dashed overflow-hidden select-none ${isDragging ? "border-primary cursor-grabbing" : "border-border cursor-grab"
                     }`}
-                style={{ aspectRatio }}
+                style={{ aspectRatio, maxHeight: maxPreviewHeight }}
                 onMouseDown={handleMouseDown}
                 onTouchStart={handleTouchStart}
             >

@@ -25,6 +25,12 @@ const notificationItems = (counts: NotificationCounts) => [
     href: "/employers",
   },
   {
+    key: "pendingProfileDrafts",
+    label: "Hồ sơ công ty chờ duyệt",
+    count: counts.pendingProfileDrafts,
+    href: "/companies?profileDrafts=pending",
+  },
+  {
     key: "expiringJobs",
     label: "Job sắp hết hạn",
     count: counts.expiringJobs,
@@ -37,6 +43,7 @@ function getTotalCount(counts: NotificationCounts) {
     counts.newApplications +
     counts.pendingJobs +
     counts.pendingEmployers +
+    counts.pendingProfileDrafts +
     counts.expiringJobs
   );
 }

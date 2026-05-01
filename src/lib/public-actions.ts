@@ -28,6 +28,7 @@ import {
   PUBLIC_COMPANY_PROFILE_CACHE_TAG,
   PUBLIC_HOMEPAGE_CACHE_TAG,
 } from "@/lib/public-cache-tags";
+import { compareSubscriptionDisplayPriority } from "@/lib/subscription-display";
 
 export type HomepageJob = {
   id: number;
@@ -230,41 +231,32 @@ export const getHomepageData = unstable_cache(
         count: g._count.id,
       }));
 
-    // Sort all active employers by subscription tier: VIP → PREMIUM → STANDARD → BASIC → none
-    const TIER_ORDER: Record<string, number> = {
-      VIP: 0,
-      PREMIUM: 1,
-      STANDARD: 2,
-      BASIC: 3,
-    };
     const topEmployers = allActiveEmployers
       .slice()
-      .sort((a, b) => {
-        const aT = a.subscription?.tier ? (TIER_ORDER[a.subscription.tier] ?? 4) : 4;
-        const bT = b.subscription?.tier ? (TIER_ORDER[b.subscription.tier] ?? 4) : 4;
-        if (aT !== bT) return aT - bT;
-        return a.companyName.localeCompare(b.companyName);
-      })
+      .sort(compareSubscriptionDisplayPriority)
       .slice(0, 24);
-    const bannerEmployersWithMedia: HomepageEmployer[] = bannerEmployers.map((employer) => {
-      const media = normalizeCompanyMediaSettings(employer.profileConfig?.theme);
-      const usesCustomBanner = Boolean(media.bannerImageUrl);
+    const bannerEmployersWithMedia: HomepageEmployer[] = bannerEmployers
+      .slice()
+      .sort(compareSubscriptionDisplayPriority)
+      .map((employer) => {
+        const media = normalizeCompanyMediaSettings(employer.profileConfig?.theme);
+        const usesCustomBanner = Boolean(media.bannerImageUrl);
 
-      return {
-        id: employer.id,
-        companyName: employer.companyName,
-        logo: employer.logo,
-        coverImage: employer.coverImage,
-        bannerImage: media.bannerImageUrl ?? employer.coverImage,
-        bannerPositionX: usesCustomBanner ? media.bannerPositionX : employer.coverPositionX,
-        bannerPositionY: usesCustomBanner ? media.bannerPositionY : employer.coverPositionY,
-        bannerZoom: usesCustomBanner ? media.bannerZoom : employer.coverZoom,
-        slug: employer.slug,
-        industry: employer.industry,
-        subscription: employer.subscription,
-        _count: employer._count,
-      };
-    });
+        return {
+          id: employer.id,
+          companyName: employer.companyName,
+          logo: employer.logo,
+          coverImage: employer.coverImage,
+          bannerImage: media.bannerImageUrl ?? employer.coverImage,
+          bannerPositionX: usesCustomBanner ? media.bannerPositionX : employer.coverPositionX,
+          bannerPositionY: usesCustomBanner ? media.bannerPositionY : employer.coverPositionY,
+          bannerZoom: usesCustomBanner ? media.bannerZoom : employer.coverZoom,
+          slug: employer.slug,
+          industry: employer.industry,
+          subscription: employer.subscription,
+          _count: employer._count,
+        };
+      });
 
     return {
       featuredJobs,

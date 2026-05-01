@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ElementType } from "react";
+import { useEffect, useRef, useState, type ElementType } from "react";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -37,7 +37,17 @@ type IndustryGridProps = {
 
 export function IndustryGrid({ industries, stats }: IndustryGridProps) {
   const [page, setPage] = useState(0);
+  const [transition, setTransition] = useState<"idle" | "previous" | "next">("idle");
+  const transitionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pageCount = Math.max(1, Math.ceil(industries.length / INDUSTRIES_PER_PAGE));
+
+  useEffect(() => {
+    return () => {
+      if (transitionTimeoutRef.current) {
+        clearTimeout(transitionTimeoutRef.current);
+      }
+    };
+  }, []);
 
   if (industries.length === 0) return null;
 
@@ -49,15 +59,21 @@ export function IndustryGrid({ industries, stats }: IndustryGridProps) {
   });
 
   const goToPage = (direction: "previous" | "next") => {
-    if (pageCount <= 1) return;
+    if (pageCount <= 1 || transition !== "idle") return;
 
-    setPage((current) => {
+    setTransition(direction);
+
+    transitionTimeoutRef.current = setTimeout(() => {
+      setPage((current) => {
       if (direction === "previous") {
         return current === 0 ? pageCount - 1 : current - 1;
       }
 
       return current === pageCount - 1 ? 0 : current + 1;
-    });
+      });
+
+      window.requestAnimationFrame(() => setTransition("idle"));
+    }, 150);
   };
 
   return (
@@ -136,7 +152,15 @@ export function IndustryGrid({ industries, stats }: IndustryGridProps) {
           ) : null}
         </div>
 
-        <div className="grid grid-cols-1 gap-4 rounded-xl border border-[#D8E7EA] bg-[linear-gradient(180deg,#FFFFFF_0%,#F8FCFC_100%)] p-4 shadow-[0_28px_70px_-52px_rgba(7,26,47,0.46)] sm:grid-cols-2 sm:gap-5 sm:p-5 md:grid-cols-3 lg:grid-cols-5 lg:p-6">
+        <div
+          className={`grid grid-cols-1 gap-4 rounded-xl border border-[#D8E7EA] bg-[linear-gradient(180deg,#FFFFFF_0%,#F8FCFC_100%)] p-4 shadow-[0_28px_70px_-52px_rgba(7,26,47,0.46)] transition-[opacity,transform] duration-300 ease-[var(--ease-fdi)] motion-reduce:transition-none sm:grid-cols-2 sm:gap-5 sm:p-5 md:grid-cols-3 lg:grid-cols-5 lg:p-6 ${
+            transition === "next"
+              ? "-translate-x-4 opacity-0"
+              : transition === "previous"
+                ? "translate-x-4 opacity-0"
+                : "translate-x-0 opacity-100"
+          }`}
+        >
           {visibleIndustries.map((item, index) => {
             const Icon = industryIcons[item.industry] || BriefcaseBusiness;
 

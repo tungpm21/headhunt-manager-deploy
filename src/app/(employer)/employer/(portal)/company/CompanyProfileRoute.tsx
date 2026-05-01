@@ -206,6 +206,7 @@ function CompanyProfileForm({
 }) {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<MessageState>(null);
+  const messageRef = useRef<HTMLDivElement>(null);
   const capabilities = normalizeCompanyCapabilities(
     employer.profileConfig?.capabilities ?? DEFAULT_COMPANY_CAPABILITIES
   );
@@ -258,6 +259,17 @@ function CompanyProfileForm({
   function updateMediaSettings(next: Partial<CompanyMediaSettings>) {
     setMediaSettings((current) => ({ ...current, ...next }));
   }
+
+  useEffect(() => {
+    if (!message) return;
+
+    const timeout = window.setTimeout(() => {
+      messageRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      messageRef.current?.focus({ preventScroll: true });
+    }, 50);
+
+    return () => window.clearTimeout(timeout);
+  }, [message]);
 
   async function handleSubmit(formData: FormData) {
     if ((logoError && logoFileInputRef.current?.files?.length) ||
@@ -325,6 +337,10 @@ function CompanyProfileForm({
 
       {message && (
         <div
+          ref={messageRef}
+          tabIndex={-1}
+          role={message.type === "success" ? "status" : "alert"}
+          aria-live="polite"
           className={`flex items-start gap-3 rounded-lg border p-4 ${
             message.type === "success"
               ? "border-emerald-200 bg-emerald-50"

@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { requireCompanyPortalSession } from "@/lib/company-portal-auth";
 import { prisma } from "@/lib/prisma";
+import { getSubscriptionDisplayPolicy } from "@/lib/subscription-display";
 
 export const metadata = { title: "Thanh toán - Company Portal" };
 
@@ -100,6 +101,7 @@ export default async function CompanyBillingPage() {
       : 0;
   const remaining = Math.max(subscription.jobQuota - subscription.jobsUsed, 0);
   const isExpired = subscription.status === "EXPIRED";
+  const displayPolicy = getSubscriptionDisplayPolicy(subscription.tier);
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
@@ -182,6 +184,27 @@ export default async function CompanyBillingPage() {
             <Feature label="Banner slide VIP" active={subscription.showBanner} />
             <Feature label={`${subscription.jobQuota} tin tuyển dụng`} active />
             <Feature label={`${subscription.jobDuration} ngày hiển thị cho mỗi tin`} active />
+          </div>
+
+          <div className="rounded-xl border border-border bg-background p-5">
+            <p className="text-sm font-semibold text-foreground">Ưu tiên hiển thị Logo/Banner</p>
+            <p className="mt-1 text-sm text-muted">
+              Gói hiện tại thuộc {displayPolicy.rankLabel}. Thứ tự ưu tiên public là VIP &gt; Premium &gt; Standard &gt; Basic.
+            </p>
+            <div className="mt-3 grid gap-2 text-xs text-muted sm:grid-cols-2">
+              <div className="rounded-lg border border-border bg-surface px-3 py-2">
+                <span className="font-semibold text-foreground">Logo:</span>{" "}
+                {subscription.showLogo
+                  ? "được hiển thị trong các danh sách công ty đủ điều kiện."
+                  : "chưa được bật cho gói/công ty này."}
+              </div>
+              <div className="rounded-lg border border-border bg-surface px-3 py-2">
+                <span className="font-semibold text-foreground">Banner:</span>{" "}
+                {subscription.showBanner
+                  ? "đủ điều kiện vào carousel homepage, sắp xếp theo ưu tiên gói."
+                  : "chưa được bật nên không vào banner homepage."}
+              </div>
+            </div>
           </div>
 
           <div className="rounded-lg border border-border bg-background px-4 py-3 text-sm text-muted">

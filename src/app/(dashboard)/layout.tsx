@@ -28,6 +28,7 @@ export default async function DashboardLayout({
       newApplications: 0,
       pendingJobs: 0,
       pendingEmployers: 0,
+      pendingProfileDrafts: 0,
       expiringJobs: 0,
     };
 

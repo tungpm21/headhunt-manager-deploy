@@ -108,7 +108,6 @@ export function PublicHeader() {
               width={88}
               height={82}
               priority
-              unoptimized
               className="h-10 w-10 object-contain"
               sizes="44px"
             />

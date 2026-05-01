@@ -27,7 +27,7 @@ export default async function HomePage() {
         className="relative scroll-mt-24 overflow-hidden bg-[#F7FBFF] pb-5 text-[var(--color-fdi-text)] sm:pb-6 lg:pb-8"
         style={{
           backgroundImage:
-            "linear-gradient(180deg, rgba(247,251,255,0.56) 0%, rgba(255,255,255,0.48) 42%, rgba(243,248,252,0.92) 100%), url('/background-pattern/homepage-network.png')",
+            "linear-gradient(180deg, rgba(247,251,255,0.56) 0%, rgba(255,255,255,0.48) 42%, rgba(243,248,252,0.92) 100%), url('/background-pattern/homepage-network.webp')",
           backgroundPosition: "center top",
           backgroundRepeat: "no-repeat",
           backgroundSize: "cover",

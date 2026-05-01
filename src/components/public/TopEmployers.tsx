@@ -49,7 +49,7 @@ export function TopEmployers({ employers }: TopEmployersProps) {
       className="relative z-10 overflow-hidden py-12 sm:py-14 lg:py-16"
       style={{
         backgroundImage:
-          "linear-gradient(180deg, rgba(236,247,253,0.92) 0%, rgba(246,251,253,0.98) 48%, rgba(255,255,251,1) 100%), url('/background-pattern/homepage-network.png')",
+          "linear-gradient(180deg, rgba(236,247,253,0.92) 0%, rgba(246,251,253,0.98) 48%, rgba(255,255,251,1) 100%), url('/background-pattern/homepage-network.webp')",
         backgroundPosition: "center top",
         backgroundRepeat: "no-repeat",
         backgroundSize: "cover",
@@ -103,7 +103,7 @@ export function TopEmployers({ employers }: TopEmployersProps) {
 
           <div
             ref={scrollRef}
-            className="grid auto-cols-[200px] grid-flow-col gap-3 overflow-x-auto px-1 py-5 scrollbar-hide snap-x snap-mandatory sm:auto-cols-[230px] sm:gap-4 lg:auto-cols-[calc((100%_-_64px)/5)] lg:py-6"
+            className="flex gap-3 overflow-x-auto px-1 py-5 scrollbar-hide snap-x snap-mandatory sm:gap-4 lg:py-6"
             style={{
               scrollbarWidth: "none",
               msOverflowStyle: "none",
@@ -116,7 +116,7 @@ export function TopEmployers({ employers }: TopEmployersProps) {
                 <Link
                   key={employer.id}
                   href={`/cong-ty/${employer.slug}`}
-                  className="group block cursor-pointer snap-start"
+                  className="group block shrink-0 basis-full cursor-pointer snap-start sm:basis-[230px] lg:basis-[calc((100%_-_64px)/5)]"
                 >
                   <div className="flex min-h-[324px] flex-col overflow-hidden rounded-xl border border-[#D6E5E9] bg-white shadow-[0_22px_48px_-34px_rgba(7,26,47,0.5)] transition-[border-color,box-shadow,transform] duration-300 ease-[var(--ease-fdi)] hover:-translate-y-1 hover:border-[#A9CED8] hover:shadow-[0_34px_68px_-38px_rgba(7,26,47,0.62)]">
                     <div className="h-1 bg-[linear-gradient(90deg,#0A6F9D_0%,#5CC3D9_100%)]" />

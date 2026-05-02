@@ -1,4 +1,4 @@
-export type CompanyCoverAspectRatio = "2 / 1" | "16 / 9" | "5 / 3" | "3 / 2";
+export type CompanyCoverAspectRatio = "2 / 1" | "21 / 9" | "5 / 2" | "3 / 1" | "16 / 5";
 export type CompanyLogoAspectRatio = "auto" | "1 / 1" | "3 / 2" | "4 / 3" | "5 / 4";
 export type CompanyLogoFit = "contain" | "cover";
 
@@ -17,10 +17,11 @@ export const COVER_ASPECT_RATIO_OPTIONS: Array<{
   value: CompanyCoverAspectRatio;
   label: string;
 }> = [
-  { value: "2 / 1", label: "2:1 - rộng tối đa" },
-  { value: "16 / 9", label: "16:9" },
-  { value: "5 / 3", label: "5:3" },
-  { value: "3 / 2", label: "3:2" },
+  { value: "2 / 1", label: "2:1 - cao tối đa" },
+  { value: "21 / 9", label: "21:9" },
+  { value: "5 / 2", label: "5:2" },
+  { value: "3 / 1", label: "3:1" },
+  { value: "16 / 5", label: "16:5" },
 ];
 
 export const LOGO_ASPECT_RATIO_OPTIONS: Array<{
@@ -51,8 +52,11 @@ const coverRatios = new Set<CompanyCoverAspectRatio>(
   COVER_ASPECT_RATIO_OPTIONS.map((option) => option.value)
 );
 const legacyTallCoverRatioMap: Record<string, CompanyCoverAspectRatio> = {
-  "4 / 3": "3 / 2",
-  "5 / 4": "3 / 2",
+  "16 / 9": "2 / 1",
+  "5 / 3": "2 / 1",
+  "3 / 2": "2 / 1",
+  "4 / 3": "2 / 1",
+  "5 / 4": "2 / 1",
 };
 const logoRatios = new Set<CompanyLogoAspectRatio>(
   LOGO_ASPECT_RATIO_OPTIONS.map((option) => option.value)

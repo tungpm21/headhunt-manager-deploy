@@ -15,7 +15,9 @@ import {
   DEFAULT_COMPANY_CAPABILITIES,
   DEFAULT_COMPANY_THEME,
   normalizeCompanyCapabilities,
+  normalizeCompanySidebarVisibility,
   normalizeCompanyTheme,
+  type CompanyProfileSidebarVisibility,
   type CompanyProfileTheme,
 } from "@/lib/content-blocks";
 import {
@@ -91,6 +93,16 @@ const THEME_FIELDS: Array<{
     label: "Màu ô nội dung",
     note: "Màu nền của các section nội dung.",
   },
+];
+
+const SIDEBAR_FIELD_OPTIONS: Array<{ key: keyof CompanyProfileSidebarVisibility; label: string }> = [
+  { key: "industry", label: "Ngành nghề" },
+  { key: "companySize", label: "Quy mô" },
+  { key: "location", label: "Khu vực" },
+  { key: "industrialZone", label: "Khu công nghiệp" },
+  { key: "address", label: "Địa chỉ" },
+  { key: "website", label: "Website" },
+  { key: "phone", label: "Số điện thoại" },
 ];
 
 function useImageUpload(initialUrl: string | null, kind: MediaUploadKind) {
@@ -216,6 +228,9 @@ function CompanyProfileForm({
   const [mediaSettings, setMediaSettings] = useState(
     normalizeCompanyMediaSettings(employer.profileConfig?.theme)
   );
+  const [sidebarVisibility, setSidebarVisibility] = useState(
+    normalizeCompanySidebarVisibility(employer.profileConfig?.theme)
+  );
   const [primaryVideoUrl, setPrimaryVideoUrl] = useState(
     employer.profileConfig?.primaryVideoUrl ?? ""
   );
@@ -283,6 +298,7 @@ function CompanyProfileForm({
     setMessage(null);
     formData.set("profileTheme", JSON.stringify(theme));
     formData.set("profileMediaSettings", JSON.stringify(mediaSettings));
+    formData.set("profileSidebarVisibility", JSON.stringify(sidebarVisibility));
     formData.set("primaryVideoUrl", primaryVideoUrl);
 
     try {
@@ -700,6 +716,12 @@ function CompanyProfileForm({
                 <input id="phone" name="phone" type="tel" defaultValue={employer.phone ?? ""} placeholder="0123 456 789" className={inputClassName} />
               </div>
             </div>
+            <FieldVisibilityControls
+              value={sidebarVisibility}
+              onChange={(key, checked) => {
+                setSidebarVisibility((current) => ({ ...current, [key]: checked }));
+              }}
+            />
           </div>
 
           <div className="rounded-xl border border-gray-100 bg-white p-6">
@@ -841,6 +863,40 @@ function CompanyProfileForm({
 
 function ControlLabel({ children }: { children: ReactNode }) {
   return <p className="mb-2 text-xs font-semibold uppercase text-gray-500">{children}</p>;
+}
+
+function FieldVisibilityControls({
+  value,
+  onChange,
+}: {
+  value: CompanyProfileSidebarVisibility;
+  onChange: (key: keyof CompanyProfileSidebarVisibility, checked: boolean) => void;
+}) {
+  return (
+    <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
+      <p className="text-sm font-bold text-gray-800">Hiển thị thông tin trên profile</p>
+      <p className="mt-1 text-xs leading-5 text-gray-500">
+        Chọn các trường được hiển thị trong khối thông tin công ty ở trang public.
+      </p>
+      <div className="mt-4 grid gap-2 sm:grid-cols-2">
+        {SIDEBAR_FIELD_OPTIONS.map((option) => (
+          <label
+            key={option.key}
+            className="flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700"
+          >
+            <span>{option.label}</span>
+            <input
+              type="checkbox"
+              checked={value[option.key]}
+              onChange={(event) => onChange(option.key, event.target.checked)}
+              className="h-4 w-4 rounded border-gray-300 accent-teal-600"
+            />
+          </label>
+        ))}
+      </div>
+      <p className="mt-3 text-xs text-gray-500">Mặc định ẩn số điện thoại để tránh công khai thông tin liên hệ không cần thiết.</p>
+    </div>
+  );
 }
 
 function RatioButtonGroup<T extends string>({

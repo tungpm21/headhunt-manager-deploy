@@ -49,6 +49,7 @@ import {
   DEFAULT_COMPANY_THEME,
   countBlockImages,
   normalizeCompanyCapabilities,
+  normalizeCompanySidebarVisibility,
   normalizeCompanyTheme,
   normalizeContentBlocks,
   parseJson,
@@ -416,6 +417,10 @@ export async function updateCompanyProfileAction(formData: FormData) {
     ...profileTheme,
     media: normalizeCompanyMediaSettings(
       parseJson(formData.get("profileMediaSettings")?.toString() ?? "") ||
+        employer.profileConfig?.theme
+    ),
+    sidebarVisibility: normalizeCompanySidebarVisibility(
+      parseJson(formData.get("profileSidebarVisibility")?.toString() ?? "") ||
         employer.profileConfig?.theme
     ),
   };

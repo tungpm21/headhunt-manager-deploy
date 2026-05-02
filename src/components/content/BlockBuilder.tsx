@@ -266,7 +266,13 @@ export function BlockBuilder({
             <p className="text-xs font-semibold uppercase tracking-wide text-muted">Live preview</p>
             <p className="text-xs text-muted">Preview full-width, scroll riêng để xem layout public rõ hơn.</p>
           </div>
-          <div className="max-h-[760px] min-h-[360px] overflow-auto rounded-2xl border border-border bg-surface p-5">
+          <div
+            className={
+              context === "company"
+                ? "max-h-[760px] min-h-[360px] overflow-auto rounded-2xl bg-[#F3F7FA] p-5"
+                : "max-h-[760px] min-h-[360px] overflow-auto rounded-2xl border border-border bg-surface p-5"
+            }
+          >
             <ContentBlocksRenderer blocks={blocks} theme={previewTheme} />
           </div>
         </div>

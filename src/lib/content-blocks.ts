@@ -64,6 +64,16 @@ export type CompanyProfileCapabilities = {
   maxImages: number;
 };
 
+export type CompanyProfileSidebarVisibility = {
+  industry: boolean;
+  companySize: boolean;
+  location: boolean;
+  industrialZone: boolean;
+  address: boolean;
+  website: boolean;
+  phone: boolean;
+};
+
 export const DEFAULT_COMPANY_THEME: CompanyProfileTheme = {
   primaryColor: "#0479A8",
   accentColor: "#D24B16",
@@ -158,6 +168,16 @@ export const DEFAULT_COMPANY_CAPABILITIES: CompanyProfileCapabilities = {
   video: true,
   html: false,
   maxImages: 8,
+};
+
+export const DEFAULT_COMPANY_SIDEBAR_VISIBILITY: CompanyProfileSidebarVisibility = {
+  industry: true,
+  companySize: true,
+  location: true,
+  industrialZone: true,
+  address: true,
+  website: true,
+  phone: false,
 };
 
 const CONTENT_BLOCK_TYPES = new Set<ContentBlockType>([
@@ -310,6 +330,21 @@ export function normalizeCompanyCapabilities(value: unknown): CompanyProfileCapa
     video: booleanValue(source.video, DEFAULT_COMPANY_CAPABILITIES.video),
     html: booleanValue(source.html, DEFAULT_COMPANY_CAPABILITIES.html),
     maxImages: maxImages || DEFAULT_COMPANY_CAPABILITIES.maxImages,
+  };
+}
+
+export function normalizeCompanySidebarVisibility(value: unknown): CompanyProfileSidebarVisibility {
+  const source = isRecord(value) ? value : {};
+  const nestedSource = isRecord(source.sidebarVisibility) ? source.sidebarVisibility : source;
+
+  return {
+    industry: booleanValue(nestedSource.industry, DEFAULT_COMPANY_SIDEBAR_VISIBILITY.industry),
+    companySize: booleanValue(nestedSource.companySize, DEFAULT_COMPANY_SIDEBAR_VISIBILITY.companySize),
+    location: booleanValue(nestedSource.location, DEFAULT_COMPANY_SIDEBAR_VISIBILITY.location),
+    industrialZone: booleanValue(nestedSource.industrialZone, DEFAULT_COMPANY_SIDEBAR_VISIBILITY.industrialZone),
+    address: booleanValue(nestedSource.address, DEFAULT_COMPANY_SIDEBAR_VISIBILITY.address),
+    website: booleanValue(nestedSource.website, DEFAULT_COMPANY_SIDEBAR_VISIBILITY.website),
+    phone: booleanValue(nestedSource.phone, DEFAULT_COMPANY_SIDEBAR_VISIBILITY.phone),
   };
 }
 

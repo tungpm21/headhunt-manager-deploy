@@ -1,4 +1,5 @@
-import type { CSSProperties } from "react";
+import type { CSSProperties, ReactNode } from "react";
+import { ArrowRight, CheckCircle2, Quote } from "lucide-react";
 import {
   getSafeVideoEmbedUrl,
   normalizeCompanyTheme,
@@ -6,6 +7,7 @@ import {
   type CompanyProfileTheme,
   type ContentBlock,
 } from "@/lib/content-blocks";
+import { GalleryLightbox } from "./GalleryLightbox";
 import { SafeRichContent } from "./SafeRichContent";
 
 type ContentBlocksRendererProps = {
@@ -44,6 +46,17 @@ export function ContentBlocksRenderer({
   }
 
   const normalizedTheme = normalizeCompanyTheme(theme);
+  if (theme) {
+    return (
+      <CompanyContentBlocks
+        blocks={enabledBlocks}
+        fallbackMarkdown={fallbackMarkdown}
+        theme={normalizedTheme}
+        className={className}
+      />
+    );
+  }
+
   const accentColor = normalizedTheme.accentColor;
   const primaryColor = normalizedTheme.primaryColor;
   const textColor = normalizedTheme.textColor;
@@ -230,7 +243,7 @@ export function ContentBlocksRenderer({
               style={sectionStyle}
             >
               {block.title ? <SectionTitle title={block.title} accentColor={accentColor} /> : null}
-              <div className="overflow-hidden rounded-2xl bg-black">
+              <div className="overflow-hidden rounded-2xl bg-[#0E1A27]">
                 <iframe
                   src={embedUrl}
                   title={block.title ?? "Video"}
@@ -278,5 +291,185 @@ function SectionTitle({ title, accentColor }: { title: string; accentColor: stri
       <span className="h-2 w-2 rounded-full" style={{ backgroundColor: accentColor }} />
       <h2 className="text-lg font-bold">{title}</h2>
     </div>
+  );
+}
+
+function CompanyContentBlocks({
+  blocks,
+  fallbackMarkdown,
+  theme,
+  className,
+}: {
+  blocks: ContentBlock[];
+  fallbackMarkdown?: string | null;
+  theme: CompanyProfileTheme;
+  className?: string;
+}) {
+  return (
+    <div className={`space-y-8 ${className ?? ""}`}>
+      {blocks.length === 0 && fallbackMarkdown ? (
+        <CompanySection title="Giới thiệu công ty" theme={theme}>
+          <div className="max-w-[56ch]">
+            <SafeRichContent content={fallbackMarkdown} />
+          </div>
+        </CompanySection>
+      ) : null}
+
+      {blocks.map((block, index) => (
+        <CompanyBlock key={block.id} block={block} index={index} theme={theme} />
+      ))}
+    </div>
+  );
+}
+
+function CompanyBlock({ block, index, theme }: { block: ContentBlock; index: number; theme: CompanyProfileTheme }) {
+  const blockAnchorId = createBlockAnchorId(block, index);
+
+  if (block.type === "richText" && block.markdown?.trim()) {
+    return (
+      <CompanySection id={blockAnchorId} title={block.title} theme={theme}>
+        <div className="max-w-[56ch]">
+          <SafeRichContent content={block.markdown} headingIdPrefix={blockAnchorId} />
+        </div>
+      </CompanySection>
+    );
+  }
+
+  if (block.type === "html" && block.html?.trim()) {
+    return (
+      <CompanySection id={blockAnchorId} title={block.title} theme={theme}>
+        <div className="max-w-[56ch]">
+          <SafeRichContent content={block.html} allowHtml headingIdPrefix={blockAnchorId} />
+        </div>
+      </CompanySection>
+    );
+  }
+
+  if (block.type === "stats" && block.stats?.length) {
+    return (
+      <CompanySection id={blockAnchorId} title={block.title} theme={theme}>
+        <div className="grid gap-6 sm:grid-cols-3">
+          {block.stats.map((stat) => (
+            <div key={`${block.id}-${stat.label}`} className="border-t border-[#D7E4EB] pt-4">
+              <p className="text-3xl font-extrabold text-[#102033]">{stat.value}</p>
+              <p className="mt-1 text-sm font-bold text-[#102033]">{stat.label}</p>
+              {stat.description ? <p className="mt-1 text-sm leading-6 text-[#526173]">{stat.description}</p> : null}
+            </div>
+          ))}
+        </div>
+      </CompanySection>
+    );
+  }
+
+  if (block.type === "benefits" && block.benefits?.length) {
+    return (
+      <CompanySection id={blockAnchorId} title={block.title} theme={theme}>
+        <div className="grid gap-x-8 gap-y-5 sm:grid-cols-2">
+          {block.benefits.map((benefit) => (
+            <div key={`${block.id}-${benefit.title}`} className="flex gap-3 border-t border-[#E4EEF3] pt-4">
+              <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#FFF3E8]" aria-hidden="true">
+                <CheckCircle2 className="h-3.5 w-3.5" style={{ color: theme.accentColor }} />
+              </span>
+              <div>
+                <p className="font-bold text-[#102033]">{benefit.title}</p>
+                {benefit.description ? <p className="mt-1 text-sm leading-6 text-[#526173]">{benefit.description}</p> : null}
+              </div>
+            </div>
+          ))}
+        </div>
+      </CompanySection>
+    );
+  }
+
+  if (block.type === "gallery" && block.images?.length) {
+    return (
+      <CompanySection id={blockAnchorId} title={block.title} theme={theme}>
+        <GalleryLightbox images={block.images} />
+      </CompanySection>
+    );
+  }
+
+  if (block.type === "image" && block.url && block.alt) {
+    return (
+      <figure id={blockAnchorId} className="overflow-hidden rounded-2xl border border-[#D7E4EB] bg-white shadow-[0_20px_60px_-50px_rgba(15,35,55,0.5)]">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={block.url} alt={block.alt} loading="lazy" className="h-auto w-full object-cover" />
+        {(block.title || block.caption) && (
+          <figcaption className="space-y-1 px-5 py-4">
+            {block.title ? <p className="font-bold text-[#102033]">{block.title}</p> : null}
+            {block.caption ? <p className="text-sm text-[#526173]">{block.caption}</p> : null}
+          </figcaption>
+        )}
+      </figure>
+    );
+  }
+
+  if (block.type === "quote" && block.quote?.trim()) {
+    return (
+      <blockquote id={blockAnchorId} className="rounded-2xl border border-[#D7E4EB] bg-[#FBFDFE] p-6 sm:p-8">
+        <Quote className="mb-4 h-7 w-7" style={{ color: theme.accentColor }} aria-hidden="true" />
+        <p className="max-w-[72ch] text-lg font-semibold leading-8 text-[#102033]">{block.quote}</p>
+        {block.attribution ? <footer className="mt-4 text-sm font-bold text-[#526173]">{block.attribution}</footer> : null}
+      </blockquote>
+    );
+  }
+
+  if (block.type === "video") {
+    const embedUrl = getSafeVideoEmbedUrl(block.url);
+    if (!embedUrl) return null;
+
+    return (
+      <CompanySection id={blockAnchorId} title={block.title} theme={theme}>
+        <div className="overflow-hidden rounded-2xl bg-[#0E1A27]">
+          <iframe
+            src={embedUrl}
+            title={block.title ?? "Video"}
+            className="aspect-video w-full"
+            loading="lazy"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowFullScreen
+          />
+        </div>
+      </CompanySection>
+    );
+  }
+
+  if (block.type === "cta" && block.label && block.href) {
+    return (
+      <section id={blockAnchorId} className="rounded-2xl bg-[#073B59] p-6 text-white shadow-[0_24px_70px_-50px_rgba(15,35,55,0.55)] sm:p-8">
+        {block.title ? <h2 className="text-2xl font-extrabold">{block.title}</h2> : null}
+        {block.description ? <p className="mt-2 max-w-2xl text-sm leading-6 text-white/80">{block.description}</p> : null}
+        <a href={block.href} className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-xl bg-white px-5 text-sm font-bold text-[#073B59] transition hover:-translate-y-0.5">
+          {block.label}
+          <ArrowRight className="h-4 w-4" aria-hidden="true" />
+        </a>
+      </section>
+    );
+  }
+
+  return null;
+}
+
+function CompanySection({
+  id,
+  title,
+  theme,
+  children,
+}: {
+  id?: string;
+  title?: string;
+  theme: CompanyProfileTheme;
+  children: ReactNode;
+}) {
+  return (
+    <section id={id} className="rounded-2xl border border-[#D7E4EB] bg-[#FEFFFF] p-6 shadow-[0_18px_54px_-54px_rgba(15,35,55,0.45)] sm:p-8">
+      {title ? (
+        <div className="mb-5 flex items-center gap-3">
+          <span className="h-2 w-2 rounded-full" style={{ backgroundColor: theme.accentColor }} />
+          <h2 className="text-xl font-extrabold text-[#102033]">{title}</h2>
+        </div>
+      ) : null}
+      <div className="text-[#233447]">{children}</div>
+    </section>
   );
 }

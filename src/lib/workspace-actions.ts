@@ -19,6 +19,7 @@ import {
     DEFAULT_COMPANY_THEME,
     countBlockImages,
     normalizeCompanyCapabilities,
+    normalizeCompanySidebarVisibility,
     normalizeCompanyTheme,
     normalizeContentBlocks,
     parseJson,
@@ -577,6 +578,9 @@ export async function updateAdminCompanyProfileAction(
     const profileMediaSettings = normalizeCompanyMediaSettings(
         parseJson(formData.get("profileMediaSettings")?.toString() ?? "") || rawProfileTheme
     );
+    const profileSidebarVisibility = normalizeCompanySidebarVisibility(
+        parseJson(formData.get("profileSidebarVisibility")?.toString() ?? "") || rawProfileTheme
+    );
     const profileSections = normalizeContentBlocks(
         formData.get("profileSections")?.toString() ?? "[]"
     );
@@ -670,13 +674,21 @@ export async function updateAdminCompanyProfileAction(
                 where: { employerId: employer.id },
                 create: {
                     employerId: employer.id,
-                    theme: inputJson({ ...profileTheme, media: nextProfileMediaSettings }),
+                    theme: inputJson({
+                        ...profileTheme,
+                        media: nextProfileMediaSettings,
+                        sidebarVisibility: profileSidebarVisibility,
+                    }),
                     capabilities: inputJson(currentCapabilities),
                     sections: inputJson(profileSections),
                     primaryVideoUrl,
                 },
                 update: {
-                    theme: inputJson({ ...profileTheme, media: nextProfileMediaSettings }),
+                    theme: inputJson({
+                        ...profileTheme,
+                        media: nextProfileMediaSettings,
+                        sidebarVisibility: profileSidebarVisibility,
+                    }),
                     capabilities: inputJson(currentCapabilities),
                     sections: inputJson(profileSections),
                     primaryVideoUrl,

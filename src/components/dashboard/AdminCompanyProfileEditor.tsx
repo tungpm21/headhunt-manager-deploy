@@ -11,7 +11,9 @@ import {
   DEFAULT_COMPANY_CAPABILITIES,
   DEFAULT_COMPANY_THEME,
   normalizeCompanyCapabilities,
+  normalizeCompanySidebarVisibility,
   normalizeCompanyTheme,
+  type CompanyProfileSidebarVisibility,
   type CompanyProfileTheme,
 } from "@/lib/content-blocks";
 import {
@@ -71,6 +73,16 @@ const THEME_FIELDS: Array<{ key: keyof CompanyProfileTheme; label: string }> = [
   { key: "surfaceColor", label: "Màu ô nội dung" },
 ];
 
+const SIDEBAR_FIELD_OPTIONS: Array<{ key: keyof CompanyProfileSidebarVisibility; label: string }> = [
+  { key: "industry", label: "Ngành nghề" },
+  { key: "companySize", label: "Quy mô" },
+  { key: "location", label: "Khu vực" },
+  { key: "industrialZone", label: "Khu công nghiệp" },
+  { key: "address", label: "Địa chỉ" },
+  { key: "website", label: "Website" },
+  { key: "phone", label: "Điện thoại" },
+];
+
 export function AdminCompanyProfileEditor({
   workspaceId,
   employer,
@@ -88,6 +100,9 @@ export function AdminCompanyProfileEditor({
   );
   const [mediaSettings, setMediaSettings] = useState(
     normalizeCompanyMediaSettings(employer.profileConfig?.theme)
+  );
+  const [sidebarVisibility, setSidebarVisibility] = useState(
+    normalizeCompanySidebarVisibility(employer.profileConfig?.theme)
   );
   const [primaryVideoUrl, setPrimaryVideoUrl] = useState(
     employer.profileConfig?.primaryVideoUrl ?? ""
@@ -131,6 +146,7 @@ export function AdminCompanyProfileEditor({
     setMessage(null);
     formData.set("profileTheme", JSON.stringify(theme));
     formData.set("profileMediaSettings", JSON.stringify(mediaSettings));
+    formData.set("profileSidebarVisibility", JSON.stringify(sidebarVisibility));
     formData.set("primaryVideoUrl", primaryVideoUrl);
     formData.set("logoUrl", logoUrl);
     formData.set("coverImageUrl", coverImageUrl);
@@ -454,6 +470,12 @@ export function AdminCompanyProfileEditor({
               <input id="phone" name="phone" defaultValue={employer.phone ?? ""} className={inputClassName} />
             </div>
           </div>
+          <FieldVisibilityControls
+            value={sidebarVisibility}
+            onChange={(key, checked) => {
+              setSidebarVisibility((current) => ({ ...current, [key]: checked }));
+            }}
+          />
         </div>
 
         <div className="space-y-4 rounded-xl border border-border bg-surface p-6">
@@ -544,6 +566,44 @@ export function AdminCompanyProfileEditor({
         </button>
       </div>
     </form>
+  );
+}
+
+function FieldVisibilityControls({
+  value,
+  onChange,
+}: {
+  value: CompanyProfileSidebarVisibility;
+  onChange: (key: keyof CompanyProfileSidebarVisibility, checked: boolean) => void;
+}) {
+  return (
+    <div className="rounded-xl border border-border bg-background p-4">
+      <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-sm font-bold text-foreground">Hiển thị thông tin trên profile</p>
+          <p className="text-xs leading-5 text-muted">
+            Bật hoặc tắt từng trường trong khối thông tin công ty ở trang public.
+          </p>
+        </div>
+      </div>
+      <div className="mt-4 grid gap-2 sm:grid-cols-2">
+        {SIDEBAR_FIELD_OPTIONS.map((option) => (
+          <label
+            key={option.key}
+            className="flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-border bg-surface px-3 py-2 text-sm font-medium text-foreground"
+          >
+            <span>{option.label}</span>
+            <input
+              type="checkbox"
+              checked={value[option.key]}
+              onChange={(event) => onChange(option.key, event.target.checked)}
+              className="h-4 w-4 rounded border-border text-primary accent-primary"
+            />
+          </label>
+        ))}
+      </div>
+      <p className="mt-3 text-xs text-muted">Mặc định trường điện thoại được tắt để tránh lộ thông tin liên hệ không cần thiết.</p>
+    </div>
   );
 }
 

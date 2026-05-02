@@ -1,7 +1,14 @@
 "use server";
 
 import { revalidatePath, revalidateTag } from "next/cache";
-import { CompanyDraftStatus, CompanyPortalRole, CompanySize, Prisma } from "@prisma/client";
+import {
+    CompanyDraftStatus,
+    CompanyPortalRole,
+    CompanySize,
+    NotificationEventType,
+    NotificationSeverity,
+    Prisma,
+} from "@prisma/client";
 import { hash } from "bcrypt-ts";
 import { requireAdmin } from "@/lib/authz";
 import { logActivity } from "@/lib/activity-log";
@@ -23,6 +30,7 @@ import {
     validateMediaImageFile,
 } from "@/lib/media-validation";
 import { prisma } from "@/lib/prisma";
+import { createCompanyNotificationEventForWorkspace } from "@/lib/notification-events";
 import {
     PUBLIC_COMPANY_PROFILE_CACHE_TAG,
     PUBLIC_HOMEPAGE_CACHE_TAG,
@@ -776,6 +784,16 @@ export async function approveCompanyProfileDraftAction(
         workspaceId: draft.workspace.id,
     });
 
+    await createCompanyNotificationEventForWorkspace(draft.workspace.id, {
+        type: NotificationEventType.COMPANY_PROFILE_DRAFT_APPROVED,
+        entityType: "CompanyProfileDraft",
+        entityId: draft.id,
+        title: "Hồ sơ công ty đã được duyệt",
+        body: "Admin CRM đã duyệt bản cập nhật profile public của công ty.",
+        href: "/company/profile",
+        severity: NotificationSeverity.SUCCESS,
+    });
+
     revalidatePath("/companies");
     revalidatePath(`/companies/${draft.workspace.id}`);
     revalidatePath("/employer/company");
@@ -807,6 +825,7 @@ export async function rejectCompanyProfileDraftAction(
             id: true,
             status: true,
             workspaceId: true,
+            workspace: { select: { displayName: true } },
         },
     });
 
@@ -828,6 +847,18 @@ export async function rejectCompanyProfileDraftAction(
     await logActivity("COMPANY_PROFILE_DRAFT_REJECTED", "CompanyProfileDraft", draft.id, userId, {
         workspaceId: draft.workspaceId,
         reason,
+    });
+
+    await createCompanyNotificationEventForWorkspace(draft.workspaceId, {
+        type: NotificationEventType.COMPANY_PROFILE_DRAFT_REJECTED,
+        entityType: "CompanyProfileDraft",
+        entityId: draft.id,
+        title: "Hồ sơ công ty cần chỉnh sửa",
+        body: reason
+            ? `Admin CRM đã từ chối bản cập nhật: ${reason}`
+            : `Admin CRM đã từ chối bản cập nhật của ${draft.workspace.displayName}.`,
+        href: "/company/profile",
+        severity: NotificationSeverity.WARNING,
     });
 
     revalidatePath("/companies");

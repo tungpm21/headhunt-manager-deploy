@@ -1,8 +1,13 @@
 "use server";
 
-import { SubmissionFeedbackDecision } from "@prisma/client";
+import {
+  NotificationEventType,
+  NotificationSeverity,
+  SubmissionFeedbackDecision,
+} from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { requireCompanyPortalSession } from "@/lib/company-portal-auth";
+import { createAdminNotificationEventForAllAdmins } from "@/lib/notification-events";
 import { prisma } from "@/lib/prisma";
 import { withWorkspaceSubmissionAccess } from "@/lib/workspace";
 
@@ -43,7 +48,11 @@ export async function submitCompanySubmissionFeedbackAction(
       id: jobCandidateId,
       ...withWorkspaceSubmissionAccess(session.workspaceId),
     },
-    select: { id: true },
+    select: {
+      id: true,
+      candidate: { select: { fullName: true } },
+      jobOrder: { select: { id: true, title: true } },
+    },
   });
 
   if (!submission) {
@@ -53,7 +62,7 @@ export async function submitCompanySubmissionFeedbackAction(
     };
   }
 
-  await prisma.submissionFeedback.create({
+  const feedback = await prisma.submissionFeedback.create({
     data: {
       workspaceId: session.workspaceId,
       jobCandidateId: submission.id,
@@ -63,7 +72,19 @@ export async function submitCompanySubmissionFeedbackAction(
     },
   });
 
+  await createAdminNotificationEventForAllAdmins({
+    type: NotificationEventType.SUBMISSION_FEEDBACK_RECEIVED,
+    entityType: "SubmissionFeedback",
+    entityId: feedback.id,
+    title: "Company Portal vừa gửi feedback",
+    body: `${submission.candidate.fullName} - ${submission.jobOrder.title}`,
+    href: `/jobs/${submission.jobOrder.id}`,
+    severity: NotificationSeverity.INFO,
+  });
+
   revalidatePath("/company/submissions");
+  revalidatePath("/dashboard");
+  revalidatePath(`/jobs/${submission.jobOrder.id}`);
   return {
     success: true,
     message: "Đã gửi feedback cho đội tuyển dụng.",

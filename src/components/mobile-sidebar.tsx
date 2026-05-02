@@ -14,10 +14,26 @@ export function MobileSidebar({
   counts?: NotificationCounts;
 }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [liveCounts, setLiveCounts] = useState(counts);
   const pathname = usePathname();
 
   useEffect(() => {
-    setIsOpen(false);
+    const handleNotificationUpdate = (event: Event) => {
+      setLiveCounts((event as CustomEvent<NotificationCounts>).detail);
+    };
+
+    window.addEventListener("admin-notifications:update", handleNotificationUpdate);
+    return () => {
+      window.removeEventListener(
+        "admin-notifications:update",
+        handleNotificationUpdate
+      );
+    };
+  }, []);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => setIsOpen(false), 0);
+    return () => window.clearTimeout(timeoutId);
   }, [pathname]);
 
   return (
@@ -41,7 +57,7 @@ export function MobileSidebar({
           />
           <div className="fixed inset-y-0 left-0 z-50 w-64 md:hidden">
             <div className="relative h-full animate-in slide-in-from-left duration-200">
-              <Sidebar isAdmin={isAdmin} counts={counts} />
+              <Sidebar isAdmin={isAdmin} counts={liveCounts} />
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}

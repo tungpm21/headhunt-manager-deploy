@@ -4,17 +4,16 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Bell, Check, CheckCircle2, ChevronRight } from "lucide-react";
 import type {
-  AdminNotificationSnapshot,
-  NotificationEventItem,
-  NotificationTone,
-} from "@/lib/notifications";
+  CompanyPortalNotificationData,
+  CompanyPortalNotificationEventItem,
+  CompanyPortalNotificationTone,
+} from "@/lib/company-portal-notifications";
 
-const toneClassName: Record<NotificationTone, string> = {
+const toneClassName: Record<CompanyPortalNotificationTone, string> = {
   blue: "bg-blue-50 text-blue-700",
   amber: "bg-amber-50 text-amber-700",
   red: "bg-red-50 text-red-700",
   emerald: "bg-emerald-50 text-emerald-700",
-  slate: "bg-slate-100 text-slate-600",
 };
 
 const severityClassName = {
@@ -24,62 +23,50 @@ const severityClassName = {
   DANGER: "bg-red-50 text-red-700",
 };
 
-function dispatchNotificationCounts(snapshot: AdminNotificationSnapshot) {
-  window.dispatchEvent(
-    new CustomEvent("admin-notifications:update", {
-      detail: snapshot.counts,
-    })
-  );
-}
-
-export function NotificationBell({
-  initialData,
+export function CompanyPortalNotificationBell({
+  data: initialData,
 }: {
-  initialData: AdminNotificationSnapshot;
+  data: CompanyPortalNotificationData;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [data, setData] = useState(initialData);
   const [isMarkingRead, setIsMarkingRead] = useState(false);
-  const totalLabel = data.total > 99 ? "99+" : data.total.toString();
+  const countLabel = data.total > 99 ? "99+" : data.total.toString();
 
   const refresh = useCallback(async () => {
     try {
-      const response = await fetch("/api/admin/notifications", {
+      const response = await fetch("/api/company/notifications", {
         cache: "no-store",
       });
       if (!response.ok) return;
-      const nextData = (await response.json()) as AdminNotificationSnapshot;
-      setData(nextData);
-      dispatchNotificationCounts(nextData);
+      setData((await response.json()) as CompanyPortalNotificationData);
     } catch {
-      // Polling should never interrupt the current page.
+      // Notification polling should stay silent when offline.
     }
   }, []);
 
-  const markRead = useCallback(
-    async (eventIds?: number[]) => {
-      setIsMarkingRead(true);
-      try {
-        const response = await fetch("/api/admin/notifications", {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(eventIds?.length ? { ids: eventIds } : { all: true }),
-        });
-        if (!response.ok) return;
-        const nextData = (await response.json()) as AdminNotificationSnapshot;
-        setData(nextData);
-        dispatchNotificationCounts(nextData);
-      } finally {
-        setIsMarkingRead(false);
-      }
-    },
-    []
-  );
+  const markRead = useCallback(async (eventIds?: number[]) => {
+    setIsMarkingRead(true);
+    try {
+      const response = await fetch("/api/company/notifications", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(eventIds?.length ? { ids: eventIds } : { all: true }),
+      });
+      if (!response.ok) return;
+      setData((await response.json()) as CompanyPortalNotificationData);
+    } finally {
+      setIsMarkingRead(false);
+    }
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
       }
     };
@@ -119,7 +106,7 @@ export function NotificationBell({
         <Bell className="h-5 w-5" />
         {data.total > 0 ? (
           <span className="absolute -right-1 -top-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-danger px-1.5 text-[10px] font-bold text-white">
-            {totalLabel}
+            {countLabel}
           </span>
         ) : null}
       </button>
@@ -161,31 +148,41 @@ export function NotificationBell({
                 <p className="px-2 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-wide text-muted">
                   Cần xử lý
                 </p>
-                {data.actionableItems.map((item) => (
-                  <Link
-                    key={item.key}
-                    href={item.href}
-                    onClick={() => setIsOpen(false)}
-                    className="flex items-center justify-between rounded-lg px-3 py-2.5 transition hover:bg-background"
-                  >
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium text-foreground">{item.label}</p>
-                      <p className="mt-1 text-xs text-muted">{item.description}</p>
-                    </div>
-                    <div className="ml-3 flex shrink-0 items-center gap-2">
-                      <span
-                        className={`inline-flex min-w-8 justify-center rounded-full px-2 py-1 text-xs font-semibold ${
-                          item.count > 0
-                            ? toneClassName[item.tone]
-                            : "bg-muted/20 text-muted"
-                        }`}
-                      >
-                        {item.count}
-                      </span>
-                      <ChevronRight className="h-4 w-4 text-muted" />
-                    </div>
-                  </Link>
-                ))}
+                {data.actionableItems.length === 0 ? (
+                  <div className="rounded-lg bg-background px-3 py-3 text-xs text-muted">
+                    Không có mục cần xử lý.
+                  </div>
+                ) : (
+                  data.actionableItems.map((item) => (
+                    <Link
+                      key={item.key}
+                      href={item.href}
+                      onClick={() => setIsOpen(false)}
+                      className="flex items-center justify-between rounded-lg px-3 py-2.5 transition hover:bg-background"
+                    >
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-foreground">
+                          {item.label}
+                        </p>
+                        <p className="mt-1 text-xs text-muted">
+                          {item.description}
+                        </p>
+                      </div>
+                      <div className="ml-3 flex shrink-0 items-center gap-2">
+                        <span
+                          className={`inline-flex min-w-8 justify-center rounded-full px-2 py-1 text-xs font-semibold ${
+                            item.count > 0
+                              ? toneClassName[item.tone]
+                              : "bg-muted/20 text-muted"
+                          }`}
+                        >
+                          {item.count}
+                        </span>
+                        <ChevronRight className="h-4 w-4 text-muted" />
+                      </div>
+                    </Link>
+                  ))
+                )}
 
                 <p className="px-2 pb-1 pt-4 text-[11px] font-semibold uppercase tracking-wide text-muted">
                   Thông báo mới
@@ -219,7 +216,7 @@ function EventLink({
   item,
   onClick,
 }: {
-  item: NotificationEventItem;
+  item: CompanyPortalNotificationEventItem;
   onClick: () => void;
 }) {
   return (

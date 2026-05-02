@@ -1,9 +1,15 @@
 "use server";
 
 import { revalidatePath, revalidateTag } from "next/cache";
-import { SubscriptionStatus, SubscriptionTier } from "@prisma/client";
+import {
+  NotificationEventType,
+  NotificationSeverity,
+  SubscriptionStatus,
+  SubscriptionTier,
+} from "@prisma/client";
 import { logActivity } from "@/lib/activity-log";
 import { requireAdmin } from "@/lib/authz";
+import { createCompanyNotificationEventForEmployer } from "@/lib/notification-events";
 import {
   activateEmployerIfPending,
   createCandidateFromImportedApplication,
@@ -163,6 +169,16 @@ export async function approveJobPosting(id: number) {
     rejectReason: null,
   });
 
+  await createCompanyNotificationEventForEmployer(job.employer.id, {
+    type: NotificationEventType.JOB_POSTING_APPROVED,
+    entityType: "JobPosting",
+    entityId: job.id,
+    title: "Tin tuyển dụng đã được duyệt",
+    body: `${job.title} hiện đã public trên FDIWork.`,
+    href: "/company/job-postings",
+    severity: NotificationSeverity.SUCCESS,
+  });
+
   revalidatePath("/moderation");
   revalidatePath("/jobs");
   revalidatePath("/viec-lam");
@@ -180,9 +196,19 @@ export async function rejectJobPosting(id: number, reason: string) {
     };
   }
 
-  await updateJobPostingModeration(id, {
+  const job = await updateJobPostingModeration(id, {
     status: "REJECTED",
     rejectReason: parsedInput.data.reason.trim(),
+  });
+
+  await createCompanyNotificationEventForEmployer(job.employerId, {
+    type: NotificationEventType.JOB_POSTING_REJECTED,
+    entityType: "JobPosting",
+    entityId: job.id,
+    title: "Tin tuyển dụng bị từ chối",
+    body: `${job.title}: ${parsedInput.data.reason.trim()}`,
+    href: "/company/job-postings?status=REJECTED",
+    severity: NotificationSeverity.WARNING,
   });
 
   revalidatePath("/moderation");
@@ -614,6 +640,16 @@ export async function importApplicationToCRM(applicationId: number) {
     jobTitle: application.jobPosting.title,
     employerName: application.jobPosting.employer.companyName,
     linkedExistingCandidate: Boolean(existingCandidate),
+  });
+
+  await createCompanyNotificationEventForEmployer(application.jobPosting.employerId, {
+    type: NotificationEventType.FDIWORK_APPLICATION_IMPORTED,
+    entityType: "Application",
+    entityId: application.id,
+    title: "FDIWork đã chuyển hồ sơ mới",
+    body: `${application.fullName} ứng tuyển ${application.jobPosting.title}.`,
+    href: "/company/applications?imported=imported",
+    severity: NotificationSeverity.INFO,
   });
 
   revalidatePath("/moderation/applications");

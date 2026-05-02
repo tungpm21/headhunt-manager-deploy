@@ -8,7 +8,7 @@ import { NavigationProgress } from "@/components/navigation-progress";
 import { NotificationBell } from "@/components/notification-bell";
 import { Sidebar } from "@/components/sidebar";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { getNotificationCounts } from "@/lib/notifications";
+import { getAdminNotificationSnapshot } from "@/lib/notifications";
 
 export default async function DashboardLayout({
   children,
@@ -22,15 +22,24 @@ export default async function DashboardLayout({
   }
 
   const isAdmin = session.user.role === "ADMIN";
-  const counts = isAdmin
-    ? await getNotificationCounts(true)
+  const notificationData = isAdmin
+    ? await getAdminNotificationSnapshot(true, Number(session.user.id))
     : {
+      counts: {
       newApplications: 0,
       pendingJobs: 0,
       pendingEmployers: 0,
       pendingProfileDrafts: 0,
       expiringJobs: 0,
+      unreadEvents: 0,
+      },
+      actionableItems: [],
+      eventItems: [],
+      actionableTotal: 0,
+      unreadTotal: 0,
+      total: 0,
     };
+  const counts = notificationData.counts;
 
   return (
     <div className="flex min-h-screen bg-background text-foreground">
@@ -46,7 +55,7 @@ export default async function DashboardLayout({
           <div className="font-bold text-primary md:hidden">HM</div>
           <div className="flex items-center gap-3">
             <GlobalSearchTrigger />
-            {isAdmin ? <NotificationBell counts={counts} /> : null}
+            {isAdmin ? <NotificationBell initialData={notificationData} /> : null}
             <ThemeToggle />
             <div className="hidden text-right sm:block">
               <p className="text-sm font-medium leading-none">{session.user.name}</p>

@@ -166,6 +166,7 @@ model User {
   uploadedCVs       CandidateCV[]   @relation("CVUploadedBy")
   activityLogs      ActivityLog[]
   reviewedProfileDrafts CompanyProfileDraft[] @relation("CompanyProfileDraftReviewer")
+  notificationEvents NotificationEvent[] @relation("AdminNotificationEvents")
 }
 
 model Candidate {
@@ -674,6 +675,29 @@ enum CompanyDraftStatus {
   REJECTED
 }
 
+enum NotificationRecipientKind {
+  ADMIN
+  COMPANY
+}
+
+enum NotificationEventType {
+  COMPANY_PROFILE_DRAFT_APPROVED
+  COMPANY_PROFILE_DRAFT_REJECTED
+  FDIWORK_APPLICATION_IMPORTED
+  JOB_POSTING_APPROVED
+  JOB_POSTING_REJECTED
+  SUBMISSION_FEEDBACK_RECEIVED
+  QUOTA_ALERT
+  SUBSCRIPTION_ALERT
+}
+
+enum NotificationSeverity {
+  INFO
+  SUCCESS
+  WARNING
+  DANGER
+}
+
 model CompanyWorkspace {
   id            Int                    @id @default(autoincrement())
   displayName   String
@@ -689,6 +713,7 @@ model CompanyWorkspace {
   portalUsers   CompanyPortalUser[]    @relation("WorkspacePortalUsers")
   feedback      SubmissionFeedback[]   @relation("WorkspaceFeedback")
   profileDrafts CompanyProfileDraft[]  @relation("WorkspaceProfileDrafts")
+  notificationEvents NotificationEvent[] @relation("WorkspaceNotificationEvents")
 
   createdAt     DateTime               @default(now())
   updatedAt     DateTime               @updatedAt
@@ -708,6 +733,7 @@ model CompanyPortalUser {
 
   workspace      CompanyWorkspace   @relation("WorkspacePortalUsers", fields: [workspaceId], references: [id])
   feedback       SubmissionFeedback[] @relation("FeedbackAuthor")
+  notificationEvents NotificationEvent[] @relation("CompanyPortalNotificationEvents")
 
   createdAt      DateTime           @default(now())
   updatedAt      DateTime           @updatedAt
@@ -752,4 +778,31 @@ model CompanyProfileDraft {
 
   @@index([workspaceId, status, updatedAt])
   @@index([reviewedById])
+}
+
+model NotificationEvent {
+  id            Int                       @id @default(autoincrement())
+  recipientKind NotificationRecipientKind
+  adminUserId   Int?
+  portalUserId  Int?
+  workspaceId   Int?
+  type          NotificationEventType
+  entityType    String
+  entityId      Int
+  title         String
+  body          String?
+  href          String
+  severity      NotificationSeverity      @default(INFO)
+  readAt        DateTime?
+  createdAt     DateTime                  @default(now())
+
+  adminUser  User?              @relation("AdminNotificationEvents", fields: [adminUserId], references: [id], onDelete: Cascade)
+  portalUser CompanyPortalUser? @relation("CompanyPortalNotificationEvents", fields: [portalUserId], references: [id], onDelete: Cascade)
+  workspace  CompanyWorkspace?  @relation("WorkspaceNotificationEvents", fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([recipientKind, adminUserId, readAt, createdAt])
+  @@index([recipientKind, portalUserId, readAt, createdAt])
+  @@index([workspaceId, readAt, createdAt])
+  @@unique([adminUserId, type, entityType, entityId])
+  @@unique([portalUserId, type, entityType, entityId])
 }

@@ -627,11 +627,12 @@ export async function getApplicationForImportById(applicationId: number) {
       jobPosting: {
         select: {
           id: true,
+          employerId: true,
           jobOrderId: true,
           title: true,
           industry: true,
           location: true,
-          employer: { select: { companyName: true } },
+          employer: { select: { id: true, companyName: true } },
         },
       },
     },

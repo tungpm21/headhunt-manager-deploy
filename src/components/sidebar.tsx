@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import {
   Briefcase,
@@ -123,6 +124,22 @@ export function Sidebar({
   className?: string;
   counts?: NotificationCounts;
 }) {
+  const [liveCounts, setLiveCounts] = useState(counts);
+
+  useEffect(() => {
+    const handleNotificationUpdate = (event: Event) => {
+      setLiveCounts((event as CustomEvent<NotificationCounts>).detail);
+    };
+
+    window.addEventListener("admin-notifications:update", handleNotificationUpdate);
+    return () => {
+      window.removeEventListener(
+        "admin-notifications:update",
+        handleNotificationUpdate
+      );
+    };
+  }, []);
+
   return (
     <aside
       className={cn(
@@ -146,7 +163,7 @@ export function Sidebar({
             key={item.name}
             item={item}
             isAdmin={isAdmin}
-            counts={counts}
+            counts={liveCounts}
           />
         ))}
 
@@ -156,7 +173,7 @@ export function Sidebar({
               FDIWork
             </p>
             {fdiworkNav.map((item) => (
-              <SidebarLink key={item.name} item={item} isAdmin={isAdmin} counts={counts} />
+              <SidebarLink key={item.name} item={item} isAdmin={isAdmin} counts={liveCounts} />
             ))}
           </>
         ) : null}

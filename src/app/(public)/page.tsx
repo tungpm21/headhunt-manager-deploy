@@ -24,18 +24,17 @@ export default async function HomePage() {
 
       <section
         id="home-hero"
-        className="relative scroll-mt-24 overflow-hidden bg-[#F7FBFF] pb-5 text-[var(--color-fdi-text)] sm:pb-6 lg:pb-8"
+        className="relative scroll-mt-24 overflow-hidden bg-[#F3F7F8] pb-5 text-[var(--color-fdi-text)] sm:pb-6 lg:pb-8"
         style={{
           backgroundImage:
-            "linear-gradient(180deg, rgba(247,251,255,0.56) 0%, rgba(255,255,255,0.48) 42%, rgba(243,248,252,0.92) 100%), url('/background-pattern/homepage-network.webp')",
+            "linear-gradient(180deg, rgba(248,251,252,0.94) 0%, rgba(238,245,248,0.88) 48%, rgba(243,247,248,1) 100%), url('/background-pattern/homepage-network.webp')",
           backgroundPosition: "center top",
           backgroundRepeat: "no-repeat",
           backgroundSize: "cover",
         }}
       >
-        <div className="pointer-events-none absolute left-1/2 top-28 h-[30rem] w-[72rem] -translate-x-1/2 rounded-[999px] bg-[radial-gradient(circle,rgba(14,116,190,0.16)_0%,rgba(14,116,190,0.055)_38%,transparent_72%)] blur-3xl" />
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-[linear-gradient(180deg,rgba(255,255,255,0.68)_0%,rgba(255,255,255,0)_100%)]" />
-        <div className="absolute inset-x-0 bottom-0 h-40 bg-[linear-gradient(180deg,rgba(243,247,248,0)_0%,#F3F7F8_100%)]" />
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-[linear-gradient(180deg,rgba(255,255,255,0.74)_0%,rgba(255,255,255,0)_100%)]" />
+        <div className="absolute inset-x-0 bottom-0 h-32 bg-[linear-gradient(180deg,rgba(243,247,248,0)_0%,#F3F7F8_100%)]" />
         <div className="relative">
           <HeroSection />
           <EmployerBannerCarousel employers={data.bannerEmployers} />

@@ -45,25 +45,13 @@ export function TopEmployers({ employers }: TopEmployersProps) {
   if (!hasEmployers) return null;
 
   return (
-    <section
-      className="relative z-10 overflow-hidden py-12 sm:py-14 lg:py-16"
-      style={{
-        backgroundImage:
-          "linear-gradient(180deg, rgba(236,247,253,0.92) 0%, rgba(246,251,253,0.98) 48%, rgba(255,255,251,1) 100%), url('/background-pattern/homepage-network.webp')",
-        backgroundPosition: "center top",
-        backgroundRepeat: "no-repeat",
-        backgroundSize: "cover",
-      }}
-    >
-      <div className="pointer-events-none absolute left-0 top-10 h-56 w-56 rounded-full bg-[#0A6F9D]/10 blur-3xl" />
-      <div className="pointer-events-none absolute right-0 bottom-8 h-64 w-64 rounded-full bg-[#E95A1A]/8 blur-3xl" />
-
+    <section className="relative z-10 overflow-hidden bg-[#F3F7F8] py-12 sm:py-14 lg:py-16">
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col rounded-xl border border-[#CFE3EA] bg-white/82 p-5 shadow-[0_34px_86px_-58px_rgba(7,26,47,0.46)] backdrop-blur-md sm:p-6 lg:p-7">
+        <div className="flex flex-col">
           <div className="mb-5 flex items-end justify-between gap-4 sm:mb-6 lg:mb-7">
             <div>
-              <p className="mb-2 inline-flex rounded-md border border-[#BFDCE4] bg-[#EAF7FA] px-3 py-1 text-[10px] font-bold uppercase text-[var(--color-fdi-primary)] shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
-                Hiring partners
+              <p className="mb-2 inline-flex rounded-md border border-[#CFE0EA] bg-white px-3 py-1 text-[11px] font-semibold text-[var(--color-fdi-primary)]">
+                Đối tác tuyển dụng
               </p>
               <h2
                 className="text-2xl font-black tracking-normal text-[var(--color-fdi-ink)] sm:text-3xl"
@@ -103,7 +91,7 @@ export function TopEmployers({ employers }: TopEmployersProps) {
 
           <div
             ref={scrollRef}
-            className="flex gap-3 overflow-x-auto px-1 py-5 scrollbar-hide snap-x snap-mandatory sm:gap-4 lg:py-6"
+            className="flex gap-3 overflow-x-auto px-1 py-4 scrollbar-hide snap-x snap-mandatory sm:gap-4 lg:py-5"
             style={{
               scrollbarWidth: "none",
               msOverflowStyle: "none",
@@ -118,10 +106,10 @@ export function TopEmployers({ employers }: TopEmployersProps) {
                   href={`/cong-ty/${employer.slug}`}
                   className="group block shrink-0 basis-full cursor-pointer snap-start sm:basis-[230px] lg:basis-[calc((100%_-_64px)/5)]"
                 >
-                  <div className="flex min-h-[324px] flex-col overflow-hidden rounded-xl border border-[#D6E5E9] bg-white shadow-[0_22px_48px_-34px_rgba(7,26,47,0.5)] transition-[border-color,box-shadow,transform] duration-300 ease-[var(--ease-fdi)] hover:-translate-y-1 hover:border-[#A9CED8] hover:shadow-[0_34px_68px_-38px_rgba(7,26,47,0.62)]">
-                    <div className="h-1 bg-[linear-gradient(90deg,#0A6F9D_0%,#5CC3D9_100%)]" />
-                    <div className="flex h-[150px] items-center justify-center border-b border-[#E3ECEF] bg-[linear-gradient(180deg,#F7FCFD_0%,#FFFFFF_100%)] p-4 sm:h-[158px] lg:h-[154px]">
-                      <div className="flex h-24 w-full items-center justify-center rounded-lg bg-white shadow-[inset_0_0_0_1px_rgba(216,231,234,0.72)] sm:h-28">
+                  <div className="flex min-h-[312px] flex-col overflow-hidden rounded-xl border border-[#D6E2E7] bg-white shadow-[0_18px_44px_-36px_rgba(7,26,47,0.42)] transition-[border-color,box-shadow,transform] duration-300 ease-[var(--ease-fdi)] hover:-translate-y-1 hover:border-[#A9C4CE] hover:shadow-[0_26px_58px_-42px_rgba(7,26,47,0.52)]">
+                    <div className="h-1 bg-[var(--color-fdi-primary)]" />
+                    <div className="flex h-[150px] items-center justify-center border-b border-[#E3ECEF] bg-[#F8FBFC] p-4 sm:h-[158px] lg:h-[154px]">
+                      <div className="flex h-24 w-full items-center justify-center rounded-lg bg-white ring-1 ring-[#DDE8EA] sm:h-28">
                         <LogoImage
                           src={employer.logo}
                           alt={employer.companyName}
@@ -132,7 +120,7 @@ export function TopEmployers({ employers }: TopEmployersProps) {
                     </div>
 
                     <div className="flex flex-1 flex-col bg-white p-4 text-center sm:p-5 lg:p-4">
-                      <p className="flex min-h-[2.55rem] items-center justify-center text-xs font-black uppercase leading-tight text-[var(--color-fdi-ink)] transition-colors group-hover:text-[var(--color-fdi-primary)] sm:text-sm">
+                      <p className="flex min-h-[2.55rem] items-center justify-center text-xs font-black leading-tight text-[var(--color-fdi-ink)] transition-colors group-hover:text-[var(--color-fdi-primary)] sm:text-sm">
                         {employer.companyName}
                       </p>
                       <p className="mt-2 line-clamp-1 min-h-5 text-xs font-semibold text-[var(--color-fdi-text-secondary)]">
@@ -140,7 +128,7 @@ export function TopEmployers({ employers }: TopEmployersProps) {
                       </p>
 
                       <div className="mt-auto pt-4">
-                        <span className="inline-block rounded-md bg-[var(--color-fdi-primary)] px-3 py-1.5 text-[11px] font-bold uppercase text-white shadow-[0_10px_22px_-18px_rgba(10,111,157,0.88)] transition-colors group-hover:bg-[var(--color-fdi-primary-hover)]">
+                        <span className="inline-block rounded-md bg-[var(--color-fdi-primary)] px-3 py-1.5 text-[11px] font-bold text-white shadow-[0_10px_22px_-18px_rgba(10,111,157,0.72)] transition-colors group-hover:bg-[var(--color-fdi-primary-hover)]">
                           {jobCount > 0 ? `${jobCount} VIỆC MỚI` : "VIỆC MỚI"}
                         </span>
                       </div>

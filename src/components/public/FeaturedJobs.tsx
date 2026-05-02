@@ -24,9 +24,9 @@ export function FeaturedJobs({ jobs }: FeaturedJobsProps) {
   );
 
   return (
-    <section className="relative bg-[linear-gradient(180deg,#FFFFFB_0%,#F5F8FA_100%)] py-10 lg:py-12">
+    <section className="relative bg-[#FFFFFB] py-10 lg:py-12">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-0 flex items-end justify-between rounded-t-xl border border-b-0 border-[#D9E4EA] bg-white px-5 py-4 shadow-[0_16px_40px_-38px_rgba(17,24,39,0.46)] sm:px-6">
+        <div className="mb-6 flex items-end justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="hidden h-10 w-10 items-center justify-center rounded-xl border border-[#F4D9C9] bg-[#FFF1E8] sm:flex">
               <svg width="22" height="22" viewBox="0 0 32 32" fill="none" aria-hidden="true">
@@ -37,7 +37,7 @@ export function FeaturedJobs({ jobs }: FeaturedJobsProps) {
             </div>
             <div>
               <h2
-                className="text-xl font-extrabold italic text-[var(--color-fdi-text)] sm:text-2xl"
+                className="text-2xl font-black text-[var(--color-fdi-text)] sm:text-3xl"
                 style={{ fontFamily: "var(--font-heading)" }}
               >
                 Việc làm tốt nhất
@@ -59,7 +59,7 @@ export function FeaturedJobs({ jobs }: FeaturedJobsProps) {
           </Link>
         </div>
 
-        <div className="rounded-b-xl border border-[#D9E4EA] bg-white p-4 shadow-[0_24px_60px_-48px_rgba(17,24,39,0.56)] sm:p-5">
+        <div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {currentJobs.map((job) => (
               <div key={job.id} className="min-w-0">

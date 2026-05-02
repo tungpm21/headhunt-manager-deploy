@@ -77,12 +77,12 @@ export function IndustryGrid({ industries, stats }: IndustryGridProps) {
   };
 
   return (
-    <section className="bg-[linear-gradient(180deg,#F5F8FA_0%,#FFFFFB_100%)] py-10 lg:py-10">
+    <section className="bg-[#F7FAFB] py-10 lg:py-10">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-7 grid gap-4 rounded-xl border border-[#D8E7EA] bg-[linear-gradient(180deg,#FFFFFF_0%,#F8FCFC_100%)] p-5 shadow-[0_28px_72px_-56px_rgba(7,26,47,0.42)] sm:p-6 lg:grid-cols-[1.15fr_0.85fr_0.85fr_0.85fr] lg:p-7">
+        <div className="mb-9 grid gap-4 border-y border-[#D8E7EA] bg-white/62 py-5 sm:py-6 lg:grid-cols-[1.15fr_0.85fr_0.85fr_0.85fr]">
           <div className="lg:pr-6">
-            <p className="inline-flex rounded-md border border-[#BFDCE4] bg-[#EAF7FA] px-3 py-1 text-xs font-bold uppercase text-[var(--color-fdi-primary)] shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
-              Market signal
+            <p className="inline-flex rounded-md border border-[#CFE0EA] bg-white px-3 py-1 text-xs font-semibold text-[var(--color-fdi-primary)]">
+              Tín hiệu thị trường
             </p>
             <h2
               className="mt-3 text-2xl font-black text-[var(--color-fdi-ink)] sm:text-3xl"
@@ -94,17 +94,17 @@ export function IndustryGrid({ industries, stats }: IndustryGridProps) {
               Tổng hợp nhanh quy mô cơ hội và số doanh nghiệp FDI đang tuyển dụng trên FDIWork.
             </p>
           </div>
-          <div className="rounded-xl border border-[#DDE8EA] bg-white p-5 shadow-[0_18px_42px_-38px_rgba(7,26,47,0.42)]">
+          <div className="rounded-xl border border-[#DDE8EA] bg-white p-5 shadow-[0_12px_30px_-28px_rgba(7,26,47,0.34)]">
             <p className="text-4xl font-black tabular-nums text-[var(--color-fdi-ink)]">{stats.totalJobs.toLocaleString("vi-VN")}+</p>
             <p className="mt-2 text-sm font-bold text-[var(--color-fdi-primary)]">Việc đang mở</p>
             <p className="mt-1 text-xs font-medium text-[var(--color-fdi-text-secondary)]">Cập nhật từ các tin FDI đang active</p>
           </div>
-          <div className="rounded-xl border border-[#DDE8EA] bg-white p-5 shadow-[0_18px_42px_-38px_rgba(7,26,47,0.42)]">
+          <div className="rounded-xl border border-[#DDE8EA] bg-white p-5 shadow-[0_12px_30px_-28px_rgba(7,26,47,0.34)]">
             <p className="text-4xl font-black tabular-nums text-[var(--color-fdi-ink)]">{stats.totalEmployers.toLocaleString("vi-VN")}+</p>
             <p className="mt-2 text-sm font-bold text-[var(--color-fdi-primary)]">Doanh nghiệp FDI</p>
             <p className="mt-1 text-xs font-medium text-[var(--color-fdi-text-secondary)]">Có hồ sơ công ty và vai trò tuyển dụng</p>
           </div>
-          <div className="rounded-xl border border-[#DDE8EA] bg-white p-5 shadow-[0_18px_42px_-38px_rgba(7,26,47,0.42)]">
+          <div className="rounded-xl border border-[#DDE8EA] bg-white p-5 shadow-[0_12px_30px_-28px_rgba(7,26,47,0.34)]">
             <p className="text-4xl font-black tabular-nums text-[var(--color-fdi-ink)]">1</p>
             <p className="mt-2 text-sm font-bold text-[var(--color-fdi-primary)]">Bước ứng tuyển</p>
             <p className="mt-1 text-xs font-medium text-[var(--color-fdi-text-secondary)]">Luồng tìm kiếm đến chi tiết việc làm gọn hơn</p>
@@ -113,8 +113,8 @@ export function IndustryGrid({ industries, stats }: IndustryGridProps) {
 
         <div className="mb-6 flex items-end justify-between gap-4">
           <div className="text-center sm:text-left">
-            <p className="mb-2 inline-flex rounded-md border border-[#BFDCE4] bg-[#EAF7FA] px-3 py-1 text-[10px] font-bold uppercase text-[var(--color-fdi-primary)] shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
-              Career fields
+            <p className="mb-2 inline-flex rounded-md border border-[#CFE0EA] bg-white px-3 py-1 text-[11px] font-semibold text-[var(--color-fdi-primary)]">
+              Nhóm ngành
             </p>
             <h2
               className="text-2xl font-black tracking-normal text-[var(--color-fdi-ink)] sm:text-3xl"
@@ -153,7 +153,7 @@ export function IndustryGrid({ industries, stats }: IndustryGridProps) {
         </div>
 
         <div
-          className={`grid grid-cols-1 gap-4 rounded-xl border border-[#D8E7EA] bg-[linear-gradient(180deg,#FFFFFF_0%,#F8FCFC_100%)] p-4 shadow-[0_28px_70px_-52px_rgba(7,26,47,0.46)] transition-[opacity,transform] duration-300 ease-[var(--ease-fdi)] motion-reduce:transition-none sm:grid-cols-2 sm:gap-5 sm:p-5 md:grid-cols-3 lg:grid-cols-5 lg:p-6 ${
+          className={`grid grid-cols-1 gap-4 transition-[opacity,transform] duration-300 ease-[var(--ease-fdi)] motion-reduce:transition-none sm:grid-cols-2 sm:gap-5 md:grid-cols-3 lg:grid-cols-5 ${
             transition === "next"
               ? "-translate-x-4 opacity-0"
               : transition === "previous"
@@ -170,13 +170,13 @@ export function IndustryGrid({ industries, stats }: IndustryGridProps) {
                 href={`/viec-lam?industry=${encodeURIComponent(item.industry)}`}
                 className="group block cursor-pointer"
               >
-                <div className="relative flex min-h-[232px] w-full flex-col justify-between overflow-hidden rounded-xl border border-[#D6E5E9] bg-white p-5 transition-[background-color,border-color,box-shadow,transform] duration-500 ease-[var(--ease-fdi)] hover:-translate-y-1.5 hover:border-[#A9CED8] hover:shadow-[0_32px_64px_-38px_rgba(7,26,47,0.58)]">
-                  <div className="absolute inset-x-0 top-0 h-1 bg-[linear-gradient(90deg,#0A6F9D_0%,#5CC3D9_100%)]" />
+                <div className="relative flex min-h-[232px] w-full flex-col justify-between overflow-hidden rounded-xl border border-[#D6E2E7] bg-white p-5 shadow-[0_16px_38px_-34px_rgba(7,26,47,0.34)] transition-[background-color,border-color,box-shadow,transform] duration-500 ease-[var(--ease-fdi)] hover:-translate-y-1 hover:border-[#A9C4CE] hover:shadow-[0_24px_52px_-40px_rgba(7,26,47,0.48)]">
+                  <div className="absolute inset-x-0 top-0 h-1 bg-[var(--color-fdi-primary)]" />
                   <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl border border-[#DCE8EC] bg-[#F7FCFD] transition-[background-color,transform] duration-500 ease-[var(--ease-fdi)] group-hover:scale-105 group-hover:bg-[#EAF7FA]">
                     <Icon className="h-8 w-8 text-[var(--color-fdi-primary)]" />
                   </div>
                   <div className="mt-6 text-left">
-                    <p className="flex min-h-[2.5rem] items-center text-base font-black uppercase leading-snug text-[var(--color-fdi-ink)] transition-colors group-hover:text-[var(--color-fdi-primary)]">
+                    <p className="flex min-h-[2.5rem] items-center text-base font-black leading-snug text-[var(--color-fdi-ink)] transition-colors group-hover:text-[var(--color-fdi-primary)]">
                       {item.industry}
                     </p>
                     <p className="mt-2 inline-flex rounded-md bg-[#EAF7FA] px-3 py-1.5 text-sm font-bold text-[var(--color-fdi-primary)]">

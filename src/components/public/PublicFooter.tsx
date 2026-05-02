@@ -31,10 +31,9 @@ const footerLinks = {
 
 export function PublicFooter() {
   return (
-    <footer className="relative overflow-hidden bg-[linear-gradient(180deg,#052A4D_0%,#031D38_100%)] text-sky-100">
-      <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.035)_1px,transparent_1px),linear-gradient(180deg,rgba(255,255,255,0.025)_1px,transparent_1px)] bg-[size:92px_92px] opacity-35" />
-      <div className="relative mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8 lg:py-20">
-      <div className="rounded-xl border border-white/10 bg-white/[0.045] p-5 shadow-[0_34px_90px_-60px_rgba(0,0,0,0.95)] sm:p-7 lg:p-8">
+    <footer className="relative overflow-hidden bg-[#052A4D] text-sky-100">
+      <div className="relative mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
+      <div className="border-y border-white/10 py-8 lg:py-10">
         <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 lg:gap-8">
           {/* About */}
           <div className="sm:col-span-2 md:col-span-1">
@@ -87,7 +86,7 @@ export function PublicFooter() {
           {/* Candidate Links */}
           <div>
             <h3
-              className="text-sm font-semibold text-white uppercase tracking-wider mb-4"
+              className="text-sm font-semibold text-white mb-4"
               style={{ fontFamily: "var(--font-heading)" }}
             >
               Ứng viên
@@ -109,7 +108,7 @@ export function PublicFooter() {
           {/* Employer Links */}
           <div>
             <h3
-              className="text-sm font-semibold text-white uppercase tracking-wider mb-4"
+              className="text-sm font-semibold text-white mb-4"
               style={{ fontFamily: "var(--font-heading)" }}
             >
               Nhà tuyển dụng
@@ -131,7 +130,7 @@ export function PublicFooter() {
           {/* Blog Links */}
           <div>
             <h3
-              className="text-sm font-semibold text-white uppercase tracking-wider mb-4"
+              className="text-sm font-semibold text-white mb-4"
               style={{ fontFamily: "var(--font-heading)" }}
             >
               Thông tin chia sẻ
@@ -153,7 +152,7 @@ export function PublicFooter() {
           {/* By Location */}
           <div>
             <h3
-              className="text-sm font-semibold text-white uppercase tracking-wider mb-4"
+              className="text-sm font-semibold text-white mb-4"
               style={{ fontFamily: "var(--font-heading)" }}
             >
               Theo khu vực
@@ -175,7 +174,7 @@ export function PublicFooter() {
           {/* By Industry */}
           <div>
             <h3
-              className="text-sm font-semibold text-white uppercase tracking-wider mb-4"
+              className="text-sm font-semibold text-white mb-4"
               style={{ fontFamily: "var(--font-heading)" }}
             >
               Theo ngành nghề

@@ -4,6 +4,10 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
 import * as bcrypt from "bcrypt-ts";
 import { authConfig } from "./auth.config";
+import {
+  buildServerActionRateLimitKey,
+  checkRateLimit,
+} from "@/lib/rate-limit-redis";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
@@ -17,13 +21,31 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
+        const email =
+          typeof credentials?.email === "string"
+            ? credentials.email.trim().toLowerCase()
+            : "";
+        const password =
+          typeof credentials?.password === "string"
+            ? credentials.password
+            : "";
+
+        if (!email || !password) {
+          return null;
+        }
+
+        const rateLimitKey = await buildServerActionRateLimitKey(
+          "crm-credentials",
+          email
+        );
+        const rateLimit = await checkRateLimit(rateLimitKey, 5, 10 * 60 * 1000);
+        if (!rateLimit.allowed) {
           return null;
         }
 
         const user = await prisma.user.findUnique({
           where: {
-            email: credentials.email as string,
+            email,
           },
         });
 
@@ -32,7 +54,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         }
 
         const isPasswordValid = await bcrypt.compare(
-          credentials.password as string,
+          password,
           user.password
         );
 
@@ -50,4 +72,3 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
 });
-

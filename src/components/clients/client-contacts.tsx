@@ -19,19 +19,24 @@ interface ClientContactsProps {
   contacts: ClientContact[];
 }
 
+type ContactActionState = { error?: string; success?: boolean } | undefined;
+
 export function ClientContacts({ clientId, contacts }: ClientContactsProps) {
   const formRef = useRef<HTMLFormElement>(null);
   const [isDeleting, startDelete] = useTransition();
 
   // Handle Add Contact
-  async function handleAddAction(_prev: any, fd: FormData) {
+  async function handleAddAction(_prev: ContactActionState, fd: FormData) {
     const res = await addClientContactAction(clientId, _prev, fd);
     if (res.success) {
       formRef.current?.reset();
     }
     return res;
   }
-  const [addState, addFormAction, isAdding] = useActionState(handleAddAction, undefined);
+  const [addState, addFormAction, isAdding] = useActionState<ContactActionState, FormData>(
+    handleAddAction,
+    undefined
+  );
 
   // Handle Delete
   const handleDelete = (contactId: number) => {

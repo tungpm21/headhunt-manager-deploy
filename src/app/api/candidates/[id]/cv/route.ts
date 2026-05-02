@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
+import { withCandidateAccess } from "@/lib/access-scope";
 import { updateCandidateCV } from "@/lib/candidates";
 import { validateFileSignature } from "@/lib/file-signatures";
 import { prisma } from "@/lib/prisma";
 import { deleteFile, uploadFile } from "@/lib/storage";
+import { buildViewerScope } from "@/lib/viewer-scope";
 
 const ALLOWED_TYPES = [
   "application/pdf",
@@ -23,7 +25,8 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await auth();
-  if (!session) {
+  const scope = buildViewerScope(session);
+  if (!scope) {
     return NextResponse.json(
       { error: "Không có quyền truy cập" },
       { status: 401 }
@@ -66,10 +69,17 @@ export async function POST(
     );
   }
 
-  const existing = await prisma.candidate.findUnique({
-    where: { id: candidateId },
+  const existing = await prisma.candidate.findFirst({
+    where: withCandidateAccess({ id: candidateId, isDeleted: false }, scope),
     select: { cvFileUrl: true },
   });
+
+  if (!existing) {
+    return NextResponse.json(
+      { error: "Ban khong co quyen cap nhat CV cho ung vien nay." },
+      { status: 403 }
+    );
+  }
 
   const safeExt = EXTENSION_MAP[file.type as (typeof ALLOWED_TYPES)[number]];
   const fileName = `cv-${candidateId}-${Date.now()}.${safeExt}`;
@@ -89,7 +99,8 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await auth();
-  if (!session) {
+  const scope = buildViewerScope(session);
+  if (!scope) {
     return NextResponse.json(
       { error: "Không có quyền truy cập" },
       { status: 401 }
@@ -103,10 +114,17 @@ export async function DELETE(
     return NextResponse.json({ error: "ID khong hop le" }, { status: 400 });
   }
 
-  const existing = await prisma.candidate.findUnique({
-    where: { id: candidateId },
+  const existing = await prisma.candidate.findFirst({
+    where: withCandidateAccess({ id: candidateId, isDeleted: false }, scope),
     select: { cvFileUrl: true },
   });
+
+  if (!existing) {
+    return NextResponse.json(
+      { error: "Ban khong co quyen xoa CV cua ung vien nay." },
+      { status: 403 }
+    );
+  }
 
   if (existing?.cvFileUrl) {
     await deleteFile(existing.cvFileUrl);

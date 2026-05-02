@@ -8,13 +8,12 @@ const connectionString =
   process.env.DATABASE_URL?.trim() ||
   "";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const pool = new Pool({
   connectionString,
   max: 15,
   idleTimeoutMillis: 10000,
   connectionTimeoutMillis: 5000,
-}) as any;
+});
 const adapter = new PrismaPg(pool);
 
 const globalForPrisma = globalThis as unknown as {

@@ -67,7 +67,7 @@ export interface CreateClientInput {
   status?: ClientStatus;
 }
 
-export interface UpdateClientInput extends Partial<CreateClientInput> {}
+export type UpdateClientInput = Partial<CreateClientInput>;
 
 export interface CreateClientContactInput {
   name: string;

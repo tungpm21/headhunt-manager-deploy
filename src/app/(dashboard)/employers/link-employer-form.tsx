@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { linkEmployerToClient } from "@/lib/moderation-actions";
 import { Link2, Loader2, X } from "lucide-react";
@@ -27,9 +27,11 @@ export function LinkEmployerForm({
     ? `Đã liên kết với Client #${currentClientId}. Dùng để track hợp đồng headhunt trong CRM.`
     : "Liên kết với Khách hàng trong CRM để track hợp đồng headhunt.";
 
-  useEffect(() => {
+  function openEditor() {
     setSelectedClientId(currentClientId?.toString() || "");
-  }, [currentClientId]);
+    setMessage("");
+    setOpen(true);
+  }
 
   async function handleSubmit() {
     setLoading(true);
@@ -50,7 +52,7 @@ export function LinkEmployerForm({
   if (!open) {
     return (
       <button
-        onClick={() => setOpen(true)}
+        onClick={openEditor}
         className="inline-flex items-center gap-1 text-xs text-primary hover:underline font-medium"
         title={linkTitle}
       >

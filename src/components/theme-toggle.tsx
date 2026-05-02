@@ -1,23 +1,47 @@
 "use client";
 
 import { Moon, Sun } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useSyncExternalStore } from "react";
+
+function getThemeSnapshot() {
+    if (typeof window === "undefined") return false;
+
+    const stored = window.localStorage.getItem("theme");
+    return stored === "dark" || (!stored && window.matchMedia("(prefers-color-scheme: dark)").matches);
+}
+
+function subscribeTheme(onStoreChange: () => void) {
+    if (typeof window === "undefined") return () => {};
+
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+    const notify = () => onStoreChange();
+    const notifySystemChange = () => {
+        if (!window.localStorage.getItem("theme")) onStoreChange();
+    };
+
+    window.addEventListener("storage", notify);
+    window.addEventListener("fdiwork-theme-change", notify);
+    media.addEventListener("change", notifySystemChange);
+
+    return () => {
+        window.removeEventListener("storage", notify);
+        window.removeEventListener("fdiwork-theme-change", notify);
+        media.removeEventListener("change", notifySystemChange);
+    };
+}
 
 export function ThemeToggle() {
-    const [dark, setDark] = useState(false);
+    const dark = useSyncExternalStore(subscribeTheme, getThemeSnapshot, () => false);
 
     useEffect(() => {
-        const stored = localStorage.getItem("theme");
-        const isDark = stored === "dark" || (!stored && window.matchMedia("(prefers-color-scheme: dark)").matches);
-        setDark(isDark);
-        document.documentElement.classList.toggle("dark", isDark);
-    }, []);
+        document.documentElement.classList.toggle("dark", dark);
+    }, [dark]);
 
     const toggle = () => {
         const next = !dark;
-        setDark(next);
         document.documentElement.classList.toggle("dark", next);
         localStorage.setItem("theme", next ? "dark" : "light");
+        window.dispatchEvent(new Event("fdiwork-theme-change"));
     };
 
     return (

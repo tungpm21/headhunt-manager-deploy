@@ -229,14 +229,12 @@ export default async function CompanyProfilePage({ params, searchParams }: PageP
               ) : null}
             </div>
           </div>
+
+          <CompanyFactStrip company={company} theme={theme} embedded />
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 pt-4 sm:px-6 lg:px-8">
-        <CompanyFactStrip company={company} theme={theme} />
-      </section>
-
-      <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:px-8">
+      <div className="mx-auto grid max-w-7xl gap-8 px-4 py-9 sm:px-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:px-8">
         <main className="min-w-0 space-y-10">
           <ContentBlocksRenderer
             blocks={sections}
@@ -278,11 +276,11 @@ function CompanyLogoTile({
 }) {
   return (
     <div
-      className="flex h-24 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#E0E8EE] bg-white shadow-[0_18px_44px_-34px_rgba(2,15,25,0.45)] sm:h-32"
+      className="flex h-20 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#E0E8EE] bg-white shadow-[0_18px_44px_-34px_rgba(2,15,25,0.45)] sm:h-32"
       style={{
         aspectRatio: logoAspectRatio === "auto" ? "1 / 1" : logoAspectRatio,
-        maxWidth: "11rem",
-        minWidth: "6rem",
+        maxWidth: "clamp(7rem, 24vw, 11rem)",
+        minWidth: "5.5rem",
       }}
     >
       <div className="h-full w-full" style={{ transform: `scale(${logoZoom / 100})` }}>
@@ -299,13 +297,44 @@ function CompanyLogoTile({
   );
 }
 
-function CompanyFactStrip({ company, theme }: { company: CompanyProfile; theme: CompanyProfileTheme }) {
+function CompanyFactStrip({
+  company,
+  theme,
+  embedded = false,
+}: {
+  company: CompanyProfile;
+  theme: CompanyProfileTheme;
+  embedded?: boolean;
+}) {
   const facts = [
     { icon: Briefcase, value: `${company.jobPostings.length}`, label: "vị trí đang tuyển" },
     { icon: Users, value: company.companySize ?? "Enterprise", label: "quy mô công ty" },
     { icon: MapPin, value: company.location ?? company.industrialZone ?? "Việt Nam", label: "địa điểm" },
     { icon: ShieldCheck, value: company.subscription?.tier ?? "Verified", label: "hồ sơ xác thực" },
   ];
+
+  if (embedded) {
+    return (
+      <dl className="mt-7 grid border-t border-[#E4EEF3] pt-5 sm:grid-cols-2 lg:grid-cols-4">
+        {facts.map((fact, index) => (
+          <div
+            key={fact.label}
+            className={`flex items-center gap-3 py-3 sm:px-5 lg:py-2 ${
+              index > 0 ? "border-t border-[#E4EEF3] sm:border-l sm:border-t-0" : ""
+            } ${index === 0 ? "sm:pl-0" : ""}`}
+          >
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#EEF6F9]" style={{ color: theme.primaryColor }}>
+              <fact.icon className="h-5 w-5" aria-hidden="true" />
+            </span>
+            <div className="min-w-0">
+              <dt className="text-xs font-semibold uppercase tracking-wide text-[#5C6D7E]">{fact.label}</dt>
+              <dd className="text-base font-extrabold leading-snug text-[#102033]">{fact.value}</dd>
+            </div>
+          </div>
+        ))}
+      </dl>
+    );
+  }
 
   return (
     <dl className="grid overflow-hidden rounded-lg border border-[#D7E4EB] bg-[#F9FCFD] sm:grid-cols-2 lg:grid-cols-4">

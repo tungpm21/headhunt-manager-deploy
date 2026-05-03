@@ -31,7 +31,7 @@ const footerLinks = {
 
 export function PublicFooter() {
   return (
-    <footer className="relative overflow-hidden bg-[#052A4D] text-sky-100">
+    <footer className="relative overflow-hidden bg-[#082F4A] text-white">
       <div className="relative mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
       <div className="border-y border-white/10 py-8 lg:py-10">
         <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 lg:gap-8">
@@ -45,14 +45,14 @@ export function PublicFooter() {
                 className="text-lg font-bold text-white"
                 style={{ fontFamily: "var(--font-heading)" }}
               >
-                FDI<span className="text-[var(--color-fdi-accent)]">Work</span>
+                FDI<span className="text-white/80">Work</span>
               </span>
             </Link>
-            <p className="text-sm text-sky-200/70 leading-relaxed mb-4">
+            <p className="text-sm text-white/68 leading-relaxed mb-4">
               Nền tảng tuyển dụng hàng đầu cho doanh nghiệp FDI tại Việt Nam.
               Kết nối nhà tuyển dụng với ứng viên chất lượng cao.
             </p>
-            <div className="space-y-2 text-sm text-sky-200/60">
+            <div className="space-y-2 text-sm text-white/62">
               <div className="flex items-center gap-2">
                 <Mail className="h-4 w-4 shrink-0" />
                 <span>contact@fdiwork.com</span>
@@ -96,7 +96,7 @@ export function PublicFooter() {
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="flex min-h-[44px] items-center text-sm text-sky-200/70 transition-colors hover:text-white cursor-pointer"
+                    className="flex min-h-[44px] items-center text-sm text-white/68 transition-colors hover:text-white cursor-pointer"
                   >
                     {link.label}
                   </Link>
@@ -118,7 +118,7 @@ export function PublicFooter() {
                 <li key={`${link.href}-${link.label}`}>
                   <Link
                     href={link.href}
-                    className="flex min-h-[44px] items-center text-sm text-sky-200/70 transition-colors hover:text-white cursor-pointer"
+                    className="flex min-h-[44px] items-center text-sm text-white/68 transition-colors hover:text-white cursor-pointer"
                   >
                     {link.label}
                   </Link>
@@ -140,7 +140,7 @@ export function PublicFooter() {
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="flex min-h-[44px] items-center text-sm text-sky-200/70 transition-colors hover:text-white cursor-pointer"
+                    className="flex min-h-[44px] items-center text-sm text-white/68 transition-colors hover:text-white cursor-pointer"
                   >
                     {link.label}
                   </Link>
@@ -162,7 +162,7 @@ export function PublicFooter() {
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="flex min-h-[44px] items-center text-sm text-sky-200/70 transition-colors hover:text-white cursor-pointer"
+                    className="flex min-h-[44px] items-center text-sm text-white/68 transition-colors hover:text-white cursor-pointer"
                   >
                     {link.label}
                   </Link>
@@ -184,7 +184,7 @@ export function PublicFooter() {
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="flex min-h-[44px] items-center text-sm text-sky-200/70 transition-colors hover:text-white cursor-pointer"
+                    className="flex min-h-[44px] items-center text-sm text-white/68 transition-colors hover:text-white cursor-pointer"
                   >
                     {link.label}
                   </Link>
@@ -196,7 +196,7 @@ export function PublicFooter() {
 
         {/* Bottom bar */}
         <div className="mt-10 border-t border-white/10 pt-6">
-          <p className="text-center text-xs text-sky-200/40">
+          <p className="text-center text-xs text-white/40">
             © {new Date().getFullYear()} FDIWork. All rights reserved.
           </p>
         </div>

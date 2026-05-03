@@ -43,7 +43,12 @@ export default function PublicLayout({
   return (
     <div
       className="min-h-screen flex flex-col bg-white text-[var(--color-fdi-text)]"
-      style={{ fontFamily: "var(--font-body)", "--color-primary": "var(--color-fdi-primary)" } as CSSProperties}
+      style={
+        {
+          fontFamily: "var(--font-poppins), var(--font-opensans), system-ui, sans-serif",
+          "--color-primary": "var(--color-fdi-primary)",
+        } as CSSProperties
+      }
     >
       <a
         href="#main-content"

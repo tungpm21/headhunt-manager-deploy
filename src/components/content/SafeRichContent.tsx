@@ -112,7 +112,7 @@ function createComponents(headingIdPrefix?: string): Components {
     <img alt={alt ?? ""} src={src ?? ""} loading="lazy" {...props} />
   ),
   iframe: ({ src, title, ...props }) => (
-    <span className="my-6 block overflow-hidden rounded-2xl border border-gray-200 bg-black">
+    <span className="my-6 block overflow-hidden rounded-2xl border border-gray-200 bg-[#081523]">
       <iframe
         src={src}
         title={title ?? "Video"}

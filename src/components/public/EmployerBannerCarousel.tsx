@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import type { KeyboardEvent, PointerEvent } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
 import type { HomepageEmployer } from "@/lib/public-actions";
 import { LogoImage } from "@/components/public/LogoImage";
@@ -12,8 +14,11 @@ type EmployerBannerCarouselProps = {
 };
 
 export function EmployerBannerCarousel({ employers }: EmployerBannerCarouselProps) {
+  const router = useRouter();
   const [activeIndex, setActiveIndex] = useState(0);
   const [paused, setPaused] = useState(false);
+  const dragStartX = useRef<number | null>(null);
+  const ignoreClickUntil = useRef(0);
 
   const total = employers.length;
   const safeIndex = total > 0 ? activeIndex % total : 0;
@@ -41,6 +46,58 @@ export function EmployerBannerCarousel({ employers }: EmployerBannerCarouselProp
   const bannerPositionX = employer.bannerPositionX ?? 50;
   const bannerPositionY = employer.bannerPositionY ?? 50;
   const bannerZoom = employer.bannerZoom ?? 100;
+  const employerHref = `/cong-ty/${employer.slug}`;
+
+  const openEmployer = () => {
+    router.push(employerHref);
+  };
+
+  const handleBannerClick = () => {
+    if (Date.now() < ignoreClickUntil.current) return;
+    openEmployer();
+  };
+
+  const handleBannerKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.key !== "Enter" && event.key !== " ") return;
+    event.preventDefault();
+    openEmployer();
+  };
+
+  const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
+    if (event.button !== 0) return;
+    const target = event.target as HTMLElement | null;
+    if (target?.closest("button,a")) return;
+    dragStartX.current = event.clientX;
+    setPaused(true);
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+
+  const handlePointerMove = (event: PointerEvent<HTMLDivElement>) => {
+    if (dragStartX.current === null) return;
+    if (Math.abs(event.clientX - dragStartX.current) > 8) {
+      ignoreClickUntil.current = Date.now() + 250;
+    }
+  };
+
+  const finishPointerDrag = (event: PointerEvent<HTMLDivElement>) => {
+    if (dragStartX.current === null) return;
+
+    const deltaX = event.clientX - dragStartX.current;
+    dragStartX.current = null;
+
+    if (Math.abs(deltaX) < 56) return;
+
+    ignoreClickUntil.current = Date.now() + 250;
+    if (deltaX < 0) {
+      goNext();
+    } else {
+      goPrev();
+    }
+  };
+
+  const cancelPointerDrag = () => {
+    dragStartX.current = null;
+  };
 
   return (
     <section
@@ -57,7 +114,18 @@ export function EmployerBannerCarousel({ employers }: EmployerBannerCarouselProp
         <div className="relative overflow-hidden rounded-xl bg-white shadow-[0_28px_70px_-54px_rgba(7,26,47,0.56),0_12px_32px_-30px_rgba(7,26,47,0.24)]">
           <div className="relative overflow-hidden bg-white">
           {/* Image area — aspect ratio controlled */}
-          <div className="relative h-[280px] w-full sm:h-[360px] lg:h-[430px] xl:h-[470px]">
+          <div
+            className="relative h-[280px] w-full cursor-pointer touch-pan-y select-none sm:h-[360px] lg:h-[430px] xl:h-[470px]"
+            role="link"
+            tabIndex={0}
+            aria-label={`Xem trang cong ty ${employer.companyName}`}
+            onClick={handleBannerClick}
+            onKeyDown={handleBannerKeyDown}
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={finishPointerDrag}
+            onPointerCancel={cancelPointerDrag}
+          >
             {bannerImage ? (
               <Image
                 src={bannerImage}
@@ -96,16 +164,24 @@ export function EmployerBannerCarousel({ employers }: EmployerBannerCarouselProp
             {total > 1 && (
               <>
                 <button
-                  onClick={goPrev}
+                  type="button"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    goPrev();
+                  }}
                   aria-label="Banner trước"
-                  className="absolute left-3 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-lg border border-white/30 bg-white/16 text-white backdrop-blur-md transition-[background-color,border-color,transform] duration-300 ease-[var(--ease-fdi)] hover:-translate-y-[calc(50%+2px)] hover:border-white/50 hover:bg-white/24 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 cursor-pointer"
+                  className="absolute left-3 top-1/2 z-20 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-lg border border-white/30 bg-white/16 text-white backdrop-blur-md transition-[background-color,border-color,transform] duration-300 ease-[var(--ease-fdi)] hover:-translate-y-[calc(50%+2px)] hover:border-white/50 hover:bg-white/24 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 cursor-pointer"
                 >
                   <ChevronLeft className="h-5 w-5" />
                 </button>
                 <button
-                  onClick={goNext}
+                  type="button"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    goNext();
+                  }}
                   aria-label="Banner tiếp theo"
-                  className="absolute right-3 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-lg border border-white/30 bg-white/16 text-white backdrop-blur-md transition-[background-color,border-color,transform] duration-300 ease-[var(--ease-fdi)] hover:-translate-y-[calc(50%+2px)] hover:border-white/50 hover:bg-white/24 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 cursor-pointer"
+                  className="absolute right-3 top-1/2 z-20 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-lg border border-white/30 bg-white/16 text-white backdrop-blur-md transition-[background-color,border-color,transform] duration-300 ease-[var(--ease-fdi)] hover:-translate-y-[calc(50%+2px)] hover:border-white/50 hover:bg-white/24 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 cursor-pointer"
                 >
                   <ChevronRight className="h-5 w-5" />
                 </button>
@@ -114,10 +190,10 @@ export function EmployerBannerCarousel({ employers }: EmployerBannerCarouselProp
           </div>
 
           {/* Info bar — below image, inside the card */}
-          <div className="flex flex-col gap-4 border-t border-white/12 bg-[#063B5D] px-5 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.14)] sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-5">
+          <div className="relative flex flex-col gap-4 border-t border-white/12 bg-[#063B5D] px-5 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.14)] sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-5">
             {/* Logo + Company info */}
-            <div className="flex items-end gap-4 min-w-0 relative">
-              <div className="relative z-10 -mt-10 flex h-[72px] w-[72px] shrink-0 items-center justify-center overflow-hidden rounded-xl border border-[#E1EAF0] bg-white shadow-[0_18px_34px_-24px_rgba(15,23,42,0.48)] sm:-mt-14 sm:h-24 sm:w-24">
+            <div className="flex items-center gap-4 min-w-0 relative">
+              <div className="relative z-10 flex h-[72px] w-[72px] shrink-0 items-center justify-center overflow-hidden rounded-xl border border-[#E1EAF0] bg-white shadow-[0_18px_34px_-24px_rgba(15,23,42,0.48)] sm:h-20 sm:w-20">
                 <LogoImage
                   src={employer.logo}
                   alt={employer.companyName}
@@ -144,7 +220,8 @@ export function EmployerBannerCarousel({ employers }: EmployerBannerCarouselProp
 
             {/* CTA button */}
             <Link
-              href={`/cong-ty/${employer.slug}`}
+              href={employerHref}
+              onClick={(event) => event.stopPropagation()}
               className="group inline-flex min-h-11 shrink-0 items-center justify-center gap-3 rounded-lg border border-white bg-white py-1.5 pl-5 pr-1.5 text-sm font-bold text-[#063B5D] shadow-[0_14px_30px_-24px_rgba(15,23,42,0.42)] transition-[background-color,border-color,box-shadow,transform] duration-300 ease-[var(--ease-fdi)] hover:-translate-y-0.5 hover:border-[#D9F1F8] hover:bg-[#F1FAFD] hover:shadow-[0_18px_34px_-26px_rgba(15,23,42,0.52)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 cursor-pointer"
             >
               <span className="hidden sm:inline">Xem vị trí đang tuyển</span>

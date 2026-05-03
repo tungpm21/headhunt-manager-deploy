@@ -22,6 +22,7 @@ import {
     normalizeCompanySidebarVisibility,
     normalizeCompanyTheme,
     normalizeContentBlocks,
+    normalizeContentSectionLayout,
     parseJson,
 } from "@/lib/content-blocks";
 import { normalizeCompanyMediaSettings } from "@/lib/company-media-settings";
@@ -128,6 +129,11 @@ function parseProfileDraftPayload(payload: Prisma.JsonValue, currentTheme?: Pris
         ? normalizeCompanyMediaSettings(draftTheme)
         : normalizeCompanyMediaSettings(currentTheme);
     const companySize = stringOrNull(source.companySize);
+    const sections = normalizeContentBlocks(profileConfig.sections ?? []);
+    const sectionLayout = normalizeContentSectionLayout(
+        profileConfig.sectionLayout ?? draftTheme.sectionLayout,
+        sections
+    );
 
     return {
         profile: {
@@ -150,9 +156,9 @@ function parseProfileDraftPayload(payload: Prisma.JsonValue, currentTheme?: Pris
             coverZoom: numberOrDefault(source.coverZoom, 100),
         },
         profileConfig: {
-            theme: inputJson({ ...draftTheme, media: mediaSettings }),
+            theme: inputJson({ ...draftTheme, media: mediaSettings, sectionLayout }),
             capabilities: inputJson(profileConfig.capabilities ?? {}),
-            sections: inputJson(profileConfig.sections ?? []),
+            sections: inputJson(sections),
             primaryVideoUrl: stringOrNull(profileConfig.primaryVideoUrl),
         },
     };
@@ -584,6 +590,10 @@ export async function updateAdminCompanyProfileAction(
     const profileSections = normalizeContentBlocks(
         formData.get("profileSections")?.toString() ?? "[]"
     );
+    const profileSectionLayout = normalizeContentSectionLayout(
+        formData.get("profileSectionLayout")?.toString() ?? "[]",
+        profileSections
+    );
     const primaryVideoUrl = stringOrNull(formData.get("primaryVideoUrl"));
 
     if (countBlockImages(profileSections) > currentCapabilities.maxImages) {
@@ -678,6 +688,7 @@ export async function updateAdminCompanyProfileAction(
                         ...profileTheme,
                         media: nextProfileMediaSettings,
                         sidebarVisibility: profileSidebarVisibility,
+                        sectionLayout: profileSectionLayout,
                     }),
                     capabilities: inputJson(currentCapabilities),
                     sections: inputJson(profileSections),
@@ -688,6 +699,7 @@ export async function updateAdminCompanyProfileAction(
                         ...profileTheme,
                         media: nextProfileMediaSettings,
                         sidebarVisibility: profileSidebarVisibility,
+                        sectionLayout: profileSectionLayout,
                     }),
                     capabilities: inputJson(currentCapabilities),
                     sections: inputJson(profileSections),

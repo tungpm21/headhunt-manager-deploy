@@ -30,7 +30,7 @@ export function GalleryLightbox({ images }: { images: ContentImage[] }) {
     <>
       <div className="grid gap-3 sm:grid-cols-3">
         {images.map((image, index) => (
-          <figure key={`${image.url}-${index}`} className="overflow-hidden rounded-xl bg-[#F2F7FA]">
+          <figure key={`${image.url}-${index}`} className="overflow-hidden rounded-md bg-[#F2F7FA]">
             <button
               type="button"
               onClick={() => setActiveIndex(index)}
@@ -73,7 +73,7 @@ export function GalleryLightbox({ images }: { images: ContentImage[] }) {
                 <X className="h-5 w-5" aria-hidden="true" />
               </button>
             </div>
-            <div className="relative overflow-hidden rounded-2xl bg-[#0E1A27]">
+            <div className="relative overflow-hidden rounded-lg bg-[#0E1A27]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={activeImage.url}
@@ -102,7 +102,7 @@ export function GalleryLightbox({ images }: { images: ContentImage[] }) {
               ) : null}
             </div>
             {activeImage.caption ? (
-              <p className="rounded-xl bg-white/95 px-4 py-3 text-sm font-semibold text-[#102033]">{activeImage.caption}</p>
+              <p className="rounded-md bg-white/95 px-4 py-3 text-sm font-semibold text-[#102033]">{activeImage.caption}</p>
             ) : null}
           </div>
         </div>

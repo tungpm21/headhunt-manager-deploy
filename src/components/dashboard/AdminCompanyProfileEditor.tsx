@@ -164,7 +164,7 @@ export function AdminCompanyProfileEditor({
 
   return (
     <form action={handleSubmit} className="space-y-6">
-      <div className="flex flex-col gap-3 rounded-xl border border-border bg-surface p-5 lg:flex-row lg:items-start lg:justify-between">
+      <div className="flex flex-col gap-3 rounded-lg border border-border bg-surface p-5 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <h2 className="text-lg font-bold text-foreground">Chỉnh sửa profile công ty</h2>
           <p className="mt-1 text-sm text-muted">
@@ -201,7 +201,7 @@ export function AdminCompanyProfileEditor({
       ) : null}
 
       <section className="grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)]">
-        <div className="rounded-xl border border-border bg-surface p-5">
+        <div className="rounded-lg border border-border bg-surface p-5">
           <p className="text-sm font-semibold text-foreground">Logo</p>
           <div
             className="mt-4 flex h-28 items-center justify-center overflow-hidden rounded-2xl border border-border bg-background"
@@ -282,7 +282,7 @@ export function AdminCompanyProfileEditor({
           </div>
         </div>
 
-        <div className="rounded-xl border border-border bg-surface p-5">
+        <div className="rounded-lg border border-border bg-surface p-5">
           <p className="text-sm font-semibold text-foreground">Ảnh bìa</p>
           <p className="mt-1 text-xs text-muted">Có thể nhập URL hoặc upload file mới.</p>
           <div className="mt-4 rounded-xl border border-border bg-background p-3">
@@ -340,7 +340,7 @@ export function AdminCompanyProfileEditor({
         </div>
       </section>
 
-      <section className="rounded-xl border border-border bg-surface p-5">
+      <section className="rounded-lg border border-border bg-surface p-5">
         <div className="flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between">
           <div>
             <p className="text-sm font-semibold text-foreground">Banner homepage</p>
@@ -424,7 +424,7 @@ export function AdminCompanyProfileEditor({
       <input type="hidden" name="coverZoom" value={coverPos.zoom} />
 
       <section className="grid gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(360px,0.85fr)]">
-        <div className="space-y-5 rounded-xl border border-border bg-surface p-6">
+        <div className="space-y-5 rounded-lg border border-border bg-surface p-6">
           <h3 className="text-base font-bold text-foreground">Thông tin cơ bản</h3>
           <div>
             <label htmlFor="companyName" className="mb-1.5 block text-sm font-medium text-foreground">
@@ -478,7 +478,7 @@ export function AdminCompanyProfileEditor({
           />
         </div>
 
-        <div className="space-y-4 rounded-xl border border-border bg-surface p-6">
+        <div className="space-y-4 rounded-lg border border-border bg-surface p-6">
           <h3 className="text-base font-bold text-foreground">Theme public</h3>
           <div className="grid gap-2 sm:grid-cols-2">
             {COMPANY_THEME_PRESETS.map((preset) => (
@@ -521,7 +521,7 @@ export function AdminCompanyProfileEditor({
         </div>
       </section>
 
-      <section className="space-y-5 rounded-xl border border-border bg-surface p-6">
+      <section className="space-y-5 rounded-lg border border-border bg-surface p-6">
         <div>
           <h3 className="text-base font-bold text-foreground">Builder trang giới thiệu</h3>
           <p className="mt-1 text-sm text-muted">
@@ -539,10 +539,12 @@ export function AdminCompanyProfileEditor({
         </label>
         <BlockBuilder
           name="profileSections"
+          layoutName="profileSectionLayout"
           context="company"
           title="Section profile công ty"
           description="Admin chỉnh trực tiếp các block đang hiển thị trên public."
           initialBlocks={employer.profileConfig?.sections ?? []}
+          initialLayout={employer.profileConfig?.theme}
           maxImages={capabilities.maxImages}
           allowGallery={capabilities.gallery}
           allowVideo={capabilities.video}
@@ -577,7 +579,7 @@ function FieldVisibilityControls({
   onChange: (key: keyof CompanyProfileSidebarVisibility, checked: boolean) => void;
 }) {
   return (
-    <div className="rounded-xl border border-border bg-background p-4">
+    <div className="rounded-lg border border-border bg-background p-4">
       <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-sm font-bold text-foreground">Hiển thị thông tin trên profile</p>

@@ -3,6 +3,7 @@ import { ArrowRight, CheckCircle2, Quote } from "lucide-react";
 import {
   getSafeVideoEmbedUrl,
   normalizeCompanyTheme,
+  normalizeContentSectionLayout,
   normalizeContentBlocks,
   type CompanyProfileTheme,
   type ContentBlock,
@@ -14,6 +15,7 @@ type ContentBlocksRendererProps = {
   blocks?: unknown;
   fallbackMarkdown?: string | null;
   theme?: CompanyProfileTheme;
+  layout?: unknown;
   className?: string;
 };
 
@@ -37,6 +39,7 @@ export function ContentBlocksRenderer({
   blocks,
   fallbackMarkdown,
   theme,
+  layout,
   className = "",
 }: ContentBlocksRendererProps) {
   const enabledBlocks = getEnabledBlocks(blocks);
@@ -52,6 +55,7 @@ export function ContentBlocksRenderer({
         blocks={enabledBlocks}
         fallbackMarkdown={fallbackMarkdown}
         theme={normalizedTheme}
+        layout={layout}
         className={className}
       />
     );
@@ -76,7 +80,7 @@ export function ContentBlocksRenderer({
   return (
     <div className={`space-y-6 ${className}`}>
       {enabledBlocks.length === 0 && fallbackMarkdown ? (
-        <section className="rounded-2xl border p-6 shadow-sm sm:p-8" style={sectionStyle}>
+        <section className="rounded-lg border p-6 shadow-sm sm:p-8" style={sectionStyle}>
           <SafeRichContent content={fallbackMarkdown} />
         </section>
       ) : null}
@@ -89,7 +93,7 @@ export function ContentBlocksRenderer({
             <section
               key={block.id}
               id={blockAnchorId}
-              className="scroll-mt-28 rounded-2xl border p-6 shadow-sm sm:p-8"
+              className="scroll-mt-28 rounded-lg border p-6 shadow-sm sm:p-8"
               style={sectionStyle}
             >
               {block.title ? <SectionTitle title={block.title} accentColor={accentColor} /> : null}
@@ -103,7 +107,7 @@ export function ContentBlocksRenderer({
             <section
               key={block.id}
               id={blockAnchorId}
-              className="scroll-mt-28 rounded-2xl border p-6 shadow-sm sm:p-8"
+              className="scroll-mt-28 rounded-lg border p-6 shadow-sm sm:p-8"
               style={sectionStyle}
             >
               {block.title ? <SectionTitle title={block.title} accentColor={accentColor} /> : null}
@@ -117,7 +121,7 @@ export function ContentBlocksRenderer({
             <figure
               key={block.id}
               id={blockAnchorId}
-              className="scroll-mt-28 overflow-hidden rounded-2xl border shadow-sm"
+              className="scroll-mt-28 overflow-hidden rounded-lg border shadow-sm"
               style={sectionStyle}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -137,13 +141,13 @@ export function ContentBlocksRenderer({
             <section
               key={block.id}
               id={blockAnchorId}
-              className="scroll-mt-28 rounded-2xl border p-5 shadow-sm sm:p-6"
+              className="scroll-mt-28 rounded-lg border p-5 shadow-sm sm:p-6"
               style={sectionStyle}
             >
               {block.title ? <SectionTitle title={block.title} accentColor={accentColor} /> : null}
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {block.images.map((image) => (
-                  <figure key={`${block.id}-${image.url}`} className="overflow-hidden rounded-xl" style={softPanelStyle}>
+                  <figure key={`${block.id}-${image.url}`} className="overflow-hidden rounded-md" style={softPanelStyle}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={image.url}
@@ -168,7 +172,7 @@ export function ContentBlocksRenderer({
             <blockquote
               key={block.id}
               id={blockAnchorId}
-              className="scroll-mt-28 rounded-2xl border-l-4 p-6 text-lg font-medium leading-relaxed shadow-sm"
+              className="scroll-mt-28 rounded-lg border-l-4 p-6 text-lg font-medium leading-relaxed shadow-sm"
               style={{ ...sectionStyle, borderLeftColor: accentColor }}
             >
               <p>{block.quote}</p>
@@ -186,13 +190,13 @@ export function ContentBlocksRenderer({
             <section
               key={block.id}
               id={blockAnchorId}
-              className="scroll-mt-28 rounded-2xl border p-5 shadow-sm sm:p-6"
+              className="scroll-mt-28 rounded-lg border p-5 shadow-sm sm:p-6"
               style={sectionStyle}
             >
               {block.title ? <SectionTitle title={block.title} accentColor={accentColor} /> : null}
               <div className="grid gap-3 sm:grid-cols-3">
                 {block.stats.map((stat) => (
-                  <div key={`${block.id}-${stat.label}`} className="rounded-xl border p-4" style={softPanelStyle}>
+                  <div key={`${block.id}-${stat.label}`} className="rounded-md border p-4" style={softPanelStyle}>
                     <p className="text-2xl font-bold" style={{ color: textColor }}>{stat.value}</p>
                     <p className="mt-1 text-sm font-semibold" style={{ color: textColor }}>{stat.label}</p>
                     {stat.description ? (
@@ -210,13 +214,13 @@ export function ContentBlocksRenderer({
             <section
               key={block.id}
               id={blockAnchorId}
-              className="scroll-mt-28 rounded-2xl border p-5 shadow-sm sm:p-6"
+              className="scroll-mt-28 rounded-lg border p-5 shadow-sm sm:p-6"
               style={sectionStyle}
             >
               {block.title ? <SectionTitle title={block.title} accentColor={accentColor} /> : null}
               <div className="grid gap-3 sm:grid-cols-2">
                 {block.benefits.map((benefit) => (
-                  <div key={`${block.id}-${benefit.title}`} className="rounded-xl border p-4" style={softPanelStyle}>
+                  <div key={`${block.id}-${benefit.title}`} className="rounded-md border p-4" style={softPanelStyle}>
                     <p className="text-sm font-semibold" style={{ color: textColor }}>
                       {benefit.icon ? `${benefit.icon} ` : null}
                       {benefit.title}
@@ -239,11 +243,11 @@ export function ContentBlocksRenderer({
             <section
               key={block.id}
               id={blockAnchorId}
-              className="scroll-mt-28 rounded-2xl border p-5 shadow-sm sm:p-6"
+              className="scroll-mt-28 rounded-lg border p-5 shadow-sm sm:p-6"
               style={sectionStyle}
             >
               {block.title ? <SectionTitle title={block.title} accentColor={accentColor} /> : null}
-              <div className="overflow-hidden rounded-2xl bg-[#0E1A27]">
+              <div className="overflow-hidden rounded-md bg-[#0E1A27]">
                 <iframe
                   src={embedUrl}
                   title={block.title ?? "Video"}
@@ -262,7 +266,7 @@ export function ContentBlocksRenderer({
             <section
               key={block.id}
               id={blockAnchorId}
-              className="scroll-mt-28 rounded-2xl p-6 text-white shadow-sm"
+              className="scroll-mt-28 rounded-lg p-6 text-white shadow-sm"
               style={{
                 background: `linear-gradient(135deg, ${primaryColor}, ${accentColor})`,
               }}
@@ -298,13 +302,18 @@ function CompanyContentBlocks({
   blocks,
   fallbackMarkdown,
   theme,
+  layout,
   className,
 }: {
   blocks: ContentBlock[];
   fallbackMarkdown?: string | null;
   theme: CompanyProfileTheme;
+  layout?: unknown;
   className?: string;
 }) {
+  const sectionLayout = normalizeContentSectionLayout(layout, blocks);
+  const blocksById = new Map(blocks.map((block) => [block.id, block]));
+
   return (
     <div className={`space-y-8 ${className ?? ""}`}>
       {blocks.length === 0 && fallbackMarkdown ? (
@@ -315,58 +324,127 @@ function CompanyContentBlocks({
         </CompanySection>
       ) : null}
 
-      {blocks.map((block, index) => (
-        <CompanyBlock key={block.id} block={block} index={index} theme={theme} />
-      ))}
+      {sectionLayout.map((item, index) => {
+        if (item.type === "standalone") {
+          const block = blocksById.get(item.blockId);
+          if (!block) return null;
+          return <CompanyStandaloneBlock key={item.id} block={block} index={index} theme={theme} />;
+        }
+
+        const groupBlocks = item.blockIds
+          .map((blockId) => blocksById.get(blockId))
+          .filter((block): block is ContentBlock => Boolean(block));
+
+        if (groupBlocks.length === 0) return null;
+
+        return (
+          <CompanySection key={item.id} id={`content-${item.id}`} title={item.title} theme={theme}>
+            <div className="space-y-8">
+              {groupBlocks.map((block, blockIndex) => (
+                <CompanyInlineBlock
+                  key={block.id}
+                  block={block}
+                  index={blockIndex}
+                  theme={theme}
+                  withDivider={blockIndex > 0}
+                />
+              ))}
+            </div>
+          </CompanySection>
+        );
+      })}
     </div>
   );
 }
 
-function CompanyBlock({ block, index, theme }: { block: ContentBlock; index: number; theme: CompanyProfileTheme }) {
+function CompanyInlineTitle({
+  title,
+  theme,
+  sequence,
+}: {
+  title?: string;
+  theme: CompanyProfileTheme;
+  sequence: number;
+}) {
+  if (!title) return null;
+
+  return (
+    <div className="mb-5 flex items-start gap-4">
+      <span
+        className="mt-1 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-[#F0C8AF] bg-[#FFF6EF] text-xs font-extrabold tabular-nums"
+        style={{ color: theme.accentColor }}
+        aria-hidden="true"
+      >
+        {String(sequence + 1).padStart(2, "0")}
+      </span>
+      <div className="min-w-0">
+        <h2 className="text-xl font-extrabold leading-tight text-[#102033]">{title}</h2>
+        <span className="mt-2 block h-0.5 w-12 rounded-full" style={{ backgroundColor: theme.accentColor }} />
+      </div>
+    </div>
+  );
+}
+
+function CompanyInlineBlock({
+  block,
+  index,
+  theme,
+  withDivider = false,
+}: {
+  block: ContentBlock;
+  index: number;
+  theme: CompanyProfileTheme;
+  withDivider?: boolean;
+}) {
   const blockAnchorId = createBlockAnchorId(block, index);
+  const wrapperClass = withDivider ? "border-t border-[#E4EEF3] pt-8" : "";
 
   if (block.type === "richText" && block.markdown?.trim()) {
     return (
-      <CompanySection id={blockAnchorId} title={block.title} theme={theme}>
-        <div className="max-w-[56ch]">
+      <section id={blockAnchorId} className={wrapperClass}>
+        <CompanyInlineTitle title={block.title} theme={theme} sequence={index} />
+          <div className="max-w-[54ch] text-[15px] leading-7 text-[#26384A] sm:text-base">
           <SafeRichContent content={block.markdown} headingIdPrefix={blockAnchorId} />
         </div>
-      </CompanySection>
+      </section>
     );
   }
 
   if (block.type === "html" && block.html?.trim()) {
     return (
-      <CompanySection id={blockAnchorId} title={block.title} theme={theme}>
-        <div className="max-w-[56ch]">
+      <section id={blockAnchorId} className={wrapperClass}>
+        <CompanyInlineTitle title={block.title} theme={theme} sequence={index} />
+        <div className="max-w-[54ch] text-[15px] leading-7 text-[#26384A] sm:text-base">
           <SafeRichContent content={block.html} allowHtml headingIdPrefix={blockAnchorId} />
         </div>
-      </CompanySection>
+      </section>
     );
   }
 
   if (block.type === "stats" && block.stats?.length) {
     return (
-      <CompanySection id={blockAnchorId} title={block.title} theme={theme}>
-        <div className="grid gap-6 sm:grid-cols-3">
+      <section id={blockAnchorId} className={wrapperClass}>
+        <CompanyInlineTitle title={block.title} theme={theme} sequence={index} />
+        <div className="grid overflow-hidden border-y border-[#D7E4EB] sm:grid-cols-3 sm:divide-x sm:divide-[#D7E4EB]">
           {block.stats.map((stat) => (
-            <div key={`${block.id}-${stat.label}`} className="border-t border-[#D7E4EB] pt-4">
-              <p className="text-3xl font-extrabold text-[#102033]">{stat.value}</p>
-              <p className="mt-1 text-sm font-bold text-[#102033]">{stat.label}</p>
-              {stat.description ? <p className="mt-1 text-sm leading-6 text-[#526173]">{stat.description}</p> : null}
+            <div key={`${block.id}-${stat.label}`} className="py-5 sm:px-5 sm:first:pl-0 sm:last:pr-0">
+              <p className="text-3xl font-extrabold tracking-tight text-[#102033]">{stat.value}</p>
+              <p className="mt-1 text-sm font-bold leading-5 text-[#102033]">{stat.label}</p>
+              {stat.description ? <p className="mt-2 text-sm leading-6 text-[#526173]">{stat.description}</p> : null}
             </div>
           ))}
         </div>
-      </CompanySection>
+      </section>
     );
   }
 
   if (block.type === "benefits" && block.benefits?.length) {
     return (
-      <CompanySection id={blockAnchorId} title={block.title} theme={theme}>
-        <div className="grid gap-x-8 gap-y-5 sm:grid-cols-2">
+      <section id={blockAnchorId} className={wrapperClass}>
+        <CompanyInlineTitle title={block.title} theme={theme} sequence={index} />
+        <div className="grid gap-x-10 gap-y-0 sm:grid-cols-2">
           {block.benefits.map((benefit) => (
-            <div key={`${block.id}-${benefit.title}`} className="flex gap-3 border-t border-[#E4EEF3] pt-4">
+            <div key={`${block.id}-${benefit.title}`} className="flex gap-3 border-t border-[#E4EEF3] py-4">
               <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#FFF3E8]" aria-hidden="true">
                 <CheckCircle2 className="h-3.5 w-3.5" style={{ color: theme.accentColor }} />
               </span>
@@ -377,38 +455,45 @@ function CompanyBlock({ block, index, theme }: { block: ContentBlock; index: num
             </div>
           ))}
         </div>
-      </CompanySection>
+      </section>
     );
   }
 
   if (block.type === "gallery" && block.images?.length) {
     return (
-      <CompanySection id={blockAnchorId} title={block.title} theme={theme}>
+      <section id={blockAnchorId} className={wrapperClass}>
+        <CompanyInlineTitle title={block.title} theme={theme} sequence={index} />
         <GalleryLightbox images={block.images} />
-      </CompanySection>
+      </section>
     );
   }
 
   if (block.type === "image" && block.url && block.alt) {
     return (
-      <figure id={blockAnchorId} className="overflow-hidden rounded-2xl border border-[#D7E4EB] bg-white shadow-[0_20px_60px_-50px_rgba(15,35,55,0.5)]">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={block.url} alt={block.alt} loading="lazy" className="h-auto w-full object-cover" />
-        {(block.title || block.caption) && (
-          <figcaption className="space-y-1 px-5 py-4">
-            {block.title ? <p className="font-bold text-[#102033]">{block.title}</p> : null}
-            {block.caption ? <p className="text-sm text-[#526173]">{block.caption}</p> : null}
-          </figcaption>
-        )}
-      </figure>
+      <section id={blockAnchorId} className={wrapperClass}>
+        <CompanyInlineTitle title={block.title} theme={theme} sequence={index} />
+        <figure className="overflow-hidden rounded-md border border-[#D7E4EB] bg-white">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={block.url} alt={block.alt} loading="lazy" className="h-auto w-full object-cover" />
+          {block.caption ? (
+            <figcaption className="space-y-1 px-5 py-4">
+              <p className="text-sm text-[#526173]">{block.caption}</p>
+            </figcaption>
+          ) : null}
+        </figure>
+      </section>
     );
   }
 
   if (block.type === "quote" && block.quote?.trim()) {
     return (
-      <blockquote id={blockAnchorId} className="rounded-2xl border border-[#D7E4EB] bg-[#FBFDFE] p-6 sm:p-8">
+      <blockquote
+        id={blockAnchorId}
+        className={`${wrapperClass} border-l-4 bg-[#FAFCFD] py-5 pl-5 pr-6`}
+        style={{ borderLeftColor: theme.accentColor }}
+      >
         <Quote className="mb-4 h-7 w-7" style={{ color: theme.accentColor }} aria-hidden="true" />
-        <p className="max-w-[72ch] text-lg font-semibold leading-8 text-[#102033]">{block.quote}</p>
+        <p className="max-w-[56ch] text-lg font-semibold leading-8 text-[#102033]">{block.quote}</p>
         {block.attribution ? <footer className="mt-4 text-sm font-bold text-[#526173]">{block.attribution}</footer> : null}
       </blockquote>
     );
@@ -419,8 +504,9 @@ function CompanyBlock({ block, index, theme }: { block: ContentBlock; index: num
     if (!embedUrl) return null;
 
     return (
-      <CompanySection id={blockAnchorId} title={block.title} theme={theme}>
-        <div className="overflow-hidden rounded-2xl bg-[#0E1A27]">
+      <section id={blockAnchorId} className={wrapperClass}>
+        <CompanyInlineTitle title={block.title} theme={theme} sequence={index} />
+        <div className="overflow-hidden rounded-md bg-[#0E1A27]">
           <iframe
             src={embedUrl}
             title={block.title ?? "Video"}
@@ -430,16 +516,22 @@ function CompanyBlock({ block, index, theme }: { block: ContentBlock; index: num
             allowFullScreen
           />
         </div>
-      </CompanySection>
+      </section>
     );
   }
 
+  return null;
+}
+
+function CompanyStandaloneBlock({ block, index, theme }: { block: ContentBlock; index: number; theme: CompanyProfileTheme }) {
+  const blockAnchorId = createBlockAnchorId(block, index);
+
   if (block.type === "cta" && block.label && block.href) {
     return (
-      <section id={blockAnchorId} className="rounded-2xl bg-[#073B59] p-6 text-white shadow-[0_24px_70px_-50px_rgba(15,35,55,0.55)] sm:p-8">
+      <section id={blockAnchorId} className="rounded-lg bg-[#073B59] p-6 text-white shadow-[0_18px_48px_-44px_rgba(15,35,55,0.5)] sm:p-8">
         {block.title ? <h2 className="text-2xl font-extrabold">{block.title}</h2> : null}
-        {block.description ? <p className="mt-2 max-w-2xl text-sm leading-6 text-white/80">{block.description}</p> : null}
-        <a href={block.href} className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-xl bg-white px-5 text-sm font-bold text-[#073B59] transition hover:-translate-y-0.5">
+        {block.description ? <p className="mt-2 max-w-[54ch] text-sm leading-6 text-white/80">{block.description}</p> : null}
+        <a href={block.href} className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-md bg-white px-5 text-sm font-bold text-[#073B59] transition hover:-translate-y-0.5">
           {block.label}
           <ArrowRight className="h-4 w-4" aria-hidden="true" />
         </a>
@@ -447,7 +539,11 @@ function CompanyBlock({ block, index, theme }: { block: ContentBlock; index: num
     );
   }
 
-  return null;
+  return (
+    <CompanySection id={blockAnchorId} title={block.title} theme={theme}>
+      <CompanyInlineBlock block={block} index={index} theme={theme} />
+    </CompanySection>
+  );
 }
 
 function CompanySection({
@@ -462,7 +558,7 @@ function CompanySection({
   children: ReactNode;
 }) {
   return (
-    <section id={id} className="rounded-2xl border border-[#D7E4EB] bg-[#FEFFFF] p-6 shadow-[0_18px_54px_-54px_rgba(15,35,55,0.45)] sm:p-8">
+    <section id={id} className="rounded-md border border-[#D7E4EB] bg-[#FEFFFF] px-6 py-7 shadow-[0_14px_40px_-38px_rgba(15,35,55,0.38)] sm:px-8 sm:py-9">
       {title ? (
         <div className="mb-5 flex items-center gap-3">
           <span className="h-2 w-2 rounded-full" style={{ backgroundColor: theme.accentColor }} />

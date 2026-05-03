@@ -52,6 +52,7 @@ import {
   normalizeCompanySidebarVisibility,
   normalizeCompanyTheme,
   normalizeContentBlocks,
+  normalizeContentSectionLayout,
   parseJson,
   type CompanyProfileCapabilities,
   type ContentBlock,
@@ -428,6 +429,10 @@ export async function updateCompanyProfileAction(formData: FormData) {
     normalizeContentBlocks(formData.get("profileSections")?.toString() ?? "[]"),
     currentCapabilities
   );
+  const profileSectionLayout = normalizeContentSectionLayout(
+    formData.get("profileSectionLayout")?.toString() ?? "[]",
+    profileSections
+  );
   const primaryVideoUrl = currentCapabilities.video
     ? strNull(formData.get("primaryVideoUrl"))
     : employer.profileConfig?.primaryVideoUrl ?? null;
@@ -543,9 +548,13 @@ export async function updateCompanyProfileAction(formData: FormData) {
       coverPositionY: parseInt(formData.get("coverPositionY")?.toString() || "50") || 50,
       coverZoom: parseInt(formData.get("coverZoom")?.toString() || "100") || 100,
       profileConfig: {
-        theme: nextProfileThemeWithMedia,
+        theme: {
+          ...nextProfileThemeWithMedia,
+          sectionLayout: profileSectionLayout,
+        },
         capabilities: currentCapabilities,
         sections: profileSections,
+        sectionLayout: profileSectionLayout,
         primaryVideoUrl,
       },
     };

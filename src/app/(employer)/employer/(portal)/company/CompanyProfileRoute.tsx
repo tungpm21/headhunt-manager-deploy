@@ -396,7 +396,7 @@ function CompanyProfileForm({
       )}
 
       <form action={handleSubmit} className="space-y-6">
-        <section className="rounded-xl border border-gray-100 bg-white p-6">
+        <section className="rounded-lg border border-gray-100 bg-white p-6">
           <div className="grid grid-cols-1 gap-5 lg:grid-cols-[220px_minmax(0,1fr)]">
             <div className="rounded-xl border border-gray-100 bg-gray-50 p-4">
               <p className="text-sm font-semibold text-gray-800">Logo công ty</p>
@@ -572,7 +572,7 @@ function CompanyProfileForm({
           <input type="hidden" name="coverZoom" value={coverPos.zoom} />
         </section>
 
-        <section className="rounded-xl border border-gray-100 bg-white p-6">
+        <section className="rounded-lg border border-gray-100 bg-white p-6">
           <div className="flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between">
             <div>
               <p className="text-sm font-semibold text-gray-800">Banner homepage</p>
@@ -664,7 +664,7 @@ function CompanyProfileForm({
         </section>
 
         <section className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(340px,0.85fr)]">
-          <div className="rounded-xl border border-gray-100 bg-white p-6 space-y-5">
+          <div className="rounded-lg border border-gray-100 bg-white p-6 space-y-5">
             <h2 className="text-base font-bold text-gray-800">Thông tin cơ bản</h2>
 
             <div>
@@ -724,7 +724,7 @@ function CompanyProfileForm({
             />
           </div>
 
-          <div className="rounded-xl border border-gray-100 bg-white p-6">
+          <div className="rounded-lg border border-gray-100 bg-white p-6">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <h2 className="text-base font-bold text-gray-800">Theme public</h2>
@@ -802,7 +802,7 @@ function CompanyProfileForm({
           </div>
         </section>
 
-        <section className="rounded-xl border border-gray-100 bg-white p-6 space-y-5">
+        <section className="rounded-lg border border-gray-100 bg-white p-6 space-y-5">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
             <div>
               <h2 className="text-base font-bold text-gray-800">Builder trang giới thiệu công ty</h2>
@@ -831,10 +831,12 @@ function CompanyProfileForm({
 
           <BlockBuilder
             name="profileSections"
+            layoutName="profileSectionLayout"
             context="company"
             title="Section template công ty"
             description="Dùng các block để tạo trang giới thiệu công ty chi tiết hơn phần mô tả ngắn."
             initialBlocks={employer.profileConfig?.sections ?? []}
+            initialLayout={employer.profileConfig?.theme}
             maxImages={capabilities.maxImages}
             allowGallery={capabilities.gallery}
             allowVideo={capabilities.video}

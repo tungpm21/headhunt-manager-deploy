@@ -47,6 +47,19 @@ export type ContentBlock = {
   benefits?: ContentBenefit[];
 };
 
+export type ContentLayoutItem =
+  | {
+      id: string;
+      type: "group";
+      title?: string;
+      blockIds: string[];
+    }
+  | {
+      id: string;
+      type: "standalone";
+      blockId: string;
+    };
+
 export type CompanyProfileTheme = {
   primaryColor: string;
   accentColor: string;
@@ -198,6 +211,20 @@ export function createContentBlockId(prefix = "block") {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
+export function createContentLayoutItemId(prefix = "layout") {
+  return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function createStableContentLayoutItemId(prefix: string, seed: string) {
+  let hash = 0;
+
+  for (let index = 0; index < seed.length; index += 1) {
+    hash = (hash * 31 + seed.charCodeAt(index)) | 0;
+  }
+
+  return `${prefix}-${Math.abs(hash).toString(36)}`;
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
@@ -293,6 +320,103 @@ export function normalizeContentBlocks(value: unknown): ContentBlock[] {
   }
 
   return blocks;
+}
+
+function createFallbackContentSectionLayout(blocks: ContentBlock[]): ContentLayoutItem[] {
+  const layout: ContentLayoutItem[] = [];
+  let pendingBlockIds: string[] = [];
+
+  function flushGroup() {
+    if (pendingBlockIds.length === 0) return;
+    const blockIds = pendingBlockIds;
+    layout.push({
+      id: createStableContentLayoutItemId("group", blockIds.join("|")),
+      type: "group",
+      blockIds,
+    });
+    pendingBlockIds = [];
+  }
+
+  for (const block of blocks) {
+    if (block.type === "cta") {
+      flushGroup();
+      layout.push({
+        id: createStableContentLayoutItemId("standalone", block.id),
+        type: "standalone",
+        blockId: block.id,
+      });
+      continue;
+    }
+
+    pendingBlockIds.push(block.id);
+  }
+
+  flushGroup();
+  return layout;
+}
+
+function getRawContentSectionLayout(value: unknown) {
+  const source = typeof value === "string" ? parseJson(value) : value;
+  if (Array.isArray(source)) return source;
+  if (isRecord(source) && Array.isArray(source.sectionLayout)) return source.sectionLayout;
+  return [];
+}
+
+export function normalizeContentSectionLayout(
+  value: unknown,
+  blocks: ContentBlock[]
+): ContentLayoutItem[] {
+  const rawLayout = getRawContentSectionLayout(value);
+  const blockById = new Map(blocks.map((block) => [block.id, block]));
+  const usedBlockIds = new Set<string>();
+  const layout: ContentLayoutItem[] = [];
+
+  for (const item of rawLayout) {
+    if (!isRecord(item)) continue;
+
+    const type = stringValue(item.type);
+
+    if (type === "group") {
+      const blockIds = Array.isArray(item.blockIds)
+        ? item.blockIds
+            .map((blockId) => stringValue(blockId))
+            .filter((blockId) => {
+              const block = blockById.get(blockId);
+              return Boolean(block && block.type !== "cta" && !usedBlockIds.has(blockId));
+            })
+        : [];
+
+      if (blockIds.length === 0) continue;
+      blockIds.forEach((blockId) => usedBlockIds.add(blockId));
+      layout.push({
+        id: optionalString(item.id) ?? createStableContentLayoutItemId("group", blockIds.join("|")),
+        type: "group",
+        title: optionalString(item.title),
+        blockIds,
+      });
+      continue;
+    }
+
+    if (type === "standalone") {
+      const blockId = stringValue(item.blockId);
+      const block = blockById.get(blockId);
+      if (!block || block.type !== "cta" || usedBlockIds.has(blockId)) continue;
+      usedBlockIds.add(blockId);
+      layout.push({
+        id: optionalString(item.id) ?? createStableContentLayoutItemId("standalone", blockId),
+        type: "standalone",
+        blockId,
+      });
+    }
+  }
+
+  const missingBlocks = blocks.filter((block) => !usedBlockIds.has(block.id));
+  if (layout.length === 0) {
+    return createFallbackContentSectionLayout(missingBlocks);
+  }
+
+  layout.push(...createFallbackContentSectionLayout(missingBlocks));
+  return layout;
 }
 
 export function normalizeCompanyTheme(value: unknown): CompanyProfileTheme {

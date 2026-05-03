@@ -174,7 +174,7 @@ export default async function CompanyProfilePage({ params, searchParams }: PageP
       </section>
 
       <section className="mx-auto max-w-7xl px-4 pt-5 sm:px-6 lg:px-8">
-        <div className="rounded-2xl border border-[#D7E4EB] bg-white p-5 shadow-[0_20px_60px_-52px_rgba(15,35,55,0.48)] sm:p-6 lg:p-8">
+        <div className="rounded-lg border border-[#D7E4EB] bg-white p-5 shadow-[0_20px_60px_-52px_rgba(15,35,55,0.48)] sm:p-6 lg:p-8">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
             <div className="flex min-w-0 flex-col gap-5 sm:flex-row sm:items-start">
               <CompanyLogoTile
@@ -201,7 +201,7 @@ export default async function CompanyProfilePage({ params, searchParams }: PageP
                   {company.companyName}
                 </h1>
                 {company.description ? (
-                  <p className="mt-3 max-w-[56ch] text-sm font-medium leading-6 text-[#526173] sm:text-base">
+                  <p className="mt-3 max-w-[48ch] text-sm font-medium leading-6 text-[#526173] sm:text-base">
                     {company.description}
                   </p>
                 ) : null}
@@ -211,7 +211,7 @@ export default async function CompanyProfilePage({ params, searchParams }: PageP
             <div className="flex shrink-0 flex-col gap-3 sm:flex-row lg:flex-col">
               <Link
                 href="#jobs"
-                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[#D94B16] px-5 text-sm font-bold text-white shadow-none transition hover:-translate-y-0.5 hover:bg-[#BE3F12]"
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-[#D94B16] px-5 text-sm font-bold text-white shadow-none transition hover:-translate-y-0.5 hover:bg-[#BE3F12]"
               >
                 Xem việc đang tuyển
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
@@ -221,7 +221,7 @@ export default async function CompanyProfilePage({ params, searchParams }: PageP
                   href={company.website}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-[#CFE0EA] bg-white px-5 text-sm font-bold text-[#0A6F9D] transition hover:-translate-y-0.5 hover:border-[#9FCBDA]"
+                  className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg border border-[#CFE0EA] bg-white px-5 text-sm font-bold text-[#0A6F9D] transition hover:-translate-y-0.5 hover:border-[#9FCBDA]"
                 >
                   Website công ty
                   <Globe className="h-4 w-4" aria-hidden="true" />
@@ -238,7 +238,12 @@ export default async function CompanyProfilePage({ params, searchParams }: PageP
 
       <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:px-8">
         <main className="min-w-0 space-y-10">
-          <ContentBlocksRenderer blocks={sections} fallbackMarkdown={company.description} theme={theme} />
+          <ContentBlocksRenderer
+            blocks={sections}
+            fallbackMarkdown={company.description}
+            theme={theme}
+            layout={company.profileConfig?.sectionLayout}
+          />
           <JobsSection
             company={company}
             visibleJobPostings={visibleJobPostings}
@@ -273,7 +278,7 @@ function CompanyLogoTile({
 }) {
   return (
     <div
-      className="flex h-24 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-[#E0E8EE] bg-white shadow-[0_18px_44px_-34px_rgba(2,15,25,0.45)] sm:h-32"
+      className="flex h-24 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#E0E8EE] bg-white shadow-[0_18px_44px_-34px_rgba(2,15,25,0.45)] sm:h-32"
       style={{
         aspectRatio: logoAspectRatio === "auto" ? "1 / 1" : logoAspectRatio,
         maxWidth: "11rem",
@@ -303,10 +308,10 @@ function CompanyFactStrip({ company, theme }: { company: CompanyProfile; theme: 
   ];
 
   return (
-    <dl className="grid overflow-hidden rounded-2xl border border-[#D7E4EB] bg-[#F9FCFD] sm:grid-cols-2 lg:grid-cols-4">
+    <dl className="grid overflow-hidden rounded-lg border border-[#D7E4EB] bg-[#F9FCFD] sm:grid-cols-2 lg:grid-cols-4">
       {facts.map((fact, index) => (
         <div key={fact.label} className={`flex items-center gap-3 px-5 py-4 ${index > 0 ? "border-t border-[#E4EEF3] sm:border-l sm:border-t-0" : ""}`}>
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#EEF6F9]" style={{ color: theme.primaryColor }}>
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#EEF6F9]" style={{ color: theme.primaryColor }}>
             <fact.icon className="h-5 w-5" aria-hidden="true" />
           </span>
           <div className="min-w-0">
@@ -332,7 +337,7 @@ function JobsSection({
 }) {
   if (company.jobPostings.length === 0) {
     return (
-      <section id="jobs" className="rounded-2xl border border-[#D7E4EB] bg-white p-8 text-center text-[#64748B]">
+      <section id="jobs" className="rounded-lg border border-[#D7E4EB] bg-white p-8 text-center text-[#64748B]">
         <Building2 className="mx-auto mb-3 h-10 w-10 opacity-35" aria-hidden="true" />
         <p className="text-sm font-semibold">Chưa có thông tin tuyển dụng</p>
       </section>
@@ -348,7 +353,7 @@ function JobsSection({
             {company.jobPostings.length} cơ hội tại {company.companyName}
           </h2>
         </div>
-        <Link href={`/viec-lam?company=${encodeURIComponent(company.slug)}`} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-[#CFE0EA] bg-white px-4 text-sm font-bold text-[#0A6F9D] transition hover:-translate-y-0.5 hover:border-[#9FCBDA]">
+        <Link href={`/viec-lam?company=${encodeURIComponent(company.slug)}`} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-[#CFE0EA] bg-white px-4 text-sm font-bold text-[#0A6F9D] transition hover:-translate-y-0.5 hover:border-[#9FCBDA]">
           Xem tất cả
           <ArrowRight className="h-4 w-4" aria-hidden="true" />
         </Link>
@@ -414,16 +419,16 @@ function CompanySidebar({
 
   return (
     <div className="space-y-4">
-      <div className="rounded-2xl border border-[#D7E4EB] bg-white p-6 shadow-[0_20px_60px_-52px_rgba(15,35,55,0.48)]">
+      <div className="rounded-lg border border-[#D7E4EB] bg-white p-5 shadow-[0_20px_60px_-52px_rgba(15,35,55,0.48)]">
         <div className="flex items-center gap-2">
           <Sparkles className="h-5 w-5" style={{ color: theme.accentColor }} aria-hidden="true" />
-          <h3 className="text-sm font-extrabold uppercase tracking-wide text-[#102033]" style={{ fontFamily: "var(--font-heading)" }}>
+          <h2 className="text-sm font-extrabold uppercase tracking-wide text-[#102033]" style={{ fontFamily: "var(--font-heading)" }}>
             Thông tin công ty
-          </h3>
+          </h2>
         </div>
-        <dl className="mt-5 space-y-4 text-sm">
+        <dl className="mt-4 divide-y divide-[#E4EEF3] text-sm">
           {infoItems.map((item) => (
-              <div key={item.label} className="flex items-start gap-3">
+              <div key={item.label} className="flex items-start gap-3 py-3 first:pt-0 last:pb-0">
                 <item.icon className="mt-0.5 h-4 w-4 shrink-0" style={{ color: theme.primaryColor }} aria-hidden="true" />
                 <div className="min-w-0">
                   <dt className="text-xs font-bold uppercase tracking-wide text-[#64748B]">{item.label}</dt>
@@ -440,7 +445,7 @@ function CompanySidebar({
                       </a>
                     </dd>
                   ) : (
-                    <dd className="font-semibold text-[#102033]">{item.value}</dd>
+                    <dd className="font-semibold leading-snug text-[#102033]">{item.value}</dd>
                   )}
                 </div>
               </div>
@@ -450,7 +455,7 @@ function CompanySidebar({
 
       <Link
         href={companyJobsHref}
-        className="flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-[#D94B16] px-4 text-center text-sm font-bold text-white shadow-none transition hover:-translate-y-0.5 hover:bg-[#BE3F12]"
+        className="flex min-h-12 items-center justify-center gap-2 rounded-lg bg-[#D94B16] px-4 text-center text-sm font-bold text-white shadow-none transition hover:-translate-y-0.5 hover:bg-[#BE3F12]"
       >
         Xem vị trí đang tuyển
         <ArrowRight className="h-4 w-4" aria-hidden="true" />

@@ -19,10 +19,13 @@ import {
 import {
   countBlockImages,
   createContentBlockId,
+  createContentLayoutItemId,
+  normalizeContentSectionLayout,
   normalizeContentBlocks,
   type CompanyProfileTheme,
   type ContentBenefit,
   type ContentBlock,
+  type ContentLayoutItem,
   type ContentBlockType,
   type ContentImage,
   type ContentStat,
@@ -42,6 +45,8 @@ type BlockBuilderProps = {
   allowGallery?: boolean;
   allowVideo?: boolean;
   previewTheme?: CompanyProfileTheme;
+  layoutName?: string;
+  initialLayout?: unknown;
 };
 
 const typeLabels: Record<ContentBlockType, string> = {
@@ -69,7 +74,7 @@ const typeIcons: Record<ContentBlockType, ComponentType<{ className?: string }>>
 };
 
 const inputClass =
-  "w-full rounded-xl border border-border bg-white px-3 py-2 text-sm text-foreground placeholder:text-muted focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25";
+  "w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-foreground placeholder:text-muted focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25";
 const smallButtonClass =
   "inline-flex h-9 items-center justify-center gap-2 rounded-lg border border-border bg-white px-3 text-xs font-semibold text-foreground transition hover:bg-surface";
 
@@ -124,12 +129,19 @@ export function BlockBuilder({
   allowGallery = true,
   allowVideo = true,
   previewTheme,
+  layoutName,
+  initialLayout,
 }: BlockBuilderProps) {
   const [blocks, setBlocks] = useState<ContentBlock[]>(() => normalizeContentBlocks(initialBlocks));
+  const [layout, setLayout] = useState<ContentLayoutItem[]>(() =>
+    normalizeContentSectionLayout(initialLayout, normalizeContentBlocks(initialBlocks))
+  );
   const [selectedId, setSelectedId] = useState<string | null>(() => blocks[0]?.id ?? null);
   const imageCount = countBlockImages(blocks);
   const selectedBlock = blocks.find((block) => block.id === selectedId) ?? blocks[0] ?? null;
+  const normalizedLayout = useMemo(() => normalizeContentSectionLayout(layout, blocks), [layout, blocks]);
   const serializedBlocks = useMemo(() => JSON.stringify(blocks), [blocks]);
+  const serializedLayout = useMemo(() => JSON.stringify(normalizedLayout), [normalizedLayout]);
 
   const mediaTypes: ContentBlockType[] = [
     "image",
@@ -172,8 +184,11 @@ export function BlockBuilder({
   }
 
   return (
-    <div className="rounded-2xl border border-border bg-white shadow-sm">
+    <div className="rounded-lg border border-border bg-white shadow-sm">
       <input type="hidden" name={name} value={serializedBlocks} />
+      {layoutName && context === "company" ? (
+        <input type="hidden" name={layoutName} value={serializedLayout} />
+      ) : null}
 
       <div className="border-b border-border p-5">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
@@ -193,7 +208,7 @@ export function BlockBuilder({
               <button
                 key={type}
                 type="button"
-                className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-border bg-background px-3 py-2 text-sm font-semibold text-foreground transition hover:bg-surface"
+                className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-border bg-background px-3 py-2 text-sm font-semibold text-foreground transition hover:bg-surface"
                 onClick={() => addBlock(type)}
               >
                 <Icon className="h-4 w-4 text-primary" />
@@ -208,7 +223,7 @@ export function BlockBuilder({
         <div className="border-b border-border p-4 xl:border-b-0 xl:border-r">
           <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted">Sections</p>
           {blocks.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-border p-4 text-sm text-muted">
+            <div className="rounded-md border border-dashed border-border p-4 text-sm text-muted">
               Thêm block đầu tiên để bắt đầu.
             </div>
           ) : (
@@ -221,7 +236,7 @@ export function BlockBuilder({
                     key={block.id}
                     type="button"
                     onClick={() => setSelectedId(block.id)}
-                    className={`flex w-full items-center gap-3 rounded-xl border px-3 py-3 text-left transition ${
+                    className={`flex w-full items-center gap-3 rounded-lg border px-3 py-3 text-left transition ${
                       isSelected
                         ? "border-primary bg-primary/10 text-primary"
                         : "border-border bg-white text-foreground hover:bg-surface"
@@ -255,11 +270,23 @@ export function BlockBuilder({
               moveBlock={moveBlock}
             />
           ) : (
-            <div className="flex min-h-[360px] items-center justify-center rounded-2xl border border-dashed border-border text-sm text-muted">
+            <div className="flex min-h-[360px] items-center justify-center rounded-lg border border-dashed border-border text-sm text-muted">
               Chưa có block nào.
             </div>
           )}
         </div>
+
+        {layoutName && context === "company" ? (
+          <div className="border-t border-border bg-white p-5 xl:col-span-2">
+            <PublicLayoutManager
+              blocks={blocks}
+              layout={normalizedLayout}
+              selectedId={selectedBlock?.id ?? null}
+              onSelectBlock={setSelectedId}
+              onChange={setLayout}
+            />
+          </div>
+        ) : null}
 
         <div className="border-t border-border bg-surface/50 p-5 xl:col-span-2">
           <div className="mb-3 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
@@ -269,13 +296,248 @@ export function BlockBuilder({
           <div
             className={
               context === "company"
-                ? "max-h-[760px] min-h-[360px] overflow-auto rounded-2xl bg-[#F3F7FA] p-5"
-                : "max-h-[760px] min-h-[360px] overflow-auto rounded-2xl border border-border bg-surface p-5"
+                ? "max-h-[760px] min-h-[360px] overflow-auto rounded-lg bg-[#F3F7FA] p-5"
+                : "max-h-[760px] min-h-[360px] overflow-auto rounded-lg border border-border bg-surface p-5"
             }
           >
-            <ContentBlocksRenderer blocks={blocks} theme={previewTheme} />
+            <ContentBlocksRenderer blocks={blocks} theme={previewTheme} layout={normalizedLayout} />
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function isLayoutGroup(item: ContentLayoutItem): item is Extract<ContentLayoutItem, { type: "group" }> {
+  return item.type === "group";
+}
+
+function PublicLayoutManager({
+  blocks,
+  layout,
+  selectedId,
+  onSelectBlock,
+  onChange,
+}: {
+  blocks: ContentBlock[];
+  layout: ContentLayoutItem[];
+  selectedId: string | null;
+  onSelectBlock: (blockId: string) => void;
+  onChange: (layout: ContentLayoutItem[]) => void;
+}) {
+  const blockById = new Map(blocks.map((block) => [block.id, block]));
+  const groups = layout.filter(isLayoutGroup);
+  const selectedBlock = selectedId ? blockById.get(selectedId) : null;
+  const selectedGroup = selectedId
+    ? groups.find((group) => group.blockIds.includes(selectedId))
+    : null;
+  const canCreateGroupFromSelected = Boolean(
+    selectedBlock &&
+      selectedBlock.type !== "cta" &&
+      selectedGroup &&
+      selectedGroup.blockIds.length > 1
+  );
+
+  function moveItem(index: number, direction: -1 | 1) {
+    const nextIndex = index + direction;
+    if (nextIndex < 0 || nextIndex >= layout.length) return;
+    const next = layout.slice();
+    const [item] = next.splice(index, 1);
+    next.splice(nextIndex, 0, item);
+    onChange(next);
+  }
+
+  function renameGroup(groupId: string, title: string) {
+    onChange(
+      layout.map((item) =>
+        item.type === "group" && item.id === groupId
+          ? { ...item, title: title.trim() || undefined }
+          : item
+      )
+    );
+  }
+
+  function splitBlockToNewGroup(blockId: string) {
+    const groupIndex = layout.findIndex((item) => item.type === "group" && item.blockIds.includes(blockId));
+    const group = layout[groupIndex];
+    const block = blockById.get(blockId);
+    if (!group || group.type !== "group" || !block || group.blockIds.length <= 1) return;
+
+    const next = layout.slice();
+    next[groupIndex] = {
+      ...group,
+      blockIds: group.blockIds.filter((currentBlockId) => currentBlockId !== blockId),
+    };
+    next.splice(groupIndex + 1, 0, {
+      id: createContentLayoutItemId("group"),
+      type: "group",
+      title: block.title || undefined,
+      blockIds: [blockId],
+    });
+    onChange(next);
+  }
+
+  function moveBlockToGroup(blockId: string, targetGroupId: string) {
+    const block = blockById.get(blockId);
+    if (!block || block.type === "cta") return;
+
+    const next = layout
+      .map((item) => {
+        if (item.type !== "group") return item;
+        const withoutBlock = item.blockIds.filter((currentBlockId) => currentBlockId !== blockId);
+        return item.id === targetGroupId
+          ? { ...item, blockIds: [...withoutBlock, blockId] }
+          : { ...item, blockIds: withoutBlock };
+      })
+      .filter((item) => item.type !== "group" || item.blockIds.length > 0);
+
+    onChange(next);
+  }
+
+  function mergeGroupIntoPrevious(index: number) {
+    const item = layout[index];
+    const previous = layout[index - 1];
+    if (!item || !previous || item.type !== "group" || previous.type !== "group") return;
+
+    const next = layout.slice();
+    next[index - 1] = {
+      ...previous,
+      blockIds: [...previous.blockIds, ...item.blockIds],
+    };
+    next.splice(index, 1);
+    onChange(next);
+  }
+
+  return (
+    <div className="space-y-4 rounded-lg border border-border bg-surface/60 p-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <p className="text-sm font-bold text-foreground">Nhóm hiển thị public</p>
+          <p className="mt-1 text-xs leading-5 text-muted">
+            Gộp các block liên quan vào cùng một panel. CTA luôn tách riêng để giữ điểm chuyển đổi.
+          </p>
+        </div>
+        <button
+          type="button"
+          disabled={!canCreateGroupFromSelected}
+          onClick={() => selectedId && splitBlockToNewGroup(selectedId)}
+          className="inline-flex min-h-9 items-center justify-center gap-2 rounded-lg border border-border bg-white px-3 text-xs font-semibold text-foreground transition hover:bg-surface disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <Plus className="h-4 w-4" />
+          Tạo nhóm từ block đang chọn
+        </button>
+      </div>
+
+      <div className="space-y-3">
+        {layout.map((item, index) => {
+          if (item.type === "standalone") {
+            const block = blockById.get(item.blockId);
+            if (!block) return null;
+
+            return (
+              <div key={item.id} className="flex flex-col gap-3 rounded-md border border-orange-200 bg-orange-50 p-3 sm:flex-row sm:items-center sm:justify-between">
+                <button
+                  type="button"
+                  onClick={() => onSelectBlock(block.id)}
+                  className="min-w-0 text-left"
+                >
+                  <span className="block text-xs font-bold uppercase tracking-wide text-orange-700">Standalone CTA</span>
+                  <span className="block truncate text-sm font-semibold text-orange-950">
+                    {block.title || block.label || typeLabels[block.type]}
+                  </span>
+                </button>
+                <div className="flex gap-2">
+                  <button type="button" className={smallButtonClass} onClick={() => moveItem(index, -1)}>
+                    <ArrowUp className="h-4 w-4" />
+                  </button>
+                  <button type="button" className={smallButtonClass} onClick={() => moveItem(index, 1)}>
+                    <ArrowDown className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            );
+          }
+
+          const previousItem = layout[index - 1];
+
+          return (
+            <div key={item.id} className="rounded-md border border-border bg-white p-3">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <label className="min-w-0 flex-1 space-y-1">
+                  <span className="text-xs font-semibold uppercase tracking-wide text-muted">
+                    Nhóm #{groups.findIndex((group) => group.id === item.id) + 1}
+                  </span>
+                  <input
+                    value={item.title ?? ""}
+                    onChange={(event) => renameGroup(item.id, event.target.value)}
+                    placeholder="Tên nhóm hiển thị (không bắt buộc)"
+                    className={inputClass}
+                  />
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {previousItem?.type === "group" ? (
+                    <button type="button" className={smallButtonClass} onClick={() => mergeGroupIntoPrevious(index)}>
+                      Gộp lên
+                    </button>
+                  ) : null}
+                  <button type="button" className={smallButtonClass} onClick={() => moveItem(index, -1)}>
+                    <ArrowUp className="h-4 w-4" />
+                  </button>
+                  <button type="button" className={smallButtonClass} onClick={() => moveItem(index, 1)}>
+                    <ArrowDown className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="mt-3 space-y-2">
+                {item.blockIds.map((blockId) => {
+                  const block = blockById.get(blockId);
+                  if (!block) return null;
+
+                  return (
+                    <div
+                      key={blockId}
+                      className={`grid gap-2 rounded-md border px-3 py-2 sm:grid-cols-[minmax(0,1fr)_160px_auto] sm:items-center ${
+                        selectedId === blockId ? "border-primary bg-primary/5" : "border-border bg-surface/40"
+                      }`}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => onSelectBlock(blockId)}
+                        className="min-w-0 text-left"
+                      >
+                        <span className="block truncate text-sm font-semibold text-foreground">
+                          {block.title || typeLabels[block.type]}
+                        </span>
+                        <span className="text-xs text-muted">{typeLabels[block.type]}</span>
+                      </button>
+                      <select
+                        value={item.id}
+                        disabled={groups.length <= 1}
+                        onChange={(event) => moveBlockToGroup(blockId, event.target.value)}
+                        className="h-9 rounded-lg border border-border bg-white px-2 text-xs font-semibold text-foreground disabled:opacity-50"
+                      >
+                        {groups.map((group, groupIndex) => (
+                          <option key={group.id} value={group.id}>
+                            Nhóm {groupIndex + 1}
+                          </option>
+                        ))}
+                      </select>
+                      <button
+                        type="button"
+                        disabled={item.blockIds.length <= 1}
+                        onClick={() => splitBlockToNewGroup(blockId)}
+                        className="inline-flex h-9 items-center justify-center rounded-lg border border-border bg-white px-3 text-xs font-semibold text-foreground transition hover:bg-surface disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        Tách
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -537,7 +799,7 @@ function GalleryFields({
       </button>
 
       {images.map((image, index) => (
-        <div key={`${block.id}-${index}`} className="rounded-xl border border-border bg-surface/60 p-4">
+        <div key={`${block.id}-${index}`} className="rounded-lg border border-border bg-surface/60 p-4">
           <div className="mb-3 flex items-center justify-between">
             <p className="text-sm font-semibold text-foreground">Ảnh #{index + 1}</p>
             <button
@@ -585,7 +847,7 @@ function StatsFields({
         Thêm chỉ số
       </button>
       {stats.map((stat, index) => (
-        <div key={`${block.id}-stat-${index}`} className="grid gap-3 rounded-xl border border-border p-3 sm:grid-cols-3">
+        <div key={`${block.id}-stat-${index}`} className="grid gap-3 rounded-lg border border-border p-3 sm:grid-cols-3">
           <input value={stat.value} onChange={(event) => updateStat(index, { ...stat, value: event.target.value })} className={inputClass} placeholder="1000+" />
           <input value={stat.label} onChange={(event) => updateStat(index, { ...stat, label: event.target.value })} className={inputClass} placeholder="Nhân sự" />
           <input value={stat.description ?? ""} onChange={(event) => updateStat(index, { ...stat, description: event.target.value })} className={inputClass} placeholder="Mô tả ngắn" />
@@ -619,7 +881,7 @@ function BenefitFields({
         Thêm phúc lợi
       </button>
       {benefits.map((benefit, index) => (
-        <div key={`${block.id}-benefit-${index}`} className="grid gap-3 rounded-xl border border-border p-3 sm:grid-cols-[72px_1fr]">
+        <div key={`${block.id}-benefit-${index}`} className="grid gap-3 rounded-lg border border-border p-3 sm:grid-cols-[72px_1fr]">
           <input value={benefit.icon ?? ""} onChange={(event) => updateBenefit(index, { ...benefit, icon: event.target.value })} className={inputClass} placeholder="✓" />
           <div className="space-y-3">
             <input value={benefit.title} onChange={(event) => updateBenefit(index, { ...benefit, title: event.target.value })} className={inputClass} placeholder="Tên phúc lợi" />

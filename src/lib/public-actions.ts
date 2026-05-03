@@ -17,11 +17,13 @@ import type {
   CompanyProfileCapabilities,
   CompanyProfileTheme,
   ContentBlock,
+  ContentLayoutItem,
 } from "@/lib/content-blocks";
 import {
   normalizeCompanyCapabilities,
   normalizeCompanyTheme,
   normalizeContentBlocks,
+  normalizeContentSectionLayout,
 } from "@/lib/content-blocks";
 import { normalizeCompanyMediaSettings, type CompanyMediaSettings } from "@/lib/company-media-settings";
 import {
@@ -1003,6 +1005,7 @@ export type CompanyProfile = {
     theme: (CompanyProfileTheme & { media?: CompanyMediaSettings }) | null;
     capabilities: CompanyProfileCapabilities | null;
     sections: ContentBlock[] | null;
+    sectionLayout: ContentLayoutItem[] | null;
     primaryVideoUrl: string | null;
   } | null;
   jobPostings: HomepageJob[];
@@ -1074,6 +1077,10 @@ const getCachedCompanyBySlug = unstable_cache(
       formatConfigOptionLabel(OPTION_GROUPS.industrialZone, employer.industrialZone),
     ]);
 
+    const profileSections = employer.profileConfig
+      ? normalizeContentBlocks(employer.profileConfig.sections)
+      : [];
+
     return {
       ...employer,
       industry: industryLabel || employer.industry,
@@ -1087,7 +1094,8 @@ const getCachedCompanyBySlug = unstable_cache(
               media: normalizeCompanyMediaSettings(employer.profileConfig.theme),
             },
             capabilities: normalizeCompanyCapabilities(employer.profileConfig.capabilities),
-            sections: normalizeContentBlocks(employer.profileConfig.sections),
+            sections: profileSections,
+            sectionLayout: normalizeContentSectionLayout(employer.profileConfig.theme, profileSections),
             primaryVideoUrl: employer.profileConfig.primaryVideoUrl,
           }
         : null,

@@ -3,12 +3,14 @@
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   Menu,
   X,
   Search,
   Briefcase,
   Building2,
+  PhoneCall,
   UserPlus,
   ChevronDown,
   Loader2,
@@ -46,12 +48,19 @@ const navLinks: NavItem[] = [
     label: "Chia sẻ",
     icon: Briefcase,
   },
+  {
+    href: "/lien-he",
+    label: "Liên hệ",
+    icon: PhoneCall,
+  },
 ];
 
 export function PublicHeader() {
+  const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const isHomePage = pathname === "/";
 
   const {
     query,
@@ -164,7 +173,14 @@ export function PublicHeader() {
         </nav>
 
         {/* Header search with inline dropdown */}
-        <div ref={searchContainerRef} className="relative mx-auto hidden min-w-[220px] max-w-sm flex-1 lg:flex xl:max-w-md">
+        <div
+          ref={searchContainerRef}
+          className={
+            isHomePage
+              ? "relative mx-auto hidden min-w-[220px] max-w-sm flex-1 xl:max-w-md"
+              : "relative mx-auto hidden min-w-[220px] max-w-sm flex-1 lg:flex xl:max-w-md"
+          }
+        >
           <form onSubmit={handleSearch} className="w-full" role="search" aria-label="Tìm kiếm việc làm">
             <div className="relative w-full">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" aria-hidden="true" />
@@ -291,7 +307,7 @@ export function PublicHeader() {
 
         <Link
           href="/viec-lam"
-          className="ml-auto inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-gray-200 px-3 text-sm font-semibold text-[var(--color-fdi-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-accent-orange)]/40 md:hidden"
+          className={`${isHomePage ? "hidden" : "ml-auto inline-flex"} min-h-11 items-center gap-1.5 rounded-lg border border-gray-200 px-3 text-sm font-semibold text-[var(--color-fdi-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-accent-orange)]/40 md:hidden`}
         >
           <Search className="h-4 w-4" aria-hidden="true" />
           Tìm việc

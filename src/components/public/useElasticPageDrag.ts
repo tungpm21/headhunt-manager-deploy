@@ -15,6 +15,7 @@ type TrackPhase = "idle" | "dragging" | "animating" | "rebounding";
 type ElasticPageDragOptions = {
   enabled: boolean;
   threshold?: number;
+  pageGap?: number;
   interactiveSelector?: string;
   onNext: () => void;
   onPrevious: () => void;
@@ -29,15 +30,19 @@ function prefersReducedMotion() {
 export function useElasticPageDrag({
   enabled,
   threshold = 48,
+  pageGap = 0,
   interactiveSelector = "button,input,textarea,select,[data-no-drag]",
   onNext,
   onPrevious,
   onDragStart,
   onDragEnd,
 }: ElasticPageDragOptions) {
+  const pageGapPx = Math.max(0, pageGap);
+  const baseTransform = pageGapPx > 0 ? `translate3d(calc(-100% - ${pageGapPx}px), 0, 0)` : "translate3d(-100%, 0, 0)";
+  const nextTransform = pageGapPx > 0 ? `translate3d(calc(-200% - ${pageGapPx * 2}px), 0, 0)` : "translate3d(-200%, 0, 0)";
   const [phase, setPhase] = useState<TrackPhase>("idle");
   const [dragOffset, setDragOffset] = useState(0);
-  const [targetTransform, setTargetTransform] = useState("translate3d(-100%, 0, 0)");
+  const [targetTransform, setTargetTransform] = useState(baseTransform);
   const dragStartX = useRef<number | null>(null);
   const pointerId = useRef<number | null>(null);
   const moved = useRef(false);
@@ -65,12 +70,12 @@ export function useElasticPageDrag({
         timeoutRef.current = null;
         if (!mountedRef.current) return;
         setDragOffset(0);
-        setTargetTransform("translate3d(-100%, 0, 0)");
+        setTargetTransform(baseTransform);
         setTrackPhase("idle");
         onDragEnd?.();
       }, prefersReducedMotion() ? 0 : delay);
     },
-    [clearPendingTransition, onDragEnd, setTrackPhase],
+    [baseTransform, clearPendingTransition, onDragEnd, setTrackPhase],
   );
 
   useEffect(() => {
@@ -86,9 +91,9 @@ export function useElasticPageDrag({
   const resetWithoutCommit = useCallback(() => {
     setTrackPhase("rebounding");
     setDragOffset(0);
-    setTargetTransform("translate3d(-100%, 0, 0)");
+    setTargetTransform(baseTransform);
     finishInteraction(REBOUND_MS);
-  }, [finishInteraction, setTrackPhase]);
+  }, [baseTransform, finishInteraction, setTrackPhase]);
 
   const completeCommit = useCallback(
     (direction: SlideDirection) => {
@@ -109,7 +114,7 @@ export function useElasticPageDrag({
       clearPendingTransition();
       setTrackPhase("animating");
       setDragOffset(0);
-      setTargetTransform(direction === "next" ? "translate3d(-200%, 0, 0)" : "translate3d(0%, 0, 0)");
+      setTargetTransform(direction === "next" ? nextTransform : "translate3d(0%, 0, 0)");
       onDragStart?.();
 
       if (prefersReducedMotion()) {
@@ -123,7 +128,7 @@ export function useElasticPageDrag({
         completeCommit(direction);
       }, COMMIT_MS);
     },
-    [clearPendingTransition, completeCommit, enabled, onDragStart, setTrackPhase],
+    [clearPendingTransition, completeCommit, enabled, nextTransform, onDragStart, setTrackPhase],
   );
 
   const onPointerDown = useCallback(
@@ -138,9 +143,9 @@ export function useElasticPageDrag({
       pointerId.current = event.pointerId;
       moved.current = false;
       setDragOffset(0);
-      setTargetTransform("translate3d(-100%, 0, 0)");
+      setTargetTransform(baseTransform);
     },
-    [clearPendingTransition, enabled, interactiveSelector],
+    [baseTransform, clearPendingTransition, enabled, interactiveSelector],
   );
 
   const onPointerMove = useCallback(
@@ -192,7 +197,7 @@ export function useElasticPageDrag({
       const direction: SlideDirection = deltaX < 0 ? "next" : "previous";
       setTrackPhase("animating");
       setDragOffset(0);
-      setTargetTransform(direction === "next" ? "translate3d(-200%, 0, 0)" : "translate3d(0%, 0, 0)");
+      setTargetTransform(direction === "next" ? nextTransform : "translate3d(0%, 0, 0)");
 
       if (prefersReducedMotion()) {
         completeCommit(direction);
@@ -206,7 +211,7 @@ export function useElasticPageDrag({
         completeCommit(direction);
       }, COMMIT_MS);
     },
-    [clearPendingTransition, completeCommit, resetWithoutCommit, setTrackPhase, threshold],
+    [clearPendingTransition, completeCommit, nextTransform, resetWithoutCommit, setTrackPhase, threshold],
   );
 
   const cancelPointerDrag = useCallback(() => {
@@ -220,7 +225,7 @@ export function useElasticPageDrag({
 
   const trackStyle: CSSProperties = useMemo(
     () => ({
-      transform: phase === "dragging" ? `translate3d(calc(-100% + ${dragOffset}px), 0, 0)` : targetTransform,
+      transform: phase === "dragging" ? `translate3d(calc(-100% - ${pageGapPx}px + ${dragOffset}px), 0, 0)` : targetTransform,
       transition:
         phase === "animating"
           ? `transform ${COMMIT_MS}ms ${TRACK_EASE}`
@@ -229,7 +234,7 @@ export function useElasticPageDrag({
             : undefined,
       willChange: phase === "idle" ? undefined : "transform",
     }),
-    [dragOffset, phase, targetTransform],
+    [dragOffset, pageGapPx, phase, targetTransform],
   );
 
   const dragHandlers = useMemo(

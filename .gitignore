@@ -53,6 +53,10 @@ next-env.d.ts
 .brain/
 session.json
 
+# Local agent instructions/session files
+AGENTS.md
+CLAUDE.md
+
 # Logs
 server.log
 *.log

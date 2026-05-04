@@ -109,6 +109,36 @@ body {
     color 240ms cubic-bezier(0.32, 0.72, 0, 1);
 }
 
+@keyframes fdi-slide-in-right {
+  from {
+    opacity: 0;
+    transform: translate3d(32px, 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes fdi-slide-in-left {
+  from {
+    opacity: 0;
+    transform: translate3d(-32px, 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.fdi-slide-in-right {
+  animation: fdi-slide-in-right 420ms var(--ease-fdi) both;
+}
+
+.fdi-slide-in-left {
+  animation: fdi-slide-in-left 420ms var(--ease-fdi) both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

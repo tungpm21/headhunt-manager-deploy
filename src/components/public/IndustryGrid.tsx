@@ -71,6 +71,7 @@ export function IndustryGrid({ industries, stats: _stats }: IndustryGridProps) {
   const elasticDrag = useElasticPageDrag({
     enabled: pageCount > 1,
     threshold: 48,
+    pageGap: 20,
     onNext: () => goToPage("next"),
     onPrevious: () => goToPage("previous"),
     onDragStart: () => setDragPaused(true),
@@ -198,7 +199,7 @@ export function IndustryGrid({ industries, stats: _stats }: IndustryGridProps) {
         {pageCount > 1 ? (
           <div className="overflow-hidden">
             <div
-              className="flex cursor-grab touch-pan-y select-none active:cursor-grabbing"
+              className="flex cursor-grab gap-5 touch-pan-y select-none active:cursor-grabbing"
               style={trackStyle}
               {...dragHandlers}
             >

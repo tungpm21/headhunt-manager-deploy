@@ -101,7 +101,7 @@ export function HeroSection() {
           ref={searchContainerRef}
           className="relative z-30 mx-auto max-w-[1040px]"
         >
-          <div className="mb-3 flex justify-center">
+          <div className="hidden">
             <span className="inline-flex items-center rounded-md border border-[#CFE0EA] bg-white/88 px-3 py-1.5 text-xs font-semibold text-[var(--color-fdi-primary)] shadow-[0_10px_24px_-22px_rgba(7,26,47,0.42)] backdrop-blur">
               Nền tảng việc làm dành cho doanh nghiệp FDI
             </span>

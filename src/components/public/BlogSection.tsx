@@ -40,7 +40,7 @@ export async function BlogSection() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-8 flex items-end justify-between">
           <div>
-            <p className="mb-2 inline-flex rounded-md border border-[#CFE0EA] bg-white px-3 py-1 text-[11px] font-semibold text-[var(--color-fdi-primary)]">
+            <p className="hidden">
               Góc chia sẻ
             </p>
             <h2

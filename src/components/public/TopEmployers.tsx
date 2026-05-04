@@ -38,6 +38,7 @@ export function TopEmployers({ employers }: TopEmployersProps) {
   const elasticDrag = useElasticPageDrag({
     enabled: pageCount > 1,
     threshold: 48,
+    pageGap: 16,
     onNext: () => goToPage("next"),
     onPrevious: () => goToPage("previous"),
     onDragStart: () => setDragPaused(true),
@@ -168,7 +169,7 @@ export function TopEmployers({ employers }: TopEmployersProps) {
           {pageCount > 1 ? (
             <div className="overflow-hidden">
               <div
-                className={`flex touch-pan-y select-none ${dragPaused ? "cursor-grabbing" : "cursor-grab"}`}
+                className={`flex gap-4 touch-pan-y select-none ${dragPaused ? "cursor-grabbing" : "cursor-grab"}`}
                 style={trackStyle}
                 {...dragHandlers}
               >

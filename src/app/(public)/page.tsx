@@ -2,16 +2,18 @@ import { getHomepageData } from "@/lib/public-actions";
 import { HeroSection } from "@/components/public/HeroSection";
 import { EmployerBannerCarousel } from "@/components/public/EmployerBannerCarousel";
 import { TopEmployers } from "@/components/public/TopEmployers";
+import { AllEmployersLogoCarousel } from "@/components/public/AllEmployersLogoCarousel";
 import { FeaturedJobs } from "@/components/public/FeaturedJobs";
 import { IndustryGrid } from "@/components/public/IndustryGrid";
 import { BlogSection } from "@/components/public/BlogSection";
 import { HomepageSectionDots } from "@/components/public/HomepageSectionDots";
 
 const homepageSections = [
-  { id: "home-hero", label: "Spotlight" },
-  { id: "home-employers", label: "Nhà tuyển dụng" },
-  { id: "home-jobs", label: "Việc làm" },
+  { id: "home-hero", label: "Banner" },
+  { id: "home-featured-employers", label: "Nổi bật" },
+  { id: "home-all-employers", label: "Tất cả DN" },
   { id: "home-industries", label: "Ngành nghề" },
+  { id: "home-jobs", label: "Việc làm" },
   { id: "home-insights", label: "Chia sẻ" },
 ];
 
@@ -41,14 +43,17 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <div id="home-employers" className="scroll-mt-28">
+      <div id="home-featured-employers" className="scroll-mt-28">
         <TopEmployers employers={data.topEmployers} />
       </div>
-      <div id="home-jobs" className="scroll-mt-28">
-        <FeaturedJobs jobs={data.featuredJobs} />
+      <div id="home-all-employers" className="scroll-mt-28">
+        <AllEmployersLogoCarousel employers={data.allEmployers} />
       </div>
       <div id="home-industries" className="scroll-mt-28">
         <IndustryGrid industries={data.industries} stats={data.stats} />
+      </div>
+      <div id="home-jobs" className="scroll-mt-28">
+        <FeaturedJobs jobs={data.featuredJobs} />
       </div>
       <div id="home-insights" className="scroll-mt-28">
         <BlogSection />

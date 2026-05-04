@@ -76,6 +76,7 @@ export type HomepageData = {
   featuredJobs: HomepageJob[];
   bannerEmployers: HomepageEmployer[];
   topEmployers: HomepageEmployer[];
+  allEmployers: HomepageEmployer[];
   industries: IndustryCount[];
   stats: {
     totalJobs: number;
@@ -87,6 +88,7 @@ const EMPTY_HOMEPAGE_DATA: HomepageData = {
   featuredJobs: [],
   bannerEmployers: [],
   topEmployers: [],
+  allEmployers: [],
   industries: [],
   stats: {
     totalJobs: 0,
@@ -237,6 +239,7 @@ export const getHomepageData = unstable_cache(
       .slice()
       .sort(compareSubscriptionDisplayPriority)
       .slice(0, 24);
+    const allEmployers = allActiveEmployers.slice().sort(compareSubscriptionDisplayPriority);
     const bannerEmployersWithMedia: HomepageEmployer[] = bannerEmployers
       .slice()
       .sort(compareSubscriptionDisplayPriority)
@@ -264,6 +267,7 @@ export const getHomepageData = unstable_cache(
       featuredJobs,
       bannerEmployers: bannerEmployersWithMedia,
       topEmployers,
+      allEmployers,
       industries,
       stats: { totalJobs, totalEmployers },
     };

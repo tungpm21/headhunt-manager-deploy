@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { JobCard } from "./JobCard";
 import type { HomepageJob } from "@/lib/public-actions";
+import { useElasticPageDrag } from "@/components/public/useElasticPageDrag";
 
 const JOBS_PER_PAGE = 6;
 
@@ -12,15 +13,82 @@ type FeaturedJobsProps = {
   jobs: HomepageJob[];
 };
 
+type SlideDirection = "previous" | "next";
+
+function wrapPage(page: number, pageCount: number) {
+  return ((page % pageCount) + pageCount) % pageCount;
+}
+
 export function FeaturedJobs({ jobs }: FeaturedJobsProps) {
   const [page, setPage] = useState(0);
+  const [dragPaused, setDragPaused] = useState(false);
+  const pageCount = Math.max(1, Math.ceil(jobs.length / JOBS_PER_PAGE));
+  const activePage = wrapPage(page, pageCount);
+  const previousPage = wrapPage(activePage - 1, pageCount);
+  const nextPage = wrapPage(activePage + 1, pageCount);
+
+  const goToPage = useCallback(
+    (direction: SlideDirection) => {
+      if (pageCount <= 1) return;
+      setPage((current) => wrapPage(current + (direction === "next" ? 1 : -1), pageCount));
+    },
+    [pageCount],
+  );
+
+  const elasticDrag = useElasticPageDrag({
+    enabled: pageCount > 1,
+    threshold: 48,
+    onNext: () => goToPage("next"),
+    onPrevious: () => goToPage("previous"),
+    onDragStart: () => setDragPaused(true),
+    onDragEnd: () => setDragPaused(false),
+  });
+  const { dragHandlers, shouldIgnoreClick, slideTo, trackStyle } = elasticDrag;
 
   if (jobs.length === 0) return null;
 
-  const totalPages = Math.ceil(jobs.length / JOBS_PER_PAGE);
-  const currentJobs = jobs.slice(
-    page * JOBS_PER_PAGE,
-    (page + 1) * JOBS_PER_PAGE
+  const visibleCount = Math.min(JOBS_PER_PAGE, jobs.length);
+
+  const getPageJobs = (pageIndex: number) => {
+    const startIndex = pageIndex * JOBS_PER_PAGE;
+    return Array.from({ length: visibleCount }, (_, index) => jobs[(startIndex + index) % jobs.length]!);
+  };
+
+  const goToPageIndex = (pageIndex: number) => {
+    if (pageIndex === activePage) return;
+    if (pageIndex === nextPage) {
+      slideTo("next");
+      return;
+    }
+    if (pageIndex === previousPage) {
+      slideTo("previous");
+      return;
+    }
+    setPage(pageIndex);
+  };
+
+  const renderJobsPage = (pageIndex: number, isCurrent: boolean, slot: string) => (
+    <div
+      key={`${slot}-${pageIndex}`}
+      aria-hidden={!isCurrent}
+      inert={!isCurrent ? true : undefined}
+      className="min-w-full"
+      onClickCapture={(event) => {
+        if (!isCurrent || shouldIgnoreClick()) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+      }}
+      onDragStartCapture={(event) => event.preventDefault()}
+    >
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {getPageJobs(pageIndex).map((job, index) => (
+          <div key={`${slot}-${job.id}-${index}`} className="min-w-0">
+            <JobCard job={job} />
+          </div>
+        ))}
+      </div>
+    </div>
   );
 
   return (
@@ -52,46 +120,53 @@ export function FeaturedJobs({ jobs }: FeaturedJobsProps) {
           </div>
           <Link
             href="/viec-lam"
-            className="hidden min-h-11 items-center gap-1 rounded-lg px-2 text-sm font-bold uppercase text-[var(--color-fdi-primary)] transition-colors hover:bg-[#EEF7FA] hover:text-[var(--color-fdi-primary-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-primary)]/25 sm:inline-flex cursor-pointer"
+            className="hidden min-h-11 cursor-pointer items-center gap-1 rounded-lg px-2 text-sm font-bold uppercase text-[var(--color-fdi-primary)] transition-colors hover:bg-[#EEF7FA] hover:text-[var(--color-fdi-primary-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-primary)]/25 sm:inline-flex"
           >
             Xem tất cả
             <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
 
-        <div>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {currentJobs.map((job) => (
-              <div key={job.id} className="min-w-0">
-                <JobCard job={job} />
-              </div>
-            ))}
+        {pageCount > 1 ? (
+          <div className="overflow-hidden">
+            <div
+              className={`flex touch-pan-y select-none ${dragPaused ? "cursor-grabbing" : "cursor-grab"}`}
+              style={trackStyle}
+              {...dragHandlers}
+            >
+              {renderJobsPage(previousPage, false, "previous")}
+              {renderJobsPage(activePage, true, "current")}
+              {renderJobsPage(nextPage, false, "next")}
+            </div>
           </div>
-        </div>
+        ) : (
+          renderJobsPage(activePage, true, "current")
+        )}
 
-        {totalPages > 1 && (
+        {pageCount > 1 ? (
           <div className="mt-4 flex items-center justify-center gap-3">
             <button
-              onClick={() => setPage((p) => Math.max(0, p - 1))}
-              disabled={page === 0}
-              className="flex h-11 w-11 items-center justify-center rounded-lg border border-[#D9E4EA] bg-[#FFFFFB] text-[var(--color-fdi-text)] transition-colors hover:border-[var(--color-fdi-primary)] hover:bg-[#EEF7FA] hover:text-[var(--color-fdi-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-primary)]/25 cursor-pointer disabled:cursor-not-allowed disabled:opacity-30"
-              aria-label="Trang trước"
+              type="button"
+              onClick={() => slideTo("previous")}
+              className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-lg border border-[#D9E4EA] bg-[#FFFFFB] text-[var(--color-fdi-text)] transition-colors hover:border-[var(--color-fdi-primary)] hover:bg-[#EEF7FA] hover:text-[var(--color-fdi-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-primary)]/25"
+              aria-label="Việc làm trước"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
 
             <div className="flex items-center gap-1">
-              {Array.from({ length: totalPages }).map((_, i) => (
+              {Array.from({ length: pageCount }).map((_, index) => (
                 <button
-                  key={i}
-                  onClick={() => setPage(i)}
-                  className="flex h-11 w-11 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-primary)]/25 cursor-pointer"
-                  aria-label={`Trang ${i + 1}`}
+                  key={index}
+                  type="button"
+                  onClick={() => goToPageIndex(index)}
+                  className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-primary)]/25"
+                  aria-label={`Trang việc làm ${index + 1}`}
+                  aria-current={index === activePage}
                 >
                   <span
-                    className={`h-2.5 rounded-full transition-[background-color,width] ${i === page
-                      ? "w-6 bg-[var(--color-fdi-primary)]"
-                      : "w-2.5 bg-[#CBD5DC] hover:bg-[#AEBAC4]"
+                    className={`h-2.5 rounded-full transition-[background-color,width] ${
+                      index === activePage ? "w-6 bg-[var(--color-fdi-primary)]" : "w-2.5 bg-[#CBD5DC] hover:bg-[#AEBAC4]"
                     }`}
                   />
                 </button>
@@ -99,20 +174,20 @@ export function FeaturedJobs({ jobs }: FeaturedJobsProps) {
             </div>
 
             <button
-              onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
-              disabled={page === totalPages - 1}
-              className="flex h-11 w-11 items-center justify-center rounded-lg border border-[#D9E4EA] bg-[#FFFFFB] text-[var(--color-fdi-text)] transition-colors hover:border-[var(--color-fdi-primary)] hover:bg-[#EEF7FA] hover:text-[var(--color-fdi-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-primary)]/25 cursor-pointer disabled:cursor-not-allowed disabled:opacity-30"
-              aria-label="Trang sau"
+              type="button"
+              onClick={() => slideTo("next")}
+              className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-lg border border-[#D9E4EA] bg-[#FFFFFB] text-[var(--color-fdi-text)] transition-colors hover:border-[var(--color-fdi-primary)] hover:bg-[#EEF7FA] hover:text-[var(--color-fdi-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-primary)]/25"
+              aria-label="Việc làm tiếp theo"
             >
               <ChevronRight className="h-4 w-4" />
             </button>
           </div>
-        )}
+        ) : null}
 
         <div className="mt-8 text-center sm:hidden">
           <Link
             href="/viec-lam"
-            className="inline-flex min-h-11 items-center gap-1 rounded-lg bg-[var(--color-fdi-primary)] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[var(--color-fdi-primary-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-primary)]/25 cursor-pointer"
+            className="inline-flex min-h-11 cursor-pointer items-center gap-1 rounded-lg bg-[var(--color-fdi-primary)] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[var(--color-fdi-primary-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-primary)]/25"
           >
             Xem tất cả việc làm
             <ArrowRight className="h-4 w-4" />

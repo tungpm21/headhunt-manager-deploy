@@ -139,6 +139,11 @@ body {
   animation: fdi-slide-in-left 420ms var(--ease-fdi) both;
 }
 
+body:has(#home-hero) [data-header-search],
+body:has(#home-hero) [data-mobile-search-link] {
+  display: none !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

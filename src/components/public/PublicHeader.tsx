@@ -175,6 +175,7 @@ export function PublicHeader() {
         {/* Header search with inline dropdown */}
         <div
           ref={searchContainerRef}
+          data-header-search
           className={
             isHomePage
               ? "relative mx-auto hidden min-w-[220px] max-w-sm flex-1 xl:max-w-md"
@@ -307,6 +308,7 @@ export function PublicHeader() {
 
         <Link
           href="/viec-lam"
+          data-mobile-search-link
           className={`${isHomePage ? "hidden" : "ml-auto inline-flex"} min-h-11 items-center gap-1.5 rounded-lg border border-gray-200 px-3 text-sm font-semibold text-[var(--color-fdi-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-fdi-accent-orange)]/40 md:hidden`}
         >
           <Search className="h-4 w-4" aria-hidden="true" />
